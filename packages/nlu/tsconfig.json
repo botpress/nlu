@@ -6,4 +6,7 @@
     "outDir": "./dist",
     "typeRoots": ["./bp-typings", "./node-modules/@types"],
   },
+  "exclude": [
+    "**/**/*.test.(ts|js)"
+  ]
 }

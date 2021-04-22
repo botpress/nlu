@@ -1,4 +1,7 @@
-export type MockObject<T> = { T: T } & { readonly [key in keyof T]: jest.Mock }
+type Mock = any
+const jest = { fn: () => {} }
+
+export type MockObject<T> = { T: T } & { readonly [key in keyof T]: Mock }
 
 export function createSpyObject<T>(): MockObject<T> {
   const obj = {}
