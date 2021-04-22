@@ -1,4 +1,3 @@
-import { DirectoryListingOptions, ListenHandle, Logger, UpsertOptions } from 'botpress-sdk'
 import bytes from 'bytes'
 import { diffLines } from 'diff'
 import { EventEmitter2 } from 'eventemitter2'
@@ -13,6 +12,7 @@ import tmp from 'tmp'
 import { VError } from 'verror'
 
 import { FileRevision, PendingRevisions, ReplaceContent, ServerWidePendingRevisions, StorageDriver } from '.'
+import { DirectoryListingOptions, ListenHandle, Logger, UpsertOptions } from '../typings'
 import { DBStorageDriver } from './db-driver'
 import { DiskStorageDriver } from './disk-driver'
 import { ObjectCache } from './memory-cache'

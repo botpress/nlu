@@ -1,8 +1,8 @@
-import * as sdk from 'botpress-sdk'
 import { readFileSync, writeFileSync } from 'fs'
 import _ from 'lodash'
 import path from 'path'
 import tmp from 'tmp'
+import { MLToolkit } from '../../../ml/typings'
 import { Predictors } from '../predict-pipeline'
 import { Tools } from '../typings'
 
@@ -10,10 +10,10 @@ const PRETRAINED_LID_176 = path.join(process.APP_DATA_PATH, './pre-trained/lid.1
 const NA_LANG = 'n/a'
 
 class FastTextLanguageId {
-  private static model: sdk.MLToolkit.FastText.Model
-  private static toolkit: typeof sdk.MLToolkit
+  private static model: MLToolkit.FastText.Model
+  private static toolkit: typeof MLToolkit
 
-  constructor(toolkit: typeof sdk.MLToolkit) {
+  constructor(toolkit: typeof MLToolkit) {
     FastTextLanguageId.toolkit = toolkit
   }
 
@@ -26,7 +26,7 @@ class FastTextLanguageId {
     FastTextLanguageId.model = ft
   }
 
-  async identify(text: string): Promise<sdk.MLToolkit.FastText.PredictResult[]> {
+  async identify(text: string): Promise<MLToolkit.FastText.PredictResult[]> {
     if (!FastTextLanguageId.model) {
       await FastTextLanguageId.initializeModel()
     }

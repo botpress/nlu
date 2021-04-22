@@ -1,4 +1,5 @@
-import { MLToolkit } from 'botpress-sdk'
+import { MLToolkit } from "../../ml/typings";
+
 import _ from 'lodash'
 import {
   EntityPrediction,

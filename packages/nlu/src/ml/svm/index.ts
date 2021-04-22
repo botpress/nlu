@@ -1,5 +1,5 @@
-import * as sdk from 'botpress-sdk'
 import _ from 'lodash'
+import { MLToolkit } from '../typings'
 
 import { getMinKFold } from './grid-search/split-dataset'
 import { SVM } from './svm'
@@ -9,7 +9,7 @@ type Serialized = SvmModel & {
   labels_idx: string[]
 }
 
-export class Trainer implements sdk.MLToolkit.SVM.Trainer {
+export class Trainer implements MLToolkit.SVM.Trainer {
   private model?: SvmModel
   private svm?: SVM
 
@@ -20,9 +20,9 @@ export class Trainer implements sdk.MLToolkit.SVM.Trainer {
   }
 
   async train(
-    points: sdk.MLToolkit.SVM.DataPoint[],
-    options?: sdk.MLToolkit.SVM.SVMOptions,
-    callback?: sdk.MLToolkit.SVM.TrainProgressCallback | undefined
+    points: MLToolkit.SVM.DataPoint[],
+    options?: MLToolkit.SVM.SVMOptions,
+    callback?: MLToolkit.SVM.TrainProgressCallback | undefined
   ): Promise<string> {
     const vectorsLengths = _(points)
       .map(p => p.coordinates.length)
@@ -76,13 +76,13 @@ export class Trainer implements sdk.MLToolkit.SVM.Trainer {
     return !!this.model
   }
 
-  private _extractSeed(options?: sdk.MLToolkit.SVM.SVMOptions): number {
+  private _extractSeed(options?: MLToolkit.SVM.SVMOptions): number {
     const seed = options?.seed
     return seed ?? Math.round(Math.random() * 10000)
   }
 }
 
-export class Predictor implements sdk.MLToolkit.SVM.Predictor {
+export class Predictor implements MLToolkit.SVM.Predictor {
   private clf: SVM | undefined
   private labels: string[]
   private parameters: Parameters | undefined
@@ -118,7 +118,7 @@ export class Predictor implements sdk.MLToolkit.SVM.Predictor {
     return this.labels[idx]
   }
 
-  async predict(coordinates: number[]): Promise<sdk.MLToolkit.SVM.Prediction[]> {
+  async predict(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
     if (this.parameters?.probability) {
       return this._predictProb(coordinates)
     } else {
@@ -126,7 +126,7 @@ export class Predictor implements sdk.MLToolkit.SVM.Predictor {
     }
   }
 
-  private async _predictProb(coordinates: number[]): Promise<sdk.MLToolkit.SVM.Prediction[]> {
+  private async _predictProb(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
     const results = await (this.clf as SVM).predictProbabilities(coordinates)
     const reducedResults = _.reduce(
       Object.keys(results),
@@ -145,7 +145,7 @@ export class Predictor implements sdk.MLToolkit.SVM.Predictor {
     )
   }
 
-  private async _predictOne(coordinates: number[]): Promise<sdk.MLToolkit.SVM.Prediction[]> {
+  private async _predictOne(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
     // might simply use oneclass instead
     const results = await (this.clf as SVM).predict(coordinates)
     return [

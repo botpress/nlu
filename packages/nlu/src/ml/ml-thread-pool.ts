@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import os from 'os'
-import * as sdk from 'botpress-sdk'
 
 import { deserializeError, ErrorMessage } from '../utils/error-utils'
 import { MLThreadScheduler } from './ml-thread-scheduler'
+import { MLToolkit } from './typings'
 
 type MsgType =
   | 'svm_train'
@@ -19,8 +19,8 @@ type Payload = Partial<{
   progress: number
   result: string
   error: ErrorMessage
-  points: (sdk.MLToolkit.SVM.DataPoint | sdk.MLToolkit.CRF.DataPoint)[]
-  options: sdk.MLToolkit.SVM.SVMOptions | sdk.MLToolkit.CRF.TrainerOptions | undefined
+  points: (MLToolkit.SVM.DataPoint | MLToolkit.CRF.DataPoint)[]
+  options: MLToolkit.SVM.SVMOptions | MLToolkit.CRF.TrainerOptions | undefined
 }>
 
 export interface Message {
@@ -40,9 +40,9 @@ export class MLThreadPool {
 
   public async startSvmTraining(
     trainingId: string,
-    points: sdk.MLToolkit.SVM.DataPoint[],
-    options: sdk.MLToolkit.SVM.SVMOptions | undefined,
-    progress: sdk.MLToolkit.SVM.TrainProgressCallback | undefined,
+    points: MLToolkit.SVM.DataPoint[],
+    options: MLToolkit.SVM.SVMOptions | undefined,
+    progress: MLToolkit.SVM.TrainProgressCallback | undefined,
     complete: (model: string) => void,
     error: (error: Error) => void
   ) {
@@ -52,8 +52,8 @@ export class MLThreadPool {
   // TODO: maybe CRF training should have its own dedicated ml thread
   public async startCrfTraining(
     trainingId: string,
-    points: sdk.MLToolkit.CRF.DataPoint[],
-    options: sdk.MLToolkit.CRF.TrainerOptions,
+    points: MLToolkit.CRF.DataPoint[],
+    options: MLToolkit.CRF.TrainerOptions,
     progress: ((iteration: number) => void) | undefined,
     complete: (modelFilePath: string) => void,
     error: (error: Error) => void
@@ -64,9 +64,9 @@ export class MLThreadPool {
   private async startTraining(
     trainingType: 'svm' | 'crf',
     trainingId: string,
-    points: sdk.MLToolkit.SVM.DataPoint[] | sdk.MLToolkit.CRF.DataPoint[],
-    options: sdk.MLToolkit.SVM.SVMOptions | sdk.MLToolkit.CRF.TrainerOptions | undefined,
-    progress: sdk.MLToolkit.SVM.TrainProgressCallback | sdk.MLToolkit.CRF.TrainProgressCallback | undefined,
+    points: MLToolkit.SVM.DataPoint[] | MLToolkit.CRF.DataPoint[],
+    options: MLToolkit.SVM.SVMOptions | MLToolkit.CRF.TrainerOptions | undefined,
+    progress: MLToolkit.SVM.TrainProgressCallback | MLToolkit.CRF.TrainProgressCallback | undefined,
     complete: (model: string) => void,
     error: (error: Error) => void
   ) {

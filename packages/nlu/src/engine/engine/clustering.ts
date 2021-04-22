@@ -1,13 +1,13 @@
-import * as sdk from 'botpress-sdk'
 import _ from 'lodash'
 import nearestVector from 'ml-nearest-vector'
+import { MLToolkit } from '../../ml/typings'
 
 import { euclideanDistanceSquared } from './tools/math'
 import { Intent, SerializedKmeansResult, Tools } from './typings'
 import Utterance, { UtteranceToken } from './utterance/utterance'
 
 const NUM_CLUSTERS = 8
-const KMEANS_OPTIONS = <sdk.MLToolkit.KMeans.KMeansOptions>{
+const KMEANS_OPTIONS = <MLToolkit.KMeans.KMeansOptions>{
   iterations: 250,
   initialization: 'random',
   seed: 666, // so training is consistent
@@ -19,7 +19,7 @@ const NONE_INTENT = 'none'
 export const computeKmeans = (
   intents: Intent<Utterance>[],
   tools: Tools
-): sdk.MLToolkit.KMeans.KmeansResult | undefined => {
+): MLToolkit.KMeans.KmeansResult | undefined => {
   const data = _.chain(intents)
     .filter(i => i.name !== NONE_INTENT)
     .flatMap(i => i.utterances)
@@ -37,14 +37,14 @@ export const computeKmeans = (
   return tools.mlToolkit.KMeans.kmeans(data, k, KMEANS_OPTIONS)
 }
 
-export const serializeKmeans = (kmeans: sdk.MLToolkit.KMeans.KmeansResult): SerializedKmeansResult => {
+export const serializeKmeans = (kmeans: MLToolkit.KMeans.KmeansResult): SerializedKmeansResult => {
   const { centroids, clusters, iterations } = kmeans
   return { centroids, clusters, iterations }
 }
 
-export const deserializeKmeans = (kmeans: SerializedKmeansResult): sdk.MLToolkit.KMeans.KmeansResult => {
+export const deserializeKmeans = (kmeans: SerializedKmeansResult): MLToolkit.KMeans.KmeansResult => {
   const { centroids, clusters, iterations } = kmeans
-  const thisNearest = (data: sdk.MLToolkit.KMeans.DataPoint[]) => {
+  const thisNearest = (data: MLToolkit.KMeans.DataPoint[]) => {
     return nearest(kmeans, data)
   }
   return { centroids, clusters, iterations, nearest: thisNearest }
@@ -53,7 +53,7 @@ export const deserializeKmeans = (kmeans: SerializedKmeansResult): sdk.MLToolkit
 /**
  * Copied from https://github.com/mljs/kmeans/blob/master/src/utils.js
  */
-export const nearest = (kmeans: SerializedKmeansResult, data: sdk.MLToolkit.KMeans.DataPoint[]) => {
+export const nearest = (kmeans: SerializedKmeansResult, data: MLToolkit.KMeans.DataPoint[]) => {
   const clusterID: number[] = new Array(data.length)
   const centroids = kmeans.centroids.map(c => c.centroid)
 

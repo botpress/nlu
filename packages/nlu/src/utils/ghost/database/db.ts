@@ -1,8 +1,8 @@
-import { KnexExtended, Logger } from 'botpress-sdk'
 import { mkdirpSync } from 'fs-extra'
 import Knex from 'knex'
 import _ from 'lodash'
 import path from 'path'
+import { KnexExtended, Logger } from '../../typings'
 import { patchKnex } from './helpers'
 
 import AllTables, { Table } from './tables'

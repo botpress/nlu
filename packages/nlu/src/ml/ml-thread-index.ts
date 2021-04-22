@@ -4,13 +4,13 @@ import '../worker-before'
 import '../rewire'
 
 // eslint-disable-next-line import/order
-import * as sdk from 'botpress-sdk'
 import { parentPort } from 'worker_threads'
 
 import { serializeError } from '../utils/error-utils'
 import { Trainer as CrfTrainer } from './crf'
 import { Message } from './ml-thread-pool'
 import { Trainer as SvmTrainer } from './svm'
+import { MLToolkit } from './typings'
 
 // Debugging currently not possible in this file and beyond...
 
@@ -29,8 +29,8 @@ async function messageHandler(msg: Message) {
 
       const trainer = new SvmTrainer()
       const result = await trainer.train(
-        points as sdk.MLToolkit.SVM.DataPoint[],
-        options as sdk.MLToolkit.SVM.SVMOptions,
+        points as MLToolkit.SVM.DataPoint[],
+        options as MLToolkit.SVM.SVMOptions,
         progressCb
       )
       const response: Message = { type: 'svm_done', id: msg.id, payload: { result } }
@@ -52,8 +52,8 @@ async function messageHandler(msg: Message) {
     try {
       const trainer = new CrfTrainer()
       const result = await trainer.train(
-        points as sdk.MLToolkit.CRF.DataPoint[],
-        options as sdk.MLToolkit.CRF.TrainerOptions,
+        points as MLToolkit.CRF.DataPoint[],
+        options as MLToolkit.CRF.TrainerOptions,
         progressCb
       )
       const response: Message = { type: 'crf_done', id: msg.id, payload: { result } }

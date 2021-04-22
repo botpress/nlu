@@ -1,4 +1,4 @@
-import * as sdk from 'botpress-sdk'
+import MLToolkit from '../../../ml/toolkit'
 import { tokenizeLatinTextForTests } from '../test-utils/fake-tools'
 
 import { isSpace } from '../tools/token-utils'
@@ -18,7 +18,7 @@ describe('POS Tagger', () => {
   })
 
   test('Get tagger returns FB tagger for other languages than english', () => {
-    const tagger = getPOSTagger('de', {} as typeof sdk.MLToolkit)
+    const tagger = getPOSTagger('de', {} as typeof MLToolkit)
     expect(tagger).toEqual(fallbackTagger)
   })
 

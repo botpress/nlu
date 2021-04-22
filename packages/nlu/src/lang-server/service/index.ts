@@ -1,4 +1,3 @@
-import { MLToolkit } from 'botpress-sdk'
 import bytes from 'bytes'
 import fs from 'fs'
 import _ from 'lodash'
@@ -10,6 +9,7 @@ import process from 'process'
 import { VError } from 'verror'
 
 import toolkit from '../../ml/toolkit'
+import { MLToolkit } from '../../ml/typings'
 import Logger from '../../utils/simple-logger'
 
 import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet } from './typing'

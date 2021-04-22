@@ -1,5 +1,5 @@
-import * as sdk from 'botpress-sdk'
 import path from 'path'
+import { MLToolkit } from '../../../ml/typings'
 
 import { isSpace, SPACE } from '../tools/token-utils'
 
@@ -88,7 +88,7 @@ function wordFeatures(seq: string[], idx: number): string[] {
     })
 }
 
-export const fallbackTagger: sdk.MLToolkit.CRF.Tagger = {
+export const fallbackTagger: MLToolkit.CRF.Tagger = {
   tag: seq => ({ probability: 1, result: new Array(seq.length).fill('N/A') }),
   open: f => false,
   marginal: seq => new Array(seq.length).fill({ 'N/A': 1 })
@@ -96,9 +96,9 @@ export const fallbackTagger: sdk.MLToolkit.CRF.Tagger = {
 
 // eventually this will be moved in language provider
 // POS tagging will reside language server once we support more than english
-const taggersByLang: { [lang: string]: sdk.MLToolkit.CRF.Tagger } = {}
+const taggersByLang: { [lang: string]: MLToolkit.CRF.Tagger } = {}
 
-export function getPOSTagger(languageCode: string, toolkit: typeof sdk.MLToolkit): sdk.MLToolkit.CRF.Tagger {
+export function getPOSTagger(languageCode: string, toolkit: typeof MLToolkit): MLToolkit.CRF.Tagger {
   if (!isPOSAvailable(languageCode)) {
     return fallbackTagger
   }
@@ -112,7 +112,7 @@ export function getPOSTagger(languageCode: string, toolkit: typeof sdk.MLToolkit
   return taggersByLang[languageCode]
 }
 
-export function tagSentence(tagger: sdk.MLToolkit.CRF.Tagger, tokens: string[]): POSClass[] {
+export function tagSentence(tagger: MLToolkit.CRF.Tagger, tokens: string[]): POSClass[] {
   const [words, spaceIdx] = tokens.reduce(
     ([words, spaceIdx], token, idx) => {
       if (isSpace(token)) {

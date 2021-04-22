@@ -1,9 +1,10 @@
-import * as sdk from 'botpress-sdk'
 import chalk from 'chalk'
 import _ from 'lodash'
 import moment from 'moment'
 import os from 'os'
 import util from 'util'
+
+import { Logger as ILogger } from '../typings'
 import { LoggerLevel, LogLevel } from './enums'
 
 function _serializeArgs(args: any): string {
@@ -25,7 +26,7 @@ export const centerText = (text: string, width: number, indent: number = 0) => {
   return _.repeat(' ', padding + indent) + text + _.repeat(' ', padding)
 }
 
-export default class Logger implements sdk.Logger {
+export default class Logger implements ILogger {
   private attachedError: Error | undefined
   public readonly displayLevel: number
   private currentMessageLevel: LogLevel | undefined
@@ -40,10 +41,6 @@ export default class Logger implements sdk.Logger {
   }
 
   forBot(botId: string): this {
-    return this
-  }
-
-  attachEvent(event: sdk.IO.Event): this {
     return this
   }
 

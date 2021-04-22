@@ -1,5 +1,5 @@
-import * as sdk from 'botpress-sdk'
 import _ from 'lodash'
+import { MLToolkit } from '../../ml/typings'
 import { Logger } from '../typings'
 
 import { serializeKmeans } from './clustering'
@@ -52,7 +52,7 @@ export type TrainStep = Readonly<{
   intents: Intent<Utterance>[]
   vocabVectors: Token2Vec
   tfIdf?: TFIDF
-  kmeans?: sdk.MLToolkit.KMeans.KmeansResult
+  kmeans?: MLToolkit.KMeans.KmeansResult
   ctxToTrain: string[]
 }>
 
@@ -78,7 +78,7 @@ const KMEANS_OPTIONS = {
   iterations: 250,
   initialization: 'random',
   seed: 666 // so training is consistent
-} as sdk.MLToolkit.KMeans.KMeansOptions
+} as MLToolkit.KMeans.KMeansOptions
 
 async function PreprocessInput(input: TrainInput, tools: Tools): Promise<TrainStep> {
   input = _.cloneDeep(input)
@@ -128,7 +128,7 @@ async function makeListEntityModel(entity: ListEntityWithCache, languageCode: st
   }
 }
 
-function computeKmeans(intents: Intent<Utterance>[], tools: Tools): sdk.MLToolkit.KMeans.KmeansResult | undefined {
+function computeKmeans(intents: Intent<Utterance>[], tools: Tools): MLToolkit.KMeans.KmeansResult | undefined {
   const data = _.chain(intents)
     .flatMap(i => i.utterances)
     .flatMap(u => u.tokens)

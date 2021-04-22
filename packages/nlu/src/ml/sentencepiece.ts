@@ -1,6 +1,6 @@
-import * as sdk from 'botpress-sdk'
+import {MLToolkit} from "./typings"
 
 const sp = require('./sentencepiece.node')
-export const processor: () => sdk.MLToolkit.SentencePiece.Processor = () => {
+export const processor: () => MLToolkit.SentencePiece.Processor = () => {
   return new sp.Processor()
 }

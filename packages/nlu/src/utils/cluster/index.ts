@@ -1,10 +1,10 @@
-import sdk from 'botpress-sdk'
 import cluster, { Worker } from 'cluster'
 import _ from 'lodash'
 import nanoid from 'nanoid/generate'
 import DEBUG from '../../utils/simple-logger/debug'
 import yn from 'yn'
 import { LanguageConfig } from '../../engine'
+import { Logger } from '../typings'
 
 export enum WORKER_TYPES {
   WEB = 'WEB_WORKER',
@@ -37,7 +37,7 @@ export const registerMsgHandler = (messageType: string, handler: (message: any, 
   msgHandlers[messageType] = handler
 }
 
-export const setupMasterNode = (logger: sdk.Logger) => {
+export const setupMasterNode = (logger: Logger) => {
   process.SERVER_ID = process.env.SERVER_ID || nanoid('1234567890abcdefghijklmnopqrstuvwxyz', 10)
 
   // Fix an issue with pkg when passing custom options for v8

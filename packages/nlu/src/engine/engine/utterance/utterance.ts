@@ -1,5 +1,5 @@
-import * as sdk from 'botpress-sdk'
 import _ from 'lodash'
+import { MLToolkit } from '../../../ml/typings'
 import { parseUtterance } from '../../../utils/utterance-parser'
 
 import { POSClass } from '../language/pos-tagger'
@@ -53,7 +53,7 @@ export default class Utterance {
   public entities: ReadonlyArray<UtteranceEntity> = []
   private _tokens: ReadonlyArray<UtteranceToken> = []
   private _globalTfidf?: TFIDF
-  private _kmeans?: sdk.MLToolkit.KMeans.KmeansResult
+  private _kmeans?: MLToolkit.KMeans.KmeansResult
   private _sentenceEmbedding?: number[]
 
   constructor(tokens: string[], vectors: number[][], posTags: POSClass[], public languageCode: Readonly<string>) {
@@ -164,7 +164,7 @@ export default class Utterance {
     this._globalTfidf = _.mapKeys(tfidf, (tfidf, token) => token.toLowerCase())
   }
 
-  setKmeans(kmeans?: sdk.MLToolkit.KMeans.KmeansResult) {
+  setKmeans(kmeans?: MLToolkit.KMeans.KmeansResult) {
     this._kmeans = kmeans
   }
 

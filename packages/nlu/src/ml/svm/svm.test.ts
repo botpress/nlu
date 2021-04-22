@@ -1,6 +1,5 @@
-import * as sdk from 'botpress-sdk'
-
 import { Predictor, Trainer } from '.'
+import { MLToolkit } from '../typings'
 
 const SEED = 42
 
@@ -12,7 +11,7 @@ const SEED = 42
 describe('SVM', () => {
   test('Trainer should work with basic problems', async () => {
     // prettier-ignore
-    const line: sdk.MLToolkit.SVM.DataPoint[] = [
+    const line: MLToolkit.SVM.DataPoint[] = [
       { coordinates: [0, 0], label: 'A' },
       { coordinates: [0, 1], label: 'A' },
       { coordinates: [1, 0], label: 'B' },
@@ -37,7 +36,7 @@ describe('SVM', () => {
 
   test('Trainer should throw when vectors have different lengths', async () => {
     // prettier-ignore
-    const line: sdk.MLToolkit.SVM.DataPoint[] = [
+    const line: MLToolkit.SVM.DataPoint[] = [
       { coordinates: [0, 0, 0], label: 'A' },
       { coordinates: [0, 1], label: 'A' },
       { coordinates: [1, 0], label: 'B' },

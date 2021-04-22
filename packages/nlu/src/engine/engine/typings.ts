@@ -1,7 +1,7 @@
 import { AxiosInstance } from 'axios'
 import _ from 'lodash'
-import sdk from 'botpress-sdk'
 import LRUCache from 'lru-cache'
+import { MLToolkit } from '../../ml/typings'
 
 import { Health, Specifications } from '../../typings_v1'
 import { LanguageSource } from '../typings'
@@ -138,7 +138,7 @@ export interface Tools {
   getSpecifications(): Specifications
 
   seededLodashProvider: SeededLodashProvider
-  mlToolkit: typeof sdk.MLToolkit
+  mlToolkit: typeof MLToolkit
   systemEntityExtractor: SystemEntityExtractor
 }
 
@@ -159,4 +159,4 @@ export type SlotDefinition = Readonly<{
   entities: string[]
 }>
 
-export type SerializedKmeansResult = Omit<sdk.MLToolkit.KMeans.KmeansResult, 'nearest'>
+export type SerializedKmeansResult = Omit<MLToolkit.KMeans.KmeansResult, 'nearest'>
