@@ -1,24 +1,13 @@
 {
-  "ts-node": {
-    "files": true
-  },
-  "compilerOptions": {
-    "declaration": true,
-    "sourceMap": true,
-    "strict": true,
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "target": "es2019",
-    "noImplicitAny": false,
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "outDir": "./out"
-  },
-  "exclude": [
-    "**/dist/",
-    "**/node_modules/**/*.(ts|js)"
+ "references": [
+    {
+      "path": "./packages/nlu"
+    }
   ],
-  "typeRoots": ["./node-modules/@types"],
+  "files": [],
+  "include": [],
+  "exclude": ["**/node_modules"],
+  "compilerOptions": {
+    "esModuleInterop": true,
+  }
 }

@@ -156,7 +156,6 @@
     "gulp-typedoc": "^2.2.1",
     "gulp-typescript": "^6.0.0-alpha.1",
     "husky": "^4.2.5",
-    "lint-staged": "^10.2.11",
     "pkg": "^4.3.7",
     "prettier": "^1.19.1",
     "puppeteer": "^2.0.0",
@@ -167,12 +166,17 @@
     "ts-node-dev": "^1.1.6",
     "typedoc": "^0.13.0",
     "typescript": "^3.9.7",
-    "typescript-json-schema": "^0.32.0"
+    "typescript-json-schema": "^0.32.0",
+    "@types/jest": "^26.0.22",
+    "jest": "^26.6.3",
+    "lint-staged": "^10.2.11",
+    "ts-jest": "^26.5.5"
   },
   "scripts": {
     "start": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions node ./dist/index.js",
-    "build": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions tsc",
+    "build": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions ../../node_modules/typescript/bin/tsc --build",
     "dev": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions ts-node-dev ./stan/index.ts",
-    "package": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions pkg package.json"
+    "package": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions pkg package.json",
+    "test": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions node_modules/.bin/jest -i --detectOpenHandles -c jest.config.js"
   }
 }

@@ -1,13 +1,12 @@
 {
   "name": "@botpress/nlu",
   "version": "1.0.0",
-  "private": true,
   "scripts": {
-    "dev": "cd packages/nlu && ts-node-dev ./index.ts",
-    "start": "cd packages/nlu && ts-node ./index.ts",
-    "build": "cd packages/nlu && tsc",
-    "test": "cd packages/nlu && cross-env NATIVE_EXTENSIONS_DIR=./build/native-extensions node_modules/.bin/jest -i --detectOpenHandles -c ./jest.config.js ."
+    "dev": "ts-node-dev ./packages/nlu/index.ts",
+    "start": "node ./packages/nlu/dist/index.js",
+    "build": "node ./node_modules/typescript/bin/tsc --build"
   },
+  "private": true,
   "workspaces": [
     "packages/*"
   ]

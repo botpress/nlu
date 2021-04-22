@@ -1,4 +1,4 @@
-import 'bluebird-global'
+import Bluebird from 'bluebird'
 import os from 'os'
 
 export class Distro implements OSDistribution {
@@ -39,7 +39,7 @@ export default async function(): Promise<typeof process.distro> {
   }
 
   const getos = require('getos')
-  const obj = (await Promise.fromCallback(getos)
+  const obj = (await Bluebird.fromCallback(getos)
     .timeout(1000)
     .catch(_err => ({
       os: os.platform(),
