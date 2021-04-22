@@ -14,7 +14,6 @@
     ],
     "outputPath": "./dist"
   },
-  "license": "MIT",
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.6",
     "@babel/parser": "^7.11.2",
@@ -102,11 +101,6 @@
     "yn": "^2.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.22",
-    "jest": "^24.9.0",
-    "jest-circus": "^24.9.0",
-    "jest-extended": "^0.11.4",
-    "ts-jest": "^24.3.0",
     "@commitlint/cli": "^7.2.1",
     "@commitlint/config-conventional": "^7.1.2",
     "@types/bluebird-global": "^3.5.9",
@@ -176,6 +170,9 @@
     "typescript-json-schema": "^0.32.0"
   },
   "scripts": {
-    "build": "tsc"
+    "start": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions node ./dist/index.js",
+    "build": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions tsc",
+    "dev": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions ts-node-dev ./stan/index.ts",
+    "package": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions pkg package.json"
   }
 }

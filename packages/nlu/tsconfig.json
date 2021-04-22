@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "rootDir": "./src",
-    "outDir": "./dist"
-  }
+    "outDir": "./dist",
+    "typeRoots": ["./bp-typings", "./node-modules/@types"],
+  },
 }

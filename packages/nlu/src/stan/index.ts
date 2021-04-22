@@ -3,6 +3,8 @@ import bytes from 'bytes'
 import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
+import cluster from 'cluster'
+import { setupMasterNode, WORKER_TYPES } from '../utils/cluster'
 import * as NLUEngine from '../engine'
 import { copyDir } from '../utils/pkg-fs'
 import Logger, { centerText } from '../utils/simple-logger'
@@ -71,6 +73,13 @@ const makeEngine = async (options: ArgV, logger: Logger) => {
 
 export default async function(options: ArgV) {
   const logger = new Logger('Launcher')
+  if (cluster.isMaster) {
+    setupMasterNode(logger)
+    return
+  } else if (cluster.isWorker && process.env.WORKER_TYPE !== WORKER_TYPES.WEB) {
+    return
+  }
+  
   const envConfig = readEnvJSONConfig()
   if (envConfig) {
     logger.info('Loading config from environment variables')

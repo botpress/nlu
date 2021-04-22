@@ -14,17 +14,12 @@
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "baseUrl": ".",
-    "outDir": "../../out/nlu",
-    "typeRoots": ["./bp-typings", "./node-modules/@types"],
-    "types": ["reflect-metadata", "jest"]
+    "outDir": "./out"
   },
   "exclude": [
-    "e2e/**",
-    "**/*.__test__.(ts|js)",
-    "../out",
+    "**/dist/",
     "**/node_modules/**/*.(ts|js)",
-    "**/static/**/*.(js|ts)",
-    "./out"
-  ]
+    "**/**/*.test.(ts|js)"
+  ],
+  "typeRoots": ["./node-modules/@types"],
 }
