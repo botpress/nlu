@@ -1,9 +1,17 @@
 {
   "extends": "../../tsconfig.packages.json",
+  "references": [
+    {
+      "path": "../node-svm"
+    }
+  ],
   "compilerOptions": {
-    "outDir": "./dist",                        /* Redirect output structure to the directory. */
-    "rootDir": "./src",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
-    "forceConsistentCasingInFileNames": true,  /* Disallow inconsistently-cased references to the same file. */
-    "types": ["jest", "node"]
+    "outDir": "./dist", /* Redirect output structure to the directory. */
+    "rootDir": "./src", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+    "forceConsistentCasingInFileNames": true, /* Disallow inconsistently-cased references to the same file. */
+    "types": [
+      "jest",
+      "node"
+    ]
   }
 }
