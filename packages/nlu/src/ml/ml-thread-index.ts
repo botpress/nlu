@@ -1,7 +1,5 @@
 // eslint-disable-next-line import/order
 import '../worker-before'
-// eslint-disable-next-line import/order
-import '../rewire'
 
 // eslint-disable-next-line import/order
 import { parentPort } from 'worker_threads'
