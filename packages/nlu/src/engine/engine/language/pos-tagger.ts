@@ -90,6 +90,7 @@ function wordFeatures(seq: string[], idx: number): string[] {
 
 export const fallbackTagger: MLToolkit.CRF.Tagger = {
   tag: seq => ({ probability: 1, result: new Array(seq.length).fill('N/A') }),
+  initialize: async () => {},
   open: f => false,
   marginal: seq => new Array(seq.length).fill({ 'N/A': 1 })
 }
@@ -98,13 +99,14 @@ export const fallbackTagger: MLToolkit.CRF.Tagger = {
 // POS tagging will reside language server once we support more than english
 const taggersByLang: { [lang: string]: MLToolkit.CRF.Tagger } = {}
 
-export function getPOSTagger(languageCode: string, toolkit: typeof MLToolkit): MLToolkit.CRF.Tagger {
+export async function getPOSTagger(languageCode: string, toolkit: typeof MLToolkit): Promise<MLToolkit.CRF.Tagger> {
   if (!isPOSAvailable(languageCode)) {
     return fallbackTagger
   }
 
   if (!taggersByLang[languageCode]) {
     const tagger = new toolkit.CRF.Tagger()
+    await tagger.initialize()
     tagger.open(getPretrainedModelFilePath(languageCode))
     taggersByLang[languageCode] = tagger
   }

@@ -285,7 +285,7 @@ export async function buildUtteranceBatch(
     language,
     vocab ?? []
   )
-  const POSUtterances = tools.partOfSpeechUtterances(tokenUtterances, language) as POSClass[][]
+  const POSUtterances = (await tools.partOfSpeechUtterances(tokenUtterances, language)) as POSClass[][]
   const uniqTokens = _.uniq(_.flatten(tokenUtterances))
   const vectors = await tools.vectorize_tokens(uniqTokens, language)
   const vectorMap = _.zipObject(uniqTokens, vectors)

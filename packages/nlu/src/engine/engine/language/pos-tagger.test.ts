@@ -17,8 +17,8 @@ describe('POS Tagger', () => {
     })
   })
 
-  test('Get tagger returns FB tagger for other languages than english', () => {
-    const tagger = getPOSTagger('de', {} as typeof MLToolkit)
+  test('Get tagger returns FB tagger for other languages than english', async () => {
+    const tagger = await getPOSTagger('de', {} as typeof MLToolkit)
     expect(tagger).toEqual(fallbackTagger)
   })
 

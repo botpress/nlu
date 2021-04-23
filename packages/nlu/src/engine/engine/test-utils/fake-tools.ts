@@ -41,7 +41,7 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
     return tokens.map(t => randomlyVectorize(t, dim))
   }
 
-  const partOfSpeechUtterances = (utterances: string[][], languageCode: string) => {
+  const partOfSpeechUtterances = async (utterances: string[][], languageCode: string) => {
     return utterances.map(randomlyPOSTag)
   }
 

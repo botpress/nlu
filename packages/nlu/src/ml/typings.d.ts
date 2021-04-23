@@ -132,6 +132,7 @@ export namespace MLToolkit {
 
   export namespace CRF {
     export class Tagger {
+      initialize(): Promise<void>
       tag(xseq: Array<string[]>): { probability: number; result: string[] }
       open(model_filename: string): boolean
       marginal(xseq: Array<string[]>): { [label: string]: number }[]
@@ -151,6 +152,7 @@ export namespace MLToolkit {
     }
 
     export class Trainer {
+      initialize(): Promise<void>
       train(elements: DataPoint[], options: TrainerOptions, progressCallback?: TrainProgressCallback): Promise<string>
     }
   }
