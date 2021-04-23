@@ -1,9 +1,9 @@
 import cluster, { Worker } from 'cluster'
 import _ from 'lodash'
 import nanoid from 'nanoid/generate'
-import DEBUG from '../../utils/simple-logger/debug'
 import yn from 'yn'
 import { LanguageConfig } from '../../engine'
+import DEBUG from '../../utils/simple-logger/debug'
 import { Logger } from '../typings'
 
 export enum WORKER_TYPES {

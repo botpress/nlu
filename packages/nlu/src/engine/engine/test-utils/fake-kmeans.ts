@@ -1,4 +1,4 @@
-import { MLToolkit } from "../../../ml/typings";
+import { MLToolkit } from '../../../ml/typings'
 
 export const fakeKmeans: typeof MLToolkit.KMeans = {
   kmeans: (data: MLToolkit.KMeans.DataPoint[], k: number, options: MLToolkit.KMeans.KMeansOptions) => {

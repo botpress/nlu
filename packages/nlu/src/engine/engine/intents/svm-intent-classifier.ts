@@ -1,6 +1,6 @@
-import { MLToolkit } from "../../../ml/typings";
 import Joi, { validate } from 'joi'
 import _ from 'lodash'
+import { MLToolkit } from '../../../ml/typings'
 import { ModelLoadingError } from '../../errors'
 import { Logger } from '../../typings'
 import { ListEntityModel, PatternEntity, Tools } from '../typings'

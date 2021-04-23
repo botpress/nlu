@@ -1,6 +1,6 @@
-import { MLToolkit } from "../../ml/typings";
-
 import _ from 'lodash'
+import { MLToolkit } from '../../ml/typings'
+
 import {
   EntityPrediction,
   SlotPrediction,

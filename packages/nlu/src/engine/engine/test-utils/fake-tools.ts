@@ -1,5 +1,5 @@
-import { MLToolkit } from "../../../ml/typings";
 import _ from 'lodash'
+import { MLToolkit } from '../../../ml/typings'
 import { POSClass, POS_CLASSES } from '../language/pos-tagger'
 import { SPACE, splitSpaceToken } from '../tools/token-utils'
 import { SystemEntityExtractor, Tools } from '../typings'

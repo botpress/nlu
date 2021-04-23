@@ -1,10 +1,12 @@
 {
   "name": "@botpress/nlu",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "scripts": {
     "dev": "ts-node-dev ./packages/nlu/index.ts",
     "start": "node ./packages/nlu/dist/index.js",
-    "build": "node ./node_modules/typescript/bin/tsc --build"
+    "build": "node ./node_modules/typescript/bin/tsc --build",
+    "pretty": "cross-env node ./node_modules/prettier/bin-prettier.js --check './packages/**/*.ts' '!**/*.d.ts'",
+    "eslint": "cross-env node_modules/.bin/eslint packages/ --ext .ts"
   },
   "private": true,
   "workspaces": [

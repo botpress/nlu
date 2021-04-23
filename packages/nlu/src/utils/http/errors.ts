@@ -8,7 +8,7 @@ import { escapeHtmlSimple } from './index'
  * @param statusCode - The HTTP status code
  * @param errorCode - Botpress error codes e.g. BP_0001, BP_0002, etc.
  */
- export class ResponseError extends Error {
+export class ResponseError extends Error {
   errorCode: string | undefined
   statusCode: number
 
@@ -33,7 +33,6 @@ export class StandardError extends ResponseError {
 
   type = 'StandardError'
 }
-
 
 export class InvalidOperationError extends ResponseError {
   constructor(message: string) {

@@ -1,11 +1,11 @@
 // eslint-disable-next-line import/order
 import bytes from 'bytes'
 import chalk from 'chalk'
+import cluster from 'cluster'
 import _ from 'lodash'
 import path from 'path'
-import cluster from 'cluster'
-import { setupMasterNode, WORKER_TYPES } from '../utils/cluster'
 import * as NLUEngine from '../engine'
+import { setupMasterNode, WORKER_TYPES } from '../utils/cluster'
 import { copyDir } from '../utils/pkg-fs'
 import Logger, { centerText } from '../utils/simple-logger'
 import API, { APIOptions } from './api'
@@ -79,7 +79,7 @@ export default async function(options: ArgV) {
   } else if (cluster.isWorker && process.env.WORKER_TYPE !== WORKER_TYPES.WEB) {
     return
   }
-  
+
   const envConfig = readEnvJSONConfig()
   if (envConfig) {
     logger.info('Loading config from environment variables')

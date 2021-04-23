@@ -1,4 +1,3 @@
-import {MLToolkit as IMLToolkit} from './typings'
 import cluster from 'cluster'
 import _ from 'lodash'
 import kmeans from 'ml-kmeans'
@@ -9,6 +8,7 @@ import { FastTextModel } from './fasttext'
 import { MLThreadPool } from './ml-thread-pool'
 import { processor } from './sentencepiece'
 import { Predictor, Trainer as SVMTrainer } from './svm'
+import { MLToolkit as IMLToolkit } from './typings'
 
 const MLToolkit: typeof IMLToolkit = {
   KMeans: {

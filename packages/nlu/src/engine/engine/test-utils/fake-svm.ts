@@ -1,5 +1,5 @@
-import { MLToolkit } from "../../../ml/typings";
 import _ from 'lodash'
+import { MLToolkit } from '../../../ml/typings'
 
 export class FakeSvmTrainer implements MLToolkit.SVM.Trainer {
   private _isTrained = false
