@@ -1,0 +1,136 @@
+{
+  "name": "A-train",
+  "type": "intent",
+  "lang": "fr",
+  "samples": [
+    {
+      "label": "bill-inquiry",
+      "text": "Je ne comprend pas quelque chose sur ma note"
+    },
+    { "label": "bill-inquiry", "text": "Mon relevé est faux" },
+    {
+      "label": "bill-inquiry",
+      "text": "Je veux avoir des clarifications à propos d'un prix sur mon relevé"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "J'ai des questions concernant ma note"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "Comment puis-je savoir ce pourquoi je paie?"
+    },
+    { "label": "bill-inquiry", "text": "Mon relevé mensuel est incorrect" },
+    { "label": "bill-inquiry", "text": "Mon relevé n'a aucun sens" },
+    {
+      "label": "bill-inquiry",
+      "text": "Que faire si j'ai une question à propos de ma note"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "Je voudrais voir les détails de mon relevé"
+    },
+    { "label": "bill-inquiry", "text": "Il y a une erreur sur mon relevé" },
+    { "label": "bill-inquiry", "text": "Ma note est incorrect" },
+    {
+      "label": "bill-inquiry",
+      "text": "J'ai besoin de conseils à propos de ma note"
+    },
+    { "label": "cancellation", "text": "Comment puis-je annuler mon contrat?" },
+    { "label": "cancellation", "text": "Je veux arrêter mon contrat" },
+    {
+      "label": "cancellation",
+      "text": "Comment puis-je annuler mon abonnement?"
+    },
+    {
+      "label": "cancellation",
+      "text": "Je veux terminer mon entente avec vous"
+    },
+    {
+      "label": "cancellation",
+      "text": "Est-ce possible de terminer mon contrat maintenant?"
+    },
+    { "label": "cancellation", "text": "Puis-je mettre fin à mon contrat?" },
+    { "label": "cancellation", "text": "Annuler le contrat" },
+    {
+      "label": "cancellation",
+      "text": "Comment puis-je mettre fin à mon contrat?"
+    },
+    { "label": "cancellation", "text": "Je veux que mon contrat se termine" },
+    {
+      "label": "cancellation",
+      "text": "Je besoin de mettre fin à mon contrat"
+    },
+    { "label": "cancellation", "text": "Terminer mon abonnement" },
+    {
+      "label": "cancellation",
+      "text": "Que faire si je veux mettre fin à mon contrat"
+    },
+    { "label": "contact-details", "text": "Quel est le numéro de contact?" },
+    { "label": "contact-details", "text": "Quel est votre numéro?" },
+    {
+      "label": "contact-details",
+      "text": "Pouvez-vous me donner votre numéro de téléphone?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Quel numéro devrais-je prendre pour vous rejoindre?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Quel est le numéro pour votre entreprise?"
+    },
+    {
+      "label": "contact-details",
+      "text": "S'il vous plait donnez moi votre numéro"
+    },
+    { "label": "contact-details", "text": "Numéro de contact" },
+    {
+      "label": "contact-details",
+      "text": "J'ai besoin de votre numéro pour être en contact"
+    },
+    {
+      "label": "contact-details",
+      "text": "J'ai besoin d'un numéro sur lequel je peux vous appeler"
+    },
+    {
+      "label": "contact-details",
+      "text": "Quel est le meilleur numéro pour vous rejoindre?"
+    },
+    {
+      "label": "contact-details",
+      "text": "J'ai besoin de votre numéro de téléphone"
+    },
+    {
+      "label": "contact-details",
+      "text": "S'il vous plait donnez moi votre numéro de ligne d'aide"
+    },
+    { "label": "problem", "text": "J'ai un problème" },
+    {
+      "label": "problem",
+      "text": "Quelque chose ne fonctionne pas comme il faut sur mon ordinateur"
+    },
+    { "label": "problem", "text": "J'ai un problème technique" },
+    { "label": "problem", "text": "J'ai un problème informatique" },
+    { "label": "problem", "text": "Il y a un problème technique" },
+    { "label": "problem", "text": "Mon ordinateur ne fonctionne pas" },
+    { "label": "problem", "text": "J'ai une erreur" },
+    {
+      "label": "problem",
+      "text": "Quelque chose ne fonctionne pas comme il faut"
+    },
+    {
+      "label": "problem",
+      "text": "Je fais l'expérience d'un problème technique"
+    },
+    {
+      "label": "problem",
+      "text": "Je ne peux pas continuer, j'ai un problème d'informatique"
+    },
+    { "label": "problem", "text": "J'ai besoin de support technique" },
+    {
+      "label": "problem",
+      "text": "Quelque chose ne tourne pas rond, ça ressemble à un problème technique"
+    }
+  ]
+}

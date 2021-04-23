@@ -1,0 +1,55 @@
+{
+  "name": "A-fewshot-train",
+  "type": "intent",
+  "lang": "en",
+  "samples": [
+    {
+      "label": "bill-inquiry",
+      "text": "I don't understand something on my bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I have questions regarding my invoice"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "My statement does not make sense"
+    },
+    {
+      "label": "cancellation",
+      "text": "How can I cancel my contract?"
+    },
+    {
+      "label": "cancellation",
+      "text": "I want to stop my contract"
+    },
+    {
+      "label": "cancellation",
+      "text": "I need to terminate my agreement with you"
+    },
+    {
+      "label": "contact-details",
+      "text": "What is the contact number?"
+    },
+    {
+      "label": "contact-details",
+      "text": "How to reach your help line?"
+    },
+    {
+      "label": "contact-details",
+      "text": "What are your contact informations"
+    },
+    {
+      "label": "problem",
+      "text": "I have a problem"
+    },
+    {
+      "label": "problem",
+      "text": "Something is not working right on my computer"
+    },
+    {
+      "label": "problem",
+      "text": "I've got a technical issue"
+    }
+  ]
+}
