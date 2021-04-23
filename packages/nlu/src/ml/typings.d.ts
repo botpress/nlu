@@ -164,6 +164,6 @@ export namespace MLToolkit {
       decode: (pieces: string[]) => string
     }
 
-    export const createProcessor: () => Processor
+    export const createProcessor: () => Promise<Processor>
   }
 }

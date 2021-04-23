@@ -1,6 +1,6 @@
+import { makeProcessor } from '@botpress/node-sentencepiece'
 import { MLToolkit } from './typings'
 
-const sp = require('./sentencepiece.node')
-export const processor: () => MLToolkit.SentencePiece.Processor = () => {
-  return new sp.Processor()
+export const processor: () => Promise<MLToolkit.SentencePiece.Processor> = () => {
+  return makeProcessor()
 }
