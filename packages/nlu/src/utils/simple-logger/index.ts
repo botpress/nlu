@@ -54,6 +54,7 @@ export default class Logger implements ILogger {
 
   critical(message: string, metadata?: any): void {}
 
+  // TODO: repair this
   attachError(error: Error): this {
     this.attachedError = error
     return this

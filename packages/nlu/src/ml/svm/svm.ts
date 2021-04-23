@@ -29,16 +29,17 @@ export class SVM {
   private _initialDimension: number = 0
   private _isCanceled: boolean = false
 
-  constructor(config: Partial<SvmConfig>, model?: SvmModel) {
+  constructor(config: Partial<SvmConfig>) {
     this._config = { ...checkConfig(defaultConfig(config)) }
-    if (model) {
-      this._restore(model)
-    }
   }
 
-  private _restore = (model: SvmModel) => {
+  initialize(model: SvmModel) {
+    return this._restore(model)
+  }
+
+  private _restore = async (model: SvmModel) => {
     const self = this
-    this._baseSvm = BaseSVM.restore(model)
+    this._baseSvm = await BaseSVM.restore(model)
     Object.entries(model.param).forEach(([key, val]) => {
       self._config[key] = val
     })

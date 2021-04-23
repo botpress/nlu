@@ -1,4 +1,33 @@
-import { GridSearchParameters, Model, OtherParameters, Parameters } from './addon/typings'
+export interface Model {
+  param: Parameters
+  nr_class: number
+  l: number
+  SV: number[][]
+  sv_coef: number[][]
+  rho: number[]
+  probA: number[]
+  probB: number[]
+  sv_indices: number[]
+  label: number[]
+  nSV: number[]
+  free_sv: number
+}
+
+export type GridSearchParameters = 'C' | 'gamma' | 'degree' | 'nu' | 'p' | 'coef0'
+
+export interface OtherParameters {
+  svm_type: number
+  kernel_type: number
+  cache_size: number
+  eps: number
+  nr_weight: number
+  weight_label: number[]
+  weight: number[]
+  shrinking: boolean
+  probability: boolean
+}
+
+export type Parameters = Record<GridSearchParameters, number> & OtherParameters
 
 interface LibConfig {
   kFold: number

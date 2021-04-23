@@ -1,12 +1,4 @@
-const addon = require('./node-svm.node')
-export default addon as BindingType
-
-type SvmCtor = new (args?: { random_seed: number }) => NSVM
-type HelloWorld = () => string
-interface BindingType {
-  NSVM: SvmCtor
-  hello: HelloWorld
-}
+export const makeSvm: (args?: { random_seed: number }) => Promise<NSVM>
 
 export interface NSVM {
   train(params: AugmentedParameters, x: number[][], y: number[]): void
@@ -45,16 +37,20 @@ interface AugmentedParameters extends Parameters {
   mute: number
 }
 
-export type GridSearchParameters = 'C' | 'gamma' | 'degree' | 'nu' | 'p' | 'coef0'
-export interface OtherParameters {
+export interface Parameters {
   svm_type: number
   kernel_type: number
+  degree: number
+  gamma: number
+  coef0: number
   cache_size: number
   eps: number
+  C: number
   nr_weight: number
   weight_label: number[]
   weight: number[]
+  nu: number
+  p: number
   shrinking: boolean
   probability: boolean
 }
-export type Parameters = Record<GridSearchParameters, number> & OtherParameters
