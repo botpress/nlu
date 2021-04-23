@@ -1,0 +1,231 @@
+{
+  "name": "E-train",
+  "lang": "en",
+  "type": "intent",
+  "samples": [
+    {
+      "text": "I don't understand something on my invoice",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "My statement is wrong",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "I want to get clarification about a charge on my statement",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "I have questions regarding my invoice",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "How can I figure out what I'm paying for?",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "My monthly invoice is incorrect",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "My statement does not make sense",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "What to do if I have an inquiry about my invoice?",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "I want to see the details of my statement",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "There is a mistake on my statement",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "My invoice is incorrect",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "I need advice regarding my statement",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "I think there is an error on my statement",
+      "label": "e-bill-inquiry"
+    },
+    {
+      "text": "I need to cancel my contract",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "I want to stop my contract",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "I want to terminate my account",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "How do I go about ending my contract?",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "What to do if I want to terminate my contract?",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "How can I discontinue this service?",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "I don't want to continue anymore",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "I'm no longer interested in this service",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "Can I discontinue this service now?",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "What should I do to cancel my contract?",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "I can't find the way to cancel this service",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "I have a problem cancelling",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "My cancellations is not working",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "I got an error trying to cancel",
+      "label": "e-cancellation"
+    },
+    {
+      "text": "What is the helpline as the system is not working?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "I need to speak to someone",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "Is it possible to speak to an operator?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "How do I call you?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "Is there any way to get assistance?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "Please give me your help line number",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "I need your phone number",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "What is the best number to reach you?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "I need a number I can call you on",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "I need your number to get in contact",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "contact number",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "Please give me your number",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "What is the number for your business?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "What number should I use to reach you?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "Can you give me your phone number?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "What is your number?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "What is the contact number?",
+      "label": "e-contact-details"
+    },
+    {
+      "text": "I have an IT issue",
+      "label": "e-problem"
+    },
+    {
+      "text": "There is a technical problem",
+      "label": "e-problem"
+    },
+    {
+      "text": "I got an error",
+      "label": "e-problem"
+    },
+    {
+      "text": "I'm not sure if the system is working correctly",
+      "label": "e-problem"
+    },
+    {
+      "text": "Something seems to be wrong with the system",
+      "label": "e-problem"
+    },
+    {
+      "text": "Is the system working fine?",
+      "label": "e-problem"
+    },
+    {
+      "text": "What should I do if I have technical problems?",
+      "label": "e-problem"
+    },
+    {
+      "text": "I've got a technical problem, how can I get support?",
+      "label": "e-problem"
+    },
+    {
+      "text": "How can I deal with an IT issue?",
+      "label": "e-problem"
+    },
+    {
+      "text": "I think I made an error on the system",
+      "label": "e-problem"
+    },
+    {
+      "text": "I did something wrong on the system",
+      "label": "e-problem"
+    },
+    {
+      "text": "My system is not working due to an error I made",
+      "label": "e-problem"
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "name": "H-test",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "flight",
+      "types": [
+        "flight-number"
+      ]
+    },
+    {
+      "name": "gun",
+      "types": [
+        "gun"
+      ]
+    }
+  ],
+  "enums": [],
+  "patterns": [],
+  "samples": [
+    {
+      "text": "Bring a WD-40 on my trip to tokyo HG-45",
+      "label": [
+        {
+          "name": "gun",
+          "start": 8,
+          "end": 13
+        },
+        {
+          "name": "flight",
+          "start": 34,
+          "end": 39
+        }
+      ]
+    },
+    {
+      "text": "I want to carry my PP-90 on my air canada RE-9856 flight ",
+      "label": [
+        {
+          "name": "gun",
+          "start": 19,
+          "end": 24
+        },
+        {
+          "name": "flight",
+          "start": 42,
+          "end": 49
+        }
+      ]
+    },
+    {
+      "text": "I want to carry my PP-90 on my air canada PP-90 flight ",
+      "label": [
+        {
+          "name": "gun",
+          "start": 19,
+          "end": 24
+        },
+        {
+          "name": "flight",
+          "start": 41,
+          "end": 47
+        }
+      ]
+    },
+    {
+      "text": "Is it possible to board the TR7856 flight with an UT-22 ? ",
+      "label": [
+        {
+          "name": "flight",
+          "start": 28,
+          "end": 34
+        },
+        {
+          "name": "gun",
+          "start": 50,
+          "end": 55
+        }
+      ]
+    },
+    {
+      "text": "I want to bring my DF-78 on the air france FR8956 flight to Tokyo",
+      "label": [
+        {
+          "name": "gun",
+          "start": 19,
+          "end": 24
+        },
+        {
+          "name": "flight",
+          "start": 43,
+          "end": 49
+        }
+      ]
+    },
+    {
+      "text": "I can't go on KH-4571 with a JH-03",
+      "label": [
+        {
+          "name": "flight",
+          "start": 14,
+          "end": 21
+        },
+        {
+          "name": "gun",
+          "start": 29,
+          "end": 34
+        }
+      ]
+    },
+    {
+      "text": "I have one TY-89 that I want to take on the flight AF-879",
+      "label": [
+        {
+          "name": "gun",
+          "start": 11,
+          "end": 16
+        },
+        {
+          "name": "flight",
+          "start": 51,
+          "end": 57
+        }
+      ]
+    }
+  ]
+}

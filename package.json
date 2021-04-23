@@ -6,7 +6,8 @@
     "start": "node ./packages/nlu/dist/index.js",
     "build": "node ./node_modules/typescript/bin/tsc --build",
     "pretty": "cross-env node ./node_modules/prettier/bin-prettier.js --check './packages/**/*.ts' '!**/*.d.ts'",
-    "eslint": "cross-env node_modules/.bin/eslint packages/ --ext .ts"
+    "eslint": "cross-env node_modules/.bin/eslint packages/ --ext .ts",
+    "e2e": "node ./packages/regression"
   },
   "private": true,
   "workspaces": [

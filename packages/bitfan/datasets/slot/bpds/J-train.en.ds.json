@@ -1,0 +1,203 @@
+{
+  "name": "J-train",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "fruit_to_eat",
+      "types": [
+        "fruit"
+      ]
+    }
+  ],
+  "enums": [
+    {
+      "name": "fruit",
+      "values": [
+        {
+          "name": "apples",
+          "synonyms": []
+        },
+        {
+          "name": "banana",
+          "synonyms": []
+        },
+        {
+          "name": "orange",
+          "synonyms": []
+        },
+        {
+          "name": "apricot",
+          "synonyms": []
+        },
+        {
+          "name": "blackberry",
+          "synonyms": []
+        },
+        {
+          "name": "blueberry",
+          "synonyms": []
+        },
+        {
+          "name": "strawberry",
+          "synonyms": []
+        },
+        {
+          "name": "cherry",
+          "synonyms": [
+            "cherries"
+          ]
+        },
+        {
+          "name": "coconut",
+          "synonyms": []
+        },
+        {
+          "name": "date",
+          "synonyms": []
+        },
+        {
+          "name": "grape",
+          "synonyms": []
+        },
+        {
+          "name": "kiwi",
+          "synonyms": []
+        },
+        {
+          "name": "mango",
+          "synonyms": []
+        },
+        {
+          "name": "melon",
+          "synonyms": [
+            "Galia melon"
+          ]
+        },
+        {
+          "name": "nectarine",
+          "synonyms": []
+        },
+        {
+          "name": "pineapple",
+          "synonyms": []
+        },
+        {
+          "name": "peach",
+          "synonyms": []
+        },
+        {
+          "name": "passion fruit",
+          "synonyms": []
+        },
+        {
+          "name": "papaya",
+          "synonyms": []
+        },
+        {
+          "name": "Bell pepper",
+          "synonyms": [
+            "Chile pepper"
+          ]
+        },
+        {
+          "name": "Purple mangosteen",
+          "synonyms": []
+        },
+        {
+          "name": "Japanese plum",
+          "synonyms": []
+        },
+        {
+          "name": "Black sapote",
+          "synonyms": []
+        },
+        {
+          "name": "Chico fruit",
+          "synonyms": []
+        },
+        {
+          "name": "Goji berry",
+          "synonyms": []
+        },
+        {
+          "name": "tesguino",
+          "synonyms": []
+        }
+      ]
+    }
+  ],
+  "patterns": [],
+  "samples": [
+    {
+      "text": "I really want to eat my grape",
+      "label": [
+        {
+          "name": "fruit_to_eat",
+          "start": 24,
+          "end": 29
+        }
+      ]
+    },
+    {
+      "text": "A chile pepper is what i want to eat",
+      "label": [
+        {
+          "name": "fruit_to_eat",
+          "start": 2,
+          "end": 14
+        }
+      ]
+    },
+    {
+      "text": "I can't resist this big apple",
+      "label": [
+        {
+          "name": "fruit_to_eat",
+          "start": 24,
+          "end": 29
+        }
+      ]
+    },
+    {
+      "text": "about to eat this japanese plum right now",
+      "label": [
+        {
+          "name": "fruit_to_eat",
+          "start": 18,
+          "end": 31
+        }
+      ]
+    },
+    {
+      "text": "I eat my lemon now",
+      "label": [
+        {
+          "name": "fruit_to_eat",
+          "start": 9,
+          "end": 14
+        }
+      ]
+    },
+    {
+      "text": "going to eat a berry",
+      "label": [
+        {
+          "name": "fruit_to_eat",
+          "start": 15,
+          "end": 20
+        }
+      ]
+    },
+    {
+      "text": "I wanna eat a banana",
+      "label": [
+        {
+          "name": "fruit_to_eat",
+          "start": 14,
+          "end": 20
+        }
+      ]
+    }
+  ]
+}
