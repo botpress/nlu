@@ -1,0 +1,43 @@
+{
+  "name": "@botpress/node-crfsuite",
+  "version": "0.0.1",
+  "description": "NodeJS binding for CRFsuite",
+  "main": "dist/index.js",
+  "types": "typings.d.ts",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "scripts": {
+    "install": ":",
+    "build-native": "node-gyp install && node-gyp rebuild",
+    "build": "./node_modules/.bin/tsc"
+  },
+  "keywords": [
+    "crf",
+    "crfsuite",
+    "data-science"
+  ],
+  "author": "botpress",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/botpress/nlu/issues"
+  },
+  "homepage": "https://github.com/botpress/nlu/packages/node-crfsuite#readme",
+  "files": [
+    "src",
+    "crfsuite/lib",
+    "crfsuite/include",
+    "liblbfgs/lib",
+    "liblbfgs/include",
+    "binding.gyp",
+    "index.js",
+    "index.d.ts"
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+    "node-addon-api": "^3.0.0",
+    "node-gyp": "^5.0.0",
+    "typescript": "^3.9.5"
+  }
+}

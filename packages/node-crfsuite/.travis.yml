@@ -1,0 +1,62 @@
+language: node_js
+
+compiler: gcc
+sudo: false
+
+os:
+- linux
+- osx
+
+env:
+  global:
+    - secure: Vb4syWCMM1zciqis3IRqKQEiDxSnf4J42YA5GTKQpy3kDJZy/oknPW+vvhWTD/LajHzgiks/Mv7625GlWQUvFerJceKXQOf3AHUmDQBeTMzqoRacCNF3nGGCveqvEuQPnLgcAh/3p26aDxYt3H5OaL6w3hRtnBic5AU48um+IydPt+0/zaYQFgdIulPnHTJLLiD9/NlttaaC3AdUeBfdaQbyaulTxPuBTncW8UnuXYYkzfsAq/8+6N/OHMrE7GLgY4d8JF5sfaTIVKsVcnTiFBs9ldknbc6ottVYJOdWGrKTb9ERUsKw1J3NrQ+7PeuZt/tdWbk2bWvSMjvqrV+eTTujzozl1Rz5jIXi1nLPkWBUooOMqo7VKowD0HflGp7hcoJSnVJ5lZtFd8vVYkf1oQPenrQe1KFhTAdz5K/kfG46OOzChuue+wY6wep4IyWIkbPq2zgP3Zkj2SxYt+tpALA3ccgfJ9oD5m3WnXpXqLlZhtgW0vJp2UJKgIM5Vz09lc0pBe/x1AAaMO72ykQOf2Pim8RQ+w3ZH7BmE9mVje5fDHSEpodtDNlTRcCpIR3VLLDmASKtZ9sK+SCxSblTxDwhu/RvhMx4F4FY8LjTVccnX+tPW5/til1kDkMdZ8gvrfkD/PXFO8P3PT8EYi4Sq8Ojgzqnifx2Q4MMi+/Mx7M=
+
+node_js:
+# support latest Nodejs LTS version
+- '10'
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
+
+sudo: false
+
+before_install:
+- if [ "$TRAVIS_NODE_VERSION" = "0.8" ]; then npm install -g npm@2.7.3; fi;
+- if [ $TRAVIS_OS_NAME == "linux" ]; then
+    export CC="gcc-4.8";
+    export CXX="g++-4.8";
+    export LINK="gcc-4.8";
+    export LINKXX="g++-4.8";
+  fi
+- nvm --version
+- node --version
+- npm --version
+- gcc --version
+- g++ --version
+
+before_script:
+# figure out if we should publish
+- echo $TRAVIS_BRANCH
+- echo `git describe --tags --always HEAD`
+- PUBLISH_BINARY=false
+- COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
+- if [[ $TRAVIS_BRANCH == `git describe --tags --always HEAD` || ${COMMIT_MESSAGE} =~ "[publish binary]" ]]; then PUBLISH_BINARY=true; fi;
+- echo "Publishing binaries? ->" $PUBLISH_BINARY
+
+install:
+- npm install --build-from-source
+
+script:
+- npm test
+- if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp rebuild package && node-pre-gyp-github publish --release; fi;
+
+#cache:
+#  directories:
+#    - $HOME/.node-gyp
+#    - $HOME/.npm
+#    - node_modules
