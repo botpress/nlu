@@ -12,7 +12,7 @@
       "node12-linux-x64",
       "node12-win-x64"
     ],
-    "outputPath": "./dist"
+    "outputPath": "../dist"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.6",
@@ -175,7 +175,7 @@
   "scripts": {
     "start": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions node ./dist/index.js",
     "build": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions ../../node_modules/typescript/bin/tsc --build",
-    "dev": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions ts-node-dev ./stan/index.ts",
+    "dev": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions ts-node-dev ./src/index.ts",
     "package": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions pkg package.json",
     "test": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions node_modules/.bin/jest -i --detectOpenHandles -c jest.config.js"
   }

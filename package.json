@@ -2,9 +2,9 @@
   "name": "@botpress/nlu",
   "version": "0.0.1",
   "scripts": {
-    "dev": "ts-node-dev ./packages/nlu/index.ts",
-    "start": "node ./packages/nlu/dist/index.js",
-    "build": "node ./node_modules/typescript/bin/tsc --build",
+    "dev": "cd packages/nlu && yarn dev",
+    "start": "cd packages/nlu && yarn start",
+    "build": "cd packages/nlu && yarn build",
     "pretty": "cross-env node ./node_modules/prettier/bin-prettier.js --check './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "cross-env node_modules/.bin/eslint packages/ --ext .ts",
     "e2e": "node ./packages/regression"

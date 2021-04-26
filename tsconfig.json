@@ -1,5 +1,5 @@
 {
- "references": [
+  "references": [
     {
       "path": "./packages/nlu"
     }
@@ -8,6 +8,6 @@
   "include": [],
   "exclude": ["**/node_modules"],
   "compilerOptions": {
-    "esModuleInterop": true,
+    "esModuleInterop": true
   }
 }
