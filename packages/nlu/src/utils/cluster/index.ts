@@ -85,6 +85,10 @@ export const setupMasterNode = (logger: Logger) => {
   })
 
   cluster.on('message', (worker: cluster.Worker, message: any) => {
+    if (message.compile) {
+      // ignore ts-node-dev worker messages
+      return
+    }
     const handler = msgHandlers[message.type]
     if (!handler) {
       return logger.error(`No handler configured for ${message.type}`)
