@@ -7,6 +7,9 @@
   "bin": "./dist/index.js",
   "pkg": {
     "scripts": "./dist/**/*.js",
+    "assets": [
+      "../node-*/native-extensions/**/*.node"
+    ],
     "targets": [
       "node12-macos-x64",
       "node12-linux-x64",

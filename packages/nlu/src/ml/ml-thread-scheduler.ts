@@ -33,14 +33,14 @@ export class MLThreadScheduler extends BaseScheduler<Worker> {
 }
 
 async function makeWorker() {
-  const distro = (await Promise.fromCallback(getos)
+  const distro = await Promise.fromCallback(getos)
     .timeout(1000)
     .catch(_err => ({
       os: os.platform(),
       dist: 'default',
       codename: 'N/A',
       release: 'N/A'
-    }))) as typeof process.distro
+    }))
 
   const clean = data => _.omitBy(data, val => val == null || typeof val === 'object')
   const processData = {
