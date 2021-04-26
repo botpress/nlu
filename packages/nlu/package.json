@@ -27,6 +27,9 @@
     "chokidar": "^2.1.5",
     "cors": "^2.8.5",
     "diff": "^4.0.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsdoc": "^32.3.2",
     "eventemitter2": "^5.0.1",
     "express": "^4.16.4",
     "express-rate-limit": "^3.5.1",
@@ -80,18 +83,22 @@
     "@types/seedrandom": "^2.4.28",
     "@types/tmp": "^0.0.33",
     "@types/verror": "^1.10.3",
+    "@typescript-eslint/eslint-plugin": "^4.22.0",
+    "@typescript-eslint/parser": "^4.22.0",
     "cross-env": "^5.2.0",
+    "eslint": "^7.25.0",
     "jest": "^26.6.3",
     "pkg": "^4.3.7",
+    "prettier": "^2.2.1",
     "ts-jest": "^26.5.5",
     "ts-node-dev": "^1.1.6",
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "start": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions node ./dist/index.js",
-    "build": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions ../../node_modules/typescript/bin/tsc --build",
     "dev": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions ts-node-dev ./src/index.ts",
+    "build": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions tsc --build",
+    "start": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions node ./dist/index.js",
     "package": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions pkg package.json",
-    "test": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions node_modules/.bin/jest -i --detectOpenHandles -c jest.config.js"
+    "test": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions jest -i --detectOpenHandles -c jest.config.js"
   }
 }
