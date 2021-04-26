@@ -3,9 +3,9 @@ global['NativePromise'] = global.Promise
 process.core_env = process.env as BotpressEnvironmentVariables
 
 // eslint-disable-next-line import/order
-import { getAppDataPath } from './app-data'
 import path from 'path'
 import yargs from 'yargs'
+import { getAppDataPath } from './app-data'
 import 'bluebird-global'
 
 if (process.env.APP_DATA_PATH) {

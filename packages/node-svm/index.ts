@@ -12,6 +12,7 @@ interface BindingType {
 
 const nativeExtensionsPath = path.join(__dirname, '..', 'native-extensions')
 const fileName = 'node-svm.node'
+const packageName = 'node-svm'
 
 function requireExtension(os: string, distribution: string) {
   const filePath = path.join(nativeExtensionsPath, os, distribution, fileName)
@@ -56,10 +57,10 @@ const init = async (): Promise<BindingType> => {
       } catch (err) {}
     }
 
-    throw new Error(`Linux distribution ${distribution} is not supported by node-svm.`)
+    throw new Error(`Linux distribution ${distribution} is not supported by ${packageName}.`)
   }
 
-  throw new Error(`The plateform ${distro.os} is not supported by node-svm.`)
+  throw new Error(`The plateform ${distro.os} is not supported by ${packageName}.`)
 }
 
 let binding: BindingType | undefined

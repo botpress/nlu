@@ -69,3 +69,6 @@ obj
 build*
 lib/binding
 model.crfsuite
+
+
+*.node.bak

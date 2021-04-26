@@ -1,13 +1,28 @@
 {
   "name": "@botpress/nlu",
   "version": "0.0.1",
+  "bin": "./packages/nlu/dist/index.js",
+  "pkg": {
+    "scripts": "./packages/nlu/dist/**/*.js",
+    "assets": ["node_modules/@botpress/node-*/**/*.node"],
+    "targets": [
+      "node12-macos-x64",
+      "node12-linux-x64",
+      "node12-win-x64"
+    ],
+    "outputPath": "dist"
+  },
   "scripts": {
     "dev": "ts-node-dev ./packages/nlu/index.ts",
     "start": "node ./packages/nlu/dist/index.js",
     "build": "node ./node_modules/typescript/bin/tsc --build",
     "pretty": "cross-env node ./node_modules/prettier/bin-prettier.js --check './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "cross-env node_modules/.bin/eslint packages/ --ext .ts",
-    "e2e": "node ./packages/regression"
+    "e2e": "node ./packages/regression",
+    "package": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions pkg package.json"
+  },
+  "devDependencies": {
+    "pkg": "^4.5.1"
   },
   "private": true,
   "workspaces": [

@@ -64,3 +64,5 @@ data
 pretrained-vectors
 test*.js
 *-lock.json
+
+*.node.bak
