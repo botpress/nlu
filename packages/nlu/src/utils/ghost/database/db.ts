@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import { mkdirpSync } from 'fs-extra'
 import Knex from 'knex'
 import _ from 'lodash'
@@ -17,7 +18,7 @@ export class Database {
   public constructor(private logger: Logger) {}
 
   async bootstrap() {
-    await Promise.mapSeries(AllTables, async Tbl => {
+    await Bluebird.mapSeries(AllTables, async (Tbl) => {
       const table = new Tbl(this.knex!)
       const created = await table.bootstrap()
       if (created) {
@@ -32,7 +33,7 @@ export class Database {
   }
 
   async teardownTables() {
-    await Promise.mapSeries(AllTables, async Tbl => {
+    await Bluebird.mapSeries(AllTables, async (Tbl) => {
       const table = new Tbl(this.knex!)
       if (this.knex.isLite) {
         await this.knex.raw('PRAGMA foreign_keys = OFF;')
@@ -49,7 +50,7 @@ export class Database {
     const { DATABASE_URL, DATABASE_POOL } = process.env
 
     let poolOptions = {
-      log: message => logger.warn(`[pool] ${message}`)
+      log: (message) => logger.warn(`[pool] ${message}`)
     }
 
     try {
@@ -71,9 +72,9 @@ export class Database {
     const config: Knex.Config = {
       useNullAsDefault: true,
       log: {
-        error: message => logger.error(`[knex] ${message}`),
-        warn: message => logger.warn(`[knex] ${message}`),
-        debug: message => logger.debug(`[knex] ${message}`)
+        error: (message) => logger.error(`[knex] ${message}`),
+        warn: (message) => logger.warn(`[knex] ${message}`),
+        debug: (message) => logger.debug(`[knex] ${message}`)
       }
     }
 

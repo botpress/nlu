@@ -1,4 +1,5 @@
 import { makeClassifier, makeQuery, Options, Query } from '@botpress/node-fasttext'
+import Bluebird from 'bluebird'
 import { VError } from 'verror'
 import { MLToolkit } from './typings'
 
@@ -99,11 +100,12 @@ export class FastTextModel implements MLToolkit.FastText.Model {
   async queryNearestNeighbors(word: string, nb: number): Promise<string[]> {
     const query = await this._getQuery()
     const ret = await query.nn(word, nb)
-    return ret.map(x => x.label)
+    return ret.map((x) => x.label)
   }
 
   private async _getModel(): Promise<any> {
-    if (this._modelPromise && !this._modelPromise!.isRejected()) {
+    const bb = Bluebird.resolve(this._modelPromise!)
+    if (this._modelPromise && !bb.isRejected()) {
       this._resetModelBomb()
       return this._modelPromise
     }
@@ -116,14 +118,15 @@ export class FastTextModel implements MLToolkit.FastText.Model {
           resolve(model)
           this._resetModelBomb()
         })
-        .catch(err => reject(new VError(err, `Model = "${this.modelPath}"`)))
+        .catch((err) => reject(new VError(err, `Model = "${this.modelPath}"`)))
     })
 
     return this._modelPromise
   }
 
   private async _getQuery(): Promise<Query> {
-    if (this._queryPromise && !this._queryPromise!.isRejected()) {
+    const bb = Bluebird.resolve(this._queryPromise!)
+    if (this._queryPromise && !bb.isRejected()) {
       this._resetQueryBomb()
       return this._queryPromise
     }

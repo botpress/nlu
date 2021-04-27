@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import fse from 'fs-extra'
 import glob from 'glob'
 import _ from 'lodash'
@@ -108,19 +109,19 @@ export class DiskStorageDriver implements StorageDriver {
     }
 
     try {
-      const files = await Promise.fromCallback<string[]>(cb => glob('**/*.*', globOptions, cb))
+      const files = await Bluebird.fromCallback<string[]>((cb) => glob('**/*.*', globOptions, cb))
       if (!options.sortOrder) {
-        return files.map(filePath => forceForwardSlashes(filePath))
+        return files.map((filePath) => forceForwardSlashes(filePath))
       }
 
       const { column, desc } = options.sortOrder
 
-      const filesWithDate = await Promise.map(files, async filePath => ({
+      const filesWithDate = await Bluebird.map(files, async (filePath) => ({
         filePath,
         modifiedOn: (await fse.stat(path.join(this.resolvePath(folder), filePath))).mtime
       }))
 
-      return _.orderBy(filesWithDate, [column], [desc ? 'desc' : 'asc']).map(x => forceForwardSlashes(x.filePath))
+      return _.orderBy(filesWithDate, [column], [desc ? 'desc' : 'asc']).map((x) => forceForwardSlashes(x.filePath))
     } catch (e) {
       return []
     }
@@ -141,8 +142,8 @@ export class DiskStorageDriver implements StorageDriver {
 
   async absoluteDirectoryListing(destination: string) {
     try {
-      const files = await Promise.fromCallback<string[]>(cb => glob('**/*.*', { cwd: destination }, cb))
-      return files.map(filePath => forceForwardSlashes(filePath))
+      const files = await Bluebird.fromCallback<string[]>((cb) => glob('**/*.*', { cwd: destination }, cb))
+      return files.map((filePath) => forceForwardSlashes(filePath))
     } catch (e) {
       return []
     }

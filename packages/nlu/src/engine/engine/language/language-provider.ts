@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
+import Bluebird from 'bluebird'
 import retry from 'bluebird-retry'
 import crypto from 'crypto'
 import fse from 'fs-extra'
@@ -89,7 +90,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
     })
 
     this._tokensCache = new lru<string, string[]>({
-      length: (val: string[], key: string) => key.length * 4 + sumBy(val, x => x.length * 4),
+      length: (val: string[], key: string) => key.length * 4 + sumBy(val, (x) => x.length * 4),
       max:
         4 * // bytes in strings
         5 * // average size of token
@@ -102,7 +103,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
     })
 
     this._junkwordsCache = new lru<string[], string[]>({
-      length: (val: string[], key: string[]) => sumBy(key, x => x.length * 4) + sumBy(val, x => x.length * 4),
+      length: (val: string[], key: string[]) => sumBy(key, (x) => x.length * 4) + sumBy(val, (x) => x.length * 4),
       max:
         4 * // bytes in strings
         10 * // token size
@@ -112,7 +113,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
       // total is ~ 200 mb
     })
 
-    await Promise.mapSeries(sources, async source => {
+    await Bluebird.mapSeries(sources, async (source) => {
       const headers: _.Dictionary<string> = {}
 
       if (source.authToken) {
@@ -143,7 +144,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
             throw new Error('Language sources have different dimensions')
           }
           this._validProvidersCount++
-          data.languages.forEach(x => this.addProvider(x.lang, source, client))
+          data.languages.forEach((x) => this.addProvider(x.lang, source, client))
 
           this.extractLangServerInfo(data)
         }, this.discoveryRetryPolicy)
@@ -212,7 +213,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
     const filesToDelete = allCacheFiles
       .filter(fileStartWithPrefix)
       .filter(fileEndsWithIncorrectHash)
-      .map(f => path.join(this._cacheDir, f))
+      .map((f) => path.join(this._cacheDir, f))
 
     for (const f of filesToDelete) {
       await fse.unlink(f)
@@ -290,7 +291,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
       if (await fse.pathExists(this._vectorsCachePath)) {
         const dump = await fse.readJSON(this._vectorsCachePath)
         if (dump) {
-          const kve = dump.map(x => ({ e: x.e, k: x.k, v: Float32Array.from(Object.values(x.v)) }))
+          const kve = dump.map((x) => ({ e: x.e, k: x.k, v: Float32Array.from(Object.values(x.v)) }))
           this._vectorsCache.load(kve)
         }
       }
@@ -330,7 +331,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
       throw new Error(`Language "${lang}" is not supported by the configured language sources`)
     }
 
-    return this.langs[lang].filter(x => !x.disabledUntil || x.disabledUntil <= new Date())
+    return this.langs[lang].filter((x) => !x.disabledUntil || x.disabledUntil <= new Date())
   }
 
   private async queryProvider<T>(lang: string, path: string, body: any, returnProperty: string): Promise<T> {
@@ -400,7 +401,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
 
   private generateJunkWords(subsetVocab: string[], gramset: string[]) {
     const realWords = _.uniq(subsetVocab)
-    const meanWordSize = _.meanBy(realWords, w => w.length)
+    const meanWordSize = _.meanBy(realWords, (w) => w.length)
     const minJunkSize = Math.max(JUNK_TOKEN_MIN, meanWordSize / 2) // Twice as short
     const maxJunkSize = Math.min(JUNK_TOKEN_MAX, meanWordSize * 1.5) // A bit longer.  Those numbers are discretionary and are not expected to make a big impact on the models.
 
@@ -442,7 +443,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
       const group = idxToFetch.splice(0, 100)
 
       // We have new tokens we haven't cached yet
-      const query = group.map(idx => tokens[idx].toLowerCase())
+      const query = group.map((idx) => tokens[idx].toLowerCase())
       // Fetch only the missing tokens
       if (!query.length) {
         break
@@ -469,10 +470,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
   }
 
   _hash(str: string): string {
-    return crypto
-      .createHash('md5')
-      .update(str)
-      .digest('hex')
+    return crypto.createHash('md5').update(str).digest('hex')
   }
 
   async tokenize(utterances: string[], lang: string, vocab: string[] = []): Promise<string[][]> {
@@ -507,14 +505,14 @@ export class RemoteLanguageProvider implements LanguageProvider {
         }
       }, 0)
       const batch = idxToFetch.splice(0, sliceUntil + 1)
-      const query = batch.map(idx => utterances[idx].toLowerCase())
+      const query = batch.map((idx) => utterances[idx].toLowerCase())
 
       if (!query.length) {
         break
       }
 
       let fetched = await this.queryProvider<string[][]>(lang, '/tokenize', { utterances: query }, 'tokens')
-      fetched = fetched.map(toks => processUtteranceTokens(toks, vocab))
+      fetched = fetched.map((toks) => processUtteranceTokens(toks, vocab))
 
       if (fetched.length !== query.length) {
         throw new Error(
@@ -541,10 +539,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
 
     const omitPatchNumber = (v: string) => `${semver.major(v)}.${semver.minor(v)}.0`
     const hashContent = `${omitPatchNumber(_nluVersion)}:${omitPatchNumber(langServerVersion)}:${dim}:${domain}`
-    return crypto
-      .createHash('md5')
-      .update(hashContent)
-      .digest('hex')
+    return crypto.createHash('md5').update(hashContent).digest('hex')
   }
 }
 

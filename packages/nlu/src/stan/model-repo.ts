@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import fse, { WriteStream } from 'fs-extra'
 import _ from 'lodash'
 import path from 'path'
@@ -95,7 +96,7 @@ export class ModelRepository {
 
     const tarStream = tar.x({ cwd: tmpDir.name, strict: true }, ['model']) as WriteStream
     buffStream.pipe(tarStream)
-    await new Promise(resolve => tarStream.on('close', resolve))
+    await new Promise((resolve) => tarStream.on('close', resolve))
 
     const modelBuff = await fse.readFile(path.join(tmpDir.name, 'model'))
     let mod
@@ -144,9 +145,9 @@ export class ModelRepository {
     const files = await scopedGhost.directoryListing(MODELS_DIR, `*.${fextension}`)
 
     const modelIds = files
-      .map(f => f.substring(0, f.lastIndexOf(`.${fextension}`)))
-      .filter(stringId => modelIdService.isId(stringId))
-      .map(stringId => modelIdService.fromString(stringId))
+      .map((f) => f.substring(0, f.lastIndexOf(`.${fextension}`)))
+      .filter((stringId) => modelIdService.isId(stringId))
+      .map((stringId) => modelIdService.fromString(stringId))
 
     return modelIds
   }
@@ -154,7 +155,7 @@ export class ModelRepository {
   // TODO: make this one more optimal
   public async pruneModels(options: ModelOwnershipOptions): Promise<NLUEngine.ModelId[]> {
     const models = await this.listModels(options)
-    await Promise.each(models, m => this.deleteModel(m, options))
+    await Bluebird.each(models, (m) => this.deleteModel(m, options))
     return models
   }
 

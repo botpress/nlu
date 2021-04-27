@@ -1,4 +1,3 @@
-import 'bluebird-global'
 import _ from 'lodash'
 import path from 'path'
 import { unlinkSync } from 'fs'
@@ -11,7 +10,7 @@ describe('Duckling Extract Multiple', () => {
   let mockedFetch: jest.SpyInstance
   let testCachePath = path.join(' ', 'cache', 'testCache.json')
   beforeAll(() => {
-    const duckCache = new SystemEntityCacheManager(testCachePath, true)
+    const duckCache = new SystemEntityCacheManager(testCachePath, false)
     duck = new DucklingEntityExtractor(duckCache)
     // @ts-ignore
     mockedFetch = jest.spyOn(duck, '_fetchDuckling')
@@ -36,7 +35,7 @@ describe('Duckling Extract Multiple', () => {
     const examples = ['this is one', 'this is two']
     const res = await duck.extractMultiple(examples, 'en')
     expect(mockedFetch).not.toHaveBeenCalled()
-    res.forEach(r => {
+    res.forEach((r) => {
       expect(r).toEqual([])
     })
   })

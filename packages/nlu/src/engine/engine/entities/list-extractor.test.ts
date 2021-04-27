@@ -1,4 +1,3 @@
-import 'bluebird-global'
 import { makeTestUtterance } from '../test-utils/fake-utterance'
 
 import { EntityExtractionResult, ListEntityModel } from '../typings'
@@ -58,8 +57,8 @@ describe('list entity extractor', () => {
   test('Sensitivity flag', () => {
     const utt = makeTestUtterance('YQB is as bad as that poisonous blueberry')
     const res = extractListEntities(utt, list_entities)
-    expect(res.find(e => e.type === 'fruit')!.sensitive).toBeTruthy()
-    expect(res.find(e => e.type === 'airport')!.sensitive).not.toBeTruthy()
+    expect(res.find((e) => e.type === 'fruit')!.sensitive).toBeTruthy()
+    expect(res.find((e) => e.type === 'airport')!.sensitive).not.toBeTruthy()
   })
 
   test('Data structure test', async () => {
@@ -216,28 +215,28 @@ describe('list entity extractor', () => {
 
 function assertEntity(expression: string) {
   const { utterance: text, parsedSlots } = parseUtterance(expression)
-  const parts = parsedSlots.map(p => p.value)
+  const parts = parsedSlots.map((p) => p.value)
 
   const utterance = makeTestUtterance(text)
   const results = extractListEntities(utterance, list_entities)
 
   for (const strConds of parsedSlots) {
     const { start, end } = strConds.cleanPosition
-    const found = results.filter(x => (x.start >= start && x.start < end) || (x.end <= end && x.end > start))
+    const found = results.filter((x) => (x.start >= start && x.start < end) || (x.end <= end && x.end > start))
 
     const conditions = strConds.name.split(' ')
 
     const cases: [string, number | string, number | string][] = []
     let t: EntityExtractionResult | undefined = undefined
 
-    for (const [name, value] of conditions.map(x => x.split(':'))) {
+    for (const [name, value] of conditions.map((x) => x.split(':'))) {
       if (name === 'qty') {
         cases.push(['qty', value, found.length])
       } else if (name === 'type') {
-        t = found.find(x => x.type === value)
+        t = found.find((x) => x.type === value)
         cases.push(['type', value, t ? t.type : 'N/A'])
       } else if (name === 'value') {
-        t = found.find(x => x.value === value)
+        t = found.find((x) => x.value === value)
         cases.push(['value', value, t ? t.value : 'N/A'])
       } else if (name === 'confidence' && t) {
         cases.push(['confidence', value, t.confidence])

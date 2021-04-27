@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import fse from 'fs-extra'
 import glob from 'glob'
 import globrex from 'globrex'
@@ -10,12 +11,12 @@ import tmp from 'tmp'
 import unzipper from 'unzipper'
 import { VError } from 'verror'
 
-export const forceForwardSlashes = path => path.replace(/\\/g, '/')
+export const forceForwardSlashes = (path) => path.replace(/\\/g, '/')
 
 export function filterByGlobs<T>(array: T[], iteratee: (value: T) => string, globs: string[]): T[] {
-  const rules: { regex: RegExp }[] = globs.map(g => globrex(g, { globstar: true }))
+  const rules: { regex: RegExp }[] = globs.map((g) => globrex(g, { globstar: true }))
 
-  return array.filter(x => _.every(rules, rule => !rule.regex.test(iteratee(x))))
+  return array.filter((x) => _.every(rules, (rule) => !rule.regex.test(iteratee(x))))
 }
 
 //
@@ -23,7 +24,7 @@ export function filterByGlobs<T>(array: T[], iteratee: (value: T) => string, glo
 //
 
 // Source: https://github.com/kevva/is-zip
-const isZip = buf => {
+const isZip = (buf) => {
   if (!buf || buf.length < 4) {
     return false
   }
@@ -60,8 +61,8 @@ export const extractArchive = async (archive: Buffer, destination: string): Prom
       writeStream.on('error', reject)
     })
 
-    const files = await Promise.fromCallback<string[]>(cb => glob('**/*.*', { cwd: destination }, cb))
-    return files.map(filePath => forceForwardSlashes(filePath))
+    const files = await Bluebird.fromCallback<string[]>((cb) => glob('**/*.*', { cwd: destination }, cb))
+    return files.map((filePath) => forceForwardSlashes(filePath))
   } catch (err) {
     throw new VError(err, `[Archive] Error extracting archive to "${destination}"`)
   }
@@ -88,7 +89,7 @@ export const createArchiveFromFolder = async (folder: string, ignoredFiles: stri
   const tmpDir = tmp.dirSync({ unsafeCleanup: true })
 
   try {
-    const files: string[] = await Promise.fromCallback(cb =>
+    const files: string[] = await Bluebird.fromCallback((cb) =>
       glob('**/*', { cwd: folder, ignore: ignoredFiles, nodir: true, dot: true }, cb)
     )
 

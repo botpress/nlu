@@ -1,4 +1,3 @@
-import 'bluebird-global'
 import { unlinkSync } from 'fs'
 import path from 'path'
 import { EntityExtractionResult } from '../typings'
@@ -9,7 +8,7 @@ describe('System Entity Cache', () => {
   let testCachePath = path.join(' ', 'cache', 'testCache.json')
   let inputExemples: string[]
   beforeEach(async () => {
-    testCache = new SystemEntityCacheManager(testCachePath, true)
+    testCache = new SystemEntityCacheManager(testCachePath, false)
     inputExemples = [
       'Hello my name is pedro',
       'I know this sentences are not the same than the entity bellow',

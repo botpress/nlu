@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import Joi, { validate } from 'joi'
 import { SlotDefinition } from '../typings'
 import { SlotDefinitionSchema } from './schemas'
@@ -49,6 +50,6 @@ test('slot model schema', async () => {
     }
   ]
 
-  await Promise.map(shouldPass, m => expectValidates(m, SlotDefinitionSchema.required()))
-  await Promise.map(shouldFail, m => expectThrows(m, SlotDefinitionSchema.required()))
+  await Bluebird.map(shouldPass, (m) => expectValidates(m, SlotDefinitionSchema.required()))
+  await Bluebird.map(shouldFail, (m) => expectThrows(m, SlotDefinitionSchema.required()))
 })

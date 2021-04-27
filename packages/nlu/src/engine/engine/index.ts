@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
@@ -126,14 +127,14 @@ export default class Engine implements IEngine {
     const { previousModel: previousModelId, progressCallback } = options
     const previousModel = previousModelId && this.modelsById.get(modelIdService.toString(previousModelId))
 
-    const list_entities = entities.filter(isListEntity).map(e => {
+    const list_entities = entities.filter(isListEntity).map((e) => {
       return <ListEntity & { cache: EntityCacheDump }>{
         name: e.name,
         fuzzyTolerance: e.fuzzy,
         sensitive: e.sensitive,
         synonyms: _.chain(e.values)
-          .keyBy(e => e.name)
-          .mapValues(e => e.synonyms)
+          .keyBy((e) => e.name)
+          .mapValues((e) => e.synonyms)
           .value(),
         cache: previousModel?.entityCache.getCache(e.name) || []
       }
@@ -141,8 +142,8 @@ export default class Engine implements IEngine {
 
     const pattern_entities: PatternEntity[] = entities
       .filter(isPatternEntity)
-      .filter(ent => isPatternValid(ent.regex))
-      .map(ent => ({
+      .filter((ent) => isPatternValid(ent.regex))
+      .map((ent) => ({
         name: ent.name,
         pattern: ent.regex,
         examples: ent.examples,
@@ -151,13 +152,13 @@ export default class Engine implements IEngine {
       }))
 
     const contexts = _.chain(intents)
-      .flatMap(i => i.contexts)
+      .flatMap((i) => i.contexts)
       .uniq()
       .value()
 
     const pipelineIntents = intents
-      .filter(x => !!x.utterances)
-      .map(x => ({
+      .filter((x) => !!x.utterances)
+      .map((x) => ({
         name: x.name,
         contexts: x.contexts,
         utterances: x.utterances,
@@ -295,8 +296,8 @@ export default class Engine implements IEngine {
 
     const warmKmeans = kmeans && deserializeKmeans(kmeans)
 
-    const intent_classifier_per_ctx: _.Dictionary<OOSIntentClassifier> = await Promise.props(
-      _.mapValues(intent_model_by_ctx, async model => {
+    const intent_classifier_per_ctx: _.Dictionary<OOSIntentClassifier> = await Bluebird.props(
+      _.mapValues(intent_model_by_ctx, async (model) => {
         const { legacyElection } = this._options
         const intentClf = new OOSIntentClassifier(tools, undefined, { legacyElection })
         await intentClf.load(model)
@@ -307,8 +308,8 @@ export default class Engine implements IEngine {
     const ctx_classifier = new SvmIntentClassifier(tools, getCtxFeatures)
     await ctx_classifier.load(ctx_model)
 
-    const slot_tagger_per_intent: _.Dictionary<SlotTagger> = await Promise.props(
-      _.mapValues(slots_model_by_intent, async model => {
+    const slot_tagger_per_intent: _.Dictionary<SlotTagger> = await Bluebird.props(
+      _.mapValues(slots_model_by_intent, async (model) => {
         const slotTagger = new SlotTagger(tools)
         await slotTagger.load(model)
         return slotTagger
@@ -353,14 +354,14 @@ export default class Engine implements IEngine {
   async detectLanguage(text: string, modelsByLang: _.Dictionary<ModelId>): Promise<string> {
     debugPredict(`Detecting language for input: "${text}"`)
 
-    const predictorsByLang = _.mapValues(modelsByLang, id => {
+    const predictorsByLang = _.mapValues(modelsByLang, (id) => {
       const stringId = modelIdService.toString(id)
       return this.modelsById.get(stringId)?.predictors
     })
 
     if (!this._dictionnaryIsFilled(predictorsByLang)) {
       const missingLangs = _(predictorsByLang)
-        .pickBy(pred => _.isUndefined(pred))
+        .pickBy((pred) => _.isUndefined(pred))
         .keys()
         .value()
       throw new Error(`No models loaded for the following languages: [${missingLangs.join(', ')}]`)
