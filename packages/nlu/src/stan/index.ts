@@ -14,8 +14,8 @@ import API, { APIOptions } from './api'
 const debugLogger = new Logger('nlu:api')
 const debug = (msg: string, extra?: any) => debugLogger.debug(msg, extra)
 
-const GH_TYPINGS_FILE = 'https://github.com/botpress/botpress/blob/master/src/nlu/stan/typings_v1.d.ts'
-const GH_TRAIN_INPUT_EXAMPLE = 'https://github.com/botpress/botpress/blob/master/src/nlu/stan/train-example.json'
+const GH_TYPINGS_FILE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/typings_v1.d.ts'
+const GH_TRAIN_INPUT_EXAMPLE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/stan/train-example.json'
 
 type ArgV = APIOptions & {
   languageURL: string
@@ -72,7 +72,7 @@ const makeEngine = async (options: ArgV, logger: Logger) => {
   }
 }
 
-export default async function(options: ArgV) {
+export default async function (options: ArgV) {
   const logger = new Logger('Launcher')
   if (cluster.isMaster) {
     setupMasterNode(logger)
@@ -98,7 +98,7 @@ export default async function(options: ArgV) {
     throw new Error(`Specified body-size "${options.bodySize}" has an invalid format.`)
   }
 
-  global.printLog = args => {
+  global.printLog = (args) => {
     const message = args[0]
     const rest = args.slice(1)
 
