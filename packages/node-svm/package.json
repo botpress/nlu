@@ -15,7 +15,8 @@
     "install": ":",
     "build-native": "node-gyp install && node-gyp rebuild",
     "clean": "node-gyp clean",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "jest -i --detectOpenHandles -c ./jest.config.js"
   },
   "gypfile": true,
   "devDependencies": {
@@ -24,6 +25,8 @@
     "@types/getos": "^3.0.0",
     "node-addon-api": "^2.0.0",
     "node-gyp": "^6.1.0",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.5",
+    "jest": "^24.9.0",
+    "ts-jest": "^26.5.5"
   }
 }
