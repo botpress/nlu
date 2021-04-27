@@ -11,7 +11,7 @@ describe('Microsoft Extract Multiple', () => {
   let microsoft: MicrosoftEntityExtractor
   let testCachePath = path.join(' ', 'cache', 'testCache.json')
   beforeAll(() => {
-    const microsoftCache = new SystemEntityCacheManager(testCachePath, true)
+    const microsoftCache = new SystemEntityCacheManager(testCachePath, false)
     microsoft = new MicrosoftEntityExtractor(microsoftCache)
   })
 

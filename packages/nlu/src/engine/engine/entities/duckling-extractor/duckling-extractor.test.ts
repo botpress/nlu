@@ -10,7 +10,7 @@ describe('Duckling Extract Multiple', () => {
   let mockedFetch: jest.SpyInstance
   let testCachePath = path.join(' ', 'cache', 'testCache.json')
   beforeAll(() => {
-    const duckCache = new SystemEntityCacheManager(testCachePath, true)
+    const duckCache = new SystemEntityCacheManager(testCachePath, false)
     duck = new DucklingEntityExtractor(duckCache)
     // @ts-ignore
     mockedFetch = jest.spyOn(duck, '_fetchDuckling')

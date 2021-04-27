@@ -3,6 +3,8 @@ import * as http from '../http-typings'
 
 import { validateTrainInput } from './validate'
 
+process.APP_DATA_PATH = ''
+
 /**
  * These unit tests don't cover all possible scenarios of training input, but they to more good than bad.
  * If we ever find a bug in train input validation, we'll just add some more tests.
