@@ -1,4 +1,4 @@
-const Bluebird = require('bluebird')
+import Bluebird from 'bluebird'
 
 const problemMaker = (bitfan) => async (topic) => {
   const fileDef = {
@@ -20,7 +20,7 @@ const problemMaker = (bitfan) => async (topic) => {
   }
 }
 
-module.exports = function (bitfan) {
+export default function (bitfan) {
   const avgStrictSlotAccuray = bitfan.metrics.averageScore(bitfan.criterias.slotsAre)
   const avgLooseSlotAccuray = bitfan.metrics.averageScore(bitfan.criterias.slotIncludes)
   const avgSlotCountAccuray = bitfan.metrics.averageScore(bitfan.criterias.slotCountIs)
@@ -30,7 +30,7 @@ module.exports = function (bitfan) {
   return {
     name: 'bpds-slots',
 
-    computePerformance: async function () {
+    computePerformance: async () => {
       const allTopics = [
         'A',
         'B',
@@ -67,7 +67,7 @@ module.exports = function (bitfan) {
       return report
     },
 
-    evaluatePerformance: function (currentPerformance, previousPerformance) {
+    evaluatePerformance: (currentPerformance, previousPerformance) => {
       const toleranceByMetric = {
         [avgStrictSlotAccuray.name]: 0.02,
         [avgLooseSlotAccuray.name]: 0.02,

@@ -1,4 +1,4 @@
-const problemMaker = bitfan => async (name, lang, trainSet, testSet) => {
+const problemMaker = (bitfan) => async (name, lang, trainSet, testSet) => {
   const fileDef = {
     lang,
     fileType: 'dataset',
@@ -18,7 +18,7 @@ const problemMaker = bitfan => async (name, lang, trainSet, testSet) => {
   }
 }
 
-module.exports = function(bitfan) {
+export default function (bitfan) {
   const metrics = [
     bitfan.metrics.accuracy,
     bitfan.metrics.oosAccuracy,
@@ -30,7 +30,7 @@ module.exports = function(bitfan) {
   return {
     name: 'bpds-intent',
 
-    computePerformance: async function() {
+    computePerformance: async () => {
       const makeProblem = problemMaker(bitfan)
       const problems = [
         await makeProblem('bpsd A-en', 'en', 'A-train', 'A-test'),
@@ -64,7 +64,7 @@ module.exports = function(bitfan) {
       return performanceReport
     },
 
-    evaluatePerformance: function(currentPerformance, previousPerformance) {
+    evaluatePerformance: (currentPerformance, previousPerformance) => {
       const toleranceByMetric = {
         [bitfan.metrics.accuracy.name]: 0.03,
         [bitfan.metrics.oosAccuracy.name]: 0.05,

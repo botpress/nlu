@@ -18,7 +18,7 @@
     "start": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions node ./packages/nlu/dist/index.js",
     "pretty": "prettier --check './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "eslint packages/ --ext .ts",
-    "e2e": "node ./packages/regression",
+    "e2e": "yarn workspace e2e install && yarn workspace e2e build && yarn workspace e2e start",
     "test": "yarn workspace @botpress/node-svm test && yarn workspace nlu test",
     "package": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions pkg package.json"
   },

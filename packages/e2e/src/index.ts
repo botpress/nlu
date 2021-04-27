@@ -1,12 +1,10 @@
-const bitfan = require('@botpress/bitfan').default
-const chalk = require('chalk')
-
-const bpdsIntents = require('./tests/bpds-intents')
-const bpdsSlots = require('./tests/bpds-slots')
-const clincIntents = require('./tests/clinc-intents')
-const bpdsSpell = require('./tests/bpds-spell')
-
-const { updateResults, readResults } = require('./score-service')
+import bitfan from '@botpress/bitfan'
+import chalk from 'chalk'
+import { updateResults, readResults } from './score-service'
+import bpdsIntents from './tests/bpds-intents'
+import bpdsSlots from './tests/bpds-slots'
+import bpdsSpell from './tests/bpds-spell'
+import clincIntents from './tests/clinc-intents'
 
 async function runTest(test, { update, keepGoing }) {
   const { name, computePerformance, evaluatePerformance } = test(bitfan)
@@ -21,6 +19,7 @@ async function runTest(test, { update, keepGoing }) {
   const comparison = evaluatePerformance(performance, previousPerformance)
 
   bitfan.visualisation.showComparisonReport(name, comparison)
+  // eslint-disable-next-line no-console
   console.log('')
 
   if (comparison.status === 'regression') {
@@ -42,12 +41,7 @@ async function main(args) {
   const update = args.includes('--update') || args.includes('-u')
   const keepGoing = args.includes('--keep-going') || args.includes('-k')
 
-  const tests = [
-    bpdsIntents,
-    bpdsSlots,
-    bpdsSpell,
-    clincIntents
-  ]
+  const tests = [bpdsIntents, bpdsSlots, bpdsSpell, clincIntents]
 
   let testsPass = true
   for (const test of tests) {
@@ -67,7 +61,7 @@ async function main(args) {
 
 main(process.argv.slice(2))
   .then(() => {})
-  .catch(err => {
+  .catch((err) => {
     console.error(chalk.red('The following error occured:\n'), err)
     process.exit(1)
   })
