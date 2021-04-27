@@ -1,6 +1,6 @@
 # Botpress NLU
 
-<img src="./readme.png"/>
+<img src="./readme.PNG"/>
 
 ## Description
 
