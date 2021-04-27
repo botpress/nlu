@@ -1,10 +1,9 @@
+import { NSVM, makeSvm, Model, Parameters } from '@botpress/node-svm'
 import assert from 'assert'
 import _ from 'lodash'
 import numeric from 'numeric'
 
 import { Data } from '../typings'
-
-import addon, { Model, NSVM, Parameters } from './typings'
 
 export default class BaseSVM {
   private _clf: NSVM | undefined
@@ -13,17 +12,17 @@ export default class BaseSVM {
     this._clf = clf
   }
 
-  static restore = (model: Model) => {
-    const clf = new addon.NSVM()
+  static restore = async (model: Model) => {
+    const clf = await makeSvm()
     clf.set_model(model) // might throw
     return new BaseSVM(clf)
   }
 
-  train = (dataset: Data[], random_seed: number, params: Parameters): Promise<Model> => {
+  train = async (dataset: Data[], random_seed: number, params: Parameters): Promise<Model> => {
     const dims = numeric.dim(dataset)
     assert(dims[0] > 0 && dims[1] === 2 && dims[2] > 0, 'dataset must be a list of [X,y] tuples')
 
-    this._clf = new addon.NSVM({ random_seed })
+    this._clf = await makeSvm({ random_seed })
 
     const X = dataset.map(d => d[0])
     const y = dataset.map(d => d[1])

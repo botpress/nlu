@@ -86,16 +86,21 @@ export class Predictor implements MLToolkit.SVM.Predictor {
   private clf: SVM | undefined
   private labels: string[]
   private parameters: Parameters | undefined
+  private serialized: Serialized
 
   constructor(json_model: string) {
     const serialized: Serialized = JSON.parse(json_model)
     this.labels = serialized.labels_idx
+    this.serialized = serialized
+  }
 
+  public async initialize() {
     try {
       // TODO: actually check the model format
-      const model = _.omit(serialized, 'labels_idx')
+      const model = _.omit(this.serialized, 'labels_idx')
       this.parameters = model.param
-      this.clf = new SVM({ kFold: 1 }, model)
+      this.clf = new SVM({ kFold: 1 })
+      await this.clf.initialize(model)
     } catch (err) {
       this.throwModelHasChanged(err)
     }

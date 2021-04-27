@@ -190,16 +190,16 @@ export default class SlotTagger {
 
       const model: Model = await validate(raw, modelSchema)
 
-      this.predictors = this._makePredictors(model)
+      this.predictors = await this._makePredictors(model)
       this.model = model
     } catch (err) {
       throw new ModelLoadingError(SlotTagger._name, err)
     }
   }
 
-  private _makePredictors(model: Model): Predictors {
+  private async _makePredictors(model: Model): Promise<Predictors> {
     const { intentFeatures, crfModel, slot_definitions } = model
-    const crfTagger = crfModel && this._makeCrfTagger(crfModel)
+    const crfTagger = crfModel && (await this._makeCrfTagger(crfModel))
 
     return {
       crfTagger,
@@ -208,10 +208,11 @@ export default class SlotTagger {
     }
   }
 
-  private _makeCrfTagger(crfModel: Buffer) {
+  private async _makeCrfTagger(crfModel: Buffer) {
     const crfModelFn = tmp.tmpNameSync()
     fse.writeFileSync(crfModelFn, crfModel)
     const crfTagger = new this.mlToolkit.CRF.Tagger()
+    await crfTagger.initialize()
     crfTagger.open(crfModelFn)
     return crfTagger
   }
@@ -250,6 +251,7 @@ export default class SlotTagger {
     }
 
     const trainer = new this.mlToolkit.CRF.Trainer()
+    await trainer.initialize()
     const crfModelFn = await trainer.train(elements, CRF_TRAINER_PARAMS)
 
     const crfModel = await fse.readFile(crfModelFn)
@@ -343,7 +345,7 @@ export default class SlotTagger {
         throw new Error(`${SlotTagger._name} must be trained before calling predict.`)
       }
 
-      this.predictors = this._makePredictors(this.model)
+      this.predictors = await this._makePredictors(this.model)
     }
 
     const { intentFeatures, crfTagger, slot_definitions } = this.predictors

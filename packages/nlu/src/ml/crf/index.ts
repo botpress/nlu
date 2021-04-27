@@ -1,15 +1,16 @@
+import { Tagger as AddonTagger, Trainer as AddonTrainer, makeTrainer, makeTagger } from '@botpress/node-crfsuite'
 import tmp from 'tmp'
 import { MLToolkit } from '../../ml/typings'
 
-import crfsuite, { Tagger as AddonTagger, Trainer as AddonTrainer } from './addon'
-
 export class Trainer implements MLToolkit.CRF.Trainer {
-  private trainer: AddonTrainer
+  private trainer!: AddonTrainer
   private _cancelTraining = false
 
-  constructor() {
+  constructor() {}
+
+  public async initialize() {
     // debugging should be enabled but, this slows down crf training... TODO: find a solution
-    this.trainer = new crfsuite.Trainer({ debug: false })
+    this.trainer = await makeTrainer({ debug: false })
   }
 
   public async train(
@@ -39,10 +40,12 @@ export class Trainer implements MLToolkit.CRF.Trainer {
 }
 
 export class Tagger implements MLToolkit.CRF.Tagger {
-  private tagger: AddonTagger
+  private tagger!: AddonTagger
 
-  constructor() {
-    this.tagger = new crfsuite.Tagger()
+  constructor() {}
+
+  public async initialize() {
+    this.tagger = await makeTagger()
   }
 
   tag(xseq: string[][]): { probability: number; result: string[] } {

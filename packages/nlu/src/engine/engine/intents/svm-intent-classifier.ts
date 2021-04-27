@@ -99,17 +99,20 @@ export class SvmIntentClassifier implements IntentClassifier {
     try {
       const raw = JSON.parse(serialized)
       const model: Model = await validate(raw, modelSchema)
-      this.predictors = this._makePredictors(model)
+      this.predictors = await this._makePredictors(model)
       this.model = model
     } catch (err) {
       throw new ModelLoadingError(SvmIntentClassifier._displayName, err)
     }
   }
 
-  private _makePredictors(model: Model): Predictors {
+  private async _makePredictors(model: Model): Promise<Predictors> {
     const { svmModel, intentNames, entitiesName } = model
+
+    const svm = svmModel ? new this.tools.mlToolkit.SVM.Predictor(svmModel) : undefined
+    await svm?.initialize()
     return {
-      svm: svmModel ? new this.tools.mlToolkit.SVM.Predictor(svmModel) : undefined,
+      svm,
       intentNames,
       entitiesName
     }
@@ -121,7 +124,7 @@ export class SvmIntentClassifier implements IntentClassifier {
         throw new Error(`${SvmIntentClassifier._displayName} must be trained before calling predict.`)
       }
 
-      this.predictors = this._makePredictors(this.model)
+      this.predictors = await this._makePredictors(this.model)
     }
 
     const { svm, intentNames, entitiesName } = this.predictors

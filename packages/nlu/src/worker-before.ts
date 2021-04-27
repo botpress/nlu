@@ -2,8 +2,6 @@ import { EventEmitter } from 'events'
 import path from 'path'
 import { workerData } from 'worker_threads'
 
-import { Distro } from './utils/getos'
-
 process.BOTPRESS_EVENTS = new EventEmitter()
 process.BOTPRESS_EVENTS.setMaxListeners(1000)
 global.BOTPRESS_CORE_EVENT = (event, args) => process.BOTPRESS_EVENTS.emit(event, args)
@@ -11,7 +9,6 @@ global.BOTPRESS_CORE_EVENT = (event, args) => process.BOTPRESS_EVENTS.emit(event
 const processData = workerData?.processData
 if (processData) {
   Object.assign(process, processData)
-  process.distro = new Distro(JSON.parse(processData.distro))
 }
 
 if (workerData?.processEnv) {

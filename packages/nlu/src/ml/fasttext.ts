@@ -1,8 +1,6 @@
+import { makeClassifier, makeQuery, Options, Query } from '@botpress/node-fasttext'
 import { VError } from 'verror'
 import { MLToolkit } from './typings'
-
-const customFastTextPath = process.env.FAST_TEXT_PATH ? '!' + process.env.FAST_TEXT_PATH : undefined
-const binding = require(customFastTextPath || './fasttext.node')
 
 const FAST_TEXT_VERBOSITY = parseInt(process.env.FAST_TEXT_VERBOSITY || '0')
 const FAST_TEXT_CLEANUP_MS = parseInt(process.env.FAST_TEXT_CLEANUP_MS || '60000') // 60s caching by default
@@ -56,13 +54,13 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     args: Partial<MLToolkit.FastText.TrainArgs>
   ): Promise<void> {
     const outPath = this._cleanPath(modelPath)
-    const model = new binding.Classifier()
+    const model = await makeClassifier()
     await model.train(method, {
       ...DefaultTrainArgs,
       ...args,
       output: outPath,
       verbose: FAST_TEXT_VERBOSITY
-    })
+    } as Options)
     this._modelPath = outPath
 
     if (!this.lazy) {
@@ -110,7 +108,7 @@ export class FastTextModel implements MLToolkit.FastText.Model {
       return this._modelPromise
     }
 
-    const model = new binding.Classifier()
+    const model = await makeClassifier()
     this._modelPromise = new Promise((resolve, reject) => {
       model
         .loadModel(this.modelPath)
@@ -124,7 +122,7 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     return this._modelPromise
   }
 
-  private async _getQuery(): Promise<any> {
+  private async _getQuery(): Promise<Query> {
     if (this._queryPromise && !this._queryPromise!.isRejected()) {
       this._resetQueryBomb()
       return this._queryPromise
@@ -132,7 +130,7 @@ export class FastTextModel implements MLToolkit.FastText.Model {
 
     this._queryPromise = new Promise(async (resolve, reject) => {
       try {
-        const q = new binding.Query(this.modelPath)
+        const q = await makeQuery(this.modelPath)
         await q.getWordVector('hydrate') // hydration as fastText loads models lazily
         resolve(q)
         this._resetQueryBomb()

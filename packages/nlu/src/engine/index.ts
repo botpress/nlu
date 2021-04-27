@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import '../bootstrap'
 import Engine from './engine'
 import { DUCKLING_ENTITIES } from './engine/entities/duckling-extractor/enums'
 import { isTrainingAlreadyStarted, isTrainingCanceled } from './errors'

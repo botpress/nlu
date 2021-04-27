@@ -1,0 +1,27 @@
+{
+  "name": "@botpress/node-sentencepiece",
+  "version": "0.0.1",
+  "description": "nodejs addon for sentencepiece",
+  "main": "./dist/index.js",
+  "types": "typings.d.ts",
+  "author": "",
+  "license": "MIT",
+  "gypfile": true,
+  "scripts": {
+    "build": "./node_modules/.bin/tsc",
+    "install": ":",
+    "clean": "node-gyp clean",
+    "build-native": "run-script-os",
+    "build-native:linux": "./scripts/linux_build_sentencepiece.sh && node-gyp rebuild",
+    "build-native:darwin": "./scripts/macos_build_sentencepiece.sh && node-gyp rebuild",
+    "build-native:win32": "(.\\scripts\\win_build_sentencepiece.bat || true) && node-gyp rebuild"
+  },
+  "devDependencies": {
+    "node-gyp": "^4.0.0",
+    "node-addon-api": "^1.6.3",
+    "run-script-os": "^1.0.5",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {
+  }
+}

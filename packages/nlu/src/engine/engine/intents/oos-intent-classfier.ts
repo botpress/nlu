@@ -292,8 +292,11 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const exactIntenClassifier = new ExactIntenClassifier()
     await exactIntenClassifier.load(exactMatchModel)
 
+    const oosSvm = oosSvmModel ? new this.tools.mlToolkit.SVM.Predictor(oosSvmModel) : undefined
+    await oosSvm?.initialize()
+
     return {
-      oosSvm: oosSvmModel ? new this.tools.mlToolkit.SVM.Predictor(oosSvmModel) : undefined,
+      oosSvm,
       baseIntentClf,
       trainingVocab,
       exactIntenClassifier

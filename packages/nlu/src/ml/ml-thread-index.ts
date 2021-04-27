@@ -1,7 +1,5 @@
 // eslint-disable-next-line import/order
 import '../worker-before'
-// eslint-disable-next-line import/order
-import '../rewire'
 
 // eslint-disable-next-line import/order
 import { parentPort } from 'worker_threads'
@@ -51,6 +49,7 @@ async function messageHandler(msg: Message) {
 
     try {
       const trainer = new CrfTrainer()
+      await trainer.initialize()
       const result = await trainer.train(
         points as MLToolkit.CRF.DataPoint[],
         options as MLToolkit.CRF.TrainerOptions,

@@ -11,7 +11,6 @@ declare namespace NodeJS {
     BOTPRESS_CORE_EVENT: IEmitCoreEvent
     BOTPRESS_CORE_EVENT_TYPES: BotpressCoreEvents
     require: ExtraRequire
-    rewire: (name: string) => string
     printBotLog(botId: string, args: any[]): void
     printLog(args: any[]): void
   }
@@ -44,7 +43,6 @@ declare namespace NodeJS {
     BOTPRESS_VERSION: string
     TELEMETRY_URL: string
     core_env: BotpressEnvironmentVariables
-    distro: OSDistribution
     BOTPRESS_EVENTS: EventEmitter
     AUTO_MIGRATE: boolean
     MIGRATE_CMD?: 'up' | 'down'

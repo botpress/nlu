@@ -211,8 +211,8 @@ export default class LanguageService {
   }
 
   private async _loadBPEModel(lang: string): Promise<LoadedBPEModel> {
-    const loadingAction = lang => {
-      const tokenizer = toolkit.SentencePiece.createProcessor()
+    const loadingAction = async lang => {
+      const tokenizer = await toolkit.SentencePiece.createProcessor()
       const path = this._models[lang].bpeModel.path
       tokenizer.loadModel(path)
       return Promise.resolve({ model: tokenizer, path })

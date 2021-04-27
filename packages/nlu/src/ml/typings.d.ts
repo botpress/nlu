@@ -123,6 +123,7 @@ export namespace MLToolkit {
 
     export class Predictor {
       constructor(model: string)
+      initialize(): Promise<void>
       predict(coordinates: number[]): Promise<Prediction[]>
       isLoaded(): boolean
       getLabels(): string[]
@@ -131,6 +132,7 @@ export namespace MLToolkit {
 
   export namespace CRF {
     export class Tagger {
+      initialize(): Promise<void>
       tag(xseq: Array<string[]>): { probability: number; result: string[] }
       open(model_filename: string): boolean
       marginal(xseq: Array<string[]>): { [label: string]: number }[]
@@ -150,6 +152,7 @@ export namespace MLToolkit {
     }
 
     export class Trainer {
+      initialize(): Promise<void>
       train(elements: DataPoint[], options: TrainerOptions, progressCallback?: TrainProgressCallback): Promise<string>
     }
   }
@@ -161,6 +164,6 @@ export namespace MLToolkit {
       decode: (pieces: string[]) => string
     }
 
-    export const createProcessor: () => Processor
+    export const createProcessor: () => Promise<Processor>
   }
 }

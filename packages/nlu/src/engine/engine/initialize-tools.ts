@@ -87,8 +87,8 @@ export async function initializeTools(config: LanguageConfig, logger: Logger): P
   const { languageProvider } = await initializeLanguageProvider(config, logger, seededLodashProvider)
 
   return {
-    partOfSpeechUtterances: (tokenUtterances: string[][], lang: string) => {
-      const tagger = getPOSTagger(lang, MLToolkit)
+    partOfSpeechUtterances: async (tokenUtterances: string[][], lang: string) => {
+      const tagger = await getPOSTagger(lang, MLToolkit)
       return tokenUtterances.map(u => tagSentence(tagger, u))
     },
     tokenize_utterances: (utterances: string[], lang: string, vocab?: string[]) =>

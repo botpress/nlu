@@ -32,9 +32,13 @@ export class FakeSvmPredictor implements MLToolkit.SVM.Predictor {
     const labels = this.model.split(',')
     return labels.map(label => ({ label, confidence: 1 / labels.length }))
   }
+
+  async initialize() {}
+
   isLoaded(): boolean {
     return true
   }
+
   getLabels(): string[] {
     return this.model.split(',')
   }
