@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import getos from 'getos'
 import _ from 'lodash'
 import os from 'os'
@@ -12,7 +13,7 @@ export class BaseScheduler<T> {
   constructor(private maxElements: number, private elementGenerator: () => Promise<T>) {}
 
   async getNext(): Promise<T> {
-    this.elements.forEach(el => el.turns++)
+    this.elements.forEach((el) => el.turns++)
 
     if (this.elements.length < this.maxElements) {
       const el = await this.elementGenerator()
@@ -20,7 +21,7 @@ export class BaseScheduler<T> {
       return el
     }
 
-    const lru = _.maxBy(this.elements, el => el.turns)!
+    const lru = _.maxBy(this.elements, (el) => el.turns)!
     lru.turns = 0
     return lru.el
   }
@@ -33,16 +34,16 @@ export class MLThreadScheduler extends BaseScheduler<Worker> {
 }
 
 async function makeWorker() {
-  const distro = await Promise.fromCallback(getos)
+  const distro = await Bluebird.fromCallback(getos)
     .timeout(1000)
-    .catch(_err => ({
+    .catch((_err) => ({
       os: os.platform(),
       dist: 'default',
       codename: 'N/A',
       release: 'N/A'
     }))
 
-  const clean = data => _.omitBy(data, val => val == null || typeof val === 'object')
+  const clean = (data) => _.omitBy(data, (val) => val == null || typeof val === 'object')
   const processData = {
     VERBOSITY_LEVEL: process.VERBOSITY_LEVEL,
     IS_PRODUCTION: process.IS_PRODUCTION,

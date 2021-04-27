@@ -23,7 +23,6 @@
     "@types/tar": "^4.0.4",
     "axios": "^0.21.1",
     "bluebird": "^3.7.2",
-    "bluebird-global": "^1.0.1",
     "bluebird-retry": "^0.11.0",
     "body-parser": "^1.18.3",
     "bytes": "^3.1.0",
@@ -69,7 +68,6 @@
     "yn": "^2.0.0"
   },
   "devDependencies": {
-    "@types/bluebird-global": "^3.5.9",
     "@types/bluebird-retry": "^0.11.4",
     "@types/bytes": "^3.1.0",
     "@types/diff": "^5.0.0",

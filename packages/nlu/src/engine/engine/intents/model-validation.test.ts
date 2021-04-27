@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import Joi, { validate } from 'joi'
 import { modelSchema as exactMatchModelSchema, Model as ExactMatchModel } from './exact-intent-classifier'
 import { modelSchema as oosModelSchema, Model as OOSModel } from './oos-intent-classfier'
@@ -60,8 +61,8 @@ test('exact-match intent clf model validation', async () => {
     }
   ]
 
-  await Promise.map(shouldPass, m => expectValidates(m, exactMatchModelSchema))
-  await Promise.map(shouldFail, m => expectThrows(m, exactMatchModelSchema))
+  await Bluebird.map(shouldPass, (m) => expectValidates(m, exactMatchModelSchema))
+  await Bluebird.map(shouldFail, (m) => expectThrows(m, exactMatchModelSchema))
 })
 
 test('oos intent clf model validation', async () => {
@@ -115,8 +116,8 @@ test('oos intent clf model validation', async () => {
       // missing key
     }
   ]
-  await Promise.map(shouldPass, m => expectValidates(m, oosModelSchema))
-  await Promise.map(shouldFail, m => expectThrows(m, oosModelSchema))
+  await Bluebird.map(shouldPass, (m) => expectValidates(m, oosModelSchema))
+  await Bluebird.map(shouldFail, (m) => expectThrows(m, oosModelSchema))
 })
 
 test('svm intent clf model validation', async () => {
@@ -170,8 +171,8 @@ test('svm intent clf model validation', async () => {
     }
   ]
 
-  await Promise.map(shouldPass, m => expectValidates(m, svmModelSchema))
-  await Promise.map(shouldFail, m => expectThrows(m, svmModelSchema))
+  await Bluebird.map(shouldPass, (m) => expectValidates(m, svmModelSchema))
+  await Bluebird.map(shouldFail, (m) => expectThrows(m, svmModelSchema))
 })
 
 test('slot tagger model validation', async () => {
@@ -263,6 +264,6 @@ test('slot tagger model validation', async () => {
     }
   ]
 
-  await Promise.map(shouldPass, m => expectValidates(m, slotModelSchema))
-  await Promise.map(shouldFail, m => expectThrows(m, slotModelSchema))
+  await Bluebird.map(shouldPass, (m) => expectValidates(m, slotModelSchema))
+  await Bluebird.map(shouldFail, (m) => expectThrows(m, slotModelSchema))
 })

@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import fs from 'fs'
 import _ from 'lodash'
@@ -84,13 +85,13 @@ export default class LanguageService {
     if (languages.length > 0) {
       this.warnRam(languages)
 
-      process.on('exit', code => {
+      process.on('exit', (code) => {
         this.warnRam(languages)
       })
     }
 
     this.logger.info(`Found Languages: ${!languages.length ? 'None' : languages.join(', ')}`)
-    await Promise.mapSeries(languages, this._loadModels.bind(this))
+    await Bluebird.mapSeries(languages, this._loadModels.bind(this))
 
     this._ready = true
   }
@@ -150,8 +151,8 @@ export default class LanguageService {
     const domain = modelGroup[0].domain
     const langCode = modelGroup[0].langCode
 
-    const fastTextModelFileInfo = modelGroup.find(f => f.dim === this.dim)
-    const bpeModelFileInfo = modelGroup.find(f => !f.dim)
+    const fastTextModelFileInfo = modelGroup.find((f) => f.dim === this.dim)
+    const bpeModelFileInfo = modelGroup.find((f) => !f.dim)
 
     if (domain !== this.domain || !fastTextModelFileInfo || !bpeModelFileInfo) {
       return
@@ -211,7 +212,7 @@ export default class LanguageService {
   }
 
   private async _loadBPEModel(lang: string): Promise<LoadedBPEModel> {
-    const loadingAction = async lang => {
+    const loadingAction = async (lang) => {
       const tokenizer = await toolkit.SentencePiece.createProcessor()
       const path = this._models[lang].bpeModel.path
       tokenizer.loadModel(path)
@@ -269,7 +270,7 @@ export default class LanguageService {
     }
 
     return Promise.resolve(
-      utterances.map(utterance => {
+      utterances.map((utterance) => {
         return (bpeModel as LoadedBPEModel).tokenizer.encode(utterance).map(_.toLower)
       })
     )
@@ -286,7 +287,7 @@ export default class LanguageService {
 
   getModels() {
     const models = this._getModels()
-    return Object.keys(models).map(lang => {
+    return Object.keys(models).map((lang) => {
       const loaded = this._models[lang] && this._models[lang].bpeModel.loaded && this._models[lang].fastTextModel.loaded
       return {
         lang,
@@ -307,7 +308,7 @@ export default class LanguageService {
     _.chain(files)
       .map(this._getModelInfoFromFile)
       .reject(_.isEmpty)
-      .groupBy(model => [model.domain, model.langCode])
+      .groupBy((model) => [model.domain, model.langCode])
       .forEach(_scopedAddPairModelToModels)
       .value()
 
@@ -316,8 +317,8 @@ export default class LanguageService {
 
   remove(lang: string) {
     fs.readdirSync(this.langDir)
-      .filter(file => file.includes(`.${lang}.`))
-      .map(file => path.join(this.langDir, file))
+      .filter((file) => file.includes(`.${lang}.`))
+      .map((file) => path.join(this.langDir, file))
       .map(fs.unlinkSync)
 
     delete this._models[lang]

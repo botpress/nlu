@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { Logger } from '../../../typings'
 import { extractPattern } from '../../tools/patterns-utils'
@@ -63,13 +64,13 @@ export class DucklingEntityExtractor implements SystemEntityExtractor {
     const [cached, toFetch] = this._cache.splitCacheHitFromCacheMiss(inputs, !!useCache)
 
     const chunks = _.chunk(toFetch, BATCH_SIZE)
-    const batchedRes = await Promise.mapSeries(chunks, c => this._extractBatch(c, options))
+    const batchedRes = await Bluebird.mapSeries(chunks, (c) => this._extractBatch(c, options))
 
     return _.chain(batchedRes)
       .flatten()
       .concat(cached)
       .orderBy('idx')
-      .map(x => x.entities!)
+      .map((x) => x.entities!)
       .value()
   }
 
@@ -82,15 +83,15 @@ export class DucklingEntityExtractor implements SystemEntityExtractor {
       return []
     }
     // trailing JOIN_CHAR so we have n joints and n examples
-    const strBatch = batch.map(x => x.input)
+    const strBatch = batch.map((x) => x.input)
     const concatBatch = strBatch.join(JOIN_CHAR) + JOIN_CHAR
     const batchEntities = await this._fetchDuckling(concatBatch, params)
-    const splitLocations = extractPattern(concatBatch, new RegExp(JOIN_CHAR)).map(v => v.sourceIndex)
+    const splitLocations = extractPattern(concatBatch, new RegExp(JOIN_CHAR)).map((v) => v.sourceIndex)
     const entities = splitLocations.map((to, idx, locs) => {
       const from = idx === 0 ? 0 : locs[idx - 1] + JOIN_CHAR.length
       return batchEntities
-        .filter(e => e.start >= from && e.end <= to)
-        .map(e => ({
+        .filter((e) => e.start >= from && e.end <= to)
+        .map((e) => ({
           ...e,
           start: e.start - from,
           end: e.end - from

@@ -1,4 +1,3 @@
-import 'bluebird-global'
 import { unlinkSync } from 'fs'
 import path from 'path'
 import { EntityExtractionResult } from '../typings'

@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { MLToolkit } from '../../ml/typings'
 
@@ -103,7 +104,7 @@ async function extractEntities(input: PredictStep, predictors: Predictors, tools
       ...extractPatternEntities(utterance, predictors.pattern_entities),
       ...(await tools.systemEntityExtractor.extract(utterance.toString(), utterance.languageCode))
     ],
-    entityRes => {
+    (entityRes) => {
       utterance.tagEntity(_.omit(entityRes, ['start, end']) as ExtractedEntity, entityRes.start, entityRes.end)
     }
   )
@@ -121,7 +122,7 @@ export async function predictContext(input: PredictStep, predictors: Predictors)
 }
 
 export async function predictIntent(input: ContextStep, predictors: Predictors): Promise<IntentStep> {
-  if (_.flatMap(predictors.intents, i => i.utterances).length <= 0) {
+  if (_.flatMap(predictors.intents, (i) => i.utterances).length <= 0) {
     const nonePrediction = <NoneableIntentPredictions>{
       oos: 1,
       intents: [{ name: NONE_INTENT, confidence: 1 }]
@@ -129,14 +130,14 @@ export async function predictIntent(input: ContextStep, predictors: Predictors):
     const allCtxs = predictors.contexts
     const intent_predictions = _.zipObject(
       allCtxs,
-      allCtxs.map(_ => ({ ...nonePrediction }))
+      allCtxs.map((_) => ({ ...nonePrediction }))
     )
     return { ...input, intent_predictions }
   }
 
-  const ctxToPredict = input.ctx_predictions.intents.map(p => p.name)
+  const ctxToPredict = input.ctx_predictions.intents.map((p) => p.name)
   const predictions = (
-    await Promise.map(ctxToPredict, async ctx => predictors.intent_classifier_per_ctx[ctx].predict(input.utterance))
+    await Bluebird.map(ctxToPredict, async (ctx) => predictors.intent_classifier_per_ctx[ctx].predict(input.utterance))
   ).filter(_.identity)
 
   return {
@@ -148,7 +149,7 @@ export async function predictIntent(input: ContextStep, predictors: Predictors):
 async function extractSlots(input: IntentStep, predictors: Predictors): Promise<SlotStep> {
   const slots_per_intent: _.Dictionary<SlotExtractionResult[]> = {}
 
-  for (const intent of predictors.intents.filter(x => x.slot_definitions.length > 0)) {
+  for (const intent of predictors.intents.filter((x) => x.slot_definitions.length > 0)) {
     const slotTagger = predictors.slot_tagger_per_intent[intent.name]
     const slots = await slotTagger.predict(input.utterance)
     slots_per_intent[intent.name] = slots
@@ -187,7 +188,7 @@ function MapStepToOutput(step: SpellStep): PredictOutput {
 
   const entities = step.utterance.entities
     .map(entitiesMapper)
-    .filter(<(e: EntityPrediction | null) => e is EntityPrediction>(e => !!e))
+    .filter(<(e: EntityPrediction | null) => e is EntityPrediction>((e) => !!e))
 
   const slotsCollectionReducer = (slots: Dic<SlotPrediction>, s: SlotExtractionResult): Dic<SlotPrediction> => {
     if (slots[s.slot.name] && slots[s.slot.name].confidence > s.slot.confidence) {
@@ -241,7 +242,7 @@ function MapStepToOutput(step: SpellStep): PredictOutput {
 
   return {
     entities,
-    contexts: _.orderBy(contexts, x => x.confidence, 'desc'),
+    contexts: _.orderBy(contexts, (x) => x.confidence, 'desc'),
     spellChecked: step.spellChecked
   }
 }

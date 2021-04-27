@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { MLToolkit } from '../../ml/typings'
 import { Logger } from '../typings'
@@ -82,7 +83,7 @@ const KMEANS_OPTIONS = {
 
 async function PreprocessInput(input: TrainInput, tools: Tools): Promise<TrainStep> {
   input = _.cloneDeep(input)
-  const list_entities = await Promise.map(input.list_entities, list =>
+  const list_entities = await Bluebird.map(input.list_entities, (list) =>
     makeListEntityModel(list, input.languageCode, tools)
   )
 
@@ -105,7 +106,7 @@ async function PreprocessInput(input: TrainInput, tools: Tools): Promise<TrainSt
 
 async function makeListEntityModel(entity: ListEntityWithCache, languageCode: string, tools: Tools) {
   const allValues = _.uniq(Object.keys(entity.synonyms).concat(..._.values(entity.synonyms)))
-  const allTokens = (await tools.tokenize_utterances(allValues, languageCode)).map(toks =>
+  const allTokens = (await tools.tokenize_utterances(allValues, languageCode)).map((toks) =>
     toks.map(convertToRealSpaces)
   )
 
@@ -119,7 +120,7 @@ async function makeListEntityModel(entity: ListEntityWithCache, languageCode: st
     fuzzyTolerance: entity.fuzzyTolerance,
     sensitive: entity.sensitive,
     mappingsTokens: _.mapValues(entity.synonyms, (synonyms, name) =>
-      [...synonyms, name].map(syn => {
+      [...synonyms, name].map((syn) => {
         const idx = allValues.indexOf(syn)
         return allTokens[idx]
       })
@@ -130,8 +131,8 @@ async function makeListEntityModel(entity: ListEntityWithCache, languageCode: st
 
 function computeKmeans(intents: Intent<Utterance>[], tools: Tools): MLToolkit.KMeans.KmeansResult | undefined {
   const data = _.chain(intents)
-    .flatMap(i => i.utterances)
-    .flatMap(u => u.tokens)
+    .flatMap((i) => i.utterances)
+    .flatMap((u) => u.tokens)
     .uniqBy((t: UtteranceToken) => t.value)
     .map((t: UtteranceToken) => t.vector)
     .value() as number[][]
@@ -148,7 +149,7 @@ function computeKmeans(intents: Intent<Utterance>[], tools: Tools): MLToolkit.KM
 async function ClusterTokens(input: TrainStep, tools: Tools): Promise<TrainStep> {
   const kmeans = computeKmeans(input.intents, tools)
   const copy = { ...input, kmeans }
-  copy.intents.forEach(x => x.utterances.forEach(u => u.setKmeans(kmeans)))
+  copy.intents.forEach((x) => x.utterances.forEach((u) => u.setKmeans(kmeans)))
 
   return copy
 }
@@ -176,8 +177,8 @@ async function TrainIntentClassifiers(
   for (let i = 0; i < ctxToTrain.length; i++) {
     const ctx = ctxToTrain[i]
 
-    const allUtterances = _.flatMap(intents, i => i.utterances)
-    const trainableIntents = intents.filter(i => i.contexts.includes(ctx))
+    const allUtterances = _.flatMap(intents, (i) => i.utterances)
+    const trainableIntents = intents.filter((i) => i.contexts.includes(ctx))
 
     const intentClf = new OOSIntentClassifier(tools, tools.logger)
     await intentClf.train(
@@ -189,7 +190,7 @@ async function TrainIntentClassifiers(
         pattern_entities,
         allUtterances
       },
-      p => {
+      (p) => {
         const completion = (i + p) / input.ctxToTrain.length
         progress(completion)
       }
@@ -205,10 +206,10 @@ async function TrainIntentClassifiers(
 async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: progressCB): Promise<string> {
   const { languageCode, intents, contexts, list_entities, pattern_entities, nluSeed } = input
 
-  const rootIntents = contexts.map(ctx => {
+  const rootIntents = contexts.map((ctx) => {
     const utterances = _(intents)
-      .filter(intent => intent.contexts.includes(ctx))
-      .flatMap(intent => intent.utterances)
+      .filter((intent) => intent.contexts.includes(ctx))
+      .flatMap((intent) => intent.utterances)
       .value()
 
     return <Intent<Utterance>>{
@@ -228,7 +229,7 @@ async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: 
       pattern_entities,
       nluSeed
     },
-    p => {
+    (p) => {
       progress(_.round(p, 1))
     }
   )
@@ -241,7 +242,7 @@ async function ProcessIntents(
   languageCode: string,
   tools: Tools
 ): Promise<Intent<Utterance>[]> {
-  return Promise.map(intents, async intent => {
+  return Bluebird.map(intents, async (intent) => {
     const cleaned = intent.utterances.map(_.flow([_.trim, replaceConsecutiveSpaces]))
     const utterances = await buildUtteranceBatch(cleaned, languageCode, tools)
     return { ...intent, utterances }
@@ -249,13 +250,11 @@ async function ProcessIntents(
 }
 
 async function ExtractEntities(input: TrainStep, tools: Tools): Promise<TrainStep> {
-  const utterances: Utterance[] = _.chain(input.intents)
-    .flatMap('utterances')
-    .value()
+  const utterances: Utterance[] = _.chain(input.intents).flatMap('utterances').value()
 
   // we extract sys entities for all utterances, helps on training and exact matcher
   const allSysEntities = await tools.systemEntityExtractor.extractMultiple(
-    utterances.map(u => u.toString()),
+    utterances.map((u) => u.toString()),
     input.languageCode,
     true
   )
@@ -267,7 +266,7 @@ async function ExtractEntities(input: TrainStep, tools: Tools): Promise<TrainSte
       return [utt, [...sysEntities, ...listEntities, ...patternEntities]] as [Utterance, EntityExtractionResult[]]
     })
     .forEach(([utt, entities]) => {
-      entities.forEach(ent => {
+      entities.forEach((ent) => {
         const entity: EntityExtractionResult = _.omit(ent, ['start, end']) as EntityExtractionResult
         utt.tagEntity(entity, ent.start, ent.end)
       })
@@ -280,14 +279,14 @@ export async function TfidfTokens(input: TrainStep): Promise<TrainStep> {
   const tfidfInput = input.intents.reduce(
     (tfidfInput, intent) => ({
       ...tfidfInput,
-      [intent.name]: _.flatMapDeep(intent.utterances.map(u => u.tokens.map(t => t.toString({ lowerCase: true }))))
+      [intent.name]: _.flatMapDeep(intent.utterances.map((u) => u.tokens.map((t) => t.toString({ lowerCase: true }))))
     }),
     {} as _.Dictionary<string[]>
   )
 
   const { __avg__: avg_tfidf } = tfidf(tfidfInput)
   const copy = { ...input, tfIdf: avg_tfidf }
-  copy.intents.forEach(x => x.utterances.forEach(u => u.setGlobalTfidf(avg_tfidf)))
+  copy.intents.forEach((x) => x.utterances.forEach((u) => u.setGlobalTfidf(avg_tfidf)))
 
   return copy
 }
@@ -305,7 +304,7 @@ async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progre
         intent,
         list_entites: input.list_entities
       },
-      p => {
+      (p) => {
         const completion = (i + p) / input.intents.length
         progress(completion)
       }
@@ -374,7 +373,7 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
 
   const [ctx_model, intent_model_by_ctx, slots_model_by_intent] = models
 
-  const coldEntities: ColdListEntityModel[] = step.list_entities.map(e => ({
+  const coldEntities: ColdListEntityModel[] = step.list_entities.map((e) => ({
     ...e,
     cache: e.cache.dump()
   }))

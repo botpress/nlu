@@ -1,4 +1,5 @@
 import axios, { CancelTokenSource } from 'axios'
+import Bluebird from 'bluebird'
 import fse from 'fs-extra'
 import { Readable } from 'stream'
 import DEBUG from '../../utils/simple-logger/debug'
@@ -70,13 +71,13 @@ export default class ModelDownload {
     let downloadedSize = 0
 
     stream.pipe(fse.createWriteStream(tmpPath))
-    stream.on('error', err => {
+    stream.on('error', (err) => {
       debug('model download failed', { lang: modelToDownload.language, error: err.message })
       this.status = 'errored'
       this.message = 'Error: ' + err.message
     })
 
-    stream.on('data', chunk => {
+    stream.on('data', (chunk) => {
       downloadedSize += chunk.length
       this.downloadSizeProgress += chunk.length
     })
@@ -128,10 +129,10 @@ export default class ModelDownload {
     }
 
     try {
-      await Promise.fromCallback(cb => fse.rename(tmpPath, filePath, cb))
+      await Bluebird.fromCallback((cb) => fse.rename(tmpPath, filePath, cb))
     } catch (err) {
       debug('could not rename downloaded file %s', filePath)
-      await Promise.fromCallback(cb => fse.move(tmpPath, filePath, cb))
+      await Bluebird.fromCallback((cb) => fse.move(tmpPath, filePath, cb))
     }
   }
 

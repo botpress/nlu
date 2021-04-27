@@ -1,4 +1,3 @@
-import 'bluebird-global'
 import { unlinkSync } from 'fs'
 import _ from 'lodash'
 import path from 'path'
@@ -27,7 +26,7 @@ describe('Microsoft Extract Multiple', () => {
   test('Return nothing for unsupported lang', async () => {
     const examples = ['один два три четыре пять', 'Я говорю по русски сегодня, но и завтра вечером']
     const res = await microsoft.extractMultiple(examples, 'ru')
-    res.forEach(r => {
+    res.forEach((r) => {
       expect(r).toEqual([])
     })
   })
@@ -277,8 +276,8 @@ describe('Microsft Entity extractor cache usage', () => {
       return [[], inputs.map(toItem)]
     }
 
-    const knownInputs = mem.map(i => i.input)
-    const newInputs = inputs.filter(i => !knownInputs.includes(i))
+    const knownInputs = mem.map((i) => i.input)
+    const newInputs = inputs.filter((i) => !knownInputs.includes(i))
     const newItems: KeyedItem[] = newInputs.map(toItem)
     const ret: KeyedItem[][] = [[...mem], [...newItems]]
     mem.push(...newItems)

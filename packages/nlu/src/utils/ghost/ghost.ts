@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import { diffLines } from 'diff'
 import { EventEmitter2 } from 'eventemitter2'
@@ -115,13 +116,13 @@ export class GhostService {
     }
 
     const dbRevs = await this.dbDriver.listRevisions('data/')
-    await Promise.each(dbRevs, rev => this.dbDriver.deleteRevision(rev.path, rev.revision))
+    await Bluebird.each(dbRevs, (rev) => this.dbDriver.deleteRevision(rev.path, rev.revision))
 
     const allChanges = await this.listFileChanges(tmpFolder)
     for (const { changes, localFiles } of allChanges) {
-      await Promise.map(
-        changes.filter(x => x.action === 'del'),
-        async file => {
+      await Bluebird.map(
+        changes.filter((x) => x.action === 'del'),
+        async (file) => {
           await this.dbDriver.deleteFile(file.path)
           await invalidateFile(file.path)
         }
@@ -129,7 +130,7 @@ export class GhostService {
 
       // Upload all local files for that scope
       if (localFiles.length) {
-        await Promise.map(localFiles, async filePath => {
+        await Bluebird.map(localFiles, async (filePath) => {
           const content = await this.diskDriver.readFile(path.join(tmpFolder, filePath))
           await this.dbDriver.upsertFile(filePath, content, false)
           await invalidateFile(filePath)
@@ -137,7 +138,7 @@ export class GhostService {
       }
     }
 
-    return allChanges.filter(x => x.localFiles.length && x.botId).map(x => x.botId)
+    return allChanges.filter((x) => x.localFiles.length && x.botId).map((x) => x.botId)
   }
 
   // TODO: refactor this
@@ -150,7 +151,7 @@ export class GhostService {
     const localBotIds = (await tmpDiskBot().directoryListing('/', 'bot.config.json')).map(path.dirname)
     const botsIds = _.uniq([...remoteBotIds, ...localBotIds])
 
-    const uniqueFile = file => `${file.path} | ${file.revision}`
+    const uniqueFile = (file) => `${file.path} | ${file.revision}`
 
     const getFileDiff = async (file: string): Promise<FileChange> => {
       try {
@@ -163,11 +164,11 @@ export class GhostService {
           path: file,
           action: 'edit' as FileChangeAction,
           add: _.sumBy(
-            diff.filter(d => d.added),
+            diff.filter((d) => d.added),
             'count'
           ),
           del: _.sumBy(
-            diff.filter(d => d.removed),
+            diff.filter((d) => d.removed),
             'count'
           )
         }
@@ -198,10 +199,10 @@ export class GhostService {
     const getDirectoryFullPaths = async (botId: string | undefined, ghost: ScopedGhostService) => {
       const getPath = (file: string) => (botId ? path.join('data/bots', botId, file) : path.join('data/global', file))
       const files = await ghost.directoryListing('/', '*.*', [...bpfsIgnoredFiles, '**/revisions.json'])
-      return files.map(f => forceForwardSlashes(getPath(f)))
+      return files.map((f) => forceForwardSlashes(getPath(f)))
     }
 
-    const filterRevisions = (revisions: FileRevision[]) => filterByGlobs(revisions, r => r.path, bpfsIgnoredFiles)
+    const filterRevisions = (revisions: FileRevision[]) => filterByGlobs(revisions, (r) => r.path, bpfsIgnoredFiles)
 
     const getFileChanges = async (
       botId: string | undefined,
@@ -211,24 +212,24 @@ export class GhostService {
       const localRevs = filterRevisions(await localGhost.listDiskRevisions())
       const remoteRevs = filterRevisions(await remoteGhost.listDbRevisions())
       const syncedRevs = _.intersectionBy(localRevs, remoteRevs, uniqueFile)
-      const unsyncedFiles = _.uniq(_.differenceBy(remoteRevs, syncedRevs, uniqueFile).map(x => x.path))
+      const unsyncedFiles = _.uniq(_.differenceBy(remoteRevs, syncedRevs, uniqueFile).map((x) => x.path))
 
       const localFiles: string[] = await getDirectoryFullPaths(botId, localGhost)
       const remoteFiles: string[] = await getDirectoryFullPaths(botId, remoteGhost)
 
-      const deleted = _.difference(remoteFiles, localFiles).map(x => ({ path: x, action: 'del' as FileChangeAction }))
-      const added = _.difference(localFiles, remoteFiles).map(x => ({ path: x, action: 'add' as FileChangeAction }))
+      const deleted = _.difference(remoteFiles, localFiles).map((x) => ({ path: x, action: 'del' as FileChangeAction }))
+      const added = _.difference(localFiles, remoteFiles).map((x) => ({ path: x, action: 'add' as FileChangeAction }))
 
-      const filterDeleted = file => !_.map([...deleted, ...added], 'path').includes(file)
-      const filterDiffable = file => DIFFABLE_EXTS.includes(path.extname(file))
+      const filterDeleted = (file) => !_.map([...deleted, ...added], 'path').includes(file)
+      const filterDiffable = (file) => DIFFABLE_EXTS.includes(path.extname(file))
 
       const editedFiles = unsyncedFiles.filter(filterDeleted)
       const checkFileDiff = editedFiles.filter(filterDiffable)
-      const checkFileSize = unsyncedFiles.filter(x => !checkFileDiff.includes(x))
+      const checkFileSize = unsyncedFiles.filter((x) => !checkFileDiff.includes(x))
 
       const edited = [
-        ...(await Promise.map(checkFileDiff, getFileDiff)).filter(x => x.add !== 0 || x.del !== 0),
-        ...(await Promise.map(checkFileSize, fileSizeDiff)).filter(x => x.sizeDiff !== 0)
+        ...(await Bluebird.map(checkFileDiff, getFileDiff)).filter((x) => x.add !== 0 || x.del !== 0),
+        ...(await Bluebird.map(checkFileSize, fileSizeDiff)).filter((x) => x.sizeDiff !== 0)
       ]
 
       return {
@@ -238,7 +239,7 @@ export class GhostService {
       }
     }
 
-    const botsFileChanges = await Promise.map(botsIds, botId =>
+    const botsFileChanges = await Bluebird.map(botsIds, (botId) =>
       getFileChanges(botId, tmpDiskBot(botId), this.forBot(botId))
     )
 
@@ -280,7 +281,7 @@ export class GhostService {
       { botId }
     )
 
-    const listenForUnmount = args => {
+    const listenForUnmount = (args) => {
       if (args && args.botId === botId) {
         scopedGhost.events.removeAllListeners()
       } else {
@@ -296,19 +297,19 @@ export class GhostService {
   public async exportArchive(): Promise<Buffer> {
     const tmpDir = tmp.dirSync({ unsafeCleanup: true })
 
-    const getFullPath = folder => path.join(tmpDir.name, folder)
+    const getFullPath = (folder) => path.join(tmpDir.name, folder)
 
     try {
       const botIds = (await this.bots().directoryListing('/', 'bot.config.json')).map(path.dirname)
-      const botFiles = await Promise.mapSeries(botIds, async botId =>
-        (await this.forBot(botId).exportToDirectory(getFullPath(`bots/${botId}`), bpfsIgnoredFiles)).map(f =>
+      const botFiles = await Bluebird.mapSeries(botIds, async (botId) =>
+        (await this.forBot(botId).exportToDirectory(getFullPath(`bots/${botId}`), bpfsIgnoredFiles)).map((f) =>
           path.join(`bots/${botId}`, f)
         )
       )
 
       const allFiles = [
         ..._.flatten(botFiles),
-        ...(await this.global().exportToDirectory(getFullPath('global'), bpfsIgnoredFiles)).map(f =>
+        ...(await this.global().exportToDirectory(getFullPath('global'), bpfsIgnoredFiles)).map((f) =>
           path.join('global', f)
         )
       ]
@@ -326,7 +327,7 @@ export class GhostService {
     }
 
     const global = await this.global().getPendingChanges()
-    const bots = await Promise.mapSeries(botIds, async botId => this.forBot(botId).getPendingChanges())
+    const bots = await Bluebird.mapSeries(botIds, async (botId) => this.forBot(botId).getPendingChanges())
     return {
       global,
       bots
@@ -387,8 +388,8 @@ export class ScopedGhostService {
     return forceForwardSlashes(path.join(folder, sanitize(path.basename(fullPath))))
   }
 
-  objectCacheKey = str => `object::${str}`
-  bufferCacheKey = str => `buffer::${str}`
+  objectCacheKey = (str) => `object::${str}`
+  bufferCacheKey = (str) => `buffer::${str}`
 
   private async _invalidateFile(fileName: string) {
     await this.cache.invalidate(this.objectCacheKey(fileName))
@@ -402,7 +403,7 @@ export class ScopedGhostService {
 
   async ensureDirs(rootFolder: string, directories: string[]): Promise<void> {
     if (!this.useDbDriver) {
-      await Promise.mapSeries(directories, d => this.diskDriver.createDir(this._normalizeFileName(rootFolder, d)))
+      await Bluebird.mapSeries(directories, (d) => this.diskDriver.createDir(this._normalizeFileName(rootFolder, d)))
     }
   }
 
@@ -442,7 +443,7 @@ export class ScopedGhostService {
   }
 
   async upsertFiles(rootFolder: string, content: FileContent[], options?: UpsertOptions): Promise<void> {
-    await Promise.all(content.map(c => this.upsertFile(rootFolder, c.name, c.content)))
+    await Promise.all(content.map((c) => this.upsertFile(rootFolder, c.name, c.content)))
   }
 
   /**
@@ -458,9 +459,9 @@ export class ScopedGhostService {
     const localFiles = await this.diskDriver.directoryListing(this.baseDir, { includeDotFiles: true })
     const diskRevs = await this.diskDriver.listRevisions(this.baseDir)
     const dbRevs = await this.dbDriver.listRevisions(this.baseDir)
-    const syncedRevs = _.intersectionBy(diskRevs, dbRevs, x => `${x.path} | ${x.revision}`)
+    const syncedRevs = _.intersectionBy(diskRevs, dbRevs, (x) => `${x.path} | ${x.revision}`)
 
-    await Promise.each(syncedRevs, rev => this.dbDriver.deleteRevision(rev.path, rev.revision))
+    await Bluebird.each(syncedRevs, (rev) => this.dbDriver.deleteRevision(rev.path, rev.revision))
     await this._updateProduction(localFiles)
   }
 
@@ -468,12 +469,12 @@ export class ScopedGhostService {
     // Delete the prod files that has been deleted from disk
     const prodFiles = await this.dbDriver.directoryListing(this._normalizeFolderName('./'))
     const filesToDelete = _.difference(prodFiles, localFiles)
-    await Promise.map(filesToDelete, filePath =>
+    await Bluebird.map(filesToDelete, (filePath) =>
       this.dbDriver.deleteFile(this._normalizeFileName('./', filePath), false)
     )
 
     // Overwrite all of the prod files with the local files
-    await Promise.each(localFiles, async file => {
+    await Bluebird.each(localFiles, async (file) => {
       const filePath = this._normalizeFileName('./', file)
       const content = await this.diskDriver.readFile(filePath)
       await this.dbDriver.upsertFile(filePath, content, false)
@@ -483,7 +484,7 @@ export class ScopedGhostService {
   public async exportToDirectory(directory: string, excludes?: string | string[]): Promise<string[]> {
     const allFiles = await this.directoryListing('./', '*.*', excludes, true)
 
-    for (const file of allFiles.filter(x => x !== 'revisions.json')) {
+    for (const file of allFiles.filter((x) => x !== 'revisions.json')) {
       const content = await this.primaryDriver.readFile(this._normalizeFileName('./', file))
       const outPath = path.join(directory, file)
       mkdirp.sync(path.dirname(outPath))
@@ -503,7 +504,7 @@ export class ScopedGhostService {
   public async importFromDirectory(directory: string) {
     const filenames = await this.diskDriver.absoluteDirectoryListing(directory)
 
-    const files = filenames.map(file => {
+    const files = filenames.map((file) => {
       return {
         name: file,
         content: fse.readFileSync(path.join(directory, file))
@@ -623,9 +624,9 @@ export class ScopedGhostService {
     }
 
     const remoteFiles = await this.dbDriver.directoryListing(this._normalizeFolderName(rootFolder))
-    const filePath = filename => this._normalizeFileName(rootFolder, filename)
+    const filePath = (filename) => this._normalizeFileName(rootFolder, filename)
 
-    await Promise.mapSeries(remoteFiles, async file =>
+    await Bluebird.mapSeries(remoteFiles, async (file) =>
       this.diskDriver.upsertFile(filePath(file), await this.dbDriver.readFile(filePath(file)))
     )
   }
@@ -695,7 +696,7 @@ export class ScopedGhostService {
   }
 
   onFileChanged(callback: (filePath: string) => void): ListenHandle {
-    const cb = file => callback && callback(file)
+    const cb = (file) => callback && callback(file)
     this.events.on('changed', cb)
     return { remove: () => this.events.off('changed', cb) }
   }

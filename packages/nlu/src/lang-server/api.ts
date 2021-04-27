@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application } from 'express'
@@ -74,7 +75,7 @@ const createExpressApp = (options: APIOptions): Application => {
   return app
 }
 
-export default async function(
+export default async function (
   options: APIOptions,
   languageService: LanguageService,
   downloadManager?: DownloadManager
@@ -93,7 +94,7 @@ export default async function(
       dimentions: languageService.dim,
       domain: languageService.domain,
       readOnly: !isAdminToken(req, options.adminToken),
-      languages: languageService.getModels().filter(x => x.loaded) // TODO remove this from info and make clients use /languages route
+      languages: languageService.getModels().filter((x) => x.loaded) // TODO remove this from info and make clients use /languages route
     })
   })
 
@@ -139,7 +140,7 @@ export default async function(
 
   router.get('/', (req, res) => {
     if (!downloadManager) {
-      const localLanguages = languageService.getModels().map(m => {
+      const localLanguages = languageService.getModels().map((m) => {
         const { name } = getLanguageByCode(m.lang)
         return { ...m, code: m.lang, name }
       })
@@ -151,7 +152,7 @@ export default async function(
       })
     }
 
-    const downloading = downloadManager.inProgress.map(x => ({
+    const downloading = downloadManager.inProgress.map((x) => ({
       lang: x.lang,
       progress: {
         status: x.getStatus(),
@@ -210,7 +211,7 @@ export default async function(
 
   const httpServer = createServer(app)
 
-  await Promise.fromCallback(callback => {
+  await Bluebird.fromCallback((callback) => {
     const hostname = options.host === 'localhost' ? undefined : options.host
     httpServer.listen(options.port, hostname, undefined, () => {
       callback(null)

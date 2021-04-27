@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application } from 'express'
@@ -87,7 +88,7 @@ const createExpressApp = (options: APIOptions): Application => {
   return app
 }
 
-export default async function(options: APIOptions, engine: NLUEngine.Engine) {
+export default async function (options: APIOptions, engine: NLUEngine.Engine) {
   const app = createExpressApp(options)
   const logger = new Logger('API')
 
@@ -271,7 +272,7 @@ export default async function(options: APIOptions, engine: NLUEngine.Engine) {
         await engine.loadModel(model)
       }
 
-      const predictions = await Promise.map(utterances as string[], async utterance => {
+      const predictions = await Bluebird.map(utterances as string[], async (utterance) => {
         const detectedLanguage = await engine.detectLanguage(utterance, { [modelId.languageCode]: modelId })
         const { entities, contexts, spellChecked } = await engine.predict(utterance, modelId)
         return { entities, contexts, spellChecked, detectedLanguage }
@@ -314,7 +315,7 @@ export default async function(options: APIOptions, engine: NLUEngine.Engine) {
         }
       }
 
-      const missingModels = modelIds.filter(m => !engine.hasModel(m))
+      const missingModels = modelIds.filter((m) => !engine.hasModel(m))
 
       if (missingModels.length) {
         const stringMissingModels = missingModels.map(modelIdService.toString)
@@ -325,11 +326,11 @@ export default async function(options: APIOptions, engine: NLUEngine.Engine) {
         )
       }
 
-      const loadedModels = modelIds.filter(m => engine.hasModel(m))
-      const detectedLanguages: string[] = await Promise.map(utterances, async utterance => {
+      const loadedModels = modelIds.filter((m) => engine.hasModel(m))
+      const detectedLanguages: string[] = await Bluebird.map(utterances, async (utterance) => {
         const detectedLanguage = await engine.detectLanguage(
           utterance,
-          _.keyBy(loadedModels, m => m.languageCode)
+          _.keyBy(loadedModels, (m) => m.languageCode)
         )
         return detectedLanguage
       })
@@ -347,7 +348,7 @@ export default async function(options: APIOptions, engine: NLUEngine.Engine) {
 
   const httpServer = createServer(app)
 
-  await Promise.fromCallback(callback => {
+  await Bluebird.fromCallback((callback) => {
     const hostname = options.host === 'localhost' ? undefined : options.host
     httpServer.listen(options.port, hostname, undefined, () => {
       callback(null)

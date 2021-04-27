@@ -6,7 +6,6 @@ process.core_env = process.env as BotpressEnvironmentVariables
 import path from 'path'
 import yargs from 'yargs'
 import { getAppDataPath } from './app-data'
-import 'bluebird-global'
 
 if (process.env.APP_DATA_PATH) {
   process.APP_DATA_PATH = process.env.APP_DATA_PATH
@@ -85,7 +84,7 @@ yargs
         default: '850mb'
       }
     },
-    argv => {
+    (argv) => {
       process.VERBOSITY_LEVEL = argv.verbose ? Number(argv.verbose) : defaultVerbosity
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       STAN(argv as any)
@@ -138,7 +137,7 @@ yargs
         default: 'bp'
       }
     },
-    async argv => {
+    async (argv) => {
       process.VERBOSITY_LEVEL = argv.verbose ? Number(argv.verbose) : defaultVerbosity
       await LANG(argv as any)
     }

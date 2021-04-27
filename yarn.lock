@@ -1421,13 +1421,6 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
-"@types/bluebird-global@^3.5.9":
-  version "3.5.11"
-  resolved "https://registry.yarnpkg.com/@types/bluebird-global/-/bluebird-global-3.5.11.tgz#14f6d826fc6b18d6734cd659888b484eedb908eb"
-  integrity sha512-PGCGPlLo9WFMaOsDINVYE8NGVeGjq88Pg0F5kJoDxVcMEx85+sezrg+hlmXzPchoEKuzprlylXrq3i/c5rORQg==
-  dependencies:
-    "@types/bluebird" "*"
-
 "@types/bluebird-retry@^0.11.4":
   version "0.11.4"
   resolved "https://registry.yarnpkg.com/@types/bluebird-retry/-/bluebird-retry-0.11.4.tgz#26aabd880371878d484613f70959c8bf17ade81b"
@@ -2385,11 +2378,6 @@ bl@^4.0.3:
     buffer "^5.5.0"
     inherits "^2.0.4"
     readable-stream "^3.4.0"
-
-bluebird-global@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/bluebird-global/-/bluebird-global-1.0.1.tgz#147c174f4e3a19740e80d992ea70ec3dc51d0d95"
-  integrity sha512-llTREi0V3EUM150DKdMLlXN/X2QsQ/hWJDiaGnivqeDwE32I0dmivYLU9/VvhotTzvvbv7OiM6zjVXYJ2dCmKQ==
 
 bluebird-retry@^0.11.0:
   version "0.11.0"
