@@ -13,11 +13,11 @@
     "outputPath": "dist"
   },
   "scripts": {
-    "dev": "ts-node-dev ./packages/nlu/index.ts",
-    "start": "node ./packages/nlu/dist/index.js",
-    "build": "node ./node_modules/typescript/bin/tsc --build",
-    "pretty": "cross-env node ./node_modules/prettier/bin-prettier.js --check './packages/**/*.ts' '!**/*.d.ts'",
-    "eslint": "cross-env node_modules/.bin/eslint packages/ --ext .ts",
+    "dev": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions ts-node-dev ./packages/nlu/",
+    "build": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions tsc --build ./packages/nlu",
+    "start": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions node ./packages/nlu/dist/index.js",
+    "pretty": "prettier --check './packages/**/*.ts' '!**/*.d.ts'",
+    "eslint": "eslint packages/ --ext .ts",
     "e2e": "node ./packages/regression",
     "package": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions pkg package.json"
   },

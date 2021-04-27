@@ -1,4 +1,7 @@
 {
+  "ts-node": {
+    "files": true
+  },
   "extends": "../../tsconfig.packages.json",
   "references": [
     { "path": "../node-svm" },
@@ -11,5 +14,7 @@
     "rootDir": "./src" /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
     "types": ["jest", "node"]
-  }
+  },
+  "include": ["src/**/*.ts"],
+  "files": ["src/index.ts", "src/bp-typings/global.d.ts", "src/bp-typings/knex.d.ts"] /* For ts-node-dev */
 }
