@@ -2,6 +2,7 @@
 import bytes from 'bytes'
 import chalk from 'chalk'
 import cluster from 'cluster'
+import fs from 'fs'
 import _ from 'lodash'
 import path from 'path'
 import * as NLUEngine from '../engine'
@@ -87,7 +88,10 @@ export default async function(options: ArgV) {
   options = { ...options, ...envConfig }
 
   for (const dir of ['./pre-trained', './stop-words']) {
-    await copyDir(path.resolve(__dirname, '../engine/assets', dir), path.resolve(process.APP_DATA_PATH, dir))
+    // TODO: no need for copy to APP_DATA_PATH, just use original files
+    const srcPath = path.resolve(__dirname, '../../assets', dir)
+    const destPath = path.resolve(process.APP_DATA_PATH, dir)
+    await copyDir(srcPath, destPath)
   }
 
   if (!bytes(options.bodySize)) {

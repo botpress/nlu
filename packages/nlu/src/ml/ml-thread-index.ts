@@ -49,6 +49,7 @@ async function messageHandler(msg: Message) {
 
     try {
       const trainer = new CrfTrainer()
+      await trainer.initialize()
       const result = await trainer.train(
         points as MLToolkit.CRF.DataPoint[],
         options as MLToolkit.CRF.TrainerOptions,

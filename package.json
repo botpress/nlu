@@ -4,7 +4,7 @@
   "bin": "./packages/nlu/dist/index.js",
   "pkg": {
     "scripts": "./packages/nlu/dist/**/*.js",
-    "assets": ["node_modules/@botpress/node-*/**/*.node"],
+    "assets": ["node_modules/@botpress/node-*/**/*.node", "packages/nlu/assets/**"],
     "targets": [
       "node12-macos-x64",
       "node12-linux-x64",

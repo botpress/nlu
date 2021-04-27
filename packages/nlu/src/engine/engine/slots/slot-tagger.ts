@@ -251,6 +251,7 @@ export default class SlotTagger {
     }
 
     const trainer = new this.mlToolkit.CRF.Trainer()
+    await trainer.initialize()
     const crfModelFn = await trainer.train(elements, CRF_TRAINER_PARAMS)
 
     const crfModel = await fse.readFile(crfModelFn)
