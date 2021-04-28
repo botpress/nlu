@@ -1,8 +1,8 @@
-name: NLU Regression
+name: Bitfan
 on: [pull_request]
 jobs:
   nlu:
-    name: Run regression
+    name: Run regression benchmark
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

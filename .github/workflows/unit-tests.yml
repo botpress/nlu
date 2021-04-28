@@ -2,7 +2,7 @@ name: Tests
 on: [pull_request]
 jobs:
   unit:
-    name: Unit
+    name: Run unit tests
     runs-on: ubuntu-latest
 
     steps:
