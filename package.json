@@ -14,13 +14,17 @@
   },
   "scripts": {
     "dev": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions ts-node-dev ./packages/nlu/",
-    "build": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions tsc --build ./packages/nlu",
     "start": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions node ./packages/nlu/dist/index.js",
-    "pretty": "prettier --check './packages/**/*.ts' '!**/*.d.ts'",
-    "eslint": "eslint packages/ --ext .ts",
-    "e2e": "yarn workspace e2e install && yarn workspace e2e build && yarn workspace e2e start",
+    
+    "build": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions tsc --build ./packages/nlu",
+    "package": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions pkg package.json",
+
+    "build-e2e": "yarn workspace e2e install && yarn workspace e2e build",
+    "e2e": "yarn workspace e2e start",
     "test": "yarn workspace @botpress/node-svm test && yarn workspace nlu test",
-    "package": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions pkg package.json"
+
+    "pretty": "prettier --check './packages/**/*.ts' '!**/*.d.ts'",
+    "eslint": "eslint packages/ --ext .ts"
   },
   "devDependencies": {
     "pkg": "^4.5.1"

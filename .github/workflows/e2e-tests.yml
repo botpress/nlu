@@ -1,0 +1,22 @@
+name: NLU Regression
+on: [pull_request]
+jobs:
+  nlu:
+    name: Run regression
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.13.0'
+      - name: Fetch Node Packages
+        run: |
+          yarn --verbose
+      - name: Build
+        run: |
+          yarn build && yarn build-e2e
+      - name: Run Regression Test
+        run: |
+          yarn start nlu --silent --ducklingEnabled=false & 
+          sleep 5s && y e2e
