@@ -3,7 +3,7 @@
   "version": "0.3.5",
   "description": "Botpress Internal Testing Framework for Algorithms of NLU",
   "main": "dist/index.js",
-  "author": "<francois.levasseur@botpress.com>",
+  "author": "Botpress, Inc.",
   "license": "MIT",
   "repository": "git://github.com/botpress/nlu.git",
   "types": "./src/bitfan.d.ts",

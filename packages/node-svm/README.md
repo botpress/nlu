@@ -25,7 +25,7 @@ Why did we make a complete reimplementation? What is different from previous [no
 To install locally in a project, simply type command
 
 ```
-  npm install node-svm-napi
+  yarn add @botpress/node-svm
 ```
 
 ## Usage
@@ -77,7 +77,7 @@ async function main() {
 
 main()
   .then(() => console.log('Done.'))
-  .catch(err => console.log(err))
+  .catch((err) => console.log(err))
 ```
 
 For more examples check out [/test-js](https://github.com/botpress/node-svm-napi/tree/master/tests-js) directory which contains unit tests and few performance tests.

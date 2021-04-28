@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "description": "node bindings for libsvm",
   "main": "./dist/index.js",
-  "author": "<francois.levasseur@botpress.com>",
+  "author": "Botpress, Inc.",
   "license": "MIT",
   "repository": "https://github.com/botpress/node-svm-napi.git",
   "types": "./typings.d.ts",

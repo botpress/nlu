@@ -1,6 +1,6 @@
 {
   "name": "@botpress/node-fasttext",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Nodejs binding for Fasttext representation and classification",
   "main": "./dist/index.js",
   "types": "typings.d.ts",
@@ -17,12 +17,11 @@
     "url": "git+https://github.com/botpress/nlu.git"
   },
   "keywords": [
-    "vntk",
     "fasttext",
     "node-fasttext"
   ],
   "author": "Botpress, Inc.",
-  "license": "AGPL-3.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/botpress/nlu/issues"
   },

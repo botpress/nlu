@@ -20,3 +20,7 @@ This repo contains Botpress Standalone NLU server.
 To get the CLI documentation, just run `yarn start --help`.
 
 To get the HTTP documentation, just run the server and check your running terminal.
+
+## LICENSING
+
+This software is protected by the same license as the [main Botpress repository](https://github.com/botpress/botpress). You can find the license file [here](https://github.com/botpress/botpress/blob/master/LICENSE).
