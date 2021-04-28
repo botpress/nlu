@@ -1,4 +1,4 @@
-## BITFAN
+# BITFAN
 
 **Botpress Independent Testing Framework for Algorithms of NLU**
 
@@ -12,12 +12,12 @@ Bitfan allows the user to solve `Problems`:
 
 ```ts
 interface Problem<T extends ProblemType> {
-  name: string; // name of the problem for logging purposes
-  type: T; // type of the problem
-  trainSet: DataSet<T>;
-  testSet: DataSet<T>;
-  lang: string;
-  cb: ProblemCb<T>; // cb func to visualize results of this problem
+  name: string // name of the problem for logging purposes
+  type: T // type of the problem
+  trainSet: DataSet<T>
+  testSet: DataSet<T>
+  lang: string
+  cb: ProblemCb<T> // cb func to visualize results of this problem
 }
 ```
 
@@ -26,14 +26,7 @@ A problem is mostly defined by a `type`, a train set and a test set.
 What are problem types? Problem types can refer to any of theses:
 
 ```ts
-type ProblemType =
-  | "intent-topic"
-  | "topic"
-  | "intent"
-  | "multi-intent"
-  | "slot"
-  | "lang"
-  | "spell";
+type ProblemType = 'intent-topic' | 'topic' | 'intent' | 'multi-intent' | 'slot' | 'lang' | 'spell'
 ```
 
 For instance, a problem of type `Problem<"slot">` contains a train set and a test set of type `DataSet<"slot">`.
@@ -50,25 +43,22 @@ To try solving a `Problem`, a user must define a `Solution` and run his solution
 
 ```ts
 interface Solution<T extends ProblemType> {
-  name: string;
-  problems: Problem<T>[];
-  engine: Engine<T>;
-  metrics: Metric<T>[];
-  cb: ProblemCb<T>;
+  name: string
+  problems: Problem<T>[]
+  engine: Engine<T>
+  metrics: Metric<T>[]
+  cb: ProblemCb<T>
 }
 
-function runSolution<T extends ProblemType>(
-  solution: Solution<T>,
-  seeds: number[]
-): Promise<Result<T>[]>; // returns results for all problems and all seeds
+function runSolution<T extends ProblemType>(solution: Solution<T>, seeds: number[]): Promise<Result<T>[]> // returns results for all problems and all seeds
 ```
 
 The `Engine` abstraction is also specific to one problem type. It stands for the actual classifier implementation that predicts a label for a given text input.
 
 ```ts
 interface Engine<T extends ProblemType> {
-  train: (trainSet: DataSet<T>, seed: number) => Promise<void>;
-  predict: (testSet: DataSet<T>) => Promise<PredictOutput<T>[]>;
+  train: (trainSet: DataSet<T>, seed: number) => Promise<void>
+  predict: (testSet: DataSet<T>) => Promise<PredictOutput<T>[]>
 }
 ```
 
@@ -76,8 +66,8 @@ The `Criteria` abstraction act as a decision function that decides weither or no
 
 ```ts
 interface Criteria<T extends ProblemType> {
-  name: string;
-  eval(result: Result<T>): number;
+  name: string
+  eval(result: Result<T>): number
 }
 ```
 
@@ -85,8 +75,8 @@ The `Metric` abstraction computes a score for all results. Computing the average
 
 ```ts
 interface Metric<T extends ProblemType> {
-  name: string;
-  eval(results: Result<T>[]): number;
+  name: string
+  eval(results: Result<T>[]): number
 }
 ```
 
@@ -95,52 +85,52 @@ Bitfan is shipped with builtin `datasets`, `criterias`, `metrics`, `engine` and 
 Here's a full example:
 
 ```ts
-import bitfan, { Problem, Solution, Metric } from "@botpress/bitfan";
+import bitfan, { Problem, Solution, Metric } from '@botpress/bitfan'
 
 async function main() {
-  console.log("BPDS intents");
+  console.log('BPDS intents')
 
-  const allTopics = ["A", "B", "C", "D", "E", "F"];
+  const allTopics = ['A', 'B', 'C', 'D', 'E', 'F']
 
-  const problems: Problem<"intent"> = allTopics.map((t) => ({
+  const problems: Problem<'intent'> = allTopics.map((t) => ({
     name: `bpds intents ${topic}`,
-    type: "intent",
+    type: 'intent',
     trainSet: bitfan.datasets.bpds.intents.train[topic],
     testSet: bitfan.datasets.bpds.intents.test[topic],
-    lang: "en",
-  }));
+    lang: 'en'
+  }))
 
-  const stanEndpoint = "http://localhost:3200";
-  const password = "123456";
-  const engine = bitfan.engines.makeBpIntentEngine(stanEndpoint, password);
+  const stanEndpoint = 'http://localhost:3200'
+  const password = '123456'
+  const engine = bitfan.engines.makeBpIntentEngine(stanEndpoint, password)
 
-  const metrics: Metric<"intent"> = [
+  const metrics: Metric<'intent'> = [
     bitfan.metrics.accuracy,
     bitfan.metrics.oosAccuracy,
     bitfan.metrics.oosPrecision,
     bitfan.metrics.oosRecall,
-    bitfan.metrics.oosF1,
-  ];
+    bitfan.metrics.oosF1
+  ]
 
-  const solution: Solution<"intent"> = {
-    name: "bpds intent",
+  const solution: Solution<'intent'> = {
+    name: 'bpds intent',
     problems,
     engine,
-    metrics,
-  };
+    metrics
+  }
 
-  const seeds = [42, 69];
-  const results = await bitfan.runSolution(solution, seeds);
+  const seeds = [42, 69]
+  const results = await bitfan.runSolution(solution, seeds)
 
-  const report = bitfan.evaluateMetrics(results, metrics);
+  const report = bitfan.evaluateMetrics(results, metrics)
 
   await bitfan.visualisation.showReport(report, {
-    groupBy: "seed",
-  });
+    groupBy: 'seed'
+  })
   await bitfan.visualisation.showReport(report, {
-    groupBy: "problem",
-  });
-  await bitfan.visualisation.showOOSConfusion(results);
+    groupBy: 'problem'
+  })
+  await bitfan.visualisation.showOOSConfusion(results)
 }
-main().then(() => {});
+main().then(() => {})
 ```

@@ -1,49 +1,43 @@
 # node-crfsuite
 
-**This repo was originally forked from [this guy](https://github.com/vunb/node-crfsuite).**
+> This project was originally forked from [this one](https://github.com/vunb/node-crfsuite)
 
 A nodejs binding for crfsuite
 
 > This is a link to the CRFSuite library written by Naoaki Okazaki. CRF or Conditional Random Fields are a class of statistical modeling method often applied in pattern recognition and machine learning and used for structured prediction.
-
-# Installation
-
-For most "standard" use cases (on Mac, Linux, or Windows on a x86 or x64 processor), `node-crfsuite` will install easy with:
-
-> npm install crfsuite
 
 # Usage
 
 ## CRFSuite Tagger
 
 ```js
-const crfsuite = require("crfsuite");
-const tagger = new crfsuite.Tagger();
+const crfsuite = require('crfsuite')
+const tagger = new crfsuite.Tagger()
 
-let is_opened = tagger.open("./path/to/crf.model");
-console.log("File model is opened:", is_opened);
+let is_opened = tagger.open('./path/to/crf.model')
+console.log('File model is opened:', is_opened)
 
-let tags = tagger.tag(input);
-console.log("Tags: ", tags);
+let tags = tagger.tag(input)
+console.log('Tags: ', tags)
 ```
 
 ## CRFSuite Trainer
 
 ```js
-const path = require("path");
-const crfsuite = require("crfsuite");
+const path = require('path')
+const crfsuite = require('crfsuite')
 const trainer = new crfsuite.Trainer({
-  debug: true,
-});
+  debug: true
+})
 
-let model_filename = path.resolve("./model.crfsuite");
+let model_filename = path.resolve('./model.crfsuite')
 
-let xseq = [["walk"], ["walk", "shop"], ["clean", "shop"]];
-let yseq = ["sunny", "sunny", "rainy"];
+let xseq = [['walk'], ['walk', 'shop'], ['clean', 'shop']]
+let yseq = ['sunny', 'sunny', 'rainy']
 
 // submit training data to the trainer
-trainer.append(xseq, yseq);
-trainer.train(model_filename);
+trainer.append(xseq, yseq)
+trainer.train(model_filename)
 
 // output: ./model.crfsuite
 ```
@@ -58,20 +52,20 @@ We use [node-pre-gyp](https://github.com/mapbox/node-pre-gyp) to compile and pub
 
 ```bash
 # clone the project
-git clone --recursive https://github.com/botpress/node-crfsuite-napi.git
+git clone --recursive https://github.com/botpress/nlu.git
 
 # go to working folder
-cd node-crfsuite-napi
+cd nlu/packages/node-crfsuite
 
 # install dependencies and build the binary
-npm install
+yarn
 ```
 
 For development:
 
 ```bash
 # rebuild
-npm run build
+yarn build && yarn build-native
 
 # run unit-test
 yarn test
@@ -83,6 +77,4 @@ yarn test
 
 Pull requests and stars are highly welcome.
 
-# For bugs and feature requests, please [create an issue](https://github.com/botpress/node-crfsuite-napi/issues/new).
-
-> > > > > > > fl_update
+# For bugs and feature requests, please [create an issue](https://github.com/botpress/nlu/issues/new).

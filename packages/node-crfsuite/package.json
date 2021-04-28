@@ -17,7 +17,7 @@
     "crfsuite",
     "data-science"
   ],
-  "author": "botpress",
+  "author": "Botpress, Inc.",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/botpress/nlu/issues"

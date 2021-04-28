@@ -77,7 +77,7 @@ async function main() {
 
 main()
   .then(() => console.log('Done.'))
-  .catch(err => console.log(err))
+  .catch((err) => console.log(err))
 ```
 
 For more examples check out [/test-js](https://github.com/botpress/node-svm-napi/tree/master/tests-js) directory which contains unit tests and few performance tests.

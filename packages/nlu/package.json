@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "description": "Botpress NLU main package",
   "main": "./dist/index.js",
+  "author": "Botpress, Inc.",
+  "license": "AGPL-3.0",
   "types": "./src/typings_v1.d.ts",
   "bin": "./dist/index.js",
   "pkg": {
