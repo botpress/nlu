@@ -53,7 +53,8 @@ export class ModelRepository {
   private options: ModelRepoOptions
 
   constructor(private logger: Logger, options: Partial<ModelRepoOptions> = {}) {
-    this.options = { ...defaultOtpions, ...options } as ModelRepoOptions
+    const isDefined = _.negate(_.isUndefined)
+    this.options = { ...defaultOtpions, ..._.pickBy(options, isDefined) } as ModelRepoOptions
 
     this._db = new Database(logger)
     const diskDriver = new DiskStorageDriver({ basePath: this.options.modelDir })

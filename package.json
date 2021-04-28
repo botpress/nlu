@@ -16,7 +16,7 @@
     "outputPath": "dist"
   },
   "scripts": {
-    "dev": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions ts-node-dev ./packages/nlu/",
+    "dev": "yarn workspace nlu dev",
     "start": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions node ./packages/nlu/dist/index.js",
     
     "build": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions tsc --build",
