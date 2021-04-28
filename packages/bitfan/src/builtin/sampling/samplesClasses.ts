@@ -15,7 +15,7 @@ export const sampleClasses: typeof sdk.sampling.sampleClasses = <T extends sdk.S
 ) => {
   const options = { ...DEFAULT_OPTIONS, ...(opt ?? {}) }
 
-  let allClasses = _(datasets)
+  const allClasses = _(datasets)
     .flatMap((d) => d.samples)
     .map((s) => s.label)
     .uniq()

@@ -1,11 +1,11 @@
-import * as sdk from 'src/bitfan'
 import _ from 'lodash'
+import * as sdk from 'src/bitfan'
 
 export const OOS = 'oos'
 
 export const areSame = <T extends sdk.ProblemType>(label1: sdk.Label<T>, label2: sdk.Label<T>): boolean => {
   if (typeof label1 !== typeof label2) {
-    let msg =
+    const msg =
       'Both labels must share the same types.\n' +
       `label1=${JSON.stringify(label1, undefined, 2)}, ` +
       `label2=${JSON.stringify(label2, undefined, 2)}`
@@ -43,7 +43,7 @@ export const makeKey = <T extends sdk.ProblemType>(label: sdk.Label<T>): string 
 export const splitIntentTopic = (label: sdk.Label<'intent-topic'>): { intent: string; topic: string } => {
   const splitted = label.split('/')
   if (splitted.length < 2) {
-    let msg =
+    const msg =
       'intent-topic problems ask for the label to be formated as "topic/intent".\n' +
       `Label "${label}" as no forward slash...`
     throw new Error(msg)

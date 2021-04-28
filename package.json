@@ -25,7 +25,8 @@
 
     "prettier": "cross-env prettier --check './packages/**/*.ts' '!**/*.d.ts'",
     "prettier-fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
-    "eslint": "cross-env eslint packages/ --ext .ts"
+    "eslint": "cross-env eslint packages/ --ext .ts",
+    "eslint-fix": "cross-env eslint --fix packages/ --ext .ts"
   },
   "devDependencies": {
     "pkg": "^4.5.1"

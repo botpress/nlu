@@ -14,7 +14,8 @@ export const showClassDistribution: typeof visualisation.showClassDistribution =
     distributions[ds.name] = roundDic(distribution, 4)
   }
 
-  console.log(chalk.green(`Class Distribution`))
+  // eslint-disable-next-line no-console
+  console.log(chalk.green('Class Distribution'))
   console.table(transposeTable(distributions))
 }
 
@@ -48,7 +49,8 @@ export const showDatasetsSummary: typeof visualisation.showDatasetsSummary = (..
     summaries[ds.name] = roundDic(summary, 4)
   }
 
-  console.log(chalk.green(`Dataset summary`))
+  // eslint-disable-next-line no-console
+  console.log(chalk.green('Dataset summary'))
   console.table(transposeTable(summaries))
 }
 

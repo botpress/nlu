@@ -26,6 +26,7 @@ async function runTest(test, { update, keepGoing }) {
     if (!keepGoing) {
       throw new Error('Regression')
     }
+    // eslint-disable-next-line no-console
     console.log(chalk.gray('Skipping to next test...\n'))
     return false
   }
@@ -50,6 +51,7 @@ async function main(args) {
   }
 
   if (update) {
+    // eslint-disable-next-line no-console
     console.log(chalk.green('Test results where update with success.'))
     return
   }

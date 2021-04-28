@@ -27,9 +27,13 @@ const logResult = (res: sdk.Result<'slot'>) => {
     elected += char
   }
 
+  // eslint-disable-next-line no-console
   console.log('actual:   ' + chalk.blueBright(actual))
+  // eslint-disable-next-line no-console
   console.log('text:     ' + res.text)
+  // eslint-disable-next-line no-console
   console.log('elected:  ' + chalk.yellowBright(elected))
+  // eslint-disable-next-line no-console
   console.log('')
 }
 

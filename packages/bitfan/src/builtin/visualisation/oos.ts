@@ -19,6 +19,7 @@ export const showOOSConfusion: typeof sdk.visualisation.showOOSConfusion = async
     }
   }
 
+  // eslint-disable-next-line no-console
   console.log(chalk.green('OOS Confusion Matrix: '))
   console.table(confusionMatrix)
 }

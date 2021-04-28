@@ -4,39 +4,39 @@ import * as sdk from 'src/bitfan'
 import { labelIs, labelHasTopic } from './builtin/criterias/intent'
 import { slotsAre, slotIncludes, slotCountIs } from './builtin/criterias/slot'
 
+import { listFiles, readDataset, readDocument } from './builtin/datasets/index'
 import { mostConfident, mostConfidents } from './builtin/election/mostConfident'
 
-import { oosAccuracy, oosPrecision, oosRecall, oosF1 } from './builtin/metrics/oos'
-import { inScopeAccuracy } from './builtin/metrics/in-scope'
-import { averageScore } from './builtin/metrics/avgScores'
 
-import { showClassDistribution, showDatasetsSummary } from './builtin/visualisation/dataset'
-import { showSlotsResults } from './builtin/visualisation/slots'
-import { showOOSConfusion } from './builtin/visualisation/oos'
-import { showPerformanceReport, showComparisonReport } from './builtin/visualisation/report'
 
-import { trainTestSplit, subSample } from './builtin/sampling/trainTestSplit'
-import { splitOOS, pickOOS } from './builtin/sampling/splitAndMakeOOS'
-import { sampleClasses } from './builtin/sampling/samplesClasses'
 
 import { BpIntentEngine } from './builtin/engines/intent'
-import { BpTopicEngine } from './builtin/engines/topic'
 import { BpSlotEngine } from './builtin/engines/slot'
 import { BpSpellingEngine } from './builtin/engines/spell'
+import { BpTopicEngine } from './builtin/engines/topic'
 
 import { areSame, isOOS, makeKey } from './builtin/labels'
+import { averageScore } from './builtin/metrics/avgScores'
+import { inScopeAccuracy } from './builtin/metrics/in-scope'
+import { oosAccuracy, oosPrecision, oosRecall, oosF1 } from './builtin/metrics/oos'
+import { sampleClasses } from './builtin/sampling/samplesClasses'
+import { splitOOS, pickOOS } from './builtin/sampling/splitAndMakeOOS'
+import { trainTestSplit, subSample } from './builtin/sampling/trainTestSplit'
 
-import { transposeTable } from './builtin/tables/transpose'
-import { roundDic, roundTable } from './builtin/tables/round'
-import { initDic, initTable } from './builtin/tables/init'
-import { tabelize } from './builtin/tables/tabelize'
 import { isAllDefined } from './builtin/tables/guards'
+import { initDic, initTable } from './builtin/tables/init'
+import { roundDic, roundTable } from './builtin/tables/round'
+import { tabelize } from './builtin/tables/tabelize'
+import { transposeTable } from './builtin/tables/transpose'
+import { showClassDistribution, showDatasetsSummary } from './builtin/visualisation/dataset'
+import { showOOSConfusion } from './builtin/visualisation/oos'
+import { showPerformanceReport, showComparisonReport } from './builtin/visualisation/report'
+import { showSlotsResults } from './builtin/visualisation/slots'
 
-import runSolution from './solution'
-import evaluateMetrics from './report'
 import comparePerformances from './compare'
+import evaluateMetrics from './report'
+import runSolution from './solution'
 
-import { listFiles, readDataset, readDocument } from './builtin/datasets/index'
 
 // TODO: write actual implementation
 const impl: typeof sdk = {

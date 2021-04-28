@@ -25,6 +25,7 @@ export const showPerformanceReport: typeof sdk.visualisation.showPerformanceRepo
   })
   table = roundTable(table)
 
+  // eslint-disable-next-line no-console
   console.log(chalk.green('Report Summary: '))
   console.table(table)
 }
@@ -38,9 +39,11 @@ function logReason(reason: sdk.RegressionReason) {
 
   if (status === 'regression') {
     msg += ` (allowed regression is ${allowedRegression})`
+    // eslint-disable-next-line no-console
     console.log(chalk.red(msg))
   } else if (status === 'tolerated-regression') {
     msg += '.'
+    // eslint-disable-next-line no-console
     console.log(chalk.yellow(msg))
   }
 }
@@ -50,9 +53,11 @@ export const showComparisonReport: typeof sdk.visualisation.showComparisonReport
   comparison: sdk.ComparisonReport
 ) => {
   if (comparison.status === 'regression') {
+    // eslint-disable-next-line no-console
     console.log(chalk.red(`There seems to be a regression on test ${name}.\n` + 'Reasons are:\n'))
   }
   if (comparison.status === 'tolerated-regression') {
+    // eslint-disable-next-line no-console
     console.log(
       chalk.yellow(
         `There seems to be a regression on test ${name}, but regression is small enough to be tolerated.\n` +
@@ -61,6 +66,7 @@ export const showComparisonReport: typeof sdk.visualisation.showComparisonReport
     )
   }
   if (comparison.status === 'success') {
+    // eslint-disable-next-line no-console
     console.log(chalk.green(`No regression noted for test ${name}.`))
   }
   comparison.reasons.forEach(logReason)

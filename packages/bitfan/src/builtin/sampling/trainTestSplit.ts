@@ -1,7 +1,7 @@
 import { DataSet, ProblemType, Sample, sampling } from 'bitfan/sdk'
 import { LoDashStatic } from 'lodash'
-import { areSame } from '../labels'
 import SeededLodashProvider from '../../services/seeded-lodash'
+import { areSame } from '../labels'
 
 export const subSample: typeof sampling.subSample = <T extends ProblemType>(
   dataset: DataSet<T>,
@@ -23,7 +23,7 @@ export const trainTestSplit: typeof sampling.trainTestSplit = <T extends Problem
   testSet: DataSet<T>
 } => {
   if (trainPercent < 0 || trainPercent > 1) {
-    let msg = `trainTestSplit function cannot make a train set with ${trainPercent} of all samples. Must be between 0 and 1`
+    const msg = `trainTestSplit function cannot make a train set with ${trainPercent} of all samples. Must be between 0 and 1`
     throw new Error(msg)
   }
 

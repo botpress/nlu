@@ -1,7 +1,7 @@
 import * as sdk from 'bitfan/sdk'
+import _ from 'lodash'
 import { isOOS } from '../../builtin/labels'
 
-import _ from 'lodash'
 import { mostConfident } from '../election/mostConfident'
 
 export const inScopeAccuracy: typeof sdk.metrics.inScopeAccuracy = {

@@ -1,17 +1,17 @@
 import * as sdk from 'bitfan/sdk'
+import _ from 'lodash'
 import { isOOS } from '../../builtin/labels'
 
-import _ from 'lodash'
 import { mostConfident } from '../election/mostConfident'
 
-type ConfusionMatrix = {
+interface ConfusionMatrix {
   truePos: number
   falsePos: number
   trueNeg: number
   falseNeg: number
 }
 
-type OOSPerformance = {
+interface OOSPerformance {
   oosAccuracy: number
   oosPrecision: number
   oosRecall: number

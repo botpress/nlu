@@ -1,6 +1,6 @@
-import * as sdk from 'src/bitfan'
 import fs from 'fs'
 import path from 'path'
+import * as sdk from 'src/bitfan'
 
 export default class DatasetRepository {
   public getDataset<T extends sdk.ProblemType>(type: T, lang: string, name: string): sdk.DataSet<T> {

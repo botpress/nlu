@@ -1,7 +1,7 @@
 import { DataSet, SingleLabel, Sample, sampling, Label } from 'bitfan/sdk'
 import _ from 'lodash'
-import { areSame, getOOSLabel } from '../labels'
 import SeededLodashProvider from '../../services/seeded-lodash'
+import { areSame, getOOSLabel } from '../labels'
 
 export const splitOOS: typeof sampling.splitOOS = <T extends SingleLabel>(dataset: DataSet<T>, labels: Label<T>[]) => {
   const { samples } = dataset
