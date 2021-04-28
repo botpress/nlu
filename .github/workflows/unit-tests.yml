@@ -8,10 +8,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
+      - name: Fetch Node Packages
+        run: |
+          yarn --verbose
       - name: Build
         run: |
-          cp -r build/tests/* .
-          docker-compose build
+          yarn build
       - name: Run tests
         run: |
-          docker-compose up --exit-code-from botpress
+          yarn test
