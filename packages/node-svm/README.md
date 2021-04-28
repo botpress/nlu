@@ -25,7 +25,7 @@ Why did we make a complete reimplementation? What is different from previous [no
 To install locally in a project, simply type command
 
 ```
-  npm install node-svm-napi
+  yarn add @botpress/node-svm
 ```
 
 ## Usage

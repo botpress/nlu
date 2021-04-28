@@ -109,13 +109,10 @@ Make sure you checked-out fastText submodule: `git submodule update --init`
 
 ```bash
 # install dependencies and tools
-npm install
+yarn
 
 # build node-fasttext from source
-npm run build
-
-# run unit-test
-npm test
+yarn build && yarn build-native
 ```
 
 # Contributing
