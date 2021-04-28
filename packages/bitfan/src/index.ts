@@ -7,9 +7,6 @@ import { slotsAre, slotIncludes, slotCountIs } from './builtin/criterias/slot'
 import { listFiles, readDataset, readDocument } from './builtin/datasets/index'
 import { mostConfident, mostConfidents } from './builtin/election/mostConfident'
 
-
-
-
 import { BpIntentEngine } from './builtin/engines/intent'
 import { BpSlotEngine } from './builtin/engines/slot'
 import { BpSpellingEngine } from './builtin/engines/spell'
@@ -36,7 +33,6 @@ import { showSlotsResults } from './builtin/visualisation/slots'
 import comparePerformances from './compare'
 import evaluateMetrics from './report'
 import runSolution from './solution'
-
 
 // TODO: write actual implementation
 const impl: typeof sdk = {
