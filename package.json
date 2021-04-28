@@ -16,10 +16,9 @@
     "dev": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions ts-node-dev ./packages/nlu/",
     "start": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions node ./packages/nlu/dist/index.js",
     
-    "build": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions tsc --build ./packages/nlu",
+    "build": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions tsc --build",
     "package": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions pkg package.json",
 
-    "build-e2e": "yarn workspace e2e install && yarn workspace e2e build",
     "e2e": "yarn workspace e2e start",
     "test": "yarn workspace @botpress/node-svm test && yarn workspace nlu test",
 

@@ -15,7 +15,7 @@ jobs:
           yarn --verbose
       - name: Build
         run: |
-          yarn build && yarn build-e2e
+          yarn build
       - name: Run Regression Test
         run: |
           yarn start nlu --silent --ducklingEnabled=false & 

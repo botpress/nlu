@@ -2,6 +2,9 @@
   "references": [
     {
       "path": "./packages/nlu"
+    },
+    {
+      "path": "./packages/e2e"
     }
   ],
   "files": [],
