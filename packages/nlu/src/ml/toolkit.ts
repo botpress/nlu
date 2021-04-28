@@ -29,7 +29,7 @@ const MLToolkit: typeof IMLToolkit = {
 if (cluster.isWorker) {
   const workerPool = new MLThreadPool()
 
-  MLToolkit.SVM.Trainer.prototype.train = function(
+  MLToolkit.SVM.Trainer.prototype.train = function (
     points: IMLToolkit.SVM.DataPoint[],
     options?: IMLToolkit.SVM.SVMOptions,
     progressCb?: IMLToolkit.SVM.TrainProgressCallback | undefined

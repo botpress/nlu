@@ -89,13 +89,13 @@ export async function initializeTools(config: LanguageConfig, logger: Logger): P
   return {
     partOfSpeechUtterances: async (tokenUtterances: string[][], lang: string) => {
       const tagger = await getPOSTagger(lang, MLToolkit)
-      return tokenUtterances.map(u => tagSentence(tagger, u))
+      return tokenUtterances.map((u) => tagSentence(tagger, u))
     },
     tokenize_utterances: (utterances: string[], lang: string, vocab?: string[]) =>
       languageProvider.tokenize(utterances, lang, vocab),
     vectorize_tokens: async (tokens, lang) => {
       const a = await languageProvider.vectorize(tokens, lang)
-      return a.map(x => Array.from(x.values()))
+      return a.map((x) => Array.from(x.values()))
     },
     generateSimilarJunkWords: (vocab: string[], lang: string) => languageProvider.generateSimilarJunkWords(vocab, lang),
     getStopWordsForLang,

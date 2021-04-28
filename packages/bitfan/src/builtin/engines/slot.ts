@@ -24,7 +24,7 @@ export class BpSlotEngine implements sdk.Engine<'slot'> {
   train(trainSet: sdk.DataSet<'slot'>, seed: number, progress: sdk.ProgressCb) {
     const { enums, patterns, lang, samples, variables } = trainSet
 
-    const utterances = samples.map(r => {
+    const utterances = samples.map((r) => {
       const { text, label } = r
 
       let sanitized = `${text}`
@@ -97,12 +97,12 @@ export class BpSlotEngine implements sdk.Engine<'slot'> {
     let done = 0
 
     for (const batch of _.chunk(testSet.samples, BATCH_SIZE)) {
-      const predictions = await this._stanProvider.predict(batch.map(r => r.text))
+      const predictions = await this._stanProvider.predict(batch.map((r) => r.text))
 
       for (const { pred, row } of _.zipWith(predictions, batch, (pred, row) => ({ pred, row }))) {
         const { text, label } = row
-        const { intents } = pred!.contexts.find(c => c.name === MAIN_TOPIC)!
-        const mainIntent = intents.find(i => i.name === MAIN_INTENT)
+        const { intents } = pred!.contexts.find((c) => c.name === MAIN_TOPIC)!
+        const mainIntent = intents.find((i) => i.name === MAIN_INTENT)
 
         const candidates: sdk.Candidate<'slot'>[] = mainIntent!.slots.map(({ name, start, end, confidence }) => ({
           elected: { name, start, end },

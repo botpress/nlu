@@ -1,26 +1,26 @@
-import _ from "lodash";
-import seedrandom from "seedrandom";
+import _ from 'lodash'
+import seedrandom from 'seedrandom'
 
-const MAX_SEED = 100000;
+const MAX_SEED = 100000
 
 export default class SeededLodashProvider {
-  private _seed: number = SeededLodashProvider._randomInt();
+  private _seed: number = SeededLodashProvider._randomInt()
 
   public setSeed(seed: number) {
-    this._seed = seed;
+    this._seed = seed
   }
 
   public getSeededLodash() {
-    seedrandom(`${this._seed}`, { global: true });
-    return _.runInContext();
+    seedrandom(`${this._seed}`, { global: true })
+    return _.runInContext()
   }
 
   public resetSeed() {
-    this._seed = SeededLodashProvider._randomInt();
-    seedrandom(`${this._seed}`, { global: true });
+    this._seed = SeededLodashProvider._randomInt()
+    seedrandom(`${this._seed}`, { global: true })
   }
 
   private static _randomInt() {
-    return Math.round(new Date().getMilliseconds() % MAX_SEED);
+    return Math.round(new Date().getMilliseconds() % MAX_SEED)
   }
 }

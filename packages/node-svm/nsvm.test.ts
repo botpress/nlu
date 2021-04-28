@@ -39,7 +39,7 @@ const argmax = (arr: number[]) =>
 
 const train_async = async (svm: NSVM, params: AugmentedParameters, x: number[][], y: number[]) => {
   return new Promise<string | void>((resolve, reject) => {
-    svm.train_async(params, x, y, err => {
+    svm.train_async(params, x, y, (err) => {
       if (err) {
         reject(new Error(err))
       }

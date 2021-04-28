@@ -44,12 +44,12 @@ export class TrainingWorkerQueue {
     await this._cancelTraining(workerId)
 
     delete this.activeWorkers[trainSessionId]
-    this.readyWorkers = this.readyWorkers.filter(w => w !== workerId) // just in case...
+    this.readyWorkers = this.readyWorkers.filter((w) => w !== workerId) // just in case...
   }
 
   private _cancelTraining(destWorkerId: number) {
     const msg: OutgoingMessage<'cancel_training'> = { type: 'cancel_training', payload: {}, destWorkerId }
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const handler = (msg: AllIncomingMessages) => {
         if (isTrainingCanceled(msg) && msg.srcWorkerId === destWorkerId) {
           process.off('message', handler)
@@ -323,12 +323,12 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   initializeTools(config, logger)
-    .then(tools => {
+    .then((tools) => {
       process.on('message', msgHandler(tools))
       const res: IncomingMessage<'worker_ready'> = { type: 'worker_ready', payload: { requestId }, srcWorkerId }
       process.send!(res)
     })
-    .catch(err => {
+    .catch((err) => {
       logger.error('The following error occured during initialization of tools', err)
     })
 }

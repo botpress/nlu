@@ -23,8 +23,9 @@
     "e2e": "yarn workspace e2e start",
     "test": "yarn workspace @botpress/node-svm test && yarn workspace nlu test",
 
-    "pretty": "prettier --check './packages/**/*.ts' '!**/*.d.ts'",
-    "eslint": "eslint packages/ --ext .ts"
+    "prettier": "cross-env prettier --check './packages/**/*.ts' '!**/*.d.ts'",
+    "prettier-fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
+    "eslint": "cross-env eslint packages/ --ext .ts"
   },
   "devDependencies": {
     "pkg": "^4.5.1"

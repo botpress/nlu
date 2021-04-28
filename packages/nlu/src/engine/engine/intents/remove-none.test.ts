@@ -20,9 +20,9 @@ test('remove none intent', () => {
   const expectedOOS = 0.666 / (0.666 + 0.58) // 0.53
   expect(withoutNone.oos).toBe(expectedOOS)
 
-  const totalConf = withoutNone.oos + _.sum(withoutNone.intents.map(i => i.confidence))
+  const totalConf = withoutNone.oos + _.sum(withoutNone.intents.map((i) => i.confidence))
   expect(totalConf).toBe(1)
-  expect(withoutNone.intents.some(i => i.name === 'none')).toBe(false)
+  expect(withoutNone.intents.some((i) => i.name === 'none')).toBe(false)
 })
 
 test('ajdust to 100', () => {
@@ -41,5 +41,5 @@ test('ajdust to 100', () => {
   // assert
   const expectedOOS = 0.99 / (0.99 + 0.98) // 0.503
   expect(withoutNone.oos).toBe(expectedOOS)
-  expect(withoutNone.intents.some(i => i.name === 'none')).toBe(false)
+  expect(withoutNone.intents.some((i) => i.name === 'none')).toBe(false)
 })

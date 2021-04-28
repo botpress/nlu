@@ -22,19 +22,11 @@ interface Predictors {
 }
 
 const keys: Record<keyof Model, Joi.AnySchema> = {
-  svmModel: Joi.string()
-    .allow('')
-    .optional(),
-  intentNames: Joi.array()
-    .items(Joi.string())
-    .required(),
-  entitiesName: Joi.array()
-    .items(Joi.string())
-    .required()
+  svmModel: Joi.string().allow('').optional(),
+  intentNames: Joi.array().items(Joi.string()).required(),
+  entitiesName: Joi.array().items(Joi.string()).required()
 }
-export const modelSchema = Joi.object()
-  .keys(keys)
-  .required()
+export const modelSchema = Joi.object().keys(keys).required()
 
 export class SvmIntentClassifier implements IntentClassifier {
   private static _displayName = 'SVM Intent Classifier'
@@ -56,20 +48,20 @@ export class SvmIntentClassifier implements IntentClassifier {
 
     const points = _(intents)
       .flatMap(({ utterances, name }) => {
-        return utterances.map(utt => ({
+        return utterances.map((utt) => ({
           label: name,
           coordinates: this.featurizer(utt, entitiesName)
         }))
       })
-      .filter(x => x.coordinates.filter(isNaN).length === 0)
+      .filter((x) => x.coordinates.filter(isNaN).length === 0)
       .value()
 
-    const classCount = _.uniqBy(points, p => p.label).length
+    const classCount = _.uniqBy(points, (p) => p.label).length
     if (points.length === 0 || classCount <= 1) {
       this.logger?.debug('No SVM to train because there is less than two classes.')
       this.model = {
         svmModel: undefined,
-        intentNames: intents.map(i => i.name),
+        intentNames: intents.map((i) => i.name),
         entitiesName
       }
       progress(1)
@@ -83,7 +75,7 @@ export class SvmIntentClassifier implements IntentClassifier {
 
     this.model = {
       svmModel,
-      intentNames: intents.map(i => i.name),
+      intentNames: intents.map((i) => i.name),
       entitiesName
     }
   }
@@ -150,6 +142,6 @@ export class SvmIntentClassifier implements IntentClassifier {
   }
 
   private _getEntitiesName(list_entities: ListEntityModel[], pattern_entities: PatternEntity[]) {
-    return [...list_entities.map(e => e.entityName), ...pattern_entities.map(e => e.name)]
+    return [...list_entities.map((e) => e.entityName), ...pattern_entities.map((e) => e.name)]
   }
 }

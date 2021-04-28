@@ -22,7 +22,7 @@ export const assertValidLanguage = (service: LanguageService) => (req, _res, nex
     return next(new BadRequestError(`Param 'lang': ${language} must be a string`))
   }
 
-  const availableLanguages = service.getModels().map(x => x.lang)
+  const availableLanguages = service.getModels().map((x) => x.lang)
   if (!availableLanguages.includes(language)) {
     return next(new BadRequestError(`Param 'lang': ${language} is not element of the available languages`))
   }

@@ -124,7 +124,7 @@ const makeProblemRunner = <T extends sdk.ProblemType>(
   predictProgressBar.stop()
   console.log('')
 
-  const results: sdk.Result<T>[] = predictOutputs.map(p => {
+  const results: sdk.Result<T>[] = predictOutputs.map((p) => {
     return {
       ...p,
       metadata: {

@@ -87,7 +87,7 @@ describe('CRF Featurizer 2', () => {
       { value: SPACE, isWord: false, slots: ['hello'] },
       { value: SPACE, isWord: false, entities: ['hello'] },
       { value: SPACE, isWord: false }
-    ].map(tok => Object.defineProperty(tok, 'toString', { value: jest.fn().mockReturnValue(tok.value) }))
+    ].map((tok) => Object.defineProperty(tok, 'toString', { value: jest.fn().mockReturnValue(tok.value) }))
 
     const feat = featurizer.getWordFeat(tokens[0], true)
     const feat1 = featurizer.getWordFeat(tokens[0], false)
@@ -131,7 +131,7 @@ describe('CRF Featurizer 2', () => {
   })
 
   test('getInVocabFeat', () => {
-    const tokens = [{ value: 'fly' }, { value: SPACE }, { value: 'paul' }].map(tok =>
+    const tokens = [{ value: 'fly' }, { value: SPACE }, { value: 'paul' }].map((tok) =>
       Object.defineProperty(tok, 'toString', { value: () => tok.value, enumerable: true })
     )
 

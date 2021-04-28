@@ -1,12 +1,12 @@
-import { initDic } from "./init";
+import { initDic } from './init'
 
-test("initDictionnary", () => {
+test('initDictionnary', () => {
   // arrange
 
   // act
-  const table = initDic(["A", "B"], () => 69);
+  const table = initDic(['A', 'B'], () => 69)
 
   // assert
-  expect(table["A"]).toBe(69);
-  expect(table["B"]).toBe(69);
-});
+  expect(table['A']).toBe(69)
+  expect(table['B']).toBe(69)
+})

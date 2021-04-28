@@ -43,7 +43,7 @@ export function vectorAdd(...args: number[][]): number[] {
 }
 
 export function scalarMultiply(vec: number[], multiplier: number): number[] {
-  return vec.map(x => x * multiplier)
+  return vec.map((x) => x * multiplier)
 }
 
 export function averageVectors(vecs: number[][]): number[] {
@@ -56,7 +56,7 @@ export function averageVectors(vecs: number[][]): number[] {
   }
 
   const normalized: number[][] = vecs
-    .map(vec => {
+    .map((vec) => {
       const norm = computeNorm(vec)
       if (norm) {
         return scalarDivide(vec, norm)

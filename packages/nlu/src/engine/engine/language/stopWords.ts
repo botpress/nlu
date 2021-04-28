@@ -18,7 +18,7 @@ async function loadStopWords(language: string): Promise<string[]> {
     const stream = createReadStream(filePath)
     const rl = readline.createInterface({ input: stream, crlfDelay: Infinity })
 
-    rl.on('line', l => {
+    rl.on('line', (l) => {
       stopWords.push(l)
     })
 

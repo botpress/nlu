@@ -26,7 +26,7 @@ export class Trainer implements MLToolkit.CRF.Trainer {
 
     const crfModelFilename = tmp.fileSync({ postfix: '.bin' }).name
 
-    this.trainer.train(crfModelFilename, iteration => {
+    this.trainer.train(crfModelFilename, (iteration) => {
       progressCallback && progressCallback(iteration)
       return this._cancelTraining ? 1 : 0
     })

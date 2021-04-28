@@ -15,8 +15,8 @@ const makeSlotChecker = (listEntities: ListEntityDefinition[], patternEntities: 
   const { entities, name } = variable
 
   const supportedTypes = [
-    ...listEntities.map(e => e.name),
-    ...patternEntities.map(p => p.name),
+    ...listEntities.map((e) => e.name),
+    ...patternEntities.map((p) => p.name),
     ...NLUEngine.SYSTEM_ENTITIES,
     SLOT_ANY
   ]

@@ -89,10 +89,10 @@ function wordFeatures(seq: string[], idx: number): string[] {
 }
 
 export const fallbackTagger: MLToolkit.CRF.Tagger = {
-  tag: seq => ({ probability: 1, result: new Array(seq.length).fill('N/A') }),
+  tag: (seq) => ({ probability: 1, result: new Array(seq.length).fill('N/A') }),
   initialize: async () => {},
-  open: f => false,
-  marginal: seq => new Array(seq.length).fill({ 'N/A': 1 })
+  open: (f) => false,
+  marginal: (seq) => new Array(seq.length).fill({ 'N/A': 1 })
 }
 
 // eventually this will be moved in language provider

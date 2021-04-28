@@ -36,7 +36,7 @@ class FastTextLanguageId {
     }
 
     return (await FastTextLanguageId.model.predict(text, 3))
-      .map(pred => ({
+      .map((pred) => ({
         ...pred,
         label: pred.label.replace('__label__', '')
       }))
@@ -45,7 +45,7 @@ class FastTextLanguageId {
 }
 
 let langIdentifier: FastTextLanguageId
-export default async function(
+export default async function (
   sentence: string,
   predictorsByLang: _.Dictionary<Predictors>,
   tools: Tools
@@ -70,7 +70,7 @@ export default async function(
   if (scoreDetectedLang <= threshold) {
     try {
       const match = _.chain(supportedLanguages)
-        .map(lang => ({
+        .map((lang) => ({
           lang,
           sentence: sentence.toLowerCase(),
           tokens: _.orderBy(predictorsByLang[lang].vocab, 'length', 'desc')
@@ -81,7 +81,7 @@ export default async function(
           }
           return { lang, confidence: 1 - sentence.length / sentence.length }
         })
-        .filter(x => x.confidence >= threshold)
+        .filter((x) => x.confidence >= threshold)
         .orderBy('confidence', 'desc')
         .first()
         .value()

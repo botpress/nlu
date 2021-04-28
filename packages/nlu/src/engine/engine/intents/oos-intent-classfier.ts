@@ -55,18 +55,10 @@ const NONE_UTTERANCES_BOUNDS = {
 
 export const modelSchema = Joi.object()
   .keys({
-    trainingVocab: Joi.array()
-      .items(Joi.string().allow(''))
-      .required(),
-    baseIntentClfModel: Joi.string()
-      .allow('')
-      .required(),
-    oosSvmModel: Joi.string()
-      .allow('')
-      .optional(),
-    exactMatchModel: Joi.string()
-      .allow('')
-      .required()
+    trainingVocab: Joi.array().items(Joi.string().allow('')).required(),
+    baseIntentClfModel: Joi.string().allow('').required(),
+    oosSvmModel: Joi.string().allow('').optional(),
+    exactMatchModel: Joi.string().allow('').required()
   })
   .required()
 
@@ -131,22 +123,22 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   }
 
   private _makeNoneIntent = async (allUtterances: Utterance[], languageCode: string): Promise<Intent<Utterance>> => {
-    const allTokens = _.flatMap(allUtterances, u => u.tokens)
+    const allTokens = _.flatMap(allUtterances, (u) => u.tokens)
 
     const vocab = _(allTokens)
-      .map(t => t.toString({ lowerCase: true }))
+      .map((t) => t.toString({ lowerCase: true }))
       .uniq()
       .value()
 
     const lo = this.tools.seededLodashProvider.getSeededLodash()
 
     const vocabWithDupes = lo(allTokens)
-      .map(t => t.value)
+      .map((t) => t.value)
       .flattenDeep()
       .value()
 
     const junkWords = await this.tools.generateSimilarJunkWords(vocab, languageCode)
-    const avgTokens = lo.meanBy(allUtterances, x => x.tokens.length)
+    const avgTokens = lo.meanBy(allUtterances, (x) => x.tokens.length)
     const nbOfNoneUtterances = lo.clamp(
       (allUtterances.length * 2) / 3,
       NONE_UTTERANCES_BOUNDS.MIN,
@@ -154,14 +146,14 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     )
     const stopWords = await this.tools.getStopWordsForLang(languageCode)
     const vocabWords = lo(allTokens)
-      .filter(t => t.tfidf <= SMALL_TFIDF)
-      .map(t => t.toString({ lowerCase: true }))
+      .filter((t) => t.tfidf <= SMALL_TFIDF)
+      .map((t) => t.toString({ lowerCase: true }))
       .uniq()
-      .orderBy(t => t)
+      .orderBy((t) => t)
       .value()
 
     // If 30% in utterances is a space, language is probably space-separated so we'll join tokens using spaces
-    const joinChar = vocabWithDupes.filter(x => isSpace(x)).length >= vocabWithDupes.length * 0.3 ? SPACE : ''
+    const joinChar = vocabWithDupes.filter((x) => isSpace(x)).length >= vocabWithDupes.length * 0.3 ? SPACE : ''
 
     const vocabUtts = lo.range(0, nbOfNoneUtterances).map(() => {
       const nbWords = Math.round(lo.random(1, avgTokens * 2, false))
@@ -216,8 +208,8 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const oos_points = featurizeOOSUtterances(noneUtts, vocab, this.tools)
 
     const in_scope_points = _.chain(intents)
-      .filter(i => i.name !== NONE_INTENT)
-      .flatMap(i => featurizeInScopeUtterances(i.utterances, i.name))
+      .filter((i) => i.name !== NONE_INTENT)
+      .flatMap((i) => featurizeInScopeUtterances(i.utterances, i.name))
       .value()
 
     const svm = new this.tools.mlToolkit.SVM.Trainer()
@@ -232,11 +224,11 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     progress: (p: number) => void
   ): Promise<string> {
     const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this.logger)
-    const noneUtts = noneIntent.utterances.filter(u => u.tokens.filter(t => t.isWord).length >= 3)
+    const noneUtts = noneIntent.utterances.filter((u) => u.tokens.filter((t) => t.isWord).length >= 3)
     const trainableIntents = trainInput.intents.filter(
-      i => i.name !== NONE_INTENT && i.utterances.length >= MIN_NB_UTTERANCES
+      (i) => i.name !== NONE_INTENT && i.utterances.length >= MIN_NB_UTTERANCES
     )
-    const nAvgUtts = Math.ceil(_.meanBy(trainableIntents, i => i.utterances.length))
+    const nAvgUtts = Math.ceil(_.meanBy(trainableIntents, (i) => i.utterances.length))
 
     const lo = this.tools.seededLodashProvider.getSeededLodash()
 
@@ -259,7 +251,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   }
 
   private getVocab(utts: Utterance[]) {
-    return _.flatMap(utts, u => u.tokens.map(t => t.toString({ lowerCase: true })))
+    return _.flatMap(utts, (u) => u.tokens.map((t) => t.toString({ lowerCase: true })))
   }
 
   public serialize(): string {
@@ -325,8 +317,8 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
         const preds = await oosSvm.predict(feats)
         oosPrediction =
           _.chain(preds)
-            .filter(p => p.label.startsWith('out'))
-            .maxBy(p => p.confidence)
+            .filter((p) => p.label.startsWith('out'))
+            .maxBy((p) => p.confidence)
             .value()?.confidence || 0
       } catch (err) {}
     }
@@ -375,7 +367,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   }
 
   static _removeNoneIntent(preds: NoneableIntentPredictions): NoneableIntentPredictions {
-    const noneIdx = preds.intents.findIndex(i => i.name === NONE_INTENT)
+    const noneIdx = preds.intents.findIndex((i) => i.name === NONE_INTENT)
     if (noneIdx < 0) {
       return preds
     }
@@ -386,9 +378,9 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   }
 
   private static _adjustTotalConfidenceTo100 = (preds: NoneableIntentPredictions): NoneableIntentPredictions => {
-    const totalConfidence = preds.oos + _.sum(preds.intents.map(i => i.confidence))
+    const totalConfidence = preds.oos + _.sum(preds.intents.map((i) => i.confidence))
     preds.oos = preds.oos / totalConfidence
-    preds.intents = preds.intents.map(i => ({ ...i, confidence: i.confidence / totalConfidence }))
+    preds.intents = preds.intents.map((i) => ({ ...i, confidence: i.confidence / totalConfidence }))
     return preds
   }
 }

@@ -11,8 +11,8 @@ test('tfidf has a value for all tokens of the training set', async () => {
     const tokens = tokenizeLatinTextForTests(utt)
     return new Utterance(
       tokens,
-      tokens.map(t => Array(300).fill(0)),
-      tokens.map(t => 'NOUN'),
+      tokens.map((t) => Array(300).fill(0)),
+      tokens.map((t) => 'NOUN'),
       'en'
     )
   }
@@ -40,9 +40,9 @@ test('tfidf has a value for all tokens of the training set', async () => {
   // assert
   const botpressToken = 'botpress'
 
-  const utterances = _.flatMap(intents, i => i.utterances)
-  const tokens = _.flatMap(utterances, u => u.tokens)
-  const desiredToken = tokens.find(t => t.toString({ lowerCase: true }) === botpressToken)
+  const utterances = _.flatMap(intents, (i) => i.utterances)
+  const tokens = _.flatMap(utterances, (u) => u.tokens)
+  const desiredToken = tokens.find((t) => t.toString({ lowerCase: true }) === botpressToken)
 
   expect(tfIdf).toBeDefined()
   expect(_.round(tfIdf![botpressToken], 2)).toBe(0.54)

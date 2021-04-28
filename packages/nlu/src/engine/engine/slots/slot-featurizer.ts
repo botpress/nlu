@@ -25,9 +25,9 @@ export function getFeatPairs(feats0: CRFFeature[], feats1: CRFFeature[], featNam
   const boostOf = (feat: CRFFeature | undefined): number => _.get(feat, 'boost', 1)
 
   return featNames
-    .map(targetFeat => {
-      const f0 = feats0.find(f => f.name === targetFeat)
-      const f1 = feats1.find(f => f.name === targetFeat)
+    .map((targetFeat) => {
+      const f0 = feats0.find((f) => f.name === targetFeat)
+      const f1 = feats1.find((f) => f.name === targetFeat)
       return {
         f0,
         f1,
@@ -84,10 +84,10 @@ export function getEntitiesFeats(token: UtteranceToken, allowedEntities: string[
   const boost = isPredict ? 3 : 1
 
   return _.chain(token.entities)
-    .map(e => e.type)
+    .map((e) => e.type)
     .intersectionWith(allowedEntities)
-    .thru(ents => (ents.length ? ents : ['none']))
-    .map(entity => ({
+    .thru((ents) => (ents.length ? ents : ['none']))
+    .map((entity) => ({
       name: 'entity',
       value: entity,
       boost

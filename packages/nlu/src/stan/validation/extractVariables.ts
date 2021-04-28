@@ -6,5 +6,5 @@ export default function extractVariables(text: string) {
   while ((matches = ALL_SLOTS_REGEX.exec(text)) !== null) {
     slotMatches.push(matches)
   }
-  return slotMatches.map(s => s[2])
+  return slotMatches.map((s) => s[2])
 }

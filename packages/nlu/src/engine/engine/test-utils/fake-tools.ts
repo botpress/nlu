@@ -29,16 +29,16 @@ export function randomlyVectorize(token: string, dim: number): number[] {
  * @param tokens the tokens you want to POS tag
  */
 export function randomlyPOSTag(tokens: string[]): POSClass[] {
-  return tokens.map(t => _.sample(POS_CLASSES)!)
+  return tokens.map((t) => _.sample(POS_CLASSES)!)
 }
 
 export const makeFakeTools = (dim: number, languages: string[]): Tools => {
   const tokenize_utterances = async (utterances: string[], languageCode: string, vocab?: string[]) => {
-    return utterances.map(u => tokenizeLatinTextForTests(u))
+    return utterances.map((u) => tokenizeLatinTextForTests(u))
   }
 
   const vectorize_tokens = async (tokens: string[], languageCode: string) => {
-    return tokens.map(t => randomlyVectorize(t, dim))
+    return tokens.map((t) => randomlyVectorize(t, dim))
   }
 
   const partOfSpeechUtterances = async (utterances: string[][], languageCode: string) => {

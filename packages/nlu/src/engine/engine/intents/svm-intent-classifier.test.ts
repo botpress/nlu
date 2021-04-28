@@ -75,8 +75,8 @@ test('predict with only one class returns the only class with confidence 1', asy
   const { intents } = await intentClassifier.predict(helloILoveYou)
 
   // assert
-  const labels = intents.map(i => i.name)
-  const confs = intents.map(i => i.confidence)
+  const labels = intents.map((i) => i.name)
+  const confs = intents.map((i) => i.confidence)
   expect(labels).toEqual(['A'])
   expect(confs).toEqual([1])
 })
@@ -94,8 +94,8 @@ test('predict with multiple class returns svm prediction', async () => {
   const { intents } = await intentClassifier.predict(helloILoveYou)
 
   // assert
-  const labels = intents.map(i => i.name)
-  const confs = intents.map(i => i.confidence)
+  const labels = intents.map((i) => i.name)
+  const confs = intents.map((i) => i.confidence)
   expect(labels.sort()).toEqual(['A', 'B', 'C'])
 
   const totalConf = confs.reduce((sum, x) => sum + x, 0)

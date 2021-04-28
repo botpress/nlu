@@ -64,7 +64,7 @@ describe('Build intent vocab', () => {
     expect(intVocab['can']).toBeUndefined()
     allUtoks
       .map((t: string) => t.toLowerCase())
-      .forEach(t => {
+      .forEach((t) => {
         expect(intVocab[t]).toBeTruthy()
       })
   })
@@ -87,7 +87,7 @@ describe('Build intent vocab', () => {
     expect(intVocab['can']).toBeTruthy()
     allUtoks
       .map((t: string) => t.toLowerCase())
-      .forEach(t => {
+      .forEach((t) => {
         expect(intVocab[t]).toBeTruthy()
       })
   })

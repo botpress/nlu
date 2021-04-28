@@ -58,7 +58,7 @@ export const setupMasterNode = (logger: Logger) => {
     const { exitedAfterDisconnect, id } = worker
 
     if (process.TRAINING_WORKERS?.includes(id)) {
-      process.TRAINING_WORKERS = process.TRAINING_WORKERS.filter(w => w !== id)
+      process.TRAINING_WORKERS = process.TRAINING_WORKERS.filter((w) => w !== id)
       return
     }
 
@@ -122,7 +122,7 @@ export async function spawnNewTrainingWorker(config: LanguageConfig, requestId: 
   })
   const workerId = worker.id
   process.TRAINING_WORKERS.push(workerId)
-  return new Promise(resolve => worker.on('online', () => resolve(workerId)))
+  return new Promise((resolve) => worker.on('online', () => resolve(workerId)))
 }
 
 export const startLocalActionServer = (message: StartLocalActionServerMessage) => {

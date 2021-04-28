@@ -15,7 +15,7 @@ jobs:
           yarn
       - name: Run Prettier
         run: |
-          yarn pretty
+          yarn prettier
   eslint:
     name: Run ESLint on codebase
     runs-on: ubuntu-latest

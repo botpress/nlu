@@ -21,9 +21,9 @@ export const computeKmeans = (
   tools: Tools
 ): MLToolkit.KMeans.KmeansResult | undefined => {
   const data = _.chain(intents)
-    .filter(i => i.name !== NONE_INTENT)
-    .flatMap(i => i.utterances)
-    .flatMap(u => u.tokens)
+    .filter((i) => i.name !== NONE_INTENT)
+    .flatMap((i) => i.utterances)
+    .flatMap((u) => u.tokens)
     .uniqBy((t: UtteranceToken) => t.value)
     .map((t: UtteranceToken) => t.vector)
     .value() as number[][]
@@ -55,7 +55,7 @@ export const deserializeKmeans = (kmeans: SerializedKmeansResult): MLToolkit.KMe
  */
 export const nearest = (kmeans: SerializedKmeansResult, data: MLToolkit.KMeans.DataPoint[]) => {
   const clusterID: number[] = new Array(data.length)
-  const centroids = kmeans.centroids.map(c => c.centroid)
+  const centroids = kmeans.centroids.map((c) => c.centroid)
 
   for (let i = 0; i < data.length; i++) {
     clusterID[i] = nearestVector(centroids, data[i], {

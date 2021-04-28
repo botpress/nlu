@@ -54,9 +54,6 @@ export default class TrainSessionService {
 
     const { appSecret, appId } = credentials
 
-    return crypto
-      .createHash('md5')
-      .update(`${stringId}${appSecret}${appId}`)
-      .digest('hex')
+    return crypto.createHash('md5').update(`${stringId}${appSecret}${appId}`).digest('hex')
   }
 }

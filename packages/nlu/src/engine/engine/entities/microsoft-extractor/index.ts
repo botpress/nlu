@@ -57,8 +57,8 @@ export class MicrosoftEntityExtractor implements SystemEntityExtractor {
     return _.chain(batchedRes)
       .flatten()
       .concat(cached)
-      .orderBy(x => x.idx)
-      .map(x => x.entities!)
+      .orderBy((x) => x.idx)
+      .map((x) => x.entities!)
       .value()
   }
 
@@ -143,7 +143,7 @@ export class MicrosoftEntityExtractor implements SystemEntityExtractor {
         const entities: MicrosoftEntity[] = typeRecognizer(utt.input, culture)
 
         if (entities.length > 0) {
-          const formatedEntities: EntityExtractionResult[] = entities.map(ent => this.formatEntity(ent))
+          const formatedEntities: EntityExtractionResult[] = entities.map((ent) => this.formatEntity(ent))
           utteranceEntities = utteranceEntities.concat(formatedEntities)
         }
       }
@@ -152,7 +152,7 @@ export class MicrosoftEntityExtractor implements SystemEntityExtractor {
     }
 
     await this._cache.cacheBatchResults(
-      batch.map(x => x.input),
+      batch.map((x) => x.input),
       batchedEntities
     )
 
