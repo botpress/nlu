@@ -285,7 +285,7 @@ export class GhostService {
       if (args && args.botId === botId) {
         scopedGhost.events.removeAllListeners()
       } else {
-        process.BOTPRESS_EVENTS.once('after_bot_unmount', listenForUnmount)
+        // process.BOTPRESS_EVENTS.once('after_bot_unmount', listenForUnmount)
       }
     }
     listenForUnmount({})
