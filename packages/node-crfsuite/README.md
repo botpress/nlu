@@ -11,8 +11,8 @@ A nodejs binding for crfsuite
 ## CRFSuite Tagger
 
 ```js
-const crfsuite = require('crfsuite')
-const tagger = new crfsuite.Tagger()
+const crfsuite = require('@botpress/node-crfsuite')
+const tagger = await makeTagger()
 
 let is_opened = tagger.open('./path/to/crf.model')
 console.log('File model is opened:', is_opened)
@@ -25,8 +25,8 @@ console.log('Tags: ', tags)
 
 ```js
 const path = require('path')
-const crfsuite = require('crfsuite')
-const trainer = new crfsuite.Trainer({
+const crfsuite = require('@botpress/node-crfsuite')
+const trainer = await makeTrainer({
   debug: true
 })
 

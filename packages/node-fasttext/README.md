@@ -15,10 +15,10 @@ According to [fasttext.cc](https://fasttext.cc/docs/en/supervised-tutorial.html)
 
 ```js
 const path = require('path')
-const fastText = require('@botpress/fasttext')
+const fastText = require('@botpress/node-fasttext')
 
 const model = path.resolve(__dirname, './model_cooking.bin')
-const classifier = new fastText.Classifier(model)
+const classifier = await makeClassifier(model)
 
 classifier.predict('Why not put knives in the dishwasher?', 5).then((res) => {
   if (res.length > 0) {
@@ -35,12 +35,12 @@ The model haved trained before with the followings params:
 
 ```js
 const path = require('path')
-const fastText = require('@botpress/fasttext')
+const fastText = require('@botpress/node-fasttext')
 
 let data = path.resolve(path.join(__dirname, '../data/cooking.train.txt'))
 let model = path.resolve(path.join(__dirname, '../data/cooking.model'))
 
-let classifier = new fastText.Classifier()
+let classifier = await makeClassifier()
 let options = {
   input: data,
   output: model,
@@ -81,10 +81,10 @@ Simple class for searching nearest neighbors:
 
 ```js
 const path = require('path')
-const fastText = require('@botpress/fasttext')
+const fastText = require('@botpress/node-fasttext')
 
 const model = path.resolve(__dirname, './skipgram.bin')
-const query = new fastText.Query(model)
+const query = await makeQuery(model)
 
 query.nn('word', 5, (err, res) => {
   if (err) {

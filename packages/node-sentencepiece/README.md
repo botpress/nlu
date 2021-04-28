@@ -19,7 +19,7 @@ note : windows users also need [Build Tools for Visual Studio package](https://v
 1. require node-sentencepiece package  
    `(node) var sp = require('./node-sentencepiece')`
 1. instanciate a processor  
-   `(node) var proc = new sp.Processor()`
+   `(node) var proc = await makeProcessor()`
 1. load a model  
    `(node) proc.loadModel('/path/to/model/m.model')`
 1. use the processor to get tokens
