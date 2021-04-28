@@ -11,7 +11,6 @@ import yn from 'yn'
 import { authMiddleware, handleErrorLogging, handleUnexpectedError, isAdminToken, RequestWithLang } from '../utils/http'
 import { BadRequestError } from '../utils/http/errors'
 import Logger from '../utils/simple-logger'
-import DEBUG from '../utils/simple-logger/debug'
 
 import { getLanguageByCode } from './languages'
 import { monitoringMiddleware, startMonitoring } from './monitoring'
@@ -31,8 +30,7 @@ export interface APIOptions {
 
 const OFFLINE_ERR_MSG = 'The server is running in offline mode. This function is disabled.'
 
-const debug = DEBUG('api')
-const debugRequest = debug.sub('request')
+const logger = Logger.sub('nlu').sub('api').sub('request')
 const cachePolicy = { 'Cache-Control': `max-age=${ms('1d')}` }
 
 const createExpressApp = (options: APIOptions): Application => {
@@ -45,7 +43,7 @@ const createExpressApp = (options: APIOptions): Application => {
 
   app.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress')
-    debugRequest(`incoming ${req.path}`, { ip: req.ip })
+    logger.debug(`incoming ${req.path}`, { ip: req.ip })
     next()
   })
 
@@ -81,7 +79,7 @@ export default async function (
   downloadManager?: DownloadManager
 ) {
   const app = createExpressApp(options)
-  const logger = new Logger('API')
+  const logger = Logger.sub('lang').sub('api')
 
   const waitForServiceMw = serviceLoadingMiddleware(languageService)
   const validateLanguageMw = assertValidLanguage(languageService)

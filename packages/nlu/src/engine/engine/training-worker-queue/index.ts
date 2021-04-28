@@ -2,10 +2,10 @@ import cluster, { Worker } from 'cluster'
 import _ from 'lodash'
 import { registerMsgHandler, spawnNewTrainingWorker, WORKER_TYPES } from '../../../utils/cluster'
 import { deserializeError, serializeError } from '../../../utils/error-utils'
-import DEBUG from '../../../utils/simple-logger/debug'
+import Logger from '../../../utils/simple-logger'
 
 import { TrainingAlreadyStarted, TrainingCanceled, TrainingExitedUnexpectedly } from '../../errors'
-import { LanguageConfig, Logger } from '../../typings'
+import { LanguageConfig, Logger as ILogger } from '../../typings'
 import { initializeTools } from '../initialize-tools'
 import { Trainer, TrainInput, TrainOutput } from '../training-pipeline'
 import { Tools } from '../typings'
@@ -25,7 +25,7 @@ import {
   OutgoingMessage
 } from './communication'
 
-const debugTraining = DEBUG('nlu').sub('training')
+const logger = Logger.sub('nlu').sub('training')
 
 const SIG_KILL = 'SIGKILL'
 
@@ -33,7 +33,7 @@ export class TrainingWorkerQueue {
   private readyWorkers: number[] = []
   private activeWorkers: { [trainSessionId: string]: number } = {}
 
-  constructor(private config: LanguageConfig, private logger: Logger) {}
+  constructor(private config: LanguageConfig, private logger: ILogger) {}
 
   public async cancelTraining(trainSessionId: string): Promise<void> {
     const workerId = this.activeWorkers[trainSessionId]
@@ -68,14 +68,14 @@ export class TrainingWorkerQueue {
     }
 
     if (!this.readyWorkers.length) {
-      debugTraining(`[${input.trainId}] About to make new training worker`)
+      logger.debug(`[${input.trainId}] About to make new training worker`)
       const newWorker = await this._createNewWorker(trainId)
-      debugTraining(`[${input.trainId}] Creation of training worker ${newWorker} done.`)
+      logger.debug(`[${input.trainId}] Creation of training worker ${newWorker} done.`)
       this.readyWorkers.push(newWorker)
     }
 
     const worker = this.readyWorkers.pop()!
-    debugTraining(`[${input.trainId}] worker ${worker} picked for training.`)
+    logger.debug(`[${input.trainId}] worker ${worker} picked for training.`)
     this.activeWorkers[trainId] = worker
 
     let output: TrainOutput
@@ -174,7 +174,7 @@ export class TrainingWorkerQueue {
 
   private _logMessage(msg: IncomingMessage<'log'>) {
     const { log } = msg.payload
-    log.debug && debugTraining(log.debug)
+    log.debug && logger.debug(log.debug)
     log.info && this.logger.info(log.info)
     log.warning && this.logger.warning(log.warning)
     log.error && this.logger.error(log.error)
@@ -264,7 +264,7 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
   const processId = process.pid
   const srcWorkerId = cluster.worker.id
 
-  const logger: Logger = {
+  const logger: ILogger = {
     debug: (msg: string) => {
       const response: IncomingMessage<'log'> = { type: 'log', payload: { log: { debug: msg }, requestId }, srcWorkerId }
       process.send!(response)

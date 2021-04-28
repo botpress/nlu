@@ -174,7 +174,7 @@ export class GhostService {
         }
       } catch (err) {
         // Todo better handling
-        this.logger.attachError(err).error(`Error while checking diff for "${file}"`)
+        this.logger.showError(err).error(`Error while checking diff for "${file}"`)
         return { path: file, action: 'edit' as FileChangeAction }
       }
     }
@@ -190,7 +190,7 @@ export class GhostService {
           sizeDiff: Math.abs(dbFileSize - localFileSize)
         }
       } catch (err) {
-        this.logger.attachError(err).error(`Error while checking file size for "${file}"`)
+        this.logger.showError(err).error(`Error while checking file size for "${file}"`)
         return { path: file, action: 'edit' as FileChangeAction }
       }
     }
@@ -343,7 +343,7 @@ export class GhostService {
         await this.global().syncDatabaseFilesToDisk(rootFolder)
       }
     } catch (err) {
-      this.logger.attachError(err).error('Could not sync files locally.')
+      this.logger.showError(err).error('Could not sync files locally.')
     }
   }
 }

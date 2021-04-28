@@ -3,9 +3,8 @@ import _ from 'lodash'
 import moment from 'moment'
 import os from 'os'
 import util from 'util'
-
-import { Logger as ILogger } from '../typings'
-import { LoggerLevel, LogLevel } from './enums'
+import { Logger as ILogger, LogLevel } from '../typings'
+import { LoggerLevel } from './enums'
 
 function _serializeArgs(args: any): string {
   if (_.isArray(args)) {
@@ -26,42 +25,54 @@ export const centerText = (text: string, width: number, indent: number = 0) => {
   return _.repeat(' ', padding + indent) + text + _.repeat(' ', padding)
 }
 
-export default class Logger implements ILogger {
-  private attachedError: Error | undefined
-  public readonly displayLevel: number
-  private currentMessageLevel: LogLevel | undefined
-  private silent = false
+/*
+const logger = Logger.sub('nlu')
+> 'global:nlu'
 
-  constructor(private name: string) {
-    this.displayLevel = process.VERBOSITY_LEVEL || 0
+*/
+
+export class Logger implements ILogger {
+  public static default = new Logger()
+  private static  _GLOBAL_NAMESPACE = 'global'
+  private static _NAMESPACE_DELIMITER = ':'
+  private _loggers = new Map<string, Logger>()
+  public parent: Logger | null = null
+  public namespace: string = ''
+  public level: LoggerLevel = LoggerLevel.Info
+
+  constructor(private _name: string = Logger._GLOBAL_NAMESPACE) {
   }
 
-  public silence(): void {
-    this.silent = true
+  public sub(name: string): Logger {
+    if (this._loggers.has(this._name)) {
+      return this._loggers.get(this._name)!
+    }
+    const logger = new Logger(name)
+
+    if (name === Logger._GLOBAL_NAMESPACE) {
+      logger.parent = null
+      logger.namespace = ''
+    } else {
+      logger.parent = this
+      logger.namespace = logger.parent.namespace.length ? logger.parent.namespace + Logger._NAMESPACE_DELIMITER : ''
+      logger.namespace +=  name
+    }
+
+    this._loggers.set(name, logger)
+    return logger
   }
 
-  forBot(botId: string): this {
+  critical(message: string, metadata?: any): void {
+    this.print(LoggerLevel.Critical, message, metadata)
+  }
+
+  setLevel(level: LoggerLevel): this {
+    this.level = level
     return this
   }
 
-  persist(shouldPersist: boolean): this {
-    return this
-  }
-
-  noEmit(): this {
-    return this
-  }
-
-  critical(message: string, metadata?: any): void {}
-
-  // TODO: repair this
-  attachError(error: Error): this {
-    this.attachedError = error
-    return this
-  }
-
-  level(level: LogLevel): this {
-    this.currentMessageLevel = level
+  showError(error: Error): this {
+    this.print(LoggerLevel.Critical, error.message, error)
     return this
   }
 
@@ -77,63 +88,33 @@ export default class Logger implements ILogger {
     const timeFormat = 'L HH:mm:ss.SSS'
     const time = moment().format(timeFormat)
 
-    const displayName = process.env.INDENT_LOGS ? this.name.substr(0, 15).padEnd(15, ' ') : this.name
+    const displayName = process.env.INDENT_LOGS ? this.namespace.substr(0, 15).padEnd(15, ' ') : this.namespace
     // eslint-disable-next-line prefer-template
     const newLineIndent = chalk.dim(' '.repeat(`${timeFormat} ${displayName}`.length)) + ' '
-    let indentedMessage = level === LoggerLevel.Error ? message : message.replace(/\r\n|\n/g, os.EOL + newLineIndent)
-
-    if (
-      this.attachedError &&
-      this.displayLevel >= LogLevel.DEV &&
-      this.attachedError.stack &&
-      this.attachedError['__hideStackTrace'] !== true
-    ) {
-      // eslint-disable-next-line prefer-template
-      indentedMessage += chalk.grey(os.EOL + 'STACK TRACE')
-      indentedMessage += chalk.grey(os.EOL + this.attachedError.stack)
-    }
-
-    if (this.displayLevel >= this.currentMessageLevel!) {
-      !this.silent &&
+    const indentedMessage = level === LoggerLevel.Error ? message : message.replace(/\r\n|\n/g, os.EOL + newLineIndent)
         // eslint-disable-next-line no-console
         console.log(
           chalk`{grey ${time}} {${this.colors[level]}.bold ${displayName}} ${indentedMessage}${serializedMetadata}`
         )
-    }
-
-    this.currentMessageLevel = undefined
-    this.attachedError = undefined
   }
 
   debug(message: string, metadata?: any): void {
-    if (this.currentMessageLevel === undefined) {
-      this.currentMessageLevel = LogLevel.DEV
-    }
-
     this.print(LoggerLevel.Debug, message, metadata)
   }
 
   info(message: string, metadata?: any): void {
-    if (this.currentMessageLevel === undefined) {
-      this.currentMessageLevel = LogLevel.PRODUCTION
-    }
-
     this.print(LoggerLevel.Info, message, metadata)
   }
 
   warn(message: string, metadata?: any): void {
-    if (this.currentMessageLevel === undefined) {
-      this.currentMessageLevel = LogLevel.PRODUCTION
-    }
-
     this.print(LoggerLevel.Warn, message, metadata)
   }
 
   error(message: string, metadata?: any): void {
-    if (this.currentMessageLevel === undefined) {
-      this.currentMessageLevel = LogLevel.PRODUCTION
-    }
-
     this.print(LoggerLevel.Error, message, metadata)
   }
 }
+
+const globalLogger = new Logger()
+
+export default globalLogger

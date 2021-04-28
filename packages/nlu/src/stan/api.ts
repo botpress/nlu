@@ -10,10 +10,9 @@ import * as NLUEngine from '../engine'
 // eslint-disable-next-line no-duplicate-imports
 import { modelIdService } from '../engine'
 
-import { PredictOutput, TrainInput } from '../typings_v1'
+import { TrainInput } from '../typings_v1'
 import { authMiddleware, handleErrorLogging, handleUnexpectedError } from '../utils/http'
 import Logger from '../utils/simple-logger'
-import DEBUG from '../utils/simple-logger/debug'
 import {
   InfoResponseBody,
   ErrorResponse,
@@ -48,8 +47,7 @@ export interface APIOptions {
   dbURL?: string
 }
 
-const debug = DEBUG('api')
-const debugRequest = debug.sub('request')
+const requestLogger = Logger.sub('nlu').sub('api').sub('request')
 
 const createExpressApp = (options: APIOptions): Application => {
   const app = express()
@@ -61,7 +59,7 @@ const createExpressApp = (options: APIOptions): Application => {
 
   app.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress NLU')
-    debugRequest(`incoming ${req.path}`, { ip: req.ip })
+    requestLogger.debug(`incoming ${req.path}`, { ip: req.ip })
     next()
   })
 
@@ -90,7 +88,7 @@ const createExpressApp = (options: APIOptions): Application => {
 
 export default async function (options: APIOptions, engine: NLUEngine.Engine) {
   const app = createExpressApp(options)
-  const logger = new Logger('API')
+  const logger = Logger.sub('nlu').sub('api')
 
   const { dbURL: databaseURL } = options
   const modelRepoOptions: ModelRepoOptions = databaseURL
@@ -356,5 +354,4 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
   })
 
   logger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
-  options.silent && logger.silence()
 }

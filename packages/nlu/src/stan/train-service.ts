@@ -63,7 +63,7 @@ export default class TrainService {
 
       this.trainSessionService.setTrainingSession(modelId, credentials, ts)
       this.trainSessionService.releaseTrainingSession(modelId, credentials)
-      this.logger.attachError(err).error('an error occured during training')
+      this.logger.showError(err).error('an error occured during training')
       return
     }
   }

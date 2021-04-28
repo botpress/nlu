@@ -1,15 +1,17 @@
 import _ from 'lodash'
 import ms from 'ms'
 import onHeaders from 'on-headers'
-import DEBUG from '../utils/simple-logger/debug'
+import Logger from '../utils/simple-logger'
 
-const debugMonitor = DEBUG('api').sub('monitoring')
+const logger = Logger.sub('lang')
+  .sub('api')
+  .sub('monitoring')
 
 let collectionEnabled = false
 let metrics = {}
 
 export const startMonitoring = () => {
-  debugMonitor('Metrics collection enabled. Interval: ', process.env.MONITORING_INTERVAL)
+  logger.debug('Metrics collection enabled. Interval: ', process.env.MONITORING_INTERVAL)
 
   setInterval(() => {
     if (!metrics || !Object.keys(metrics).length) {
@@ -17,9 +19,9 @@ export const startMonitoring = () => {
     }
 
     try {
-      debugMonitor(
+      logger.debug(
         'Stats %o',
-        _.flatMap(Object.keys(metrics), (lang) => ({
+        _.flatMap(Object.keys(metrics), lang => ({
           [lang]: {
             requests: metrics[lang].requests,
             latency_avg: _.round(metrics[lang].latency / metrics[lang].requests, 2)

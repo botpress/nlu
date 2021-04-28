@@ -1,5 +1,5 @@
 import Knex from 'knex'
-
+import { LoggerLevel } from './simple-logger/enums'
 export interface KnexExtension {
   isLite: boolean
   location: string
@@ -20,12 +20,7 @@ export interface KnexExtension {
 export type KnexExtended = Knex & KnexExtension
 
 export interface Logger {
-  forBot(botId: string): this
-  attachError(error: Error): this
-
-  persist(shouldPersist: boolean): this
-  level(level: LogLevel): this
-  noEmit(): this
+  showError(error: Error): this
 
   /**
    * Sets the level that will be required at runtime to
@@ -36,7 +31,7 @@ export interface Logger {
    * 3 = Silly
    * @param level The level to apply for the next message
    */
-  level(level: LogLevel): this
+  setLevel(level: LoggerLevel): this
   debug(message: string, metadata?: any): void
   info(message: string, metadata?: any): void
   warn(message: string, metadata?: any): void

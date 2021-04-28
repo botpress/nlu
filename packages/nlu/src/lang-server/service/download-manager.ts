@@ -3,12 +3,12 @@ import fse from 'fs-extra'
 import ms from 'ms'
 import path from 'path'
 import { URL } from 'url'
-import DEBUG from '../../utils/simple-logger/debug'
+import Logger from '../../utils/simple-logger'
 import ModelDownload from './model-download'
 
 type ModelType = 'bpe' | 'embeddings'
 
-const debug = DEBUG('download')
+const logger = Logger.sub('lang').sub('download')
 
 export interface DownloadableModel {
   type: ModelType
@@ -63,7 +63,7 @@ export default class DownloadManager {
       new URL(this.metaUrl)
       return this._refreshRemoteMeta()
     } catch (e) {
-      debug('Fetching models locally', { url: this.metaUrl })
+      logger.debug('Fetching models locally', { url: this.metaUrl })
       return this._refreshLocalMeta()
     }
   }
@@ -75,22 +75,22 @@ export default class DownloadManager {
         this.meta = data
       }
     } catch (err) {
-      debug('Error fetching models', { url: this.metaUrl, message: err.message })
+      logger.debug('Error fetching models', { url: this.metaUrl, message: err.message })
       throw err
     }
   }
 
   private _isValidMetadata(meta: Meta) {
     if (!meta) {
-      debug('Not refreshing metadata, empty response')
+      logger.debug('Not refreshing metadata, empty response')
       return false
     }
     if (!meta.languages || !Object.keys(meta.languages).length) {
-      debug('Not refreshing metadata, missing languages')
+      logger.debug('Not refreshing metadata, missing languages')
       return false
     }
     if (!meta.embeddings || !Object.keys(meta.embeddings).length) {
-      debug('Not refreshing metadata, missing embeddings')
+      logger.debug('Not refreshing metadata, missing embeddings')
       return false
     }
 
@@ -105,7 +105,7 @@ export default class DownloadManager {
         this.meta = json
       }
     } catch (err) {
-      debug('Error reading metadata file', { file: filePath, message: err.message })
+      logger.debug('Error reading metadata file', { file: filePath, message: err.message })
     }
   }
 
@@ -115,8 +115,8 @@ export default class DownloadManager {
     }
 
     return this.meta.embeddings
-      .filter((mod) => mod.dim === this.dim && mod.domain === this.domain)
-      .map((mod) => {
+      .filter(mod => mod.dim === this.dim && mod.domain === this.domain)
+      .map(mod => {
         return {
           ...this.meta!.languages[mod.language],
           size: mod.size + this.meta!.bpe[mod.language].size
@@ -129,13 +129,13 @@ export default class DownloadManager {
       throw new Error('Meta not initialized yet')
     }
 
-    return this.meta.embeddings.find((mod) => {
+    return this.meta.embeddings.find(mod => {
       return mod.dim === this.dim && mod.domain === this.domain && mod.language === lang
     })
   }
 
   cancelAndRemove(id: string) {
-    const activeDownload = this.inProgress.find((x) => x.id !== id)
+    const activeDownload = this.inProgress.find(x => x.id !== id)
     if (activeDownload && activeDownload.getStatus().status === 'downloading') {
       activeDownload.cancel()
     }
@@ -144,11 +144,11 @@ export default class DownloadManager {
   }
 
   private _remove(id: string) {
-    this.inProgress = this.inProgress.filter((x) => x.id !== id)
+    this.inProgress = this.inProgress.filter(x => x.id !== id)
   }
 
   async download(lang: string) {
-    if (!this.downloadableLanguages.find((l) => lang === l.code)) {
+    if (!this.downloadableLanguages.find(l => lang === l.code)) {
       throw new Error(`Could not find model of dimention "${this.dim}" in domain "${this.domain}" for lang "${lang}"`)
     }
 

@@ -12,6 +12,7 @@ import { VError } from 'verror'
 import toolkit from '../../ml/toolkit'
 import { MLToolkit } from '../../ml/typings'
 import Logger from '../../utils/simple-logger'
+import {Logger as ILogger} from '../../utils/typings'
 
 import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet } from './typing'
 
@@ -39,10 +40,10 @@ export default class LanguageService {
   private _models: Dic<ModelSet> = {}
   private _ready: boolean = false
   private _cache
-  private logger: Logger
+  private logger: ILogger
 
   constructor(public readonly dim: number, public readonly domain: string, private readonly langDir: string) {
-    this.logger = new Logger('Service')
+    this.logger = Logger.sub('lang').sub('service')
   }
   private estimateModelSize = (dims: number, langNb: number): number => {
     const estimatedModelSizeInGb = (MODEL_MB_PER_DIM * dims + MODEL_MB_OFFSET) / 1024
@@ -124,7 +125,7 @@ export default class LanguageService {
       const bpeModel = await this._loadBPEModel(lang)
       this._models[lang] = { fastTextModel, bpeModel }
     } catch (err) {
-      this.logger.attachError(err).error(`[${lang.toUpperCase()}] Error loading language. It will be unavailable.`)
+      this.logger.showError(err).error(`[${lang.toUpperCase()}] Error loading language. It will be unavailable.`)
     }
   }
 

@@ -2,7 +2,7 @@ import axios, { CancelTokenSource } from 'axios'
 import Bluebird from 'bluebird'
 import fse from 'fs-extra'
 import { Readable } from 'stream'
-import DEBUG from '../../utils/simple-logger/debug'
+import Logger from '../../utils/simple-logger'
 type ModelType = 'bpe' | 'embeddings'
 
 export interface DownloadableModel {
@@ -14,7 +14,7 @@ export interface DownloadableModel {
   domain?: string
 }
 
-const debug = DEBUG('download')
+const logger = Logger.sub('lang').sub('download')
 
 export type DownloadStatus = 'pending' | 'downloading' | 'loading' | 'errored' | 'done'
 
@@ -57,7 +57,7 @@ export default class ModelDownload {
 
   private async _downloadNext() {
     const modelToDownload = this.models.shift() as DownloadableModel
-    debug(`Started to download ${modelToDownload.language} ${modelToDownload.type} model`)
+    logger.debug(`Started to download ${modelToDownload.language} ${modelToDownload.type} model`)
 
     const { data, headers } = await axios.get(modelToDownload.remoteUrl, {
       responseType: 'stream',
@@ -72,7 +72,7 @@ export default class ModelDownload {
 
     stream.pipe(fse.createWriteStream(tmpPath))
     stream.on('error', (err) => {
-      debug('model download failed', { lang: modelToDownload.language, error: err.message })
+      logger.error('model download failed', { lang: modelToDownload.language, error: err.message })
       this.status = 'errored'
       this.message = 'Error: ' + err.message
     })
@@ -117,21 +117,21 @@ export default class ModelDownload {
       fse.unlinkSync(tmpPath)
     }
 
-    debug('deleting model %o', { path: tmpPath, type: model.type, lang: model.language })
+    logger.debug('deleting model %o', { path: tmpPath, type: model.type, lang: model.language })
   }
 
   private async _makeModelAvailable(model: DownloadableModel) {
     const filePath = this.getFilePath(model) as string
     const tmpPath = `${filePath}.tmp`
     if (fse.existsSync(filePath)) {
-      debug('removing existing model at %s', filePath)
+      logger.debug('removing existing model at %s', filePath)
       fse.unlinkSync(filePath)
     }
 
     try {
       await Bluebird.fromCallback((cb) => fse.rename(tmpPath, filePath, cb))
     } catch (err) {
-      debug('could not rename downloaded file %s', filePath)
+      logger.debug('could not rename downloaded file %s', filePath)
       await Bluebird.fromCallback((cb) => fse.move(tmpPath, filePath, cb))
     }
   }

@@ -3,13 +3,11 @@ import _ from 'lodash'
 import path from 'path'
 
 import Logger, { centerText } from '../utils/simple-logger'
-import DEBUG from '../utils/simple-logger/debug'
-import { LogLevel } from '../utils/simple-logger/enums'
 import API, { APIOptions } from './api'
 import LanguageService from './service'
 import DownloadManager from './service/download-manager'
 
-const debug = DEBUG('api')
+const logger = Logger.sub('lang').sub('api')
 
 export interface ArgV {
   port: number
@@ -28,16 +26,16 @@ export interface ArgV {
 export default async function (options: ArgV) {
   options.langDir = options.langDir || path.join(process.APP_DATA_PATH, 'embeddings')
 
-  const logger = new Logger('Launcher')
+  const launcherLogger = Logger.sub('lang').sub('launcher')
 
   global.printLog = (args) => {
     const message = args[0]
     const rest = args.slice(1)
 
-    logger.level(LogLevel.DEV).debug(message.trim(), rest)
+    launcherLogger.debug(message.trim(), rest)
   }
 
-  debug('Language Server Options %o', options)
+  logger.debug('Language Server Options %o', options)
 
   const langService = new LanguageService(options.dim, options.domain, options.langDir)
   const downloadManager = new DownloadManager(options.dim, options.domain, options.langDir, options.metadataLocation)
