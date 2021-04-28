@@ -19,8 +19,8 @@ describe('Slot tagger labels for utterance', () => {
     const u = makeTestUtterance('My name is Heisenberg and I am the danger')
     const labels = labelizeUtterance(u)
 
-    expect(labels.length).toEqual(u.tokens.filter(t => !t.isSpace).length)
-    labels.forEach(l => expect(l).toEqual('o'))
+    expect(labels.length).toEqual(u.tokens.filter((t) => !t.isSpace).length)
+    labels.forEach((l) => expect(l).toEqual('o'))
   })
 
   test('with slots', () => {
@@ -35,7 +35,7 @@ describe('Slot tagger labels for utterance', () => {
 
     const labels = labelizeUtterance(u)
 
-    expect(labels.length).toEqual(u.tokens.filter(t => !t.isSpace).length)
+    expect(labels.length).toEqual(u.tokens.filter((t) => !t.isSpace).length)
     expect(labels[1]).toEqual('B-listener')
     expect(labels[2]).toEqual('I-listener')
 
@@ -46,7 +46,7 @@ describe('Slot tagger labels for utterance', () => {
 
     labels
       .filter((l, idx) => ![1, 2, 3, 4, 8].includes(idx))
-      .forEach(l => {
+      .forEach((l) => {
         expect(l).toEqual('o')
       })
   })
@@ -61,7 +61,7 @@ describe('makeExtractedSlots', () => {
   beforeEach(() => {
     u = makeTestUtterance('No one is safe big AI is watching')
     //                     0123456789012345678901234567890123
-    tagResults = new Array(u.tokens.filter(t => !t.isSpace).length).fill(out)
+    tagResults = new Array(u.tokens.filter((t) => !t.isSpace).length).fill(out)
   })
 
   test('consecutive slots token combined properly', () => {

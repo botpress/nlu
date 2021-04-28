@@ -6,10 +6,18 @@
   "license": "MIT",
   "dependencies": {
     "@botpress/bitfan": "*",
-    "chalk": "^2.4.2"
+    "chalk": "^2.4.2",
+    "fs-extra": "^9.1.0",
+    "bluebird": "^3.7.2",
+    "lodash": "^4.17.19"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.116",
+    "@types/fs-extra": "^5.0.4",
+    "typescript": "^3.9.7"
   },
   "scripts": {
     "start": "node ./dist/index.js",
-    "build": "tsc"
+    "build": "tsc --build"
   }
 }

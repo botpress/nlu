@@ -71,7 +71,7 @@ class FileChangedInvalidator {
     await this.watcher.stop()
   }
 
-  handle = async file => {
+  handle = async (file) => {
     if (!this.cache) {
       return
     }
@@ -92,7 +92,7 @@ export class MemoryObjectCache implements ObjectCache {
     this.cacheInvalidator = new FileChangedInvalidator()
     this.cache = new LRU({
       max: bytes(process.core_env.BP_MAX_MEMORY_CACHE_SIZE || '1gb'),
-      length: obj => {
+      length: (obj) => {
         if (Buffer.isBuffer(obj)) {
           return obj.length
         } else if (typeof obj === 'string') {
@@ -125,11 +125,11 @@ export class MemoryObjectCache implements ObjectCache {
   }
 
   async invalidateStartingWith(prefix: string): Promise<void> {
-    const keys = this.cache.keys().filter(x => {
+    const keys = this.cache.keys().filter((x) => {
       return x.startsWith('buffer::' + prefix) || x.startsWith('string::' + prefix) || x.startsWith('object::' + prefix)
     })
 
-    keys.forEach(x => this.cache.del(x))
+    keys.forEach((x) => this.cache.del(x))
     this.events.emit('invalidation', prefix)
   }
 

@@ -9,7 +9,7 @@ interface VocabMatch {
 
 export default (vocab: string[]) => (token: string) => {
   let matchingVocabTokens: VocabMatch[] = vocab
-    .map(t => {
+    .map((t) => {
       try {
         const regexp = new RegExp(t, 'i')
         const match: RegExpMatchArray | null = token.match(regexp)
@@ -18,8 +18,8 @@ export default (vocab: string[]) => (token: string) => {
         return undefined
       }
     })
-    .filter(x => !!x && x.length && x[0].length)
-    .map(match => {
+    .filter((x) => !!x && x.length && x[0].length)
+    .map((match) => {
       const start = match!.index
       const src = match![0]
       const length = src.length
@@ -37,8 +37,8 @@ export default (vocab: string[]) => (token: string) => {
 
   for (const p of pairs(matchingVocabTokens.length)) {
     const [first, second] = _(p)
-      .map(idx => matchingVocabTokens[idx])
-      .orderBy(m => m.start)
+      .map((idx) => matchingVocabTokens[idx])
+      .orderBy((m) => m.start)
       .value()
 
     if (coverAllToken(first, second)) {

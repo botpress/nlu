@@ -44,7 +44,7 @@ const init = async (): Promise<BindingType> => {
 
     const relevantFolders = fs
       .readdirSync(path.join(nativeExtensionsPath, 'linux'))
-      .filter(dir => dir.startsWith(distribution))
+      .filter((dir) => dir.startsWith(distribution))
       .sort()
       .reverse()
     relevantFolders.push('default')

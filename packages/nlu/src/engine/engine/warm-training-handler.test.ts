@@ -17,7 +17,7 @@ const _makeTrainOuput = (
   intentModels: { ctx: string; model: string }[],
   oosModels: { ctx: string; model: string }[]
 ): TrainOutput => {
-  const contexts = _.uniq([...intentModels.map(i => i.ctx), ...oosModels.map(i => i.ctx)])
+  const contexts = _.uniq([...intentModels.map((i) => i.ctx), ...oosModels.map((i) => i.ctx)])
 
   return {
     contexts,
@@ -27,7 +27,7 @@ const _makeTrainOuput = (
     tfidf: {},
     vocab: [],
     intent_model_by_ctx: _(intentModels)
-      .map(i => [i.ctx, i.model])
+      .map((i) => [i.ctx, i.model])
       .fromPairs()
       .value(),
     kmeans: {

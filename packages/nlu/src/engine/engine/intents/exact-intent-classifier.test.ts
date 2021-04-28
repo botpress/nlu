@@ -31,7 +31,7 @@ const dummyProgress = () => {}
 
 const isOneHot = (x: number[]) => {
   const N = x.length
-  return x.filter(xi => xi === 1).length === 1 && x.filter(xi => xi === 0).length === N - 1
+  return x.filter((xi) => xi === 1).length === 1 && x.filter((xi) => xi === 0).length === N - 1
 }
 
 describe('Exact match intent classifier', () => {
@@ -55,7 +55,7 @@ describe('Exact match intent classifier', () => {
     const preds = await exactMatchIntentClf.predict(makeTestUtterance('Some random string'))
 
     expect(preds.oos).toBe(1)
-    expect(preds.intents.some(i => i.confidence > 0)).toBe(false)
+    expect(preds.intents.some((i) => i.confidence > 0)).toBe(false)
   })
 
   test('when match clf returns one hot vector', async () => {
@@ -85,7 +85,7 @@ describe('Exact match intent classifier', () => {
       const preds = await exactMatchIntentClf.predict(makeTestUtterance(u))
 
       expect(preds.oos).toBe(0)
-      const confs = preds.intents.map(i => i.confidence)
+      const confs = preds.intents.map((i) => i.confidence)
       expect(isOneHot(confs)).toBe(true)
     }
   })
@@ -122,7 +122,7 @@ describe('Exact match intent classifier', () => {
       const preds = await exactMatchIntentClf.predict(makeTestUtterance(u))
 
       expect(preds.oos).toBe(0)
-      const confs = preds.intents.map(i => i.confidence)
+      const confs = preds.intents.map((i) => i.confidence)
       expect(isOneHot(confs)).toBe(true)
     }
   })

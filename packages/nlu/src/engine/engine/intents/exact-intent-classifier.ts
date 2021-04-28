@@ -21,16 +21,12 @@ const EXACT_MATCH_STR_OPTIONS: UtteranceToStringOptions = {
 }
 
 const schemaKeys: Record<keyof Model, Joi.AnySchema> = {
-  intents: Joi.array()
-    .items(Joi.string())
-    .required(),
+  intents: Joi.array().items(Joi.string()).required(),
   exact_match_index: Joi.object()
     .pattern(/^/, Joi.object().keys({ intent: Joi.string() }))
     .required()
 }
-export const modelSchema = Joi.object()
-  .keys(schemaKeys)
-  .required()
+export const modelSchema = Joi.object().keys(schemaKeys).required()
 
 export class ExactIntenClassifier implements NoneableIntentClassifier {
   private static _displayName = 'Exact Intent Classifier'
@@ -47,7 +43,7 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
     const exact_match_index = this._buildExactMatchIndex(intents)
 
     this.model = {
-      intents: intents.map(i => i.name),
+      intents: intents.map((i) => i.name),
       exact_match_index
     }
     progress(1)
@@ -55,8 +51,8 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
 
   private _buildExactMatchIndex = (intents: Intent<Utterance>[]): ExactMatchIndex => {
     return _.chain(intents)
-      .flatMap(i =>
-        i.utterances.map(u => ({
+      .flatMap((i) =>
+        i.utterances.map((u) => ({
           utterance: u.toString(EXACT_MATCH_STR_OPTIONS),
           contexts: i.contexts,
           intent: i.name
@@ -97,14 +93,14 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
     const exactPred = this._findExactIntent(exact_match_index, utterance)
 
     if (exactPred) {
-      const oneHot = intentNames.map(name => ({ name, confidence: name === exactPred ? 1 : 0, extractor: this.name }))
+      const oneHot = intentNames.map((name) => ({ name, confidence: name === exactPred ? 1 : 0, extractor: this.name }))
       return {
         oos: 0,
         intents: oneHot
       }
     }
 
-    const zeros = intentNames.map(name => ({ name, confidence: 0, extractor: this.name }))
+    const zeros = intentNames.map((name) => ({ name, confidence: 0, extractor: this.name }))
     return {
       oos: 1,
       intents: zeros

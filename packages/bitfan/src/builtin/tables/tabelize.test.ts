@@ -15,9 +15,9 @@ test('toTable', () => {
 
   // act
   const table = tabelize(performanceReport.scores, {
-    row: d => d.metric,
-    column: d => `${d.seed}`,
-    score: d => d.score
+    row: (d) => d.metric,
+    column: (d) => `${d.seed}`,
+    score: (d) => d.score
   })
 
   // assert

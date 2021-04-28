@@ -66,7 +66,7 @@ test('predict with exact match returns confidence 1 for exact-match', async () =
   const { intents } = await oosIntentClassifier.predict(u1)
 
   // assert
-  expect(intents.map(i => i.name).sort()).toEqual(['A', 'B'])
+  expect(intents.map((i) => i.name).sort()).toEqual(['A', 'B'])
   expect(intents[0]).toEqual({ name: 'A', confidence: 1, extractor: 'exact-matcher' })
 })
 
@@ -98,9 +98,9 @@ test('predict with no exact match returns confidence that sums up to 1', async (
   const { intents } = await oosIntentClassifier.predict(uBetterCheckYoSelf)
 
   // assert
-  expect(intents.map(i => i.name).sort()).toEqual(['A', 'B'])
-  expect(intents.map(i => i.extractor)).toEqual(['svm-classifier', 'svm-classifier'])
-  expect(intents.map(i => i.confidence).some(c => c === 1)).toEqual(false)
+  expect(intents.map((i) => i.name).sort()).toEqual(['A', 'B'])
+  expect(intents.map((i) => i.extractor)).toEqual(['svm-classifier', 'svm-classifier'])
+  expect(intents.map((i) => i.confidence).some((c) => c === 1)).toEqual(false)
 })
 
 test('predict with less than min utterances for ml should not match', async () => {
@@ -132,9 +132,9 @@ test('predict with less than min utterances for ml should not match', async () =
 
   // assert
   expect(oos).toBe(1)
-  expect(intents.map(i => i.name).sort()).toEqual([])
-  expect(intents.map(i => i.extractor)).toEqual([])
-  expect(intents.map(i => i.confidence)).toEqual([])
+  expect(intents.map((i) => i.name).sort()).toEqual([])
+  expect(intents.map((i) => i.extractor)).toEqual([])
+  expect(intents.map((i) => i.confidence)).toEqual([])
 })
 
 test('predict with available oos should give oos prediction', async () => {
@@ -221,7 +221,7 @@ test('Classifier always pick between exact match or svm', async () => {
   const pred = await oosIntentClassifier.predict(makeTestUtterance('k'))
 
   // assert
-  const [k, ...others] = _.orderBy(pred.intents, i => i.name)
+  const [k, ...others] = _.orderBy(pred.intents, (i) => i.name)
   expect(k.confidence).toBe(1)
   expect(others.length).toBe(0)
 })

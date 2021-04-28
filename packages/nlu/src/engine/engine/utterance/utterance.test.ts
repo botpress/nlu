@@ -36,7 +36,7 @@ const POS_TAGS = [
   'AUX',
   'PUNCT'
 ]
-  .map(a => [a, '_'])
+  .map((a) => [a, '_'])
   .reduce((tags, next) => tags.concat(next))
   .slice(0, -1) as POSClass[]
 
@@ -120,10 +120,7 @@ describe('UtteranceClass', () => {
       expect(utterance.tokens[0].cluster).toEqual(1)
 
       const mockedKmeans = {
-        nearest: jest
-          .fn()
-          .mockReturnValueOnce([4])
-          .mockReturnValue([2])
+        nearest: jest.fn().mockReturnValueOnce([4]).mockReturnValue([2])
       }
 
       // @ts-ignore
@@ -284,10 +281,10 @@ describe('UtteranceClass', () => {
     const str = 'This IS a SUPerTest withFire'
     //           0123456789012345678901234567
     const tokens = tokenizeLatinTextForTests(str)
-    const fakeVectors = tokens.map(t => [])
+    const fakeVectors = tokens.map((t) => [])
 
     // @ts-ignore
-    const fakePOS = tokens.map(t => 'POS') as POSClass[]
+    const fakePOS = tokens.map((t) => 'POS') as POSClass[]
     const defaultOptions = {
       entities: 'keep-default',
       slots: 'keep-value',
@@ -368,7 +365,7 @@ describe('UtteranceClass', () => {
   })
 
   test('sentence embeddeing', () => {
-    const fakePOS = testTokens.map(_ => 'ADJ') as POSClass[]
+    const fakePOS = testTokens.map((_) => 'ADJ') as POSClass[]
     const u = new Utterance(testTokens, vecs, fakePOS, 'en')
     u.setGlobalTfidf(globalTFIDF)
     u.sentenceEmbedding().forEach((actual, idx) => {

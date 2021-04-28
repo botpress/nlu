@@ -23,4 +23,4 @@ abcdefghijklmnopqrstuvwxyz
   .replace(/\n/g, '')
   .split('')
 
-export const SPECIAL_CHARSET = '¿÷≥≤µ˜∫√≈æ…¬˚˙©+-_!@#$%?&*()/\\[]{}:;<>=.,~`"\''.split('').map(c => `\\${c}`)
+export const SPECIAL_CHARSET = '¿÷≥≤µ˜∫√≈æ…¬˚˙©+-_!@#$%?&*()/\\[]{}:;<>=.,~`"\''.split('').map((c) => `\\${c}`)

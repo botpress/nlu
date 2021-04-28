@@ -28,6 +28,7 @@ const makeSolutionRunner = <T extends sdk.ProblemType>(
 
   const { name, problems } = solution
 
+  // eslint-disable-next-line no-console
   console.log(chalk.green(chalk.bold(`Running Solution ${name} with seed ${seed}`)))
 
   const solutionResults: sdk.Result<T>[] = []
@@ -37,6 +38,7 @@ const makeSolutionRunner = <T extends sdk.ProblemType>(
     try {
       await runProblem({ problem, engine: solution.engine } as any) // TODO: refactor this
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.log(
         chalk.red(`The following error occured when solving problem ${problem.name} with seed ${seed}:\n${err.message}`)
       )
@@ -47,8 +49,10 @@ const makeSolutionRunner = <T extends sdk.ProblemType>(
   allResults.push(...solutionResults)
 
   if (!!solution.cb) {
+    // eslint-disable-next-line no-console
     console.log(chalk.green(chalk.bold('Results for All Problems')))
     await solution.cb(solutionResults)
+    // eslint-disable-next-line no-console
     console.log('\n')
   }
 }
@@ -81,6 +85,7 @@ const makeProblemRunner = <T extends sdk.ProblemType>(
 
   const { engine, problem } = args
 
+  // eslint-disable-next-line no-console
   console.log(chalk.green(chalk.bold(`Problem ${problem.name}`)))
 
   const trainProgressBar = new cliProgress.Bar({
@@ -122,9 +127,10 @@ const makeProblemRunner = <T extends sdk.ProblemType>(
   })
   predictProgressBar.update(100)
   predictProgressBar.stop()
+  // eslint-disable-next-line no-console
   console.log('')
 
-  const results: sdk.Result<T>[] = predictOutputs.map(p => {
+  const results: sdk.Result<T>[] = predictOutputs.map((p) => {
     return {
       ...p,
       metadata: {
@@ -137,8 +143,10 @@ const makeProblemRunner = <T extends sdk.ProblemType>(
   solutionResults.push(...results)
 
   if (!!problem.cb) {
+    // eslint-disable-next-line no-console
     console.log(chalk.green(chalk.bold(`Results for Problem ${problem.name}`)))
     await problem.cb(results)
+    // eslint-disable-next-line no-console
     console.log('\n')
   }
 }

@@ -19,11 +19,13 @@ export const getModifiedContexts = (
   const currentContexts = _.flatten(currentIntents.map(ctx))
   const previousContexts = _.flatten(previousIntents.map(ctx))
 
-  const createdContexts = currentContexts.filter(c => !previousContexts.includes(c))
-  const deletedContexts = previousContexts.filter(c => !currentContexts.includes(c))
+  const createdContexts = currentContexts.filter((c) => !previousContexts.includes(c))
+  const deletedContexts = previousContexts.filter((c) => !currentContexts.includes(c))
 
   const allContexts = _.uniq([...currentContexts, ...previousContexts])
-  const alreadyExistingContexts = allContexts.filter(c => !createdContexts.includes(c) && !deletedContexts.includes(c))
+  const alreadyExistingContexts = allContexts.filter(
+    (c) => !createdContexts.includes(c) && !deletedContexts.includes(c)
+  )
 
   const changeDetector = _ctxHasChanged(currentIntents, previousIntents)
   const modifiedContexts: string[] = alreadyExistingContexts.filter(changeDetector)
@@ -42,17 +44,14 @@ const _ctxHasChanged = (currentIntents: Intent<string>[], previousIntents: Inten
 }
 
 const _computeCtxHash = (intents: Intent<string>[], ctx: string) => {
-  const intentsOfCtx = intents.filter(i => i.contexts.includes(ctx))
-  const informationToTrack = intentsOfCtx.map(i => ({
+  const intentsOfCtx = intents.filter((i) => i.contexts.includes(ctx))
+  const informationToTrack = intentsOfCtx.map((i) => ({
     name: i.name,
     slot_definitions: i.slot_definitions,
     utterances: i.utterances
   }))
 
-  return crypto
-    .createHash('md5')
-    .update(JSON.stringify(informationToTrack))
-    .digest('hex')
+  return crypto.createHash('md5').update(JSON.stringify(informationToTrack)).digest('hex')
 }
 
 export const mergeModelOutputs = (

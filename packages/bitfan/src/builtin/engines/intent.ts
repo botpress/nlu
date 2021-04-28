@@ -6,7 +6,6 @@ import { StanProvider } from '../../services/bp-provider/stan-provider'
 import { TrainInput, IntentPrediction } from '../../services/bp-provider/stan-typings'
 
 const MAIN_TOPIC = 'main'
-const NONE = 'none'
 
 const BATCH_SIZE = 10
 
@@ -19,15 +18,15 @@ export class BpIntentEngine implements sdk.Engine<'intent'> {
 
   train(trainSet: sdk.DataSet<'intent'>, seed: number, progress: sdk.ProgressCb) {
     const allLabels = _(trainSet.samples)
-      .flatMap(r => r.label)
+      .flatMap((r) => r.label)
       .uniq()
       .value()
 
-    const intents = allLabels.map(l => ({
+    const intents = allLabels.map((l) => ({
       name: makeKey(l),
       slots: [],
       contexts: [MAIN_TOPIC],
-      utterances: trainSet.samples.filter(r => areSame(r.label, l)).map(r => r.text)
+      utterances: trainSet.samples.filter((r) => areSame(r.label, l)).map((r) => r.text)
     }))
 
     const trainInput: TrainInput = {
@@ -63,11 +62,11 @@ export class BpIntentEngine implements sdk.Engine<'intent'> {
     let done = 0
 
     for (const batch of _.chunk(testSet.samples, BATCH_SIZE)) {
-      const predictions = await this._stanProvider.predict(batch.map(r => r.text))
+      const predictions = await this._stanProvider.predict(batch.map((r) => r.text))
 
       for (const [pred, sample] of _.zip(predictions, batch)) {
         const { text, label } = sample!
-        const { intents, oos } = pred!.contexts.find(c => c.name === MAIN_TOPIC)!
+        const { intents, oos } = pred!.contexts.find((c) => c.name === MAIN_TOPIC)!
         const candidates = this._makePredictions(intents, oos)
 
         results.push({

@@ -7,7 +7,7 @@ import { getEntitiesEncoding } from './entities-featurizer'
 
 function shouldConsiderToken(token: UtteranceToken): boolean {
   const isSysOrPatternEntity = token.entities.some(
-    en => en.metadata.extractor === 'pattern' || en.metadata.extractor === 'system'
+    (en) => en.metadata.extractor === 'pattern' || en.metadata.extractor === 'system'
   )
   return token.isWord && !isSysOrPatternEntity
 }

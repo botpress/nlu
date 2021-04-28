@@ -1,56 +1,38 @@
-import _ from "lodash";
-import * as sdk from "src/bitfan";
+import _ from 'lodash'
+import * as sdk from 'src/bitfan'
 
-import { labelIs, labelHasTopic } from "./builtin/criterias/intent";
-import { slotsAre, slotIncludes, slotCountIs } from "./builtin/criterias/slot";
+import { labelIs, labelHasTopic } from './builtin/criterias/intent'
+import { slotsAre, slotIncludes, slotCountIs } from './builtin/criterias/slot'
 
-import {
-  mostConfident,
-  mostConfidents,
-} from "./builtin/election/mostConfident";
+import { listFiles, readDataset, readDocument } from './builtin/datasets/index'
+import { mostConfident, mostConfidents } from './builtin/election/mostConfident'
 
-import {
-  oosAccuracy,
-  oosPrecision,
-  oosRecall,
-  oosF1,
-} from "./builtin/metrics/oos";
-import { inScopeAccuracy } from "./builtin/metrics/in-scope";
-import { averageScore } from "./builtin/metrics/avgScores";
+import { BpIntentEngine } from './builtin/engines/intent'
+import { BpSlotEngine } from './builtin/engines/slot'
+import { BpSpellingEngine } from './builtin/engines/spell'
+import { BpTopicEngine } from './builtin/engines/topic'
 
-import {
-  showClassDistribution,
-  showDatasetsSummary,
-} from "./builtin/visualisation/dataset";
-import { showSlotsResults } from "./builtin/visualisation/slots";
-import { showOOSConfusion } from "./builtin/visualisation/oos";
-import {
-  showPerformanceReport,
-  showComparisonReport,
-} from "./builtin/visualisation/report";
+import { areSame, isOOS, makeKey } from './builtin/labels'
+import { averageScore } from './builtin/metrics/avgScores'
+import { inScopeAccuracy } from './builtin/metrics/in-scope'
+import { oosAccuracy, oosPrecision, oosRecall, oosF1 } from './builtin/metrics/oos'
+import { sampleClasses } from './builtin/sampling/samplesClasses'
+import { splitOOS, pickOOS } from './builtin/sampling/splitAndMakeOOS'
+import { trainTestSplit, subSample } from './builtin/sampling/trainTestSplit'
 
-import { trainTestSplit, subSample } from "./builtin/sampling/trainTestSplit";
-import { splitOOS, pickOOS } from "./builtin/sampling/splitAndMakeOOS";
-import { sampleClasses } from "./builtin/sampling/samplesClasses";
+import { isAllDefined } from './builtin/tables/guards'
+import { initDic, initTable } from './builtin/tables/init'
+import { roundDic, roundTable } from './builtin/tables/round'
+import { tabelize } from './builtin/tables/tabelize'
+import { transposeTable } from './builtin/tables/transpose'
+import { showClassDistribution, showDatasetsSummary } from './builtin/visualisation/dataset'
+import { showOOSConfusion } from './builtin/visualisation/oos'
+import { showPerformanceReport, showComparisonReport } from './builtin/visualisation/report'
+import { showSlotsResults } from './builtin/visualisation/slots'
 
-import { BpIntentEngine } from "./builtin/engines/intent";
-import { BpTopicEngine } from "./builtin/engines/topic";
-import { BpSlotEngine } from "./builtin/engines/slot";
-import { BpSpellingEngine } from "./builtin/engines/spell";
-
-import { areSame, isOOS, makeKey } from "./builtin/labels";
-
-import { transposeTable } from "./builtin/tables/transpose";
-import { roundDic, roundTable } from "./builtin/tables/round";
-import { initDic, initTable } from "./builtin/tables/init";
-import { tabelize } from "./builtin/tables/tabelize";
-import { isAllDefined } from "./builtin/tables/guards";
-
-import runSolution from "./solution";
-import evaluateMetrics from "./report";
-import comparePerformances from "./compare";
-
-import { listFiles, readDataset, readDocument } from "./builtin/datasets/index";
+import comparePerformances from './compare'
+import evaluateMetrics from './report'
+import runSolution from './solution'
 
 // TODO: write actual implementation
 const impl: typeof sdk = {
@@ -61,12 +43,12 @@ const impl: typeof sdk = {
   labels: {
     isOOS,
     areSame,
-    makeKey,
+    makeKey
   },
 
   election: {
     mostConfident,
-    mostConfidents,
+    mostConfidents
   },
 
   sampling: {
@@ -74,14 +56,14 @@ const impl: typeof sdk = {
     subSample,
     splitOOS,
     pickOOS,
-    sampleClasses,
+    sampleClasses
   },
 
   // TODO lazy load these...
   datasets: {
     listFiles,
     readDataset,
-    readDocument,
+    readDocument
   },
 
   criterias: {
@@ -89,20 +71,20 @@ const impl: typeof sdk = {
     labelHasTopic,
     slotsAre,
     slotCountIs,
-    slotIncludes,
+    slotIncludes
   },
 
   metrics: {
     averageScore,
     accuracy: {
-      name: "accuracy",
-      eval: averageScore(labelIs).eval,
+      name: 'accuracy',
+      eval: averageScore(labelIs).eval
     },
     inScopeAccuracy,
     oosAccuracy,
     oosPrecision,
     oosRecall,
-    oosF1,
+    oosF1
   },
 
   visualisation: {
@@ -111,18 +93,14 @@ const impl: typeof sdk = {
     showComparisonReport,
     showClassDistribution,
     showDatasetsSummary,
-    showSlotsResults,
+    showSlotsResults
   },
 
   engines: {
-    makeBpTopicEngine: (bpEndpoint: string, password: string) =>
-      new BpTopicEngine(bpEndpoint, password),
-    makeBpIntentEngine: (bpEndpoint: string, password: string) =>
-      new BpIntentEngine(bpEndpoint, password),
-    makeBpSlotEngine: (bpEndpoint: string, password: string) =>
-      new BpSlotEngine(bpEndpoint, password),
-    makeBpSpellEngine: (bpEndpoint: string, password: string) =>
-      new BpSpellingEngine(bpEndpoint, password),
+    makeBpTopicEngine: (bpEndpoint: string, password: string) => new BpTopicEngine(bpEndpoint, password),
+    makeBpIntentEngine: (bpEndpoint: string, password: string) => new BpIntentEngine(bpEndpoint, password),
+    makeBpSlotEngine: (bpEndpoint: string, password: string) => new BpSlotEngine(bpEndpoint, password),
+    makeBpSpellEngine: (bpEndpoint: string, password: string) => new BpSpellingEngine(bpEndpoint, password)
   },
 
   tables: {
@@ -132,8 +110,8 @@ const impl: typeof sdk = {
     roundDic,
     roundTable,
     transposeTable,
-    isAllDefined,
-  },
-};
+    isAllDefined
+  }
+}
 
-export default impl;
+export default impl

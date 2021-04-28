@@ -25,8 +25,8 @@ const MIN_SLOT_CONFIDENCE = 0.15
 
 export function labelizeUtterance(utterance: Utterance): string[] {
   return utterance.tokens
-    .filter(x => !x.isSpace)
-    .map(token => {
+    .filter((x) => !x.isSpace)
+    .map((token) => {
       if (_.isEmpty(token.slots)) {
         return BIO.OUT
       }
@@ -48,7 +48,7 @@ function predictionLabelToTagResult(prediction: { [label: string]: number }): Ta
   if (!pairedPreds.length) {
     throw new Error('there should be at least one prediction when converting predictions to tag result')
   }
-  const [label, probability] = _.maxBy(pairedPreds, x => x[1])!
+  const [label, probability] = _.maxBy(pairedPreds, (x) => x[1])!
 
   return {
     tag: label[0],
@@ -62,7 +62,7 @@ function removeInvalidTagsForIntent(slot_definitions: SlotDefinition[], tag: Tag
     return tag
   }
 
-  const foundInSlotDef = !!slot_definitions.find(s => s.name === tag.name)
+  const foundInSlotDef = !!slot_definitions.find((s) => s.name === tag.name)
 
   if (tag.probability < MIN_SLOT_CONFIDENCE || !foundInSlotDef) {
     tag = {
@@ -81,7 +81,7 @@ export function makeExtractedSlots(
   slotTagResults: TagResult[]
 ): SlotExtractionResult[] {
   return _.zipWith(
-    utterance.tokens.filter(t => !t.isSpace),
+    utterance.tokens.filter((t) => !t.isSpace),
     slotTagResults,
     (token, tagRes) => ({ token, tagRes })
   )
@@ -116,7 +116,7 @@ export function makeExtractedSlots(
     }, [] as SlotExtractionResult[])
     .map((extracted: SlotExtractionResult) => {
       const associatedEntityInRange = utterance.entities.find(
-        e =>
+        (e) =>
           ((e.startPos <= extracted.start && e.endPos >= extracted.end) || // slot is fully contained by an entity
             (e.startPos >= extracted.start && e.endPos <= extracted.end)) && // entity is fully within the tagged slot
           _.includes(slot_entities, e.type) // entity is part of the possible entities
@@ -153,12 +153,8 @@ interface Predictors {
 const intentSlotFeaturesSchema = Joi.object()
   .keys({
     name: Joi.string().required(),
-    vocab: Joi.array()
-      .items(Joi.string().allow(''))
-      .required(),
-    slot_entities: Joi.array()
-      .items(Joi.string())
-      .required()
+    vocab: Joi.array().items(Joi.string().allow('')).required(),
+    slot_entities: Joi.array().items(Joi.string()).required()
   })
   .required()
 
@@ -166,9 +162,7 @@ export const modelSchema = Joi.object()
   .keys({
     crfModel: Joi.binary().optional(),
     intentFeatures: intentSlotFeaturesSchema,
-    slot_definitions: Joi.array()
-      .items(SlotDefinitionSchema)
-      .required()
+    slot_definitions: Joi.array().items(SlotDefinitionSchema).required()
   })
   .required()
 
@@ -243,7 +237,7 @@ export default class SlotTagger {
 
     for (const utterance of intent.utterances) {
       const features: string[][] = utterance.tokens
-        .filter(x => !x.isSpace)
+        .filter((x) => !x.isSpace)
         .map(this.tokenSliceFeatures.bind(this, intentFeatures, utterance, false))
       const labels = labelizeUtterance(utterance)
 
@@ -271,17 +265,17 @@ export default class SlotTagger {
     isPredict: boolean,
     token: UtteranceToken
   ): string[] {
-    const previous = utterance.tokens.filter(t => t.index < token.index && !t.isSpace).slice(-2)
-    const next = utterance.tokens.filter(t => t.index > token.index && !t.isSpace).slice(0, 1)
+    const previous = utterance.tokens.filter((t) => t.index < token.index && !t.isSpace).slice(-2)
+    const next = utterance.tokens.filter((t) => t.index > token.index && !t.isSpace).slice(0, 1)
 
-    const prevFeats = previous.map(t =>
+    const prevFeats = previous.map((t) =>
       this._getTokenFeatures(intent, utterance, t, isPredict)
-        .filter(f => f.name !== 'quartile')
+        .filter((f) => f.name !== 'quartile')
         .reverse()
     )
-    const current = this._getTokenFeatures(intent, utterance, token, isPredict).filter(f => f.name !== 'cluster')
-    const nextFeats = next.map(t =>
-      this._getTokenFeatures(intent, utterance, t, isPredict).filter(f => f.name !== 'quartile')
+    const current = this._getTokenFeatures(intent, utterance, token, isPredict).filter((f) => f.name !== 'cluster')
+    const nextFeats = next.map((t) =>
+      this._getTokenFeatures(intent, utterance, t, isPredict).filter((f) => f.name !== 'quartile')
     )
 
     const prevPairs = prevFeats.length
@@ -334,8 +328,8 @@ export default class SlotTagger {
 
   private _getSequenceFeatures(intent: IntentSlotFeatures, utterance: Utterance, isPredict: boolean): string[][] {
     return _.chain(utterance.tokens)
-      .filter(t => !t.isSpace)
-      .map(t => this.tokenSliceFeatures(intent, utterance, isPredict, t))
+      .filter((t) => !t.isSpace)
+      .map((t) => this.tokenSliceFeatures(intent, utterance, isPredict, t))
       .value()
   }
 
@@ -360,8 +354,8 @@ export default class SlotTagger {
 
     return _.chain(predictions)
       .map(predictionLabelToTagResult)
-      .map(tagRes => removeInvalidTagsForIntent(slot_definitions, tagRes))
-      .thru(tagRess => makeExtractedSlots(intentFeatures.slot_entities, utterance, tagRess))
+      .map((tagRes) => removeInvalidTagsForIntent(slot_definitions, tagRes))
+      .thru((tagRess) => makeExtractedSlots(intentFeatures.slot_entities, utterance, tagRess))
       .value() as SlotExtractionResult[]
   }
 }

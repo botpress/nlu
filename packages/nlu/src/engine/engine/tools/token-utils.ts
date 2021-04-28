@@ -6,11 +6,11 @@ import getVocabTokenizer from './vocab-tokenizer'
 export const SPACE = '\u2581'
 export const JOIN_CHAR = `::${SPACE}::`
 
-export const isWord = (str: string) => _.every(SPECIAL_CHARSET, c => !RegExp(c).test(str)) && !hasSpace(str)
+export const isWord = (str: string) => _.every(SPECIAL_CHARSET, (c) => !RegExp(c).test(str)) && !hasSpace(str)
 
 export const hasSpace = (str: string) => _.some(str, isSpace)
 
-export const isSpace = (str: string) => _.every(str, c => c === SPACE || c === ' ')
+export const isSpace = (str: string) => _.every(str, (c) => c === SPACE || c === ' ')
 
 export const convertToRealSpaces = (str: string) => str.replace(new RegExp(SPACE, 'g'), ' ')
 
@@ -67,14 +67,14 @@ export const processUtteranceTokens = (tokens: string[], vocab: string[] = []): 
     .thru(mergeSpaces)
     .thru(mergeNumeral)
     .thru(mergeSpecialChars)
-    .thru(tokens => mergeLatin(tokens, vocab))
-    .thru(tokens => (tokens.length && tokens[0].startsWith(SPACE) ? tokens.slice(1) : tokens)) // remove 1st token if space, even if input trimmed, sometimes tokenizer returns space char
+    .thru((tokens) => mergeLatin(tokens, vocab))
+    .thru((tokens) => (tokens.length && tokens[0].startsWith(SPACE) ? tokens.slice(1) : tokens)) // remove 1st token if space, even if input trimmed, sometimes tokenizer returns space char
     .value()
 }
 
 export const restoreOriginalUtteranceCasing = (utteranceTokens: string[], utterance: string): string[] => {
   let offset = 0
-  return utteranceTokens.map(t => {
+  return utteranceTokens.map((t) => {
     const original = isSpace(t) ? t : utterance.substr(offset, t.length)
     offset += t.length
     return original

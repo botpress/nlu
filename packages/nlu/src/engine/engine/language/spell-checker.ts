@@ -11,7 +11,7 @@ const makeSpellChecker = (vocab: string[], lang: string, tools: Tools) => async 
 
   return raw_tokens
     .map(convertToRealSpaces)
-    .map(token => {
+    .map((token) => {
       const strTok = token.toLowerCase()
       if (!isWord(token) || vocab.includes(strTok)) {
         return token

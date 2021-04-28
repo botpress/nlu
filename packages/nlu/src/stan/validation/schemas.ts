@@ -10,10 +10,7 @@ const ListEntityOccurenceSchema = Joi.object({
 
 const ListEntitySchema = Joi.object().keys({
   name: Joi.string().required(), // ex: 'cities'
-  values: Joi.array()
-    .items(ListEntityOccurenceSchema)
-    .required()
-    .min(1),
+  values: Joi.array().items(ListEntityOccurenceSchema).required().min(1),
   fuzzy: Joi.number().default(0.9)
 })
 
@@ -21,10 +18,7 @@ const PatternEntitySchema = Joi.object().keys({
   name: Joi.string().required(),
   regex: Joi.string().required(),
   case_sensitive: Joi.bool().default(true),
-  examples: Joi.array()
-    .items(Joi.string())
-    .optional()
-    .default([])
+  examples: Joi.array().items(Joi.string()).optional().default([])
 })
 
 const EntitySchema = Joi.when('type', { is: 'list', then: ListEntitySchema }).when('type', {
@@ -34,93 +28,40 @@ const EntitySchema = Joi.when('type', { is: 'list', then: ListEntitySchema }).wh
 
 const SlotSchema = Joi.object().keys({
   name: Joi.string().required(),
-  entities: Joi.array()
-    .items(Joi.string())
-    .optional()
-    .default([])
+  entities: Joi.array().items(Joi.string()).optional().default([])
 })
 
 const IntentSchema = Joi.object().keys({
   name: Joi.string().required(),
-  contexts: Joi.array()
-    .items(Joi.string())
-    .required()
-    .min(1),
-  slots: Joi.array()
-    .items(SlotSchema)
-    .optional()
-    .default([]),
-  utterances: Joi.array()
-    .items(Joi.string())
-    .required()
+  contexts: Joi.array().items(Joi.string()).required().min(1),
+  slots: Joi.array().items(SlotSchema).optional().default([]),
+  utterances: Joi.array().items(Joi.string()).required()
 })
 
 export const TrainInputSchema = Joi.object().keys({
   language: Joi.string().required(),
-  intents: Joi.array()
-    .items(IntentSchema)
-    .required()
-    .min(1),
-  contexts: Joi.array()
-    .items(Joi.string())
-    .required()
-    .min(1),
-  entities: Joi.array()
-    .items(EntitySchema)
-    .optional()
-    .default([]),
-  appSecret: Joi.string()
-    .allow('')
-    .optional()
-    .default(''),
-  appId: Joi.string()
-    .allow('')
-    .optional()
-    .default(''),
+  intents: Joi.array().items(IntentSchema).required().min(1),
+  contexts: Joi.array().items(Joi.string()).required().min(1),
+  entities: Joi.array().items(EntitySchema).optional().default([]),
+  appSecret: Joi.string().allow('').optional().default(''),
+  appId: Joi.string().allow('').optional().default(''),
   seed: Joi.number().optional()
 })
 
 export const CredentialsSchema = Joi.object().keys({
-  appSecret: Joi.string()
-    .allow('')
-    .optional()
-    .default(''),
-  appId: Joi.string()
-    .allow('')
-    .optional()
-    .default('')
+  appSecret: Joi.string().allow('').optional().default(''),
+  appId: Joi.string().allow('').optional().default('')
 })
 
 export const PredictInputSchema = Joi.object().keys({
-  appSecret: Joi.string()
-    .allow('')
-    .optional()
-    .default(''),
-  appId: Joi.string()
-    .allow('')
-    .optional()
-    .default(''),
-  utterances: Joi.array()
-    .items(Joi.string())
-    .required()
-    .min(1)
+  appSecret: Joi.string().allow('').optional().default(''),
+  appId: Joi.string().allow('').optional().default(''),
+  utterances: Joi.array().items(Joi.string()).required().min(1)
 })
 
 export const DetectLangInputSchema = Joi.object().keys({
-  appSecret: Joi.string()
-    .allow('')
-    .optional()
-    .default(''),
-  appId: Joi.string()
-    .allow('')
-    .optional()
-    .default(''),
-  utterances: Joi.array()
-    .items(Joi.string())
-    .required()
-    .min(1),
-  models: Joi.array()
-    .items(Joi.string())
-    .optional()
-    .default([])
+  appSecret: Joi.string().allow('').optional().default(''),
+  appId: Joi.string().allow('').optional().default(''),
+  utterances: Joi.array().items(Joi.string()).required().min(1),
+  models: Joi.array().items(Joi.string()).optional().default([])
 })

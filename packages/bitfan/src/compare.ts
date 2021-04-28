@@ -1,92 +1,81 @@
-import * as sdk from "bitfan/sdk";
-import _ from "lodash";
-import { initDic } from "./builtin/tables/init";
+import * as sdk from 'bitfan/sdk'
+import _ from 'lodash'
+import { initDic } from './builtin/tables/init'
 
 export default function comparePerformances(
   currentPerformance: sdk.PerformanceReport,
   previousPerformance: sdk.PerformanceReport,
   options?: Partial<sdk.CompareOptions>
 ): sdk.ComparisonReport {
-  const currentMetrics = _.uniq(
-    currentPerformance.scores.map((s) => s.metric)
-  ).sort();
-  const currentProblems = _.uniq(
-    currentPerformance.scores.map((s) => s.problem)
-  ).sort();
-  const currentSeeds = _.uniq(
-    currentPerformance.scores.map((s) => s.seed)
-  ).sort();
+  const currentMetrics = _.uniq(currentPerformance.scores.map((s) => s.metric)).sort()
+  const currentProblems = _.uniq(currentPerformance.scores.map((s) => s.problem)).sort()
+  const currentSeeds = _.uniq(currentPerformance.scores.map((s) => s.seed)).sort()
 
-  const defaultTolerance = initDic(currentMetrics, () => 0);
-  const userDefinedTolerance = options?.toleranceByMetric ?? {};
+  const defaultTolerance = initDic(currentMetrics, () => 0)
+  const userDefinedTolerance = options?.toleranceByMetric ?? {}
   const toleranceByMetric = {
     ...defaultTolerance,
-    ...userDefinedTolerance,
-  };
+    ...userDefinedTolerance
+  }
 
-  const reasons: sdk.RegressionReason[] = [];
+  const reasons: sdk.RegressionReason[] = []
   for (const metric of currentMetrics) {
     for (const problem of currentProblems) {
       for (const seed of currentSeeds) {
-        const isComb = (s: sdk.ScoreInfo) =>
-          s.metric === metric && s.problem === problem && s.seed === seed;
-        const current = currentPerformance.scores.find(isComb);
-        const previous = previousPerformance.scores.find(isComb);
+        const isComb = (s: sdk.ScoreInfo) => s.metric === metric && s.problem === problem && s.seed === seed
+        const current = currentPerformance.scores.find(isComb)
+        const previous = previousPerformance.scores.find(isComb)
 
-        const combination = `{ metric: ${metric}, problem: ${problem}, seed: ${seed} }`;
+        const combination = `{ metric: ${metric}, problem: ${problem}, seed: ${seed} }`
         if (!previous && !current) {
-          continue;
+          continue
         } else if (!previous) {
-          throw new Error(
-            `No score could be found for combination ${combination} in previous performance.`
-          );
+          throw new Error(`No score could be found for combination ${combination} in previous performance.`)
         } else if (!current) {
-          throw new Error(
-            `No score could be found for combination ${combination} in current performance.`
-          );
+          throw new Error(`No score could be found for combination ${combination} in current performance.`)
         }
 
-        const currentScore = current.score;
-        const previousScore = previous.score;
+        const currentScore = current.score
+        const previousScore = previous.score
 
-        const delta = toleranceByMetric[metric] * previousScore;
+        const delta = toleranceByMetric[metric] * previousScore
 
         if (currentScore + delta < previousScore) {
           reasons.push({
-            status: "regression",
+            status: 'regression',
             metric,
             problem,
             seed,
             currentScore,
             previousScore,
-            allowedRegression: -delta,
-          });
+            allowedRegression: -delta
+          })
         } else if (currentScore < previousScore) {
           reasons.push({
-            status: "tolerated-regression",
+            status: 'tolerated-regression',
             metric,
             problem,
             seed,
             currentScore,
             previousScore,
-            allowedRegression: -delta,
-          });
+            allowedRegression: -delta
+          })
         }
       }
     }
   }
 
-  let status: sdk.RegressionStatus;
-  if (reasons.some((r) => r.status === "regression")) {
-    status = "regression";
-  } else if (reasons.some((r) => r.status === "tolerated-regression")) {
-    status = "tolerated-regression";
+  let status: sdk.RegressionStatus
+  if (reasons.some((r) => r.status === 'regression')) {
+    status = 'regression'
+  } else if (reasons.some((r) => r.status === 'tolerated-regression')) {
+    status = 'tolerated-regression'
   } else {
-    status = "success";
+    status = 'success'
   }
 
   return {
     status,
-    reasons,
-  };
+    reasons
+  }
 }

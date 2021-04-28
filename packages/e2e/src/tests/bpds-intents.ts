@@ -66,8 +66,8 @@ export default function (bitfan) {
 
     evaluatePerformance: (currentPerformance, previousPerformance) => {
       const toleranceByMetric = {
-        [bitfan.metrics.accuracy.name]: 0.03,
-        [bitfan.metrics.oosAccuracy.name]: 0.05,
+        [bitfan.metrics.accuracy.name]: 0.075,
+        [bitfan.metrics.oosAccuracy.name]: 0.075,
         [bitfan.metrics.oosPrecision.name]: 0.075,
         [bitfan.metrics.oosRecall.name]: 0.075,
         [bitfan.metrics.oosF1.name]: 0.15 // more tolerance for f1 score

@@ -57,7 +57,7 @@ export default class Utterance {
   private _sentenceEmbedding?: number[]
 
   constructor(tokens: string[], vectors: number[][], posTags: POSClass[], public languageCode: Readonly<string>) {
-    const allSameLength = [tokens, vectors, posTags].every(arr => arr.length === tokens.length)
+    const allSameLength = [tokens, vectors, posTags].every((arr) => arr.length === tokens.length)
     if (!allSameLength) {
       throw Error('Tokens, vectors and postTags dimensions must match')
     }
@@ -75,10 +75,10 @@ export default class Utterance {
           offset,
           isSpace: isSpace(value),
           get slots(): ReadonlyArray<UtteranceRange & ExtractedSlot> {
-            return that.slots.filter(x => x.startTokenIdx <= i && x.endTokenIdx >= i)
+            return that.slots.filter((x) => x.startTokenIdx <= i && x.endTokenIdx >= i)
           },
           get entities(): ReadonlyArray<UtteranceRange & ExtractedEntity> {
-            return that.entities.filter(x => x.startTokenIdx <= i && x.endTokenIdx >= i)
+            return that.entities.filter((x) => x.startTokenIdx <= i && x.endTokenIdx >= i)
           },
           get tfidf(): number {
             const lowerCased = this.toString({ lowerCase: true }) // global tfidf is built with lowercased vocab
@@ -175,7 +175,7 @@ export default class Utterance {
     let final = ''
     let ret = [...this.tokens]
     if (options.onlyWords) {
-      ret = ret.filter(tok => tok.slots.length || tok.isWord)
+      ret = ret.filter((tok) => tok.slots.length || tok.isWord)
     }
 
     for (const tok of ret) {
@@ -208,18 +208,18 @@ export default class Utterance {
   }
 
   clone(copyEntities: boolean, copySlots: boolean): Utterance {
-    const tokens = this.tokens.map(x => x.value)
-    const vectors = this.tokens.map(x => <number[]>x.vector)
-    const POStags = this.tokens.map(x => x.POS)
+    const tokens = this.tokens.map((x) => x.value)
+    const vectors = this.tokens.map((x) => <number[]>x.vector)
+    const POStags = this.tokens.map((x) => x.POS)
     const utterance = new Utterance(tokens, vectors, POStags, this.languageCode)
     utterance.setGlobalTfidf({ ...this._globalTfidf })
 
     if (copyEntities) {
-      this.entities.forEach(entity => utterance.tagEntity(entity, entity.startPos, entity.endPos))
+      this.entities.forEach((entity) => utterance.tagEntity(entity, entity.startPos, entity.endPos))
     }
 
     if (copySlots) {
-      this.slots.forEach(slot => utterance.tagSlot(slot, slot.startPos, slot.endPos))
+      this.slots.forEach((slot) => utterance.tagSlot(slot, slot.startPos, slot.endPos))
     }
 
     return utterance
@@ -236,7 +236,7 @@ export default class Utterance {
 
   tagEntity(entity: ExtractedEntity, start: number, end: number) {
     this._validateRange(start, end)
-    const range = this.tokens.filter(x => x.offset >= start && x.offset + x.value.length <= end)
+    const range = this.tokens.filter((x) => x.offset >= start && x.offset + x.value.length <= end)
     if (_.isEmpty(range)) {
       return
     }
@@ -253,7 +253,7 @@ export default class Utterance {
 
   tagSlot(slot: ExtractedSlot, start: number, end: number) {
     this._validateRange(start, end)
-    const range = this.tokens.filter(x => x.offset >= start && x.offset + x.value.length <= end)
+    const range = this.tokens.filter((x) => x.offset >= start && x.offset + x.value.length <= end)
     if (_.isEmpty(range)) {
       return
     }
@@ -281,7 +281,7 @@ export async function buildUtteranceBatch(
   const preprocessed = raw_utterances.map(preprocessRawUtterance)
   const parsed = preprocessed.map(parseUtterance)
   const tokenUtterances = await tools.tokenize_utterances(
-    parsed.map(p => p.utterance),
+    parsed.map((p) => p.utterance),
     language,
     vocab ?? []
   )
@@ -294,14 +294,14 @@ export async function buildUtteranceBatch(
     .filter(({ tokUtt }) => tokUtt.length)
     .map(({ tokUtt, POSUtt, parsed }) => {
       const { utterance: utt, parsedSlots } = parsed
-      const vectors = tokUtt.map(t => vectorMap[t])
+      const vectors = tokUtt.map((t) => vectorMap[t])
       const utterance = new Utterance(tokUtt, vectors, POSUtt, language)
 
       // TODO: temporary work-around
       // covers a corner case where tokenization returns tokens that are not identical to `parsed` utterance
       // the corner case is when there's a trailing space inside a slot at the end of the utterance, e.g. `my name is [Sylvain ](any)`
       if (utterance.toString().length === utt.length) {
-        parsedSlots.forEach(s => {
+        parsedSlots.forEach((s) => {
           utterance.tagSlot(
             { name: s.name, source: s.value, value: s.value, confidence: 1 },
             s.cleanPosition.start,

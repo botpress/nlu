@@ -22,7 +22,7 @@ export default function tfidf(docs: TfidfInput): TfidfOutput {
     const meanTf = _.mean(_.values(termsCount))!
 
     const tfidf: _.Dictionary<number> = _.mapValues(termsCount, (_v, term) => {
-      const docFreq = _.values(docs).filter(x => x.includes(term)).length
+      const docFreq = _.values(docs).filter((x) => x.includes(term)).length
 
       // Double-normalization TF with K=0.5
       // See https://en.wikipedia.org/wiki/Tf%E2%80%93idf

@@ -7,8 +7,8 @@ export function getEntitiesEncoding(utt: Utterance, customEntities: string[]): n
   let entityMap: _.Dictionary<number> = _.zipObject(customEntities, zeros)
 
   const entitiesOccurence = _(utt.entities)
-    .filter(e => e.metadata.extractor !== 'system')
-    .map(e => e.type)
+    .filter((e) => e.metadata.extractor !== 'system')
+    .map((e) => e.type)
     .countBy()
     .value()
 

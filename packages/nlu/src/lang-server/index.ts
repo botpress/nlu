@@ -25,12 +25,12 @@ export interface ArgV {
   domain: string
 }
 
-export default async function(options: ArgV) {
+export default async function (options: ArgV) {
   options.langDir = options.langDir || path.join(process.APP_DATA_PATH, 'embeddings')
 
   const logger = new Logger('Launcher')
 
-  global.printLog = args => {
+  global.printLog = (args) => {
     const message = args[0]
     const rest = args.slice(1)
 

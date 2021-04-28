@@ -19,7 +19,7 @@ export const startMonitoring = () => {
     try {
       debugMonitor(
         'Stats %o',
-        _.flatMap(Object.keys(metrics), lang => ({
+        _.flatMap(Object.keys(metrics), (lang) => ({
           [lang]: {
             requests: metrics[lang].requests,
             latency_avg: _.round(metrics[lang].latency / metrics[lang].requests, 2)
