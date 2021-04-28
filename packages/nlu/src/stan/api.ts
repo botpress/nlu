@@ -46,6 +46,7 @@ export interface APIOptions {
   silent: boolean
   modelCacheSize: string
   dbURL?: string
+  modelDir?: string
 }
 
 const debug = DEBUG('api')
@@ -92,14 +93,16 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
   const app = createExpressApp(options)
   const logger = new Logger('API')
 
-  const { dbURL: databaseURL } = options
-  const modelRepoOptions: ModelRepoOptions = databaseURL
+  const { dbURL: databaseURL, modelDir } = options
+  const modelRepoOptions: Partial<ModelRepoOptions> = databaseURL
     ? {
         driver: 'db',
-        dbURL: databaseURL
+        dbURL: databaseURL,
+        modelDir
       }
     : {
-        driver: 'fs'
+        driver: 'fs',
+        modelDir
       }
 
   const modelRepo = new ModelRepository(logger, modelRepoOptions)

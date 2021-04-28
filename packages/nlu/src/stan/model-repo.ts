@@ -27,7 +27,9 @@ interface DBDriver {
   dbURL: string
 }
 
-export type ModelRepoOptions = FSDriver | DBDriver
+export type ModelRepoOptions = (FSDriver | DBDriver) & {
+  modelDir: string
+}
 
 interface ModelOwnershipOptions {
   appId: string
@@ -41,7 +43,8 @@ const debug = DEBUG('nlu').sub('model-repo')
 
 // TODO: add a customizable modelDir
 const defaultOtpions: ModelRepoOptions = {
-  driver: 'fs'
+  driver: 'fs',
+  modelDir: process.APP_DATA_PATH
 }
 
 export class ModelRepository {
@@ -53,7 +56,7 @@ export class ModelRepository {
     this.options = { ...defaultOtpions, ...options } as ModelRepoOptions
 
     this._db = new Database(logger)
-    const diskDriver = new DiskStorageDriver()
+    const diskDriver = new DiskStorageDriver({ basePath: this.options.modelDir })
     const dbdriver = new DBStorageDriver(this._db)
     const cache = new MemoryObjectCache()
 

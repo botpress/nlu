@@ -6,14 +6,12 @@ export type CommandLineOptions = APIOptions & {
   languageAuthToken?: string
   ducklingURL: string
   ducklingEnabled: boolean
-  modelCacheSize: string
 }
 
 export type StanOptions = APIOptions & {
   languageSources: LanguageSource[] // when passed by env variable, there can be more than one lang server
   ducklingURL: string
   ducklingEnabled: boolean
-  modelCacheSize: string
 }
 
 export const mapCli = (c: CommandLineOptions): StanOptions => {

@@ -8,8 +8,14 @@ import { VError } from 'verror'
 import { DirectoryListingOptions, FileRevision, StorageDriver } from '.'
 import { forceForwardSlashes } from './misc'
 
+interface Options {
+  basePath: string
+}
+
 export class DiskStorageDriver implements StorageDriver {
-  resolvePath = (p: string) => path.resolve(process.PROJECT_LOCATION, p)
+  constructor(private _options: Options) {}
+
+  resolvePath = (p: string) => path.resolve(this._options.basePath, p)
 
   async upsertFile(filePath: string, content: string | Buffer): Promise<void>
   async upsertFile(filePath: string, content: string | Buffer, recordRevision: boolean = false): Promise<void> {
