@@ -1,5 +1,4 @@
 import Knex from 'knex'
-import { LoggerLevel } from './simple-logger/enums'
 export interface KnexExtension {
   isLite: boolean
   location: string
@@ -21,17 +20,6 @@ export type KnexExtended = Knex & KnexExtension
 
 export interface Logger {
   showError(error: Error): this
-
-  /**
-   * Sets the level that will be required at runtime to
-   * display the next message.
-   * 0 = Info / Error (default)
-   * 1 = Warning
-   * 2 = Debug
-   * 3 = Silly
-   * @param level The level to apply for the next message
-   */
-  setLevel(level: LoggerLevel): this
   debug(message: string, metadata?: any): void
   info(message: string, metadata?: any): void
   warn(message: string, metadata?: any): void

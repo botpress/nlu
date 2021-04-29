@@ -1,46 +1,42 @@
-import chalk from 'chalk'
 import _ from 'lodash'
-import moment from 'moment'
-import os from 'os'
-import util from 'util'
-import { Logger as ILogger, LogLevel } from '../typings'
-import { LoggerLevel } from './enums'
-
-function _serializeArgs(args: any): string {
-  if (_.isArray(args)) {
-    return args.map((arg) => _serializeArgs(arg)).join(', ')
-  } else if (_.isObject(args)) {
-    return util.inspect(args, false, 2, true)
-  } else if (_.isString(args)) {
-    return args.trim()
-  } else if (args && args.toString) {
-    return args.toString()
-  } else {
-    return ''
-  }
-}
+import { Logger as ILogger } from '../typings'
+import { ConsoleFormatter } from './formatters/console'
+import { ConsoleTransport } from './transports/console'
+import { LogEntry, LoggerConfig, LoggerLevel } from './typings'
 
 export const centerText = (text: string, width: number, indent: number = 0) => {
   const padding = Math.floor((width - text.length) / 2)
   return _.repeat(' ', padding + indent) + text + _.repeat(' ', padding)
 }
 
-/*
-const logger = Logger.sub('nlu')
-> 'global:nlu'
+export const defaultConfig: LoggerConfig = {
+  level: process.VERBOSITY_LEVEL,
+  timeFormat: 'L HH:mm:ss.SSS',
+  namespaceDelimiter: ':',
+  colors: {
+    [LoggerLevel.Info]: 'green',
+    [LoggerLevel.Warn]: 'yellow',
+    [LoggerLevel.Error]: 'red',
+    [LoggerLevel.Debug]: 'blue'
+  },
+  formatter: new ConsoleFormatter({ indent: !!process.env.INDENT_LOGS }),
+  transports: [new ConsoleTransport()],
+  indent: false
+}
 
-*/
-
-export class Logger implements ILogger {
+class Logger implements ILogger {
   public static default = new Logger()
-  private static  _GLOBAL_NAMESPACE = 'global'
-  private static _NAMESPACE_DELIMITER = ':'
+  private static _GLOBAL_NAMESPACE = 'global'
   private _loggers = new Map<string, Logger>()
+  private _config: LoggerConfig = defaultConfig
   public parent: Logger | null = null
   public namespace: string = ''
   public level: LoggerLevel = LoggerLevel.Info
 
-  constructor(private _name: string = Logger._GLOBAL_NAMESPACE) {
+  constructor(private _name: string = Logger._GLOBAL_NAMESPACE) {}
+
+  configure(config: Partial<LoggerConfig>) {
+    this._config = { ...this._config, ...config }
   }
 
   public sub(name: string): Logger {
@@ -54,64 +50,43 @@ export class Logger implements ILogger {
       logger.namespace = ''
     } else {
       logger.parent = this
-      logger.namespace = logger.parent.namespace.length ? logger.parent.namespace + Logger._NAMESPACE_DELIMITER : ''
-      logger.namespace +=  name
+      logger._config = this._config
+      logger.namespace = logger.parent.namespace.length ? logger.parent.namespace + this._config.namespaceDelimiter : ''
+      logger.namespace += name
     }
 
     this._loggers.set(name, logger)
     return logger
   }
 
-  critical(message: string, metadata?: any): void {
-    this.print(LoggerLevel.Critical, message, metadata)
-  }
-
-  setLevel(level: LoggerLevel): this {
-    this.level = level
-    return this
-  }
-
   showError(error: Error): this {
-    this.print(LoggerLevel.Critical, error.message, error)
+    this.push({ type: 'stacktrace', level: LoggerLevel.Critical, message: error.message, stack: error.stack })
     return this
   }
 
-  colors = {
-    [LoggerLevel.Info]: 'green',
-    [LoggerLevel.Warn]: 'yellow',
-    [LoggerLevel.Error]: 'red',
-    [LoggerLevel.Debug]: 'blue'
+  private push(entry: Omit<LogEntry, 'namespace'>) {
+    const formattedEntry = this._config.formatter.format(this._config, { ...entry, namespace: this.namespace })
+    this._config.transports.forEach(transport => transport.send(this._config, formattedEntry))
   }
 
-  private print(level: LoggerLevel, message: string, metadata: any) {
-    const serializedMetadata = metadata ? _serializeArgs(metadata) : ''
-    const timeFormat = 'L HH:mm:ss.SSS'
-    const time = moment().format(timeFormat)
-
-    const displayName = process.env.INDENT_LOGS ? this.namespace.substr(0, 15).padEnd(15, ' ') : this.namespace
-    // eslint-disable-next-line prefer-template
-    const newLineIndent = chalk.dim(' '.repeat(`${timeFormat} ${displayName}`.length)) + ' '
-    const indentedMessage = level === LoggerLevel.Error ? message : message.replace(/\r\n|\n/g, os.EOL + newLineIndent)
-        // eslint-disable-next-line no-console
-        console.log(
-          chalk`{grey ${time}} {${this.colors[level]}.bold ${displayName}} ${indentedMessage}${serializedMetadata}`
-        )
+  critical(message: string, metadata?: any): void {
+    this.push({ type: 'log', level: LoggerLevel.Critical, message, metadata })
   }
 
   debug(message: string, metadata?: any): void {
-    this.print(LoggerLevel.Debug, message, metadata)
+    this.push({ type: 'log', level: LoggerLevel.Debug, message, metadata })
   }
 
   info(message: string, metadata?: any): void {
-    this.print(LoggerLevel.Info, message, metadata)
+    this.push({ type: 'log', level: LoggerLevel.Info, message, metadata })
   }
 
   warn(message: string, metadata?: any): void {
-    this.print(LoggerLevel.Warn, message, metadata)
+    this.push({ type: 'log', level: LoggerLevel.Warn, message, metadata })
   }
 
   error(message: string, metadata?: any): void {
-    this.print(LoggerLevel.Error, message, metadata)
+    this.push({ type: 'log', level: LoggerLevel.Error, message, metadata })
   }
 }
 
