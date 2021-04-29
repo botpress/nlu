@@ -28,9 +28,9 @@ import { TrainingWorkerQueue } from './training-worker-queue'
 import { EntityCacheDump, ListEntity, PatternEntity, Tools } from './typings'
 import { getModifiedContexts, mergeModelOutputs } from './warm-training-handler'
 
-const trainLogger = Logger.sub('nlu').sub('training')
-const lifecycleLogger = Logger.sub('nlu').sub('lifecycle')
-const predictLogger = Logger.sub('nlu').sub('predict')
+const trainLogger = Logger.sub('training')
+const lifecycleLogger = Logger.sub('lifecycle')
+const predictLogger = Logger.sub('predict')
 
 interface LoadedModel {
   model: PredictableModel

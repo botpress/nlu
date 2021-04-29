@@ -25,7 +25,7 @@ import {
   OutgoingMessage
 } from './communication'
 
-const logger = Logger.sub('nlu').sub('training')
+const logger = Logger.sub('training')
 
 const SIG_KILL = 'SIGKILL'
 

@@ -3,7 +3,7 @@ import _ from 'lodash'
 import Logger from '../logger'
 import { UnauthorizedError } from './errors'
 
-const logger = Logger.sub('nlu').sub('api').sub('auth')
+const logger = Logger.sub('api').sub('auth')
 
 // This method is only used for basic escaping of error messages, do not use for page display
 export const escapeHtmlSimple = (str: string) => {

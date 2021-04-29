@@ -37,7 +37,7 @@ interface ModelOwnershipOptions {
 const MODELS_DIR = './models'
 const MODELS_EXT = 'model'
 
-const logger = Logger.sub('nlu').sub('model-repo')
+const logger = Logger.sub('model-repo')
 
 // TODO: add a customizable modelDir
 const defaultOtpions: ModelRepoOptions = {

@@ -47,7 +47,7 @@ export interface APIOptions {
   verbose: number
 }
 
-const requestLogger = Logger.sub('nlu').sub('api').sub('request')
+const requestLogger = Logger.sub('api').sub('request')
 
 const createExpressApp = (options: APIOptions): Application => {
   const app = express()
@@ -88,7 +88,7 @@ const createExpressApp = (options: APIOptions): Application => {
 
 export default async function (options: APIOptions, engine: NLUEngine.Engine) {
   const app = createExpressApp(options)
-  const logger = Logger.sub('nlu').sub('api')
+  const logger = Logger.sub('api')
 
   const { dbURL: databaseURL } = options
   const modelRepoOptions: ModelRepoOptions = databaseURL

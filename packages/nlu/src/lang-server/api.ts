@@ -30,7 +30,7 @@ export interface APIOptions {
 
 const OFFLINE_ERR_MSG = 'The server is running in offline mode. This function is disabled.'
 
-const logger = Logger.sub('nlu').sub('api').sub('request')
+const logger = Logger.sub('api').sub('request')
 const cachePolicy = { 'Cache-Control': `max-age=${ms('1d')}` }
 
 const createExpressApp = (options: APIOptions): Application => {
