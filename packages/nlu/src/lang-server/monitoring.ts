@@ -3,9 +3,7 @@ import ms from 'ms'
 import onHeaders from 'on-headers'
 import Logger from '../utils/logger'
 
-const logger = Logger.sub('lang')
-  .sub('api')
-  .sub('monitoring')
+const logger = Logger.sub('lang').sub('api').sub('monitoring')
 
 let collectionEnabled = false
 let metrics = {}
@@ -21,7 +19,7 @@ export const startMonitoring = () => {
     try {
       logger.debug(
         'Stats %o',
-        _.flatMap(Object.keys(metrics), lang => ({
+        _.flatMap(Object.keys(metrics), (lang) => ({
           [lang]: {
             requests: metrics[lang].requests,
             latency_avg: _.round(metrics[lang].latency / metrics[lang].requests, 2)

@@ -11,7 +11,6 @@ import { copyDir } from '../utils/pkg-fs'
 import { Logger as ILogger } from '../utils/typings'
 import API, { APIOptions } from './api'
 
-
 const GH_TYPINGS_FILE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/typings_v1.d.ts'
 const GH_TRAIN_INPUT_EXAMPLE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/stan/train-example.json'
 
@@ -143,11 +142,11 @@ ${_.repeat(' ', 9)}========================================`)
     logger.info(`batch size: allowing up to ${options.batchSize} predictions in one call to POST /predict`)
   }
 
-    const { host, port } = options
+  const { host, port } = options
 
-    const baseUrl = `http://${host}:${port}/v1`
+  const baseUrl = `http://${host}:${port}/v1`
 
-    logger.info(chalk`
+  logger.info(chalk`
 
 {bold {underline Available Routes}}
 

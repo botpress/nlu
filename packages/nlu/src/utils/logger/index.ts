@@ -68,8 +68,13 @@ class Logger implements ILogger {
   }
 
   private push(entry: Omit<LogEntry, 'namespace'>) {
-    const formattedEntry = this._config.formatter.format({ ...this._config, level: this.level }, { ...entry, namespace: this.namespace })
-    this._config.transports.forEach(transport => transport.send({ ...this._config, level: this.level }, formattedEntry))
+    const formattedEntry = this._config.formatter.format(
+      { ...this._config, level: this.level },
+      { ...entry, namespace: this.namespace }
+    )
+    this._config.transports.forEach((transport) =>
+      transport.send({ ...this._config, level: this.level }, formattedEntry)
+    )
   }
 
   critical(message: string, metadata?: any): void {

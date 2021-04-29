@@ -34,6 +34,6 @@ export interface LoggerConfig {
   transports: LogTransporter[]
   timeFormat: string // moment time format
   namespaceDelimiter: string
-  colors:  { [level: number]: string }
+  colors: { [level: number]: string }
   indent: boolean
 }

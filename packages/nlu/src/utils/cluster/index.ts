@@ -19,7 +19,6 @@ export interface StartLocalActionServerMessage {
   port: number
 }
 
-
 const msgHandlers: { [messageType: string]: (message: any, worker: cluster.Worker) => void } = {}
 
 const maxServerReebots = process.core_env.BP_MAX_SERVER_REBOOT || 2
@@ -104,7 +103,11 @@ export const setupMasterNode = (logger: ILogger) => {
 }
 
 function spawnWebWorker() {
-  const { id } = cluster.fork({ SERVER_ID: process.SERVER_ID, WORKER_TYPE: WORKER_TYPES.WEB, VERBOSITY_LEVEL: process.VERBOSITY_LEVEL })
+  const { id } = cluster.fork({
+    SERVER_ID: process.SERVER_ID,
+    WORKER_TYPE: WORKER_TYPES.WEB,
+    VERBOSITY_LEVEL: process.VERBOSITY_LEVEL
+  })
   process.WEB_WORKER = id
   Logger.sub('cluster').debug('Spawned Web Worker')
 }

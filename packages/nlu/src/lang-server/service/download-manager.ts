@@ -115,8 +115,8 @@ export default class DownloadManager {
     }
 
     return this.meta.embeddings
-      .filter(mod => mod.dim === this.dim && mod.domain === this.domain)
-      .map(mod => {
+      .filter((mod) => mod.dim === this.dim && mod.domain === this.domain)
+      .map((mod) => {
         return {
           ...this.meta!.languages[mod.language],
           size: mod.size + this.meta!.bpe[mod.language].size
@@ -129,13 +129,13 @@ export default class DownloadManager {
       throw new Error('Meta not initialized yet')
     }
 
-    return this.meta.embeddings.find(mod => {
+    return this.meta.embeddings.find((mod) => {
       return mod.dim === this.dim && mod.domain === this.domain && mod.language === lang
     })
   }
 
   cancelAndRemove(id: string) {
-    const activeDownload = this.inProgress.find(x => x.id !== id)
+    const activeDownload = this.inProgress.find((x) => x.id !== id)
     if (activeDownload && activeDownload.getStatus().status === 'downloading') {
       activeDownload.cancel()
     }
@@ -144,11 +144,11 @@ export default class DownloadManager {
   }
 
   private _remove(id: string) {
-    this.inProgress = this.inProgress.filter(x => x.id !== id)
+    this.inProgress = this.inProgress.filter((x) => x.id !== id)
   }
 
   async download(lang: string) {
-    if (!this.downloadableLanguages.find(l => lang === l.code)) {
+    if (!this.downloadableLanguages.find((l) => lang === l.code)) {
       throw new Error(`Could not find model of dimention "${this.dim}" in domain "${this.domain}" for lang "${lang}"`)
     }
 

@@ -24,8 +24,7 @@ function _serializeArgs(args: any): string {
 }
 
 export class ConsoleFormatter implements LogEntryFormatter {
-  constructor(private _opts: ConsoleFormatterOpts = { indent: false }) {
-  }
+  constructor(private _opts: ConsoleFormatterOpts = { indent: false }) {}
 
   format(config: LoggerConfig, entry: LogEntry): FormattedLogEntry {
     const time = moment().format(config.timeFormat)
@@ -34,7 +33,8 @@ export class ConsoleFormatter implements LogEntryFormatter {
     const displayName = this._opts.indent ? entry.namespace.substr(0, 15).padEnd(15, ' ') : entry.namespace
     // eslint-disable-next-line prefer-template
     const newLineIndent = chalk.dim(' '.repeat(`${config.timeFormat} ${displayName}`.length)) + ' '
-    let indentedMessage = entry.level === LoggerLevel.Error ? entry.message : entry.message.replace(/\r\n|\n/g, os.EOL + newLineIndent)
+    let indentedMessage =
+      entry.level === LoggerLevel.Error ? entry.message : entry.message.replace(/\r\n|\n/g, os.EOL + newLineIndent)
 
     if (entry.type === 'stacktrace' && entry.stack) {
       indentedMessage += chalk.grey(os.EOL + 'STACK TRACE')
@@ -43,7 +43,9 @@ export class ConsoleFormatter implements LogEntryFormatter {
 
     return {
       ...entry,
-      formatted: chalk`{grey ${time}} {${config.colors[entry.level]}.bold ${displayName}} ${indentedMessage}${serializedMetadata}`
+      formatted: chalk`{grey ${time}} {${
+        config.colors[entry.level]
+      }.bold ${displayName}} ${indentedMessage}${serializedMetadata}`
     }
   }
 }
