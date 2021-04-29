@@ -33,7 +33,7 @@ class Logger implements ILogger {
   public namespace: string = ''
 
   public get level() {
-    return process.VERBOSITY_LEVEL || LoggerLevel.Info
+    return process.VERBOSITY_LEVEL || this._config.level
   }
 
   constructor(private _name: string = Logger._GLOBAL_NAMESPACE) {}
@@ -53,7 +53,7 @@ class Logger implements ILogger {
       logger.namespace = ''
     } else {
       logger.parent = this
-      logger._config = this._config // all share the same root config
+      logger._config = this._config // inherit parent config
       logger.namespace = logger.parent.namespace.length ? logger.parent.namespace + this._config.namespaceDelimiter : ''
       logger.namespace += name
     }
