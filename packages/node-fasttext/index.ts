@@ -10,8 +10,13 @@ interface BindingType {
   Classifier: ClassifierCtor
   Query: QueryCtor
 }
+const defaultNativeExtensionsPath = path.join(__dirname, '..', 'native-extensions')
+const envNativeExtensionsPath =
+  process.env?.NATIVE_EXTENSIONS_DIR &&
+  fs.existsSync(process.env.NATIVE_EXTENSIONS_DIR) &&
+  process.env.NATIVE_EXTENSIONS_DIR
 
-const nativeExtensionsPath = path.join(__dirname, '..', 'native-extensions')
+const nativeExtensionsPath = envNativeExtensionsPath || defaultNativeExtensionsPath
 const fileName = 'fasttext.node'
 const packageName = 'node-fasttext'
 
