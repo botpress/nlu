@@ -13,7 +13,7 @@ RUN yarn build
 
 RUN yarn package
 
-FROM alpine:3.13
+FROM ubuntu:18.04
 
 COPY --from=build /nlu/dist/nlu-linux /nlu
 
