@@ -15,8 +15,8 @@ import {
   ScopedGhostService,
   MemoryObjectCache
 } from '../utils/ghost'
-import Logger from '../utils/simple-logger'
-import DEBUG from '../utils/simple-logger/debug'
+import Logger from '../utils/logger'
+import { Logger as ILogger } from '../utils/typings'
 
 interface FSDriver {
   driver: 'fs'
@@ -43,7 +43,7 @@ interface PruneOptions extends ModelOwnershipOptions {
 const MODELS_DIR = './models'
 const MODELS_EXT = 'model'
 
-const debug = DEBUG('nlu').sub('model-repo')
+const logger = Logger.sub('model-repo')
 
 // TODO: add a customizable modelDir
 const defaultOtpions: ModelRepoOptions = {
@@ -56,7 +56,7 @@ export class ModelRepository {
   private _db: Database
   private options: ModelRepoOptions
 
-  constructor(private logger: Logger, options: Partial<ModelRepoOptions> = {}) {
+  constructor(private logger: ILogger, options: Partial<ModelRepoOptions> = {}) {
     const isDefined = _.negate(_.isUndefined)
     this.options = { ...defaultOtpions, ..._.pickBy(options, isDefined) } as ModelRepoOptions
 
@@ -69,7 +69,7 @@ export class ModelRepository {
   }
 
   async initialize() {
-    debug('Model service initializing...')
+    logger.debug('Model service initializing...')
     if (this.options.driver === 'db') {
       await this._db.initialize('postgres', this.options.dbURL)
     }

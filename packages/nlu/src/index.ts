@@ -15,6 +15,8 @@ if (process.env.APP_DATA_PATH) {
 
 import LANG from './lang-server'
 import STAN from './stan'
+import Logger from './utils/logger'
+import { LoggerLevel } from './utils/logger/typings'
 
 process.LOADED_MODULES = {}
 process.PROJECT_LOCATION = process.pkg
@@ -22,7 +24,6 @@ process.PROJECT_LOCATION = process.pkg
   : __dirname // e.g. /dist/..
 
 const defaultVerbosity = process.IS_PRODUCTION ? 0 : 2
-
 yargs
   .command(
     ['nlu', '$0'],
@@ -77,14 +78,13 @@ yargs
         description: 'Allowed number of text inputs in one call to POST /predict',
         default: -1
       },
-      silent: {
-        description: 'No logging after server is launched',
-        default: false,
-        type: 'boolean'
-      },
       modelCacheSize: {
         description: 'Max allocated memory for model cache. Too few memory will result in more access to file system.',
         default: '850mb'
+      },
+      verbose: {
+        description: 'Verbosity level of the logging, integer from 0 to 4',
+        default: LoggerLevel.Info
       }
     },
     (argv) => {
@@ -138,6 +138,10 @@ yargs
       domain: {
         description: 'Name of the domain where those embeddings were trained on.',
         default: 'bp'
+      },
+      verbose: {
+        description: 'Verbosity level of the logging, integer from 0 to 4',
+        default: LoggerLevel.Info
       }
     },
     async (argv) => {

@@ -8,10 +8,10 @@ import v8 from 'v8'
 import { PredictOutput, TrainInput } from '../../typings_v1'
 import { isListEntity, isPatternEntity } from '../../utils/guards'
 
-import DEBUG from '../../utils/simple-logger/debug'
+import Logger from '../../utils/logger'
 import modelIdService from '../model-id-service'
 
-import { TrainingOptions, LanguageConfig, Logger, ModelId, Model, Engine as IEngine } from '../typings'
+import { TrainingOptions, LanguageConfig, Logger as ILogger, ModelId, Model, Engine as IEngine } from '../typings'
 import { deserializeKmeans } from './clustering'
 import { EntityCacheManager } from './entities/entity-cache-manager'
 import { initializeTools } from './initialize-tools'
@@ -28,9 +28,9 @@ import { TrainingWorkerQueue } from './training-worker-queue'
 import { EntityCacheDump, ListEntity, PatternEntity, Tools } from './typings'
 import { getModifiedContexts, mergeModelOutputs } from './warm-training-handler'
 
-const trainDebug = DEBUG('nlu').sub('training')
-const lifecycleDebug = DEBUG('nlu').sub('lifecycle')
-const debugPredict = DEBUG('nlu').sub('extract')
+const trainLogger = Logger.sub('training')
+const lifecycleLogger = Logger.sub('lifecycle')
+const predictLogger = Logger.sub('predict')
 
 interface LoadedModel {
   model: PredictableModel
@@ -74,7 +74,7 @@ export default class Engine implements IEngine {
       this.modelsById.max === Infinity
         ? 'model cache size is infinite'
         : `model cache size is: ${bytes(this.modelsById.max)}`
-    lifecycleDebug(debugMsg)
+    lifecycleLogger.debug(debugMsg)
   }
 
   private _parseCacheSize = (cacheSize: string): number => {
@@ -103,7 +103,7 @@ export default class Engine implements IEngine {
     return this._tools.getSpecifications()
   }
 
-  public async initialize(config: LanguageConfig, logger: Logger): Promise<void> {
+  public async initialize(config: LanguageConfig, logger: ILogger): Promise<void> {
     this._tools = await initializeTools(config, logger)
     const { nluVersion, languageServer } = this._tools.getSpecifications()
     if (!_.isString(nluVersion) || !this._dictionnaryIsFilled(languageServer)) {
@@ -120,7 +120,7 @@ export default class Engine implements IEngine {
 
   async train(trainId: string, trainSet: TrainInput, opt: Partial<TrainingOptions> = {}): Promise<Model> {
     const { language, seed, entities, intents } = trainSet
-    trainDebug(`[${trainId}] Started ${language} training`)
+    trainLogger.debug(`[${trainId}] Started ${language} training`)
 
     const options = { ...DEFAULT_TRAINING_OPTIONS, ...opt }
 
@@ -175,7 +175,7 @@ export default class Engine implements IEngine {
     const debugMsg = previousModel
       ? `Retraining only contexts: [${ctxToTrain}] for language: ${language}`
       : `Training all contexts for language: ${language}`
-    trainDebug(`[${trainId}] ${debugMsg}`)
+    trainLogger.debug(`[${trainId}] ${debugMsg}`)
 
     const input: TrainingPipelineInput = {
       trainId,
@@ -210,7 +210,7 @@ export default class Engine implements IEngine {
       model.data.output = mergeModelOutputs(model.data.output, previousModel.model.data.output, contexts)
     }
 
-    trainDebug(`[${trainId}] Successfully finished ${language} training`)
+    trainLogger.debug(`[${trainId}] Successfully finished ${language} training`)
 
     return serializeModel(model)
   }
@@ -221,10 +221,10 @@ export default class Engine implements IEngine {
 
   async loadModel(serialized: Model) {
     const stringId = modelIdService.toString(serialized.id)
-    lifecycleDebug(`Load model ${stringId}`)
+    lifecycleLogger.debug(`Load model ${stringId}`)
 
     if (this.hasModel(serialized.id)) {
-      lifecycleDebug(`Model ${stringId} already loaded.`)
+      lifecycleLogger.debug(`Model ${stringId} already loaded.`)
       return
     }
 
@@ -239,7 +239,7 @@ export default class Engine implements IEngine {
 
     const modelSize = sizeof(modelCacheItem)
     const bytesModelSize = bytes(modelSize)
-    lifecycleDebug(`Size of model ${stringId} is ${bytesModelSize}`)
+    lifecycleLogger.debug(`Size of model ${stringId} is ${bytesModelSize}`)
 
     if (modelSize >= this.modelsById.max) {
       const msg = `Can't load model ${stringId} as it is bigger than the maximum allowed size`
@@ -250,9 +250,9 @@ export default class Engine implements IEngine {
 
     this.modelsById.set(stringId, modelCacheItem)
 
-    lifecycleDebug(`Model cache entries are: [${this.modelsById.keys().join(', ')}]`)
+    lifecycleLogger.debug(`Model cache entries are: [${this.modelsById.keys().join(', ')}]`)
     const debug = this._getMemoryUsage()
-    lifecycleDebug(`Current memory usage: ${JSON.stringify(debug)}`)
+    lifecycleLogger.debug(`Current memory usage: ${JSON.stringify(debug)}`)
   }
 
   private _getMemoryUsage = () => {
@@ -270,15 +270,15 @@ export default class Engine implements IEngine {
 
   unloadModel(modelId: ModelId) {
     const stringId = modelIdService.toString(modelId)
-    lifecycleDebug(`Unload model ${stringId}`)
+    lifecycleLogger.debug(`Unload model ${stringId}`)
 
     if (!this.hasModel(modelId)) {
-      lifecycleDebug(`No model with id ${stringId} was found in cache.`)
+      lifecycleLogger.debug(`No model with id ${stringId} was found in cache.`)
       return
     }
 
     this.modelsById.del(stringId)
-    lifecycleDebug('Model unloaded with success')
+    lifecycleLogger.debug('Model unloaded with success')
   }
 
   private _makeCacheManager(output: TrainingPipelineOutput) {
@@ -332,7 +332,7 @@ export default class Engine implements IEngine {
   }
 
   async predict(text: string, modelId: ModelId): Promise<PredictOutput> {
-    debugPredict(`Predict for input: "${text}"`)
+    predictLogger.debug(`Predict for input: "${text}"`)
 
     const stringId = modelIdService.toString(modelId)
     const loaded = this.modelsById.get(stringId)
@@ -352,7 +352,7 @@ export default class Engine implements IEngine {
   }
 
   async detectLanguage(text: string, modelsByLang: _.Dictionary<ModelId>): Promise<string> {
-    debugPredict(`Detecting language for input: "${text}"`)
+    predictLogger.debug(`Detecting language for input: "${text}"`)
 
     const predictorsByLang = _.mapValues(modelsByLang, (id) => {
       const stringId = modelIdService.toString(id)

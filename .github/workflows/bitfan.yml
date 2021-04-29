@@ -19,4 +19,4 @@ jobs:
       - name: Run Regression Test
         run: |
           yarn start nlu --silent --ducklingEnabled=false & 
-          sleep 5s && yarn e2e
+          sleep 5s && yarn e2e --skip="clinc150"

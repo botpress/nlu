@@ -1,8 +1,9 @@
 import { Request } from 'express'
 import _ from 'lodash'
-import DEBUG from '../simple-logger/debug'
+import Logger from '../logger'
 import { UnauthorizedError } from './errors'
-const debugAuth = DEBUG('api').sub('auth')
+
+const logger = Logger.sub('api').sub('auth')
 
 // This method is only used for basic escaping of error messages, do not use for page display
 export const escapeHtmlSimple = (str: string) => {
@@ -31,23 +32,23 @@ export const authMiddleware = (secureToken: string, secondToken?: string) => (re
   }
 
   if (!req.headers.authorization) {
-    debugAuth('Authorization header missing', { ip: req.ip })
+    logger.info('Authorization header missing', { ip: req.ip })
     return next(new UnauthorizedError('Authorization header is missing'))
   }
 
   const [scheme, token] = req.headers.authorization.split(' ')
   if (scheme.toLowerCase() !== 'bearer') {
-    debugAuth('Schema is missing', { ip: req.ip })
+    logger.debug('Schema is missing', { ip: req.ip })
     return next(new UnauthorizedError(`Unknown scheme "${scheme}" - expected 'bearer <token>'`))
   }
 
   if (!token) {
-    debugAuth('Token is missing', { ip: req.ip })
+    logger.debug('Token is missing', { ip: req.ip })
     return next(new UnauthorizedError('Authentication token is missing'))
   }
 
   if (secureToken !== token && secondToken !== token) {
-    debugAuth('Invalid token', { ip: req.ip })
+    logger.debug('Invalid token', { ip: req.ip })
     return next(new UnauthorizedError('Invalid Bearer token'))
   }
 

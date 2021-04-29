@@ -9,7 +9,13 @@ interface BindingType {
   Processor: TaggerCtor
 }
 
-const nativeExtensionsPath = path.join(__dirname, '..', 'native-extensions')
+const defaultNativeExtensionsPath = path.join(__dirname, '..', 'native-extensions')
+const envNativeExtensionsPath =
+  process.env?.NATIVE_EXTENSIONS_DIR &&
+  fs.existsSync(process.env.NATIVE_EXTENSIONS_DIR) &&
+  process.env.NATIVE_EXTENSIONS_DIR
+
+const nativeExtensionsPath = envNativeExtensionsPath || defaultNativeExtensionsPath
 const fileName = 'sentencepiece.node'
 const packageName = 'node-sentencepiece'
 
