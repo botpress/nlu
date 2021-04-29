@@ -7,7 +7,6 @@ declare namespace NodeJS {
 
   export interface Global {
     printErrorDefault(err: Error): void
-    DEBUG: IDebug
     BOTPRESS_CORE_EVENT: IEmitCoreEvent
     BOTPRESS_CORE_EVENT_TYPES: BotpressCoreEvents
     require: ExtraRequire

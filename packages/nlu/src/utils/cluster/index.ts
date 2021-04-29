@@ -3,8 +3,8 @@ import _ from 'lodash'
 import nanoid from 'nanoid/generate'
 import yn from 'yn'
 import { LanguageConfig } from '../../engine'
-import DEBUG from '../../utils/simple-logger/debug'
-import { Logger } from '../typings'
+import Logger from '../logger'
+import { Logger as ILogger } from '../typings'
 
 export enum WORKER_TYPES {
   WEB = 'WEB_WORKER',
@@ -18,8 +18,6 @@ export interface StartLocalActionServerMessage {
   appSecret: string
   port: number
 }
-
-const debug = DEBUG('cluster')
 
 const msgHandlers: { [messageType: string]: (message: any, worker: cluster.Worker) => void } = {}
 
@@ -37,7 +35,7 @@ export const registerMsgHandler = (messageType: string, handler: (message: any, 
   msgHandlers[messageType] = handler
 }
 
-export const setupMasterNode = (logger: Logger) => {
+export const setupMasterNode = (logger: ILogger) => {
   process.SERVER_ID = process.env.SERVER_ID || nanoid('1234567890abcdefghijklmnopqrstuvwxyz', 10)
 
   // Fix an issue with pkg when passing custom options for v8
@@ -63,7 +61,7 @@ export const setupMasterNode = (logger: Logger) => {
     }
 
     // TODO: the debug instance has no access to the debug config. It is in the web process.
-    debug('Process exiting %o', { workerId: id, code, signal, exitedAfterDisconnect })
+    logger.debug('Process exiting %o', { workerId: id, code, signal, exitedAfterDisconnect })
     // Reset the counter when the reboot was intended
     if (exitedAfterDisconnect) {
       webServerRebootCount = 0
@@ -105,9 +103,13 @@ export const setupMasterNode = (logger: Logger) => {
 }
 
 function spawnWebWorker() {
-  const { id } = cluster.fork({ SERVER_ID: process.SERVER_ID, WORKER_TYPE: WORKER_TYPES.WEB })
+  const { id } = cluster.fork({
+    SERVER_ID: process.SERVER_ID,
+    WORKER_TYPE: WORKER_TYPES.WEB,
+    VERBOSITY_LEVEL: process.VERBOSITY_LEVEL
+  })
   process.WEB_WORKER = id
-  debug('Spawned Web Worker')
+  Logger.sub('cluster').debug('Spawned Web Worker')
 }
 
 export async function spawnNewTrainingWorker(config: LanguageConfig, requestId: string): Promise<number> {
@@ -116,6 +118,7 @@ export async function spawnNewTrainingWorker(config: LanguageConfig, requestId: 
   }
   const worker = cluster.fork({
     WORKER_TYPE: WORKER_TYPES.TRAINING,
+    VERBOSITY_LEVEL: process.VERBOSITY_LEVEL,
     NLU_CONFIG: JSON.stringify(config),
     REQUEST_ID: requestId,
     BP_FAILSAFE: false // training workers are allowed to fail and exit

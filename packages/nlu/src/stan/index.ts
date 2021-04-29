@@ -2,17 +2,14 @@
 import bytes from 'bytes'
 import chalk from 'chalk'
 import cluster from 'cluster'
-import fs from 'fs'
 import _ from 'lodash'
 import path from 'path'
 import * as NLUEngine from '../engine'
 import { setupMasterNode, WORKER_TYPES } from '../utils/cluster'
+import Logger, { centerText } from '../utils/logger'
 import { copyDir } from '../utils/pkg-fs'
-import Logger, { centerText } from '../utils/simple-logger'
+import { Logger as ILogger } from '../utils/typings'
 import API, { APIOptions } from './api'
-
-const debugLogger = new Logger('nlu:api')
-const debug = (msg: string, extra?: any) => debugLogger.debug(msg, extra)
 
 const GH_TYPINGS_FILE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/typings_v1.d.ts'
 const GH_TRAIN_INPUT_EXAMPLE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/stan/train-example.json'
@@ -36,7 +33,7 @@ const readEnvJSONConfig = (): ArgV | null => {
   }
 }
 
-const makeEngine = async (options: ArgV, logger: Logger) => {
+const makeEngine = async (options: ArgV, logger: ILogger) => {
   const loggerWrapper: NLUEngine.Logger = {
     debug: (msg: string) => logger.debug(msg),
     info: (msg: string) => logger.info(msg),
@@ -73,7 +70,7 @@ const makeEngine = async (options: ArgV, logger: Logger) => {
 }
 
 export default async function (options: ArgV) {
-  const logger = new Logger('Launcher')
+  const logger = Logger.sub('launcher')
   if (cluster.isMaster) {
     setupMasterNode(logger)
     return
@@ -105,7 +102,7 @@ export default async function (options: ArgV) {
     logger.debug(message.trim(), rest)
   }
 
-  debug('NLU Server Options %o', options)
+  logger.debug('NLU Server Options %o', options)
 
   const engine = await makeEngine(options, logger)
   const { nluVersion } = engine.getSpecifications()
@@ -145,12 +142,11 @@ ${_.repeat(' ', 9)}========================================`)
     logger.info(`batch size: allowing up to ${options.batchSize} predictions in one call to POST /predict`)
   }
 
-  if (!options.silent) {
-    const { host, port } = options
+  const { host, port } = options
 
-    const baseUrl = `http://${host}:${port}/v1`
+  const baseUrl = `http://${host}:${port}/v1`
 
-    logger.info(chalk`
+  logger.info(chalk`
 
 {bold {underline Available Routes}}
 
@@ -236,7 +232,6 @@ ${GH_TYPINGS_FILE}}.
 ${GH_TRAIN_INPUT_EXAMPLE}}.
 
     `)
-  }
 
   await API(options, engine)
 }

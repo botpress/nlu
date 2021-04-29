@@ -1,5 +1,4 @@
 import Knex from 'knex'
-
 export interface KnexExtension {
   isLite: boolean
   location: string
@@ -20,23 +19,7 @@ export interface KnexExtension {
 export type KnexExtended = Knex & KnexExtension
 
 export interface Logger {
-  forBot(botId: string): this
   attachError(error: Error): this
-
-  persist(shouldPersist: boolean): this
-  level(level: LogLevel): this
-  noEmit(): this
-
-  /**
-   * Sets the level that will be required at runtime to
-   * display the next message.
-   * 0 = Info / Error (default)
-   * 1 = Warning
-   * 2 = Debug
-   * 3 = Silly
-   * @param level The level to apply for the next message
-   */
-  level(level: LogLevel): this
   debug(message: string, metadata?: any): void
   info(message: string, metadata?: any): void
   warn(message: string, metadata?: any): void
