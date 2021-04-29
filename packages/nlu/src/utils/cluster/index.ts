@@ -96,7 +96,7 @@ export const setupMasterNode = (logger: ILogger) => {
     try {
       handler(message, worker)
     } catch (err) {
-      logger.showError(err).error(`Error while processing worker message ${message.type}`)
+      logger.attachError(err).error(`Error while processing worker message ${message.type}`)
     }
   })
 

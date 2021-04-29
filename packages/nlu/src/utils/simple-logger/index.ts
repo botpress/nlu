@@ -59,7 +59,7 @@ class Logger implements ILogger {
     return logger
   }
 
-  showError(error: Error): this {
+  attachError(error: Error): this {
     this.push({ type: 'stacktrace', level: LoggerLevel.Critical, message: error.message, stack: error.stack })
     return this
   }

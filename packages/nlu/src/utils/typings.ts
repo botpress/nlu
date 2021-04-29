@@ -19,7 +19,7 @@ export interface KnexExtension {
 export type KnexExtended = Knex & KnexExtension
 
 export interface Logger {
-  showError(error: Error): this
+  attachError(error: Error): this
   debug(message: string, metadata?: any): void
   info(message: string, metadata?: any): void
   warn(message: string, metadata?: any): void

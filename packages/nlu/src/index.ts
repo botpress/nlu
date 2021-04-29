@@ -15,6 +15,7 @@ if (process.env.APP_DATA_PATH) {
 
 import LANG from './lang-server'
 import STAN from './stan'
+import { LoggerLevel } from './utils/simple-logger/typings'
 
 process.LOADED_MODULES = {}
 process.PROJECT_LOCATION = process.pkg
@@ -77,6 +78,10 @@ yargs
       modelCacheSize: {
         description: 'Max allocated memory for model cache. Too few memory will result in more access to file system.',
         default: '850mb'
+      },
+      verbose: {
+        description: 'Verbosity level of the logging, integer from 0 to 4',
+        default: LoggerLevel.Info
       }
     },
     (argv) => {
@@ -130,6 +135,10 @@ yargs
       domain: {
         description: 'Name of the domain where those embeddings were trained on.',
         default: 'bp'
+      },
+      verbose: {
+        description: 'Verbosity level of the logging, integer from 0 to 4',
+        default: LoggerLevel.Info
       }
     },
     async (argv) => {

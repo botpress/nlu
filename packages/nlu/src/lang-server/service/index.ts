@@ -125,7 +125,7 @@ export default class LanguageService {
       const bpeModel = await this._loadBPEModel(lang)
       this._models[lang] = { fastTextModel, bpeModel }
     } catch (err) {
-      this.logger.showError(err).error(`[${lang.toUpperCase()}] Error loading language. It will be unavailable.`)
+      this.logger.attachError(err).error(`[${lang.toUpperCase()}] Error loading language. It will be unavailable.`)
     }
   }
 
