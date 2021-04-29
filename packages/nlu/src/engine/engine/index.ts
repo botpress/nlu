@@ -8,7 +8,7 @@ import v8 from 'v8'
 import { PredictOutput, TrainInput } from '../../typings_v1'
 import { isListEntity, isPatternEntity } from '../../utils/guards'
 
-import Logger from '../../utils/simple-logger'
+import Logger from '../../utils/logger'
 import modelIdService from '../model-id-service'
 
 import { TrainingOptions, LanguageConfig, Logger as ILogger, ModelId, Model, Engine as IEngine } from '../typings'

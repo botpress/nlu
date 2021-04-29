@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import ms from 'ms'
 import onHeaders from 'on-headers'
-import Logger from '../utils/simple-logger'
+import Logger from '../utils/logger'
 
 const logger = Logger.sub('lang')
   .sub('api')

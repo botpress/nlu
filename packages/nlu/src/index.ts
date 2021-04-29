@@ -15,7 +15,8 @@ if (process.env.APP_DATA_PATH) {
 
 import LANG from './lang-server'
 import STAN from './stan'
-import { LoggerLevel } from './utils/simple-logger/typings'
+import Logger from './utils/logger'
+import { LoggerLevel } from './utils/logger/typings'
 
 process.LOADED_MODULES = {}
 process.PROJECT_LOCATION = process.pkg
@@ -23,7 +24,6 @@ process.PROJECT_LOCATION = process.pkg
   : __dirname // e.g. /dist/..
 
 const defaultVerbosity = process.IS_PRODUCTION ? 0 : 2
-
 yargs
   .command(
     ['nlu', '$0'],

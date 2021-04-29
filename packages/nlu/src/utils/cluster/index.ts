@@ -3,7 +3,7 @@ import _ from 'lodash'
 import nanoid from 'nanoid/generate'
 import yn from 'yn'
 import { LanguageConfig } from '../../engine'
-import Logger from '../simple-logger'
+import Logger from '../logger'
 import { Logger as ILogger } from '../typings'
 
 export enum WORKER_TYPES {
@@ -104,7 +104,7 @@ export const setupMasterNode = (logger: ILogger) => {
 }
 
 function spawnWebWorker() {
-  const { id } = cluster.fork({ SERVER_ID: process.SERVER_ID, WORKER_TYPE: WORKER_TYPES.WEB })
+  const { id } = cluster.fork({ SERVER_ID: process.SERVER_ID, WORKER_TYPE: WORKER_TYPES.WEB, VERBOSITY_LEVEL: process.VERBOSITY_LEVEL })
   process.WEB_WORKER = id
   Logger.sub('cluster').debug('Spawned Web Worker')
 }
@@ -115,6 +115,7 @@ export async function spawnNewTrainingWorker(config: LanguageConfig, requestId: 
   }
   const worker = cluster.fork({
     WORKER_TYPE: WORKER_TYPES.TRAINING,
+    VERBOSITY_LEVEL: process.VERBOSITY_LEVEL,
     NLU_CONFIG: JSON.stringify(config),
     REQUEST_ID: requestId,
     BP_FAILSAFE: false // training workers are allowed to fail and exit

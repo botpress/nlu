@@ -1,6 +1,6 @@
 import { Request } from 'express'
 import _ from 'lodash'
-import Logger from '../simple-logger'
+import Logger from '../logger'
 import { UnauthorizedError } from './errors'
 
 const logger = Logger.sub('nlu').sub('api').sub('auth')

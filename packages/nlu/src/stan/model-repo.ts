@@ -15,7 +15,7 @@ import {
   ScopedGhostService,
   MemoryObjectCache
 } from '../utils/ghost'
-import Logger from '../utils/simple-logger'
+import Logger from '../utils/logger'
 import { Logger as ILogger } from '../utils/typings'
 
 interface FSDriver {

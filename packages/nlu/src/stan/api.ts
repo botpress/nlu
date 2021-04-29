@@ -12,7 +12,7 @@ import { modelIdService } from '../engine'
 
 import { TrainInput } from '../typings_v1'
 import { authMiddleware, handleErrorLogging, handleUnexpectedError } from '../utils/http'
-import Logger from '../utils/simple-logger'
+import Logger from '../utils/logger'
 import {
   InfoResponseBody,
   ErrorResponse,
@@ -42,9 +42,9 @@ export interface APIOptions {
   limit: number
   bodySize: string
   batchSize: number
-  silent: boolean
   modelCacheSize: string
   dbURL?: string
+  verbose: number
 }
 
 const requestLogger = Logger.sub('nlu').sub('api').sub('request')

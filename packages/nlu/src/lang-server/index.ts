@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
 
-import Logger, { centerText } from '../utils/simple-logger'
+import Logger, { centerText } from '../utils/logger'
 import API, { APIOptions } from './api'
 import LanguageService from './service'
 import DownloadManager from './service/download-manager'

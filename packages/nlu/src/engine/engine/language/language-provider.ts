@@ -11,7 +11,7 @@ import ms from 'ms'
 import path from 'path'
 import semver from 'semver'
 import { Health } from '../../../typings_v1'
-import Logger from '../../../utils/simple-logger'
+import Logger from '../../../utils/logger'
 import { LanguageSource, Logger as ILogger } from '../../typings'
 
 import { setSimilarity, vocabNGram } from '../tools/strings'

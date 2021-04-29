@@ -2,7 +2,7 @@ import cluster, { Worker } from 'cluster'
 import _ from 'lodash'
 import { registerMsgHandler, spawnNewTrainingWorker, WORKER_TYPES } from '../../../utils/cluster'
 import { deserializeError, serializeError } from '../../../utils/error-utils'
-import Logger from '../../../utils/simple-logger'
+import Logger from '../../../utils/logger'
 
 import { TrainingAlreadyStarted, TrainingCanceled, TrainingExitedUnexpectedly } from '../../errors'
 import { LanguageConfig, Logger as ILogger } from '../../typings'

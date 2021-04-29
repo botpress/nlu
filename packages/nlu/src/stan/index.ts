@@ -6,8 +6,8 @@ import _ from 'lodash'
 import path from 'path'
 import * as NLUEngine from '../engine'
 import { setupMasterNode, WORKER_TYPES } from '../utils/cluster'
+import Logger, { centerText } from '../utils/logger'
 import { copyDir } from '../utils/pkg-fs'
-import Logger, { centerText } from '../utils/simple-logger'
 import { Logger as ILogger } from '../utils/typings'
 import API, { APIOptions } from './api'
 
@@ -143,7 +143,6 @@ ${_.repeat(' ', 9)}========================================`)
     logger.info(`batch size: allowing up to ${options.batchSize} predictions in one call to POST /predict`)
   }
 
-  if (!options.silent) {
     const { host, port } = options
 
     const baseUrl = `http://${host}:${port}/v1`
@@ -234,7 +233,6 @@ ${GH_TYPINGS_FILE}}.
 ${GH_TRAIN_INPUT_EXAMPLE}}.
 
     `)
-  }
 
   await API(options, engine)
 }

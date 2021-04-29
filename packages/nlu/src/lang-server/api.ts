@@ -10,7 +10,7 @@ import yn from 'yn'
 
 import { authMiddleware, handleErrorLogging, handleUnexpectedError, isAdminToken, RequestWithLang } from '../utils/http'
 import { BadRequestError } from '../utils/http/errors'
-import Logger from '../utils/simple-logger'
+import Logger from '../utils/logger'
 
 import { getLanguageByCode } from './languages'
 import { monitoringMiddleware, startMonitoring } from './monitoring'

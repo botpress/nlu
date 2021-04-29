@@ -10,7 +10,7 @@ export const centerText = (text: string, width: number, indent: number = 0) => {
 }
 
 export const defaultConfig: LoggerConfig = {
-  level: process.VERBOSITY_LEVEL,
+  level: LoggerLevel.Info,
   timeFormat: 'L HH:mm:ss.SSS',
   namespaceDelimiter: ':',
   colors: {
@@ -31,7 +31,10 @@ class Logger implements ILogger {
   private _config: LoggerConfig = defaultConfig
   public parent: Logger | null = null
   public namespace: string = ''
-  public level: LoggerLevel = LoggerLevel.Info
+
+  public get level() {
+    return process.VERBOSITY_LEVEL || LoggerLevel.Info
+  }
 
   constructor(private _name: string = Logger._GLOBAL_NAMESPACE) {}
 
@@ -50,7 +53,7 @@ class Logger implements ILogger {
       logger.namespace = ''
     } else {
       logger.parent = this
-      logger._config = this._config
+      logger._config = this._config // all share the same root config
       logger.namespace = logger.parent.namespace.length ? logger.parent.namespace + this._config.namespaceDelimiter : ''
       logger.namespace += name
     }
@@ -65,8 +68,8 @@ class Logger implements ILogger {
   }
 
   private push(entry: Omit<LogEntry, 'namespace'>) {
-    const formattedEntry = this._config.formatter.format(this._config, { ...entry, namespace: this.namespace })
-    this._config.transports.forEach(transport => transport.send(this._config, formattedEntry))
+    const formattedEntry = this._config.formatter.format({ ...this._config, level: this.level }, { ...entry, namespace: this.namespace })
+    this._config.transports.forEach(transport => transport.send({ ...this._config, level: this.level }, formattedEntry))
   }
 
   critical(message: string, metadata?: any): void {
