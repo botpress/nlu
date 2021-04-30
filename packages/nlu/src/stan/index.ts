@@ -67,7 +67,7 @@ export default async function (cliOptions: CommandLineOptions) {
 
   const envConfig = readEnvJSONConfig()
   if (envConfig) {
-    logger.info('Loading config from environment variables')
+    logger.debug('Loading config from environment variables')
   }
   const options: StanOptions = envConfig ?? mapCli(cliOptions)
 
