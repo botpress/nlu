@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Debug NLU Server",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}\\packages\\nlu\\dist\\index.js",
+      "program": "${workspaceFolder}/packages/nlu/dist/index.js",
       "console": "integratedTerminal",
       "sourceMaps": true,
       "autoAttachChildProcesses": true
