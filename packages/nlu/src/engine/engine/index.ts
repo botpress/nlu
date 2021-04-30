@@ -110,7 +110,7 @@ export default class Engine implements IEngine {
       logger.warning('Either the nlu version or the lang server version is not set correctly.')
     }
 
-    this._trainingWorkerQueue = new TrainingWorkerQueue(config, logger)
+    this._trainingWorkerQueue = new TrainingWorkerQueue(config)
   }
 
   public hasModel(modelId: ModelId) {

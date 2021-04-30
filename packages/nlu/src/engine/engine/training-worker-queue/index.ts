@@ -33,7 +33,7 @@ export class TrainingWorkerQueue {
   private readyWorkers: number[] = []
   private activeWorkers: { [trainSessionId: string]: number } = {}
 
-  constructor(private config: LanguageConfig, private logger: ILogger) {}
+  constructor(private config: LanguageConfig) {}
 
   public async cancelTraining(trainSessionId: string): Promise<void> {
     const workerId = this.activeWorkers[trainSessionId]
@@ -175,9 +175,9 @@ export class TrainingWorkerQueue {
   private _logMessage(msg: IncomingMessage<'log'>) {
     const { log } = msg.payload
     log.debug && logger.debug(log.debug)
-    log.info && this.logger.info(log.info)
-    log.warning && this.logger.warning(log.warning)
-    log.error && this.logger.error(log.error)
+    log.info && logger.info(log.info)
+    log.warning && logger.warn(log.warning)
+    log.error && logger.error(log.error)
   }
 }
 
