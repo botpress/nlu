@@ -16,7 +16,6 @@ declare namespace NodeJS {
 
   export interface Process {
     VERBOSITY_LEVEL: number
-    IS_PRODUCTION: boolean // TODO: look to remove this
     BPFS_STORAGE: 'database' | 'disk'
     APP_SECRET: string
     /**

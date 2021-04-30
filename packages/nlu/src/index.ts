@@ -22,7 +22,6 @@ process.PROJECT_LOCATION = process.pkg
   ? path.dirname(process.execPath) // We point at the binary path
   : __dirname // e.g. /dist/..
 
-const defaultVerbosity = process.IS_PRODUCTION ? 0 : 2
 yargs
   .command(
     ['nlu', '$0'],
@@ -96,7 +95,7 @@ yargs
       }
     },
     (argv) => {
-      process.VERBOSITY_LEVEL = argv.verbose ? Number(argv.verbose) : defaultVerbosity
+      process.VERBOSITY_LEVEL = Number(argv.verbose)
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       STAN(argv)
     }
@@ -156,7 +155,7 @@ yargs
       }
     },
     async (argv) => {
-      process.VERBOSITY_LEVEL = argv.verbose ? Number(argv.verbose) : defaultVerbosity
+      process.VERBOSITY_LEVEL = Number(argv.verbose)
       await LANG(argv)
     }
   )

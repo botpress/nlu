@@ -46,13 +46,11 @@ async function makeWorker() {
   const clean = (data) => _.omitBy(data, (val) => val == null || typeof val === 'object')
   const processData = {
     VERBOSITY_LEVEL: process.VERBOSITY_LEVEL,
-    IS_PRODUCTION: process.IS_PRODUCTION,
     IS_PRO_AVAILABLE: process.IS_PRO_AVAILABLE,
     BPFS_STORAGE: process.BPFS_STORAGE,
     APP_DATA_PATH: process.APP_DATA_PATH,
     ROOT_PATH: process.ROOT_PATH,
     IS_LICENSED: process.IS_LICENSED,
-    IS_PRO_ENABLED: process.IS_PRODUCTION,
     BOTPRESS_VERSION: process.BOTPRESS_VERSION,
     SERVER_ID: process.SERVER_ID,
     LOADED_MODULES: process.LOADED_MODULES,
