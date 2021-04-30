@@ -41,7 +41,7 @@ yargs
       },
       modelDir: {
         description: 'Directory where to persist models, ignored if dbURL is set.',
-        type: 'string'
+        default: process.APP_DATA_PATH
       },
       authToken: {
         description: 'When enabled, this token is required for clients to query your nlu server',
