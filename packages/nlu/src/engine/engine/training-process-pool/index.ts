@@ -29,7 +29,7 @@ const logger = Logger.sub('training')
 
 const SIG_KILL = 'SIGKILL'
 
-export class TrainingWorkerQueue {
+export class TrainingProcessPool {
   private readyWorkers: number[] = []
   private activeWorkers: { [trainSessionId: string]: number } = {}
 
