@@ -46,6 +46,7 @@ export interface APIOptions {
   dbURL?: string
   modelDir?: string
   verbose: number
+  doc: boolean
 }
 
 const requestLogger = Logger.sub('api').sub('request')

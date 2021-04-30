@@ -88,6 +88,11 @@ yargs
       verbose: {
         description: 'Verbosity level of the logging, integer from 0 to 4',
         default: LoggerLevel.Info
+      },
+      doc: {
+        description: 'Whether or not to display documentation on start',
+        default: true,
+        type: 'boolean'
       }
     },
     (argv) => {
