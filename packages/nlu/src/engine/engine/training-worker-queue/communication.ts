@@ -24,7 +24,7 @@ export type IncomingPayload<T extends IncomingMessageType> = T extends 'log'
   : T extends 'training_canceled'
   ? {}
   : T extends 'training_done'
-  ? { output: TrainOutput | undefined }
+  ? { output: TrainOutput }
   : T extends 'training_progress'
   ? { progress: number }
   : T extends 'training_error'

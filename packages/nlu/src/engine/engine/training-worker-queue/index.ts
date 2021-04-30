@@ -49,7 +49,7 @@ export class TrainingWorkerQueue {
 
   private _cancelTraining(destWorkerId: number) {
     const msg: OutgoingMessage<'cancel_training'> = { type: 'cancel_training', payload: {}, destWorkerId }
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const handler = (msg: AllIncomingMessages) => {
         if (isTrainingCanceled(msg) && msg.srcWorkerId === destWorkerId) {
           process.off('message', handler)
@@ -301,9 +301,11 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
 
       tools.seededLodashProvider.setSeed(input.nluSeed)
 
-      let output: TrainOutput | undefined
       try {
-        output = await Trainer(input, { ...tools, logger }, progressCb)
+        const output = await Trainer(input, { ...tools, logger }, progressCb)
+        // TODO: send multiple packet when output is to big
+        const res: IncomingMessage<'training_done'> = { type: 'training_done', payload: { output }, srcWorkerId }
+        process.send!(res)
       } catch (err) {
         const res: IncomingMessage<'training_error'> = {
           type: 'training_error',
@@ -314,10 +316,6 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
       } finally {
         tools.seededLodashProvider.resetSeed()
       }
-
-      // TODO: send multiple packet when output is to big
-      const res: IncomingMessage<'training_done'> = { type: 'training_done', payload: { output }, srcWorkerId }
-      process.send!(res)
     }
   }
 
