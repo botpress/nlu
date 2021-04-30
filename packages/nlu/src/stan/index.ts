@@ -10,18 +10,12 @@ import Logger, { centerText } from '../utils/logger'
 import { copyDir } from '../utils/pkg-fs'
 import { Logger as ILogger } from '../utils/typings'
 import API, { APIOptions } from './api'
+import { CommandLineOptions, mapCli, StanOptions } from './config'
 
 const GH_TYPINGS_FILE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/typings_v1.d.ts'
 const GH_TRAIN_INPUT_EXAMPLE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/stan/train-example.json'
 
-type ArgV = APIOptions & {
-  languageURL: string
-  languageAuthToken?: string
-  ducklingURL: string
-  ducklingEnabled: boolean
-}
-
-const readEnvJSONConfig = (): ArgV | null => {
+const readEnvJSONConfig = (): StanOptions | null => {
   const data = process.env.STAN_JSON_CONFIG
   if (!data) {
     return null
@@ -33,7 +27,7 @@ const readEnvJSONConfig = (): ArgV | null => {
   }
 }
 
-const makeEngine = async (options: ArgV, logger: ILogger) => {
+const makeEngine = async (options: StanOptions, logger: ILogger) => {
   const loggerWrapper: NLUEngine.Logger = {
     debug: (msg: string) => logger.debug(msg),
     info: (msg: string) => logger.info(msg),
@@ -42,14 +36,9 @@ const makeEngine = async (options: ArgV, logger: ILogger) => {
   }
 
   try {
-    const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken } = options
+    const { ducklingEnabled, ducklingURL, modelCacheSize, languageSources } = options
     const config: NLUEngine.Config = {
-      languageSources: [
-        {
-          endpoint: languageURL,
-          authToken: languageAuthToken
-        }
-      ],
+      languageSources,
       ducklingEnabled,
       ducklingURL,
       modelCacheSize,
@@ -69,7 +58,7 @@ const makeEngine = async (options: ArgV, logger: ILogger) => {
   }
 }
 
-export default async function (options: ArgV) {
+export default async function (cliOptions: CommandLineOptions) {
   const logger = Logger.sub('launcher')
   if (cluster.isMaster) {
     setupMasterNode(logger)
@@ -82,7 +71,7 @@ export default async function (options: ArgV) {
   if (envConfig) {
     logger.info('Loading config from environment variables')
   }
-  options = { ...options, ...envConfig }
+  const options: StanOptions = envConfig ?? mapCli(cliOptions)
 
   for (const dir of ['./pre-trained', './stop-words']) {
     // TODO: no need for copy to APP_DATA_PATH, just use original files
@@ -133,7 +122,9 @@ ${_.repeat(' ', 9)}========================================`)
   } else {
     logger.info(`duckling: ${chalk.redBright('disabled')}`)
   }
-  logger.info(`lang server: url=${options.languageURL}`)
+  for (const langSource of options.languageSources) {
+    logger.info(`lang server: url=${langSource.endpoint}`)
+  }
 
   logger.info(`body size: allowing HTTP resquests body of size ${options.bodySize}`)
   // logger.info(`models stored at "${options.modelDir}"`)

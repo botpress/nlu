@@ -40,6 +40,9 @@ yargs
       dbURL: {
         description: 'URL of database where to persist models. If undefined, models are stored on FS.'
       },
+      modelDir: {
+        description: 'Directory where to persist models, ignored if dbURL is set.'
+      },
       authToken: {
         description: 'When enabled, this token is required for clients to query your nlu server'
       },

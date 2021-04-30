@@ -44,6 +44,7 @@ export interface APIOptions {
   batchSize: number
   modelCacheSize: string
   dbURL?: string
+  modelDir?: string
   verbose: number
 }
 
@@ -90,14 +91,16 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
   const app = createExpressApp(options)
   const logger = Logger.sub('api')
 
-  const { dbURL: databaseURL } = options
-  const modelRepoOptions: ModelRepoOptions = databaseURL
+  const { dbURL: databaseURL, modelDir } = options
+  const modelRepoOptions: Partial<ModelRepoOptions> = databaseURL
     ? {
         driver: 'db',
-        dbURL: databaseURL
+        dbURL: databaseURL,
+        modelDir
       }
     : {
-        driver: 'fs'
+        driver: 'fs',
+        modelDir
       }
 
   const modelRepo = new ModelRepository(logger, modelRepoOptions)
@@ -139,7 +142,7 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
   router.post('/models/prune', async (req, res) => {
     try {
       const { appSecret, appId } = await validateCredentialsFormat(req.body)
-      const modelIds = await modelRepo.pruneModels({ appSecret, appId })
+      const modelIds = await modelRepo.pruneModels({ appSecret, appId, keep: 0 })
 
       for (const modelId of modelIds) {
         if (engine.hasModel(modelId)) {

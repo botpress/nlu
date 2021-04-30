@@ -27,11 +27,17 @@ interface DBDriver {
   dbURL: string
 }
 
-export type ModelRepoOptions = FSDriver | DBDriver
+export type ModelRepoOptions = (FSDriver | DBDriver) & {
+  modelDir: string
+}
 
 interface ModelOwnershipOptions {
   appId: string
   appSecret: string
+}
+
+interface PruneOptions extends ModelOwnershipOptions {
+  keep: number
 }
 
 const MODELS_DIR = './models'
@@ -41,7 +47,8 @@ const logger = Logger.sub('model-repo')
 
 // TODO: add a customizable modelDir
 const defaultOtpions: ModelRepoOptions = {
-  driver: 'fs'
+  driver: 'fs',
+  modelDir: process.APP_DATA_PATH
 }
 
 export class ModelRepository {
@@ -50,10 +57,11 @@ export class ModelRepository {
   private options: ModelRepoOptions
 
   constructor(private logger: ILogger, options: Partial<ModelRepoOptions> = {}) {
-    this.options = { ...defaultOtpions, ...options } as ModelRepoOptions
+    const isDefined = _.negate(_.isUndefined)
+    this.options = { ...defaultOtpions, ..._.pickBy(options, isDefined) } as ModelRepoOptions
 
     this._db = new Database(logger)
-    const diskDriver = new DiskStorageDriver()
+    const diskDriver = new DiskStorageDriver({ basePath: this.options.modelDir })
     const dbdriver = new DBStorageDriver(this._db)
     const cache = new MemoryObjectCache()
 
@@ -142,7 +150,12 @@ export class ModelRepository {
     const scopedGhost = this._getScopedGhostForAppID(options.appId)
 
     const fextension = this._getFileExtension(options.appSecret)
-    const files = await scopedGhost.directoryListing(MODELS_DIR, `*.${fextension}`)
+    const files = await scopedGhost.directoryListing(MODELS_DIR, `*.${fextension}`, undefined, undefined, {
+      sortOrder: {
+        column: 'modifiedOn',
+        desc: true
+      }
+    })
 
     const modelIds = files
       .map((f) => f.substring(0, f.lastIndexOf(`.${fextension}`)))
@@ -153,10 +166,14 @@ export class ModelRepository {
   }
 
   // TODO: make this one more optimal
-  public async pruneModels(options: ModelOwnershipOptions): Promise<NLUEngine.ModelId[]> {
+  public async pruneModels(options: PruneOptions): Promise<NLUEngine.ModelId[]> {
     const models = await this.listModels(options)
-    await Bluebird.each(models, (m) => this.deleteModel(m, options))
-    return models
+
+    const { keep } = options
+    const toPrune = models.slice(keep)
+    await Bluebird.each(toPrune, (m) => this.deleteModel(m, options))
+
+    return toPrune
   }
 
   public async deleteModel(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<void> {
