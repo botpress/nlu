@@ -15,7 +15,6 @@ if (process.env.APP_DATA_PATH) {
 
 import LANG from './lang-server'
 import STAN from './stan'
-import Logger from './utils/logger'
 import { LoggerLevel } from './utils/logger/typings'
 
 process.LOADED_MODULES = {}
@@ -23,7 +22,6 @@ process.PROJECT_LOCATION = process.pkg
   ? path.dirname(process.execPath) // We point at the binary path
   : __dirname // e.g. /dist/..
 
-const defaultVerbosity = process.IS_PRODUCTION ? 0 : 2
 yargs
   .command(
     ['nlu', '$0'],
@@ -38,13 +36,16 @@ yargs
         default: 'localhost'
       },
       dbURL: {
-        description: 'URL of database where to persist models. If undefined, models are stored on FS.'
+        description: 'URL of database where to persist models. If undefined, models are stored on FS.',
+        type: 'string'
       },
       modelDir: {
-        description: 'Directory where to persist models, ignored if dbURL is set.'
+        description: 'Directory where to persist models, ignored if dbURL is set.',
+        default: process.APP_DATA_PATH
       },
       authToken: {
-        description: 'When enabled, this token is required for clients to query your nlu server'
+        description: 'When enabled, this token is required for clients to query your nlu server',
+        type: 'string'
       },
       limit: {
         description: 'Maximum number of requests per IP per "limitWindow" interval (0 means unlimited)',
@@ -59,7 +60,8 @@ yargs
         default: 'https://lang-01.botpress.io'
       },
       languageAuthToken: {
-        description: 'Authentification token for your language server'
+        description: 'Authentification token for your language server',
+        type: 'string'
       },
       ducklingURL: {
         description: 'URL of your Duckling server; Only relevant if "ducklingEnabled" is true',
@@ -83,14 +85,22 @@ yargs
         default: '850mb'
       },
       verbose: {
-        description: 'Verbosity level of the logging, integer from 0 to 4',
+        description: 'Verbosity level of the logging, integer from 0 to 4. Does not apply to "Launcher" logger.',
         default: LoggerLevel.Info
+      },
+      doc: {
+        description: 'Whether or not to display documentation on start',
+        default: true,
+        type: 'boolean'
+      },
+      logFilter: {
+        description: 'Filter logs by namespace, ex: "training:svm,api". Does not apply to "Launcher" logger.',
+        default: ''
       }
     },
     (argv) => {
-      process.VERBOSITY_LEVEL = argv.verbose ? Number(argv.verbose) : defaultVerbosity
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      STAN(argv as any)
+      STAN(argv)
     }
   )
   .command(
@@ -106,13 +116,16 @@ yargs
         default: 'localhost'
       },
       langDir: {
-        description: 'Directory where language embeddings will be saved'
+        description: 'Directory where language embeddings will be saved',
+        type: 'string'
       },
       authToken: {
-        description: 'When enabled, this token is required for clients to query your language server'
+        description: 'When enabled, this token is required for clients to query your language server',
+        type: 'string'
       },
       adminToken: {
-        description: 'This token is required to access the server as admin and manage language.'
+        description: 'This token is required to access the server as admin and manage language.',
+        type: 'string'
       },
       limit: {
         description: 'Maximum number of requests per IP per "limitWindow" interval (0 means unlimited)',
@@ -140,13 +153,17 @@ yargs
         default: 'bp'
       },
       verbose: {
-        description: 'Verbosity level of the logging, integer from 0 to 4',
+        description: 'Verbosity level of the logging, integer from 0 to 4. Does not apply to "Launcher" logger.',
         default: LoggerLevel.Info
+      },
+      logFilter: {
+        description: 'Filter logs by namespace, ex: "training:svm,api". Does not apply to "Launcher" logger.',
+        default: ''
       }
     },
     async (argv) => {
-      process.VERBOSITY_LEVEL = argv.verbose ? Number(argv.verbose) : defaultVerbosity
-      await LANG(argv as any)
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      LANG(argv)
     }
   )
   .help().argv

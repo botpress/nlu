@@ -29,11 +29,11 @@ const logger = Logger.sub('training')
 
 const SIG_KILL = 'SIGKILL'
 
-export class TrainingWorkerQueue {
+export class TrainingProcessPool {
   private readyWorkers: number[] = []
   private activeWorkers: { [trainSessionId: string]: number } = {}
 
-  constructor(private config: LanguageConfig, private logger: ILogger) {}
+  constructor(private config: LanguageConfig) {}
 
   public async cancelTraining(trainSessionId: string): Promise<void> {
     const workerId = this.activeWorkers[trainSessionId]
@@ -49,7 +49,7 @@ export class TrainingWorkerQueue {
 
   private _cancelTraining(destWorkerId: number) {
     const msg: OutgoingMessage<'cancel_training'> = { type: 'cancel_training', payload: {}, destWorkerId }
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const handler = (msg: AllIncomingMessages) => {
         if (isTrainingCanceled(msg) && msg.srcWorkerId === destWorkerId) {
           process.off('message', handler)
@@ -175,9 +175,9 @@ export class TrainingWorkerQueue {
   private _logMessage(msg: IncomingMessage<'log'>) {
     const { log } = msg.payload
     log.debug && logger.debug(log.debug)
-    log.info && this.logger.info(log.info)
-    log.warning && this.logger.warning(log.warning)
-    log.error && this.logger.error(log.error)
+    log.info && logger.info(log.info)
+    log.warning && logger.warn(log.warning)
+    log.error && logger.error(log.error)
   }
 }
 
@@ -264,7 +264,7 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
   const processId = process.pid
   const srcWorkerId = cluster.worker.id
 
-  const logger: ILogger = {
+  const loggerWrapper: ILogger = {
     debug: (msg: string) => {
       const response: IncomingMessage<'log'> = { type: 'log', payload: { log: { debug: msg }, requestId }, srcWorkerId }
       process.send!(response)
@@ -284,7 +284,7 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
       process.send!(response)
     }
   }
-  logger.info(`Training worker ${srcWorkerId} successfully started on process with pid ${processId}.`)
+  loggerWrapper.info(`Training worker ${srcWorkerId} successfully started on process with pid ${processId}.`)
 
   const msgHandler = (tools: Tools) => async (msg: AllOutgoingMessages) => {
     if (isStartTraining(msg)) {
@@ -301,9 +301,11 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
 
       tools.seededLodashProvider.setSeed(input.nluSeed)
 
-      let output: TrainOutput | undefined
       try {
-        output = await Trainer(input, { ...tools, logger }, progressCb)
+        const output = await Trainer(input, { ...tools, logger: loggerWrapper }, progressCb)
+        // TODO: send multiple packet when output is to big
+        const res: IncomingMessage<'training_done'> = { type: 'training_done', payload: { output }, srcWorkerId }
+        process.send!(res)
       } catch (err) {
         const res: IncomingMessage<'training_error'> = {
           type: 'training_error',
@@ -314,21 +316,17 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
       } finally {
         tools.seededLodashProvider.resetSeed()
       }
-
-      // TODO: send multiple packet when output is to big
-      const res: IncomingMessage<'training_done'> = { type: 'training_done', payload: { output }, srcWorkerId }
-      process.send!(res)
     }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  initializeTools(config, logger)
+  initializeTools(config, loggerWrapper)
     .then((tools) => {
       process.on('message', msgHandler(tools))
       const res: IncomingMessage<'worker_ready'> = { type: 'worker_ready', payload: { requestId }, srcWorkerId }
       process.send!(res)
     })
     .catch((err) => {
-      logger.error('The following error occured during initialization of tools', err)
+      loggerWrapper.error('The following error occured during initialization of tools', err)
     })
 }

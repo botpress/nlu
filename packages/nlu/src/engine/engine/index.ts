@@ -24,7 +24,7 @@ import { Predict, Predictors } from './predict-pipeline'
 import SlotTagger from './slots/slot-tagger'
 import { isPatternValid } from './tools/patterns-utils'
 import { TrainInput as TrainingPipelineInput, TrainOutput as TrainingPipelineOutput } from './training-pipeline'
-import { TrainingWorkerQueue } from './training-worker-queue'
+import { TrainingProcessPool } from './training-process-pool'
 import { EntityCacheDump, ListEntity, PatternEntity, Tools } from './typings'
 import { getModifiedContexts, mergeModelOutputs } from './warm-training-handler'
 
@@ -56,7 +56,7 @@ interface EngineOptions {
 
 export default class Engine implements IEngine {
   private _tools!: Tools
-  private _trainingWorkerQueue!: TrainingWorkerQueue
+  private _trainingWorkerQueue!: TrainingProcessPool
 
   private _options: EngineOptions
 
@@ -110,7 +110,7 @@ export default class Engine implements IEngine {
       logger.warning('Either the nlu version or the lang server version is not set correctly.')
     }
 
-    this._trainingWorkerQueue = new TrainingWorkerQueue(config, logger)
+    this._trainingWorkerQueue = new TrainingProcessPool(config)
   }
 
   public hasModel(modelId: ModelId) {

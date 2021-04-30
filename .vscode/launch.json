@@ -12,7 +12,8 @@
       "program": "${workspaceFolder}/packages/nlu/dist/index.js",
       "console": "integratedTerminal",
       "sourceMaps": true,
-      "autoAttachChildProcesses": true
+      "autoAttachChildProcesses": true,
+      "args": ["--doc=false"]
     }
   ]
 }

@@ -105,8 +105,7 @@ export const setupMasterNode = (logger: ILogger) => {
 function spawnWebWorker() {
   const { id } = cluster.fork({
     SERVER_ID: process.SERVER_ID,
-    WORKER_TYPE: WORKER_TYPES.WEB,
-    VERBOSITY_LEVEL: process.VERBOSITY_LEVEL
+    WORKER_TYPE: WORKER_TYPES.WEB
   })
   process.WEB_WORKER = id
   Logger.sub('cluster').debug('Spawned Web Worker')
@@ -118,7 +117,6 @@ export async function spawnNewTrainingWorker(config: LanguageConfig, requestId: 
   }
   const worker = cluster.fork({
     WORKER_TYPE: WORKER_TYPES.TRAINING,
-    VERBOSITY_LEVEL: process.VERBOSITY_LEVEL,
     NLU_CONFIG: JSON.stringify(config),
     REQUEST_ID: requestId,
     BP_FAILSAFE: false // training workers are allowed to fail and exit

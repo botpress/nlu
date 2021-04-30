@@ -46,6 +46,8 @@ export interface APIOptions {
   dbURL?: string
   modelDir?: string
   verbose: number
+  doc: boolean
+  logFilter: string
 }
 
 const requestLogger = Logger.sub('api').sub('request')
@@ -355,6 +357,4 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
       callback(null)
     })
   })
-
-  logger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
 }

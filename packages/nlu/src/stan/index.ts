@@ -7,13 +7,12 @@ import path from 'path'
 import * as NLUEngine from '../engine'
 import { setupMasterNode, WORKER_TYPES } from '../utils/cluster'
 import Logger, { centerText } from '../utils/logger'
+import { LoggerLevel } from '../utils/logger/typings'
 import { copyDir } from '../utils/pkg-fs'
 import { Logger as ILogger } from '../utils/typings'
-import API, { APIOptions } from './api'
+import API from './api'
 import { CommandLineOptions, mapCli, StanOptions } from './config'
-
-const GH_TYPINGS_FILE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/typings_v1.d.ts'
-const GH_TRAIN_INPUT_EXAMPLE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/stan/train-example.json'
+import { displayDocumentation } from './documentation'
 
 const readEnvJSONConfig = (): StanOptions | null => {
   const data = process.env.STAN_JSON_CONFIG
@@ -59,9 +58,21 @@ const makeEngine = async (options: StanOptions, logger: ILogger) => {
 }
 
 export default async function (cliOptions: CommandLineOptions) {
-  const logger = Logger.sub('launcher')
+  Logger.configure({
+    level: Number(cliOptions.verbose) !== NaN ? Number(cliOptions.verbose) : LoggerLevel.Info,
+    filters: cliOptions.logFilter.split(',')
+  })
+
+  const launcherLogger = Logger.sub('launcher')
+
+  // Launcher always display
+  launcherLogger.configure({
+    level: LoggerLevel.Info,
+    filters: ['']
+  })
+
   if (cluster.isMaster) {
-    setupMasterNode(logger)
+    setupMasterNode(launcherLogger)
     return
   } else if (cluster.isWorker && process.env.WORKER_TYPE !== WORKER_TYPES.WEB) {
     return
@@ -69,7 +80,7 @@ export default async function (cliOptions: CommandLineOptions) {
 
   const envConfig = readEnvJSONConfig()
   if (envConfig) {
-    logger.info('Loading config from environment variables')
+    launcherLogger.debug('Loading config from environment variables')
   }
   const options: StanOptions = envConfig ?? mapCli(cliOptions)
 
@@ -88,141 +99,59 @@ export default async function (cliOptions: CommandLineOptions) {
     const message = args[0]
     const rest = args.slice(1)
 
-    logger.debug(message.trim(), rest)
+    launcherLogger.debug(message.trim(), rest)
   }
 
-  logger.debug('NLU Server Options %o', options)
+  launcherLogger.debug('NLU Server Options %o', options)
 
-  const engine = await makeEngine(options, logger)
+  const engine = await makeEngine(options, launcherLogger)
   const { nluVersion } = engine.getSpecifications()
 
-  logger.info(chalk`========================================
+  launcherLogger.info(chalk`========================================
       {bold ${centerText('Botpress Standalone NLU', 40, 9)}}
       {dim ${centerText(`Version ${nluVersion}`, 40, 9)}}
 ${_.repeat(' ', 9)}========================================`)
 
   if (options.authToken?.length) {
-    logger.info(`authToken: ${chalk.greenBright('enabled')} (only users with this token can query your server)`)
+    launcherLogger.info(`authToken: ${chalk.greenBright('enabled')} (only users with this token can query your server)`)
   } else {
-    logger.info(`authToken: ${chalk.redBright('disabled')} (anyone can query your nlu server)`)
+    launcherLogger.info(`authToken: ${chalk.redBright('disabled')} (anyone can query your nlu server)`)
   }
 
   if (options.limit) {
-    logger.info(
+    launcherLogger.info(
       `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${
         options.limitWindow
       } timeframe `
     )
   } else {
-    logger.info(`limit: ${chalk.redBright('disabled')} (no protection - anyone can query without limitation)`)
+    launcherLogger.info(`limit: ${chalk.redBright('disabled')} (no protection - anyone can query without limitation)`)
   }
 
   if (options.ducklingEnabled) {
-    logger.info(`duckling: ${chalk.greenBright('enabled')} url=${options.ducklingURL}`)
+    launcherLogger.info(`duckling: ${chalk.greenBright('enabled')} url=${options.ducklingURL}`)
   } else {
-    logger.info(`duckling: ${chalk.redBright('disabled')}`)
+    launcherLogger.info(`duckling: ${chalk.redBright('disabled')}`)
   }
   for (const langSource of options.languageSources) {
-    logger.info(`lang server: url=${langSource.endpoint}`)
+    launcherLogger.info(`lang server: url=${langSource.endpoint}`)
   }
 
-  logger.info(`body size: allowing HTTP resquests body of size ${options.bodySize}`)
-  // logger.info(`models stored at "${options.modelDir}"`)
+  launcherLogger.info(`body size: allowing HTTP resquests body of size ${options.bodySize}`)
+
+  if (options.dbURL) {
+    launcherLogger.info(`models stored at "${options.dbURL}"`)
+  } else {
+    launcherLogger.info(`models stored at "${options.modelDir}"`)
+  }
 
   if (options.batchSize > 0) {
-    logger.info(`batch size: allowing up to ${options.batchSize} predictions in one call to POST /predict`)
+    launcherLogger.info(`batch size: allowing up to ${options.batchSize} predictions in one call to POST /predict`)
   }
 
-  const { host, port } = options
-
-  const baseUrl = `http://${host}:${port}/v1`
-
-  logger.info(chalk`
-
-{bold {underline Available Routes}}
-
-{green /**
- * Gets the current version of botpress core NLU. Usefull to test if your installation is working.
- * @returns {bold info}: version, health and supported languages.
-*/}
-{bold GET ${baseUrl}/info}
-
-{green /**
-  * Starts a training.
-  * @body_parameter {bold language} Language to use for training.
-  * @body_parameter {bold intents} Intents definitions.
-  * @body_parameter {bold contexts} All available contexts.
-  * @body_parameter {bold entities} Entities definitions.
-  * @body_parameter {bold appSecret} Password to protect your model. {yellow ** Optionnal **}
-  * @body_parameter {bold appId} To make sure there's no collision between models of different applications. {yellow ** Optionnal **}
-  * @body_parameter {bold seed} Number to seed random number generators used during training (beta feature). {yellow ** Optionnal **}
-  * @returns {bold modelId} A model id for futur API calls
- */}
-{bold POST ${baseUrl}/train}
-
-{green /**
-  * Gets a training progress status.
-  * @path_parameter {bold modelId} The model id for which you seek the training progress.
-  * @query_parameter {bold appSecret} The password protecting your model.
-  * @query_parameter {bold appId} The application id your model belongs to.
-  * @returns {bold session} A training session data structure with information on desired model.
- */}
-{bold GET ${baseUrl}/train/:modelId?appSecret=XXXXXX&appId=XXXXXX}
-
-{green /**
-  * List all models for a given app Id and secret.
-  * @path_parameter {bold modelId} The model id for which you seek the training progress.
-  * @query_parameter {bold appSecret} The password protecting your models.
-  * @query_parameter {bold appId} The application id you want to list models for.
-  * @returns {bold models} Array of strings model ids available for prediction.
- */}
-{bold GET ${baseUrl}/models/:modelId?appSecret=XXXXXX&appId=XXXXXX}
-
-{green /**
-  * Cancels a training.
-  * @path_parameter {bold modelId} The model id for which you want to cancel the training.
-  * @body_parameter {bold appSecret} The password protecting your models.
-  * @body_parameter {bold appId} The application id you want to prune models for.
-  * @returns {bold models} Array of strings model ids that where pruned.
- */}
-{bold POST ${baseUrl}/models/prune}
-
-{green /**
-  * Cancels a training.
-  * @path_parameter {bold modelId} The model id for which you want to cancel the training.
-  * @body_parameter {bold appSecret} The password protecting your model.
-  * @body_parameter {bold appId} The application id your model belongs to.
- */}
-{bold POST ${baseUrl}/train/:modelId/cancel}
-
-{green /**
-  * Perform prediction for a text input.
-  * @path_parameter {bold modelId} The model id you want to use for prediction.
-  * @body_parameter {bold appSecret} The password protecting your model.
-  * @body_parameter {bold appId} The application id your model belongs to.
-  * @body_parameter {bold utterances} Array of text for which you want a prediction.
-  * @returns {bold predictions} Array of predictions; Each prediction is a data structure reprensenting our understanding of the text.
- */}
-{bold POST ${baseUrl}/predict/:modelId}
-
-{green /**
-  * Perform prediction for a text input.
-  * @path_parameter {bold modelId} The model id you want to use for prediction.
-  * @body_parameter {bold appSecret} The password protecting your model.
-  * @body_parameter {bold appId} The application id your model belongs to.
-  * @body_parameter {bold utterances} Array of text for which you want a prediction.
-  * @body_parameter {bold models} Array of strings model ids you want to use to detect language. {yellow ** Optionnal **}
-  * @returns {bold detectedLanguages} Array of string language codes.
- */}
-{bold POST ${baseUrl}/detect-lang}
-
-{bold For more detailed information on typings, see
-${GH_TYPINGS_FILE}}.
-
-{bold For a complete example on training input, see
-${GH_TRAIN_INPUT_EXAMPLE}}.
-
-    `)
+  options.doc && displayDocumentation(launcherLogger, options)
 
   await API(options, engine)
+
+  launcherLogger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
 }
