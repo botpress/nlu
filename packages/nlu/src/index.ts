@@ -153,8 +153,12 @@ yargs
         default: 'bp'
       },
       verbose: {
-        description: 'Verbosity level of the logging, integer from 0 to 4',
+        description: 'Verbosity level of the logging, integer from 0 to 4. Does not apply to "Launcher" logger.',
         default: LoggerLevel.Info
+      },
+      logFilter: {
+        description: 'Filter logs by namespace, ex: "training:svm,api". Does not apply to "Launcher" logger.',
+        default: ''
       }
     },
     async (argv) => {
