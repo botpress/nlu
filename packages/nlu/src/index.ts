@@ -85,13 +85,17 @@ yargs
         default: '850mb'
       },
       verbose: {
-        description: 'Verbosity level of the logging, integer from 0 to 4',
+        description: 'Verbosity level of the logging, integer from 0 to 4. Does not apply to "Launcher" logger.',
         default: LoggerLevel.Info
       },
       doc: {
         description: 'Whether or not to display documentation on start',
         default: true,
         type: 'boolean'
+      },
+      logFilter: {
+        description: 'Filter logs by namespace, ex: "training:svm,api". Does not apply to "Launcher" logger.',
+        default: ''
       }
     },
     (argv) => {

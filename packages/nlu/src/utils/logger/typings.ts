@@ -36,4 +36,5 @@ export interface LoggerConfig {
   namespaceDelimiter: string
   colors: { [level: number]: string }
   indent: boolean
+  filters: string[]
 }

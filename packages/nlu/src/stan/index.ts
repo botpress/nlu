@@ -59,12 +59,16 @@ const makeEngine = async (options: StanOptions, logger: ILogger) => {
 
 export default async function (cliOptions: CommandLineOptions) {
   Logger.configure({
-    level: Number(cliOptions.verbose) !== NaN ? Number(cliOptions.verbose) : LoggerLevel.Info
+    level: Number(cliOptions.verbose) !== NaN ? Number(cliOptions.verbose) : LoggerLevel.Info,
+    filters: cliOptions.logFilter.split(',')
   })
 
   const launcherLogger = Logger.sub('launcher')
+
+  // Launcher always display
   launcherLogger.configure({
-    level: LoggerLevel.Info
+    level: LoggerLevel.Info,
+    filters: ['']
   })
 
   if (cluster.isMaster) {

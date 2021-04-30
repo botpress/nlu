@@ -21,7 +21,8 @@ export const defaultConfig: LoggerConfig = {
   },
   formatter: new ConsoleFormatter({ indent: !!process.env.INDENT_LOGS }),
   transports: [new ConsoleTransport()],
-  indent: false
+  indent: false,
+  filters: ['']
 }
 
 class Logger implements ILogger {
