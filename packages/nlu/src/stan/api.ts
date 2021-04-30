@@ -356,6 +356,4 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
       callback(null)
     })
   })
-
-  logger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
 }

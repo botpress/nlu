@@ -139,4 +139,6 @@ ${_.repeat(' ', 9)}========================================`)
   options.doc && displayDocumentation(logger, options)
 
   await API(options, engine)
+
+  logger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
 }
