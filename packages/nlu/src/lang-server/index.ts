@@ -3,6 +3,7 @@ import _ from 'lodash'
 import path from 'path'
 
 import Logger, { centerText } from '../utils/logger'
+import { LoggerLevel } from '../utils/logger/typings'
 import API, { APIOptions } from './api'
 import LanguageService from './service'
 import DownloadManager from './service/download-manager'
@@ -21,9 +22,14 @@ export interface ArgV {
   offline: boolean
   dim: number
   domain: string
+  verbose: number
 }
 
 export default async function (options: ArgV) {
+  Logger.configure({
+    level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info
+  })
+
   options.langDir = options.langDir || path.join(process.APP_DATA_PATH, 'embeddings')
 
   const launcherLogger = Logger.sub('lang').sub('launcher')

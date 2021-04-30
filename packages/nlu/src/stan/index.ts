@@ -7,6 +7,7 @@ import path from 'path'
 import * as NLUEngine from '../engine'
 import { setupMasterNode, WORKER_TYPES } from '../utils/cluster'
 import Logger, { centerText } from '../utils/logger'
+import { LoggerLevel } from '../utils/logger/typings'
 import { copyDir } from '../utils/pkg-fs'
 import { Logger as ILogger } from '../utils/typings'
 import API from './api'
@@ -57,9 +58,17 @@ const makeEngine = async (options: StanOptions, logger: ILogger) => {
 }
 
 export default async function (cliOptions: CommandLineOptions) {
-  const logger = Logger.sub('launcher')
+  Logger.configure({
+    level: Number(cliOptions.verbose) !== NaN ? Number(cliOptions.verbose) : LoggerLevel.Info
+  })
+
+  const launcherLogger = Logger.sub('launcher')
+  launcherLogger.configure({
+    level: LoggerLevel.Info
+  })
+
   if (cluster.isMaster) {
-    setupMasterNode(logger)
+    setupMasterNode(launcherLogger)
     return
   } else if (cluster.isWorker && process.env.WORKER_TYPE !== WORKER_TYPES.WEB) {
     return
@@ -67,7 +76,7 @@ export default async function (cliOptions: CommandLineOptions) {
 
   const envConfig = readEnvJSONConfig()
   if (envConfig) {
-    logger.debug('Loading config from environment variables')
+    launcherLogger.debug('Loading config from environment variables')
   }
   const options: StanOptions = envConfig ?? mapCli(cliOptions)
 
@@ -86,59 +95,59 @@ export default async function (cliOptions: CommandLineOptions) {
     const message = args[0]
     const rest = args.slice(1)
 
-    logger.debug(message.trim(), rest)
+    launcherLogger.debug(message.trim(), rest)
   }
 
-  logger.debug('NLU Server Options %o', options)
+  launcherLogger.debug('NLU Server Options %o', options)
 
-  const engine = await makeEngine(options, logger)
+  const engine = await makeEngine(options, launcherLogger)
   const { nluVersion } = engine.getSpecifications()
 
-  logger.info(chalk`========================================
+  launcherLogger.info(chalk`========================================
       {bold ${centerText('Botpress Standalone NLU', 40, 9)}}
       {dim ${centerText(`Version ${nluVersion}`, 40, 9)}}
 ${_.repeat(' ', 9)}========================================`)
 
   if (options.authToken?.length) {
-    logger.info(`authToken: ${chalk.greenBright('enabled')} (only users with this token can query your server)`)
+    launcherLogger.info(`authToken: ${chalk.greenBright('enabled')} (only users with this token can query your server)`)
   } else {
-    logger.info(`authToken: ${chalk.redBright('disabled')} (anyone can query your nlu server)`)
+    launcherLogger.info(`authToken: ${chalk.redBright('disabled')} (anyone can query your nlu server)`)
   }
 
   if (options.limit) {
-    logger.info(
+    launcherLogger.info(
       `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${
         options.limitWindow
       } timeframe `
     )
   } else {
-    logger.info(`limit: ${chalk.redBright('disabled')} (no protection - anyone can query without limitation)`)
+    launcherLogger.info(`limit: ${chalk.redBright('disabled')} (no protection - anyone can query without limitation)`)
   }
 
   if (options.ducklingEnabled) {
-    logger.info(`duckling: ${chalk.greenBright('enabled')} url=${options.ducklingURL}`)
+    launcherLogger.info(`duckling: ${chalk.greenBright('enabled')} url=${options.ducklingURL}`)
   } else {
-    logger.info(`duckling: ${chalk.redBright('disabled')}`)
+    launcherLogger.info(`duckling: ${chalk.redBright('disabled')}`)
   }
   for (const langSource of options.languageSources) {
-    logger.info(`lang server: url=${langSource.endpoint}`)
+    launcherLogger.info(`lang server: url=${langSource.endpoint}`)
   }
 
-  logger.info(`body size: allowing HTTP resquests body of size ${options.bodySize}`)
+  launcherLogger.info(`body size: allowing HTTP resquests body of size ${options.bodySize}`)
 
   if (options.dbURL) {
-    logger.info(`models stored at "${options.dbURL}"`)
+    launcherLogger.info(`models stored at "${options.dbURL}"`)
   } else {
-    logger.info(`models stored at "${options.modelDir}"`)
+    launcherLogger.info(`models stored at "${options.modelDir}"`)
   }
 
   if (options.batchSize > 0) {
-    logger.info(`batch size: allowing up to ${options.batchSize} predictions in one call to POST /predict`)
+    launcherLogger.info(`batch size: allowing up to ${options.batchSize} predictions in one call to POST /predict`)
   }
 
-  options.doc && displayDocumentation(logger, options)
+  options.doc && displayDocumentation(launcherLogger, options)
 
   await API(options, engine)
 
-  logger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
+  launcherLogger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
 }

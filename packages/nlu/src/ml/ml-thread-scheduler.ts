@@ -45,7 +45,6 @@ async function makeWorker() {
 
   const clean = (data) => _.omitBy(data, (val) => val == null || typeof val === 'object')
   const processData = {
-    VERBOSITY_LEVEL: process.VERBOSITY_LEVEL,
     IS_PRO_AVAILABLE: process.IS_PRO_AVAILABLE,
     BPFS_STORAGE: process.BPFS_STORAGE,
     APP_DATA_PATH: process.APP_DATA_PATH,

@@ -95,7 +95,6 @@ yargs
       }
     },
     (argv) => {
-      process.VERBOSITY_LEVEL = Number(argv.verbose)
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       STAN(argv)
     }
@@ -155,8 +154,8 @@ yargs
       }
     },
     async (argv) => {
-      process.VERBOSITY_LEVEL = Number(argv.verbose)
-      await LANG(argv)
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      LANG(argv)
     }
   )
   .help().argv

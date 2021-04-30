@@ -264,7 +264,7 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
   const processId = process.pid
   const srcWorkerId = cluster.worker.id
 
-  const logger: ILogger = {
+  const loggerWrapper: ILogger = {
     debug: (msg: string) => {
       const response: IncomingMessage<'log'> = { type: 'log', payload: { log: { debug: msg }, requestId }, srcWorkerId }
       process.send!(response)
@@ -284,7 +284,7 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
       process.send!(response)
     }
   }
-  logger.info(`Training worker ${srcWorkerId} successfully started on process with pid ${processId}.`)
+  loggerWrapper.info(`Training worker ${srcWorkerId} successfully started on process with pid ${processId}.`)
 
   const msgHandler = (tools: Tools) => async (msg: AllOutgoingMessages) => {
     if (isStartTraining(msg)) {
@@ -302,7 +302,7 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
       tools.seededLodashProvider.setSeed(input.nluSeed)
 
       try {
-        const output = await Trainer(input, { ...tools, logger }, progressCb)
+        const output = await Trainer(input, { ...tools, logger: loggerWrapper }, progressCb)
         // TODO: send multiple packet when output is to big
         const res: IncomingMessage<'training_done'> = { type: 'training_done', payload: { output }, srcWorkerId }
         process.send!(res)
@@ -320,13 +320,13 @@ if (cluster.isWorker && process.env.WORKER_TYPE === WORKER_TYPES.TRAINING) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  initializeTools(config, logger)
+  initializeTools(config, loggerWrapper)
     .then((tools) => {
       process.on('message', msgHandler(tools))
       const res: IncomingMessage<'worker_ready'> = { type: 'worker_ready', payload: { requestId }, srcWorkerId }
       process.send!(res)
     })
     .catch((err) => {
-      logger.error('The following error occured during initialization of tools', err)
+      loggerWrapper.error('The following error occured during initialization of tools', err)
     })
 }

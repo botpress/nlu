@@ -15,7 +15,6 @@ declare namespace NodeJS {
   }
 
   export interface Process {
-    VERBOSITY_LEVEL: number
     BPFS_STORAGE: 'database' | 'disk'
     APP_SECRET: string
     /**

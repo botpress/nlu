@@ -32,19 +32,20 @@ class Logger implements ILogger {
   public parent: Logger | null = null
   public namespace: string = ''
 
-  public get level() {
-    return process.VERBOSITY_LEVEL || this._config.level
-  }
-
   constructor(private _name: string = Logger._GLOBAL_NAMESPACE) {}
 
   configure(config: Partial<LoggerConfig>) {
     this._config = { ...this._config, ...config }
+
+    // logger configures all childs
+    for (const logger of this._loggers.values()) {
+      logger.configure(config)
+    }
   }
 
   public sub(name: string): Logger {
-    if (this._loggers.has(this._name)) {
-      return this._loggers.get(this._name)!
+    if (this._loggers.has(name)) {
+      return this._loggers.get(name)!
     }
     const logger = new Logger(name)
 
@@ -53,7 +54,7 @@ class Logger implements ILogger {
       logger.namespace = ''
     } else {
       logger.parent = this
-      logger._config = this._config // inherit parent config
+      logger._config = { ...this._config } // copy parent config
       logger.namespace = logger.parent.namespace.length ? logger.parent.namespace + this._config.namespaceDelimiter : ''
       logger.namespace += name
     }
@@ -68,13 +69,8 @@ class Logger implements ILogger {
   }
 
   private push(entry: Omit<LogEntry, 'namespace'>) {
-    const formattedEntry = this._config.formatter.format(
-      { ...this._config, level: this.level },
-      { ...entry, namespace: this.namespace }
-    )
-    this._config.transports.forEach((transport) =>
-      transport.send({ ...this._config, level: this.level }, formattedEntry)
-    )
+    const formattedEntry = this._config.formatter.format(this._config, { ...entry, namespace: this.namespace })
+    this._config.transports.forEach((transport) => transport.send(this._config, formattedEntry))
   }
 
   critical(message: string, metadata?: any): void {
