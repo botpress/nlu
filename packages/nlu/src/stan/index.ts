@@ -58,16 +58,18 @@ const makeEngine = async (options: StanOptions, logger: ILogger) => {
 }
 
 export default async function (cliOptions: CommandLineOptions) {
+  const envConfig = readEnvJSONConfig()
+  const options: StanOptions = envConfig ?? mapCli(cliOptions)
+
   Logger.configure({
-    level: Number(cliOptions.verbose) !== NaN ? Number(cliOptions.verbose) : LoggerLevel.Info,
-    filters: cliOptions.logFilter.split(',')
+    level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
+    filters: options.logFilter.split(',')
   })
 
   const launcherLogger = Logger.sub('launcher')
-
   // Launcher always display
   launcherLogger.configure({
-    level: LoggerLevel.Info,
+    level: Math.max(options.verbose, LoggerLevel.Info),
     filters: ['']
   })
 
@@ -77,12 +79,6 @@ export default async function (cliOptions: CommandLineOptions) {
   } else if (cluster.isWorker && process.env.WORKER_TYPE !== WORKER_TYPES.WEB) {
     return
   }
-
-  const envConfig = readEnvJSONConfig()
-  if (envConfig) {
-    launcherLogger.debug('Loading config from environment variables')
-  }
-  const options: StanOptions = envConfig ?? mapCli(cliOptions)
 
   for (const dir of ['./pre-trained', './stop-words']) {
     // TODO: no need for copy to APP_DATA_PATH, just use original files
@@ -111,6 +107,10 @@ export default async function (cliOptions: CommandLineOptions) {
       {bold ${centerText('Botpress Standalone NLU', 40, 9)}}
       {dim ${centerText(`Version ${nluVersion}`, 40, 9)}}
 ${_.repeat(' ', 9)}========================================`)
+
+  if (envConfig) {
+    launcherLogger.info('Loading config from environment variables')
+  }
 
   if (options.authToken?.length) {
     launcherLogger.info(`authToken: ${chalk.greenBright('enabled')} (only users with this token can query your server)`)
