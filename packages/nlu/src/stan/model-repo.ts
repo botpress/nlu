@@ -146,7 +146,10 @@ export class ModelRepository {
     tmpDir.removeCallback()
   }
 
-  public async listModels(options: ModelOwnershipOptions): Promise<NLUEngine.ModelId[]> {
+  public async listModels(
+    filters: Partial<NLUEngine.ModelId>,
+    options: ModelOwnershipOptions
+  ): Promise<NLUEngine.ModelId[]> {
     const scopedGhost = this._getScopedGhostForAppID(options.appId)
 
     const fextension = this._getFileExtension(options.appSecret)
@@ -162,12 +165,16 @@ export class ModelRepository {
       .filter((stringId) => modelIdService.isId(stringId))
       .map((stringId) => modelIdService.fromString(stringId))
 
-    return modelIds
+    const isQueried = (filters: Partial<NLUEngine.ModelId>) => (id: NLUEngine.ModelId) => {
+      return !Object.keys(filters).some((k) => filters[k] !== id[k])
+    }
+
+    return modelIds.filter(isQueried(filters))
   }
 
   // TODO: make this one more optimal
-  public async pruneModels(options: PruneOptions): Promise<NLUEngine.ModelId[]> {
-    const models = await this.listModels(options)
+  public async pruneModels(filters: Partial<NLUEngine.ModelId>, options: PruneOptions): Promise<NLUEngine.ModelId[]> {
+    const models = await this.listModels(filters, options)
 
     const { keep } = options
     const toPrune = models.slice(keep)
