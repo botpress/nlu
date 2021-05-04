@@ -14,10 +14,11 @@ export const defaultConfig: LoggerConfig = {
   timeFormat: 'L HH:mm:ss.SSS',
   namespaceDelimiter: ':',
   colors: {
+    [LoggerLevel.Debug]: 'blue',
     [LoggerLevel.Info]: 'green',
     [LoggerLevel.Warn]: 'yellow',
     [LoggerLevel.Error]: 'red',
-    [LoggerLevel.Debug]: 'blue'
+    [LoggerLevel.Critical]: 'red'
   },
   formatter: new ConsoleFormatter({ indent: !!process.env.INDENT_LOGS }),
   transports: [new ConsoleTransport()],
