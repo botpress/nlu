@@ -146,7 +146,10 @@ export class ModelRepository {
     tmpDir.removeCallback()
   }
 
-  public async listModels(options: ModelOwnershipOptions): Promise<NLUEngine.ModelId[]> {
+  public async listModels(
+    options: ModelOwnershipOptions,
+    filters: Partial<NLUEngine.ModelId> = {}
+  ): Promise<NLUEngine.ModelId[]> {
     const scopedGhost = this._getScopedGhostForAppID(options.appId)
 
     const fextension = this._getFileExtension(options.appSecret)
@@ -162,7 +165,20 @@ export class ModelRepository {
       .filter((stringId) => modelIdService.isId(stringId))
       .map((stringId) => modelIdService.fromString(stringId))
 
-    return modelIds
+    return _.filter(modelIds, filters)
+  }
+
+  public async pruneModels(
+    options: PruneOptions,
+    filters: Partial<NLUEngine.ModelId> = {}
+  ): Promise<NLUEngine.ModelId[]> {
+    const models = await this.listModels(options, filters)
+
+    const { keep } = options
+    const toPrune = models.slice(keep)
+    await Bluebird.each(toPrune, (m) => this.deleteModel(m, options))
+
+    return toPrune
   }
 
   public async exists(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<boolean> {
@@ -173,17 +189,6 @@ export class ModelRepository {
     const fname = `${stringId}.${fExtension}`
 
     return scopedGhost.fileExists(MODELS_DIR, fname)
-  }
-
-  // TODO: make this one more optimal
-  public async pruneModels(options: PruneOptions): Promise<NLUEngine.ModelId[]> {
-    const models = await this.listModels(options)
-
-    const { keep } = options
-    const toPrune = models.slice(keep)
-    await Bluebird.each(toPrune, (m) => this.deleteModel(m, options))
-
-    return toPrune
   }
 
   public async deleteModel(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<void> {
