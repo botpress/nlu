@@ -32,8 +32,10 @@ export const authMiddleware = (secureToken: string, secondToken?: string) => (re
   }
 
   if (!req.headers.authorization) {
-    logger.info('Authorization header missing', { ip: req.ip })
-    return next(new UnauthorizedError('Authorization header is missing'))
+    logger.error('Authorization header missing', { ip: req.ip })
+    const err = new UnauthorizedError('Authorization header is missing')
+    err.skipLogging = true
+    return next(err)
   }
 
   const [scheme, token] = req.headers.authorization.split(' ')
