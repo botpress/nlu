@@ -181,6 +181,16 @@ export class ModelRepository {
     return toPrune
   }
 
+  public async exists(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<boolean> {
+    const scopedGhost = this._getScopedGhostForAppID(options.appId)
+
+    const stringId = modelIdService.toString(modelId)
+    const fExtension = this._getFileExtension(options.appSecret)
+    const fname = `${stringId}.${fExtension}`
+
+    return scopedGhost.fileExists(MODELS_DIR, fname)
+  }
+
   public async deleteModel(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<void> {
     const scopedGhost = this._getScopedGhostForAppID(options.appId)
 
