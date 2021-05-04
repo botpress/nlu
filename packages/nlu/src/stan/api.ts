@@ -263,12 +263,18 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
       }
 
       const modelId = NLUEngine.modelIdService.fromString(stringId)
-      // TODO: once the model is loaded, there's no more check to appSecret and appId
+
+      const modelNotFoundError = `modelId ${stringId} can't be found`
+      const modelExists: boolean = await modelRepo.exists(modelId, { appId, appSecret })
+
+      if (!modelExists) {
+        return res.status(404).send({ success: false, error: modelNotFoundError })
+      }
+
       if (!engine.hasModel(modelId)) {
         const model = await modelRepo.getModel(modelId, { appId, appSecret })
         if (!model) {
-          const error = `modelId ${stringId} can't be found`
-          const resp: ErrorResponse = { success: false, error }
+          const resp: ErrorResponse = { success: false, error: modelNotFoundError }
           return res.status(404).send(resp)
         }
 
@@ -308,11 +314,17 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
       }
 
       for (const modelId of modelIds) {
-        // TODO: once the model is loaded, there's no more check to appSecret and appId
+        const modelNotFoundError = `modelId ${modelId} can't be found`
+
+        const modelExists: boolean = await modelRepo.exists(modelId, { appId, appSecret })
+        if (!modelExists) {
+          return res.status(404).send({ success: false, error: modelNotFoundError })
+        }
+
         if (!engine.hasModel(modelId)) {
           const model = await modelRepo.getModel(modelId, { appId, appSecret })
           if (!model) {
-            return res.status(404).send({ success: false, error: `modelId ${modelId} can't be found` })
+            return res.status(404).send({ success: false, error: modelNotFoundError })
           }
           await engine.loadModel(model)
         }

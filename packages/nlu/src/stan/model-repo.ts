@@ -165,6 +165,16 @@ export class ModelRepository {
     return modelIds
   }
 
+  public async exists(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<boolean> {
+    const scopedGhost = this._getScopedGhostForAppID(options.appId)
+
+    const stringId = modelIdService.toString(modelId)
+    const fExtension = this._getFileExtension(options.appSecret)
+    const fname = `${stringId}.${fExtension}`
+
+    return scopedGhost.fileExists(MODELS_DIR, fname)
+  }
+
   // TODO: make this one more optimal
   public async pruneModels(options: PruneOptions): Promise<NLUEngine.ModelId[]> {
     const models = await this.listModels(options)
