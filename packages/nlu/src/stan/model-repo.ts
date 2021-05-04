@@ -147,8 +147,8 @@ export class ModelRepository {
   }
 
   public async listModels(
-    filters: Partial<NLUEngine.ModelId>,
-    options: ModelOwnershipOptions
+    options: ModelOwnershipOptions,
+    filters: Partial<NLUEngine.ModelId> = {}
   ): Promise<NLUEngine.ModelId[]> {
     const scopedGhost = this._getScopedGhostForAppID(options.appId)
 
@@ -165,16 +165,14 @@ export class ModelRepository {
       .filter((stringId) => modelIdService.isId(stringId))
       .map((stringId) => modelIdService.fromString(stringId))
 
-    const isQueried = (filters: Partial<NLUEngine.ModelId>) => (id: NLUEngine.ModelId) => {
-      return !Object.keys(filters).some((k) => filters[k] !== id[k])
-    }
-
-    return modelIds.filter(isQueried(filters))
+    return _.filter(modelIds, filters)
   }
 
-  // TODO: make this one more optimal
-  public async pruneModels(filters: Partial<NLUEngine.ModelId>, options: PruneOptions): Promise<NLUEngine.ModelId[]> {
-    const models = await this.listModels(filters, options)
+  public async pruneModels(
+    options: PruneOptions,
+    filters: Partial<NLUEngine.ModelId> = {}
+  ): Promise<NLUEngine.ModelId[]> {
+    const models = await this.listModels(options, filters)
 
     const { keep } = options
     const toPrune = models.slice(keep)

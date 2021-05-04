@@ -38,7 +38,7 @@ export default class TrainService {
       this.logger.info(`[${stringId}] Training Done.`)
 
       const { language: languageCode } = trainInput
-      await this.modelRepo.pruneModels({ languageCode }, { ...credentials, keep: 1 }) // TODO: make the max amount of models on FS (by appId + lang) configurable
+      await this.modelRepo.pruneModels({ ...credentials, keep: 1 }, { languageCode }) // TODO: make the max amount of models on FS (by appId + lang) configurable
       await this.modelRepo.saveModel(model, credentials)
       ts.status = 'done'
       this.trainSessionService.setTrainingSession(modelId, credentials, ts)

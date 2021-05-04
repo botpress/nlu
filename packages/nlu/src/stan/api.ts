@@ -130,7 +130,7 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
   router.get('/models', async (req, res) => {
     try {
       const { appSecret, appId } = await validateCredentialsFormat(req.query)
-      const modelIds = await modelRepo.listModels({}, { appSecret, appId })
+      const modelIds = await modelRepo.listModels({ appSecret, appId })
       const stringIds = modelIds.map(modelIdService.toString)
 
       const resp: ListModelsResponseBody = { success: true, models: stringIds }
@@ -144,7 +144,7 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
   router.post('/models/prune', async (req, res) => {
     try {
       const { appSecret, appId } = await validateCredentialsFormat(req.body)
-      const modelIds = await modelRepo.pruneModels({}, { appSecret, appId, keep: 0 })
+      const modelIds = await modelRepo.pruneModels({ appSecret, appId, keep: 0 })
 
       for (const modelId of modelIds) {
         if (engine.hasModel(modelId)) {
