@@ -35,13 +35,13 @@ const makeEngine = async (options: StanOptions, logger: ILogger) => {
   }
 
   try {
-    const { ducklingEnabled, ducklingURL, modelCacheSize, languageSources } = options
+    const { ducklingEnabled, ducklingURL, modelCacheSize, languageSources, legacyElection } = options
     const config: NLUEngine.Config = {
       languageSources,
       ducklingEnabled,
       ducklingURL,
       modelCacheSize,
-      legacyElection: false
+      legacyElection
     }
 
     const engine = await NLUEngine.makeEngine(config, loggerWrapper)
