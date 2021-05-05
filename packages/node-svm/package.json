@@ -1,11 +1,11 @@
 {
   "name": "@botpress/node-svm",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "node bindings for libsvm",
   "main": "./dist/index.js",
   "author": "Botpress, Inc.",
   "license": "MIT",
-  "repository": "https://github.com/botpress/node-svm-napi.git",
+  "repository": "https://github.com/botpress/nlu.git",
   "types": "./typings.d.ts",
   "dependencies": {
     "bluebird": "^3.7.2",
