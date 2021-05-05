@@ -7,7 +7,10 @@
   "bin": "./packages/nlu/dist/index.js",
   "pkg": {
     "scripts": "./packages/nlu/dist/**/*.js",
-    "assets": ["node_modules/@botpress/node-*/**/*.node", "packages/nlu/assets/**"],
+    "assets": [
+      "node_modules/@botpress/node-*/**/*.node",
+      "packages/nlu/assets/**"
+    ],
     "targets": [
       "node12-macos-x64",
       "node12-linux-x64",
@@ -18,13 +21,10 @@
   "scripts": {
     "dev": "yarn workspace nlu dev",
     "start": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions node ./packages/nlu/dist/index.js",
-    
     "build": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions tsc --build",
     "package": "cross-env NATIVE_EXTENSIONS_DIR=./native-extensions pkg package.json",
-
     "e2e": "yarn workspace e2e start",
     "test": "yarn workspace @botpress/node-svm test && yarn workspace nlu test",
-
     "prettier": "cross-env prettier --check './packages/**/*.ts' '!**/*.d.ts'",
     "prettier-fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "cross-env eslint packages/ --ext .ts",
