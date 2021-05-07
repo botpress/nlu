@@ -80,8 +80,6 @@ main()
   .catch((err) => console.log(err))
 ```
 
-For more examples check out [/test-js](https://github.com/botpress/node-svm-napi/tree/master/tests-js) directory which contains unit tests and few performance tests.
-
 For more details about training parameters, check out [cjlin1/libsvm](https://github.com/cjlin1/libsvm) readme file.
 
 ## Typescript
