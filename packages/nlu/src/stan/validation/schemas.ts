@@ -35,7 +35,7 @@ const IntentSchema = Joi.object().keys({
   name: Joi.string().required(),
   contexts: Joi.array().items(Joi.string()).required().min(1),
   slots: Joi.array().items(SlotSchema).optional().default([]),
-  utterances: Joi.array().items(Joi.string()).required()
+  utterances: Joi.array().items(Joi.string().allow('')).required().default([])
 })
 
 export const TrainInputSchema = Joi.object().keys({
