@@ -26,6 +26,12 @@ export const isAdminToken = (req, adminToken: string) => {
   return token === adminToken
 }
 
+const makeUnauthorizedError = (msg: string) => {
+  const err = new UnauthorizedError(msg)
+  err.skipLogging = true
+  return err
+}
+
 export const authMiddleware = (secureToken: string, secondToken?: string) => (req, _res, next) => {
   if (!secureToken || !secureToken.length) {
     return next()
@@ -33,25 +39,23 @@ export const authMiddleware = (secureToken: string, secondToken?: string) => (re
 
   if (!req.headers.authorization) {
     logger.error('Authorization header missing', { ip: req.ip })
-    const err = new UnauthorizedError('Authorization header is missing')
-    err.skipLogging = true
-    return next(err)
+    return next(makeUnauthorizedError('Authorization header is missing'))
   }
 
   const [scheme, token] = req.headers.authorization.split(' ')
   if (scheme.toLowerCase() !== 'bearer') {
     logger.debug('Schema is missing', { ip: req.ip })
-    return next(new UnauthorizedError(`Unknown scheme "${scheme}" - expected 'bearer <token>'`))
+    return next(makeUnauthorizedError(`Unknown scheme "${scheme}" - expected 'bearer <token>'`))
   }
 
   if (!token) {
     logger.debug('Token is missing', { ip: req.ip })
-    return next(new UnauthorizedError('Authentication token is missing'))
+    return next(makeUnauthorizedError('Authentication token is missing'))
   }
 
   if (secureToken !== token && secondToken !== token) {
     logger.debug('Invalid token', { ip: req.ip })
-    return next(new UnauthorizedError('Invalid Bearer token'))
+    return next(makeUnauthorizedError('Invalid Bearer token'))
   }
 
   next()
