@@ -42,6 +42,7 @@ export interface InfoResponseBody extends SuccessReponse {
     specs: Specifications
     health: Health
     languages: string[]
+    version: string
   }
 }
 

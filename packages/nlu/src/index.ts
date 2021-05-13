@@ -5,6 +5,10 @@ process.core_env = process.env as BotpressEnvironmentVariables
 // eslint-disable-next-line import/order
 import path from 'path'
 import yargs from 'yargs'
+
+// @ts-ignore
+import { version } from '../package.json'
+
 import { getAppDataPath } from './app-data'
 
 if (process.env.APP_DATA_PATH) {
@@ -100,7 +104,7 @@ yargs
     },
     (argv) => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      STAN(argv)
+      STAN(argv, version)
     }
   )
   .command(

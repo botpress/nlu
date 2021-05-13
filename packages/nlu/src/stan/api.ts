@@ -89,7 +89,7 @@ const createExpressApp = (options: APIOptions): Application => {
   return app
 }
 
-export default async function (options: APIOptions, engine: NLUEngine.Engine) {
+export default async function (options: APIOptions, engine: NLUEngine.Engine, version: string) {
   const app = createExpressApp(options)
   const logger = Logger.sub('api')
 
@@ -117,7 +117,7 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine) {
       const specs = engine.getSpecifications()
       const languages = engine.getLanguages()
 
-      const info = { health, specs, languages }
+      const info = { health, specs, languages, version }
 
       const resp: InfoResponseBody = { success: true, info }
       res.send(resp)

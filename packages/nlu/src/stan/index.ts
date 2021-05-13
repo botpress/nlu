@@ -57,7 +57,7 @@ const makeEngine = async (options: StanOptions, logger: ILogger) => {
   }
 }
 
-export default async function (cliOptions: CommandLineOptions) {
+export default async function (cliOptions: CommandLineOptions, version: string) {
   const envConfig = readEnvJSONConfig()
   const options: StanOptions = envConfig ?? mapCli(cliOptions)
 
@@ -101,11 +101,10 @@ export default async function (cliOptions: CommandLineOptions) {
   launcherLogger.debug('NLU Server Options %o', options)
 
   const engine = await makeEngine(options, launcherLogger)
-  const { nluVersion } = engine.getSpecifications()
 
   launcherLogger.info(chalk`========================================
       {bold ${centerText('Botpress Standalone NLU', 40, 9)}}
-      {dim ${centerText(`Version ${nluVersion}`, 40, 9)}}
+      {dim ${centerText(`Version ${version}`, 40, 9)}}
 ${_.repeat(' ', 9)}========================================`)
 
   if (envConfig) {
@@ -151,7 +150,7 @@ ${_.repeat(' ', 9)}========================================`)
 
   options.doc && displayDocumentation(launcherLogger, options)
 
-  await API(options, engine)
+  await API(options, engine, version)
 
   launcherLogger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
 }
