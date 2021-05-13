@@ -41,7 +41,7 @@ const IntentSchema = Joi.object().keys({
 export const TrainInputSchema = Joi.object().keys({
   language: Joi.string().required(),
   intents: Joi.array().items(IntentSchema).required().min(0),
-  contexts: Joi.array().items(Joi.string()).required().min(1),
+  contexts: Joi.array().items(Joi.string()).required().min(0),
   entities: Joi.array().items(EntitySchema).optional().default([]),
   appSecret: Joi.string().allow('').optional().default(''),
   appId: Joi.string().allow('').optional().default(''),
