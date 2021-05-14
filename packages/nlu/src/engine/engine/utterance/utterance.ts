@@ -11,7 +11,7 @@ import { ExtractedEntity, ExtractedSlot, TFIDF, Tools } from '../typings'
 export interface UtteranceToStringOptions {
   lowerCase?: boolean
   onlyWords?: boolean
-  slots?: 'keep-value' | 'keep-name' | 'ignore'
+  slots?: 'keep-default' | 'keep-value' | 'keep-name' | 'ignore'
   entities?: 'keep-default' | 'keep-value' | 'keep-name' | 'ignore'
 }
 
@@ -188,6 +188,8 @@ export default class Utterance {
       if (tok.slots.length && options.slots === 'keep-name') {
         toAdd = tok.slots[0].name
       } else if (tok.slots.length && options.slots === 'keep-value') {
+        toAdd = tok.value
+      } else if (tok.slots.length && options.slots === 'keep-default') {
         toAdd = tok.value
       } else if (tok.entities.length && options.entities === 'keep-name') {
         toAdd = tok.entities[0].type
