@@ -1,5 +1,6 @@
 const gulp = require('gulp')
 const package = require('./scripts/gulp.package')
+const config = require('./scripts/gulp.config')
 
 gulp.task('default', (cb) => {
   console.log(`
@@ -11,3 +12,4 @@ gulp.task('default', (cb) => {
 })
 
 gulp.task('package', package.package)
+gulp.task('config', config.upsertConfigFile)
