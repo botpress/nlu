@@ -44,17 +44,17 @@ export const authMiddleware = (secureToken: string, secondToken?: string) => (re
 
   const [scheme, token] = req.headers.authorization.split(' ')
   if (scheme.toLowerCase() !== 'bearer') {
-    logger.debug('Schema is missing', { ip: req.ip })
+    logger.error('Schema is missing', { ip: req.ip })
     return next(makeUnauthorizedError(`Unknown scheme "${scheme}" - expected 'bearer <token>'`))
   }
 
   if (!token) {
-    logger.debug('Token is missing', { ip: req.ip })
+    logger.error('Token is missing', { ip: req.ip })
     return next(makeUnauthorizedError('Authentication token is missing'))
   }
 
   if (secureToken !== token && secondToken !== token) {
-    logger.debug('Invalid token', { ip: req.ip })
+    logger.error('Invalid token', { ip: req.ip })
     return next(makeUnauthorizedError('Invalid Bearer token'))
   }
 
