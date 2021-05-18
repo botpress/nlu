@@ -50,7 +50,7 @@ export default async function (cliOptions: CommandLineOptions, version: string) 
 
   Logger.configure({
     level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
-    filters: options.logFilter.split(',')
+    filters: options.logFilter
   })
 
   const launcherLogger = Logger.sub('launcher')
