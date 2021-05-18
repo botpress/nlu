@@ -1,6 +1,6 @@
 {
   "name": "nlu",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Botpress NLU main package",
   "main": "./dist/index.js",
   "author": "Botpress, Inc.",
