@@ -11,20 +11,8 @@ import { LoggerLevel } from '../utils/logger/typings'
 import { copyDir } from '../utils/pkg-fs'
 import { Logger as ILogger } from '../utils/typings'
 import API from './api'
-import { CommandLineOptions, mapCli, StanOptions } from './config'
+import { CommandLineOptions, getConfig, StanOptions } from './config'
 import { displayDocumentation } from './documentation'
-
-const readEnvJSONConfig = (): StanOptions | null => {
-  const data = process.env.STAN_JSON_CONFIG
-  if (!data) {
-    return null
-  }
-  try {
-    return JSON.parse(data)
-  } catch {
-    return null
-  }
-}
 
 const makeEngine = async (options: StanOptions, logger: ILogger) => {
   const loggerWrapper: NLUEngine.Logger = {
@@ -58,8 +46,7 @@ const makeEngine = async (options: StanOptions, logger: ILogger) => {
 }
 
 export default async function (cliOptions: CommandLineOptions, version: string) {
-  const envConfig = readEnvJSONConfig()
-  const options: StanOptions = envConfig ?? mapCli(cliOptions)
+  const { options, source: configSource } = await getConfig(cliOptions)
 
   Logger.configure({
     level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
@@ -107,8 +94,10 @@ export default async function (cliOptions: CommandLineOptions, version: string) 
       {dim ${centerText(`Version ${version}`, 40, 9)}}
 ${_.repeat(' ', 9)}========================================`)
 
-  if (envConfig) {
+  if (configSource === 'environment') {
     launcherLogger.info('Loading config from environment variables')
+  } else if (configSource === 'file') {
+    launcherLogger.info(`Loading config from file "${cliOptions.config}"`)
   }
 
   if (options.authToken?.length) {
