@@ -16,7 +16,7 @@
     "postinstall": "yarn cmd config",
     "cmd": "yarn run gulp",
     "dev": "yarn workspace nlu dev",
-    "start": "cross-env node ./packages/nlu/dist/index.js -c ./config.json",
+    "start": "cross-env node ./packages/nlu/dist/index.js",
     "build": "cross-env tsc --build",
     "package": "yarn cmd package",
     "e2e": "yarn workspace e2e start",
