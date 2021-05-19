@@ -64,8 +64,8 @@ export interface TrainOutput {
   kmeans: SerializedKmeansResult | undefined
   contexts: string[]
   ctx_model: string
-  intent_model_by_ctx: Dic<string>
-  slots_model_by_intent: Dic<string>
+  intent_model_by_ctx: _.Dictionary<string>
+  slots_model_by_intent: _.Dictionary<string>
 }
 
 interface Tools extends LanguageTools {

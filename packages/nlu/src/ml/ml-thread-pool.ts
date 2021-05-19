@@ -34,7 +34,8 @@ export class MLThreadPool {
 
   constructor() {
     const maxMLThreads = Math.max(os.cpus().length - 1, 1) // ncpus - webworker
-    const numMLThreads = Math.min(maxMLThreads, process.core_env.BP_NUM_ML_THREADS || 4)
+    const userMlThread = process.env.BP_NUM_ML_THREADS ? Number(process.env.BP_NUM_ML_THREADS) : 4
+    const numMLThreads = Math.min(maxMLThreads, userMlThread)
     this.mlThreadsScheduler = new MLThreadScheduler(numMLThreads)
   }
 

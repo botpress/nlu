@@ -21,7 +21,7 @@ export interface StartLocalActionServerMessage {
 
 const msgHandlers: { [messageType: string]: (message: any, worker: cluster.Worker) => void } = {}
 
-const maxServerReebots = process.core_env.BP_MAX_SERVER_REBOOT || 2
+const maxServerReebots = process.env.BP_MAX_SERVER_REBOOT || 2
 let webServerRebootCount = 0
 
 /**
@@ -70,7 +70,7 @@ export const setupMasterNode = (logger: ILogger) => {
       process.exit(0)
     }
 
-    if (!yn(process.core_env.BP_DISABLE_AUTO_RESTART)) {
+    if (!yn(process.env.BP_DISABLE_AUTO_RESTART)) {
       if (webServerRebootCount >= maxServerReebots) {
         logger.error(
           `Exceeded the maximum number of automatic server reboot (${maxServerReebots}). Set the "BP_MAX_SERVER_REBOOT" environment variable to change that`

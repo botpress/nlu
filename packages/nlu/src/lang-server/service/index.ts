@@ -37,7 +37,7 @@ const MODEL_MB_PER_DIM = 1.41e7 / bytes('1mb')
 const MODEL_MB_OFFSET = -2.35e8 / bytes('1mb')
 
 export default class LanguageService {
-  private _models: Dic<ModelSet> = {}
+  private _models: _.Dictionary<ModelSet> = {}
   private _ready: boolean = false
   private _cache
   private logger: ILogger
@@ -148,7 +148,7 @@ export default class LanguageService {
     return {} as ModelFileInfo
   }
 
-  private _addPairModelToModels = (models: Dic<ModelSet>) => (modelGroup: ModelFileInfo[]) => {
+  private _addPairModelToModels = (models: _.Dictionary<ModelSet>) => (modelGroup: ModelFileInfo[]) => {
     const domain = modelGroup[0].domain
     const langCode = modelGroup[0].langCode
 
@@ -297,13 +297,13 @@ export default class LanguageService {
     })
   }
 
-  private _getModels(): Dic<ModelSet> {
+  private _getModels(): _.Dictionary<ModelSet> {
     if (!fs.existsSync(this.langDir)) {
       throw new Error(`The language directory (${this.langDir}) doesn't exist.`)
     }
 
     const files = fs.readdirSync(this.langDir)
-    const models: Dic<ModelSet> = {}
+    const models: _.Dictionary<ModelSet> = {}
     const _scopedAddPairModelToModels = this._addPairModelToModels(models)
 
     _.chain(files)

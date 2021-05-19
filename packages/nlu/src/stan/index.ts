@@ -78,13 +78,6 @@ export default async function (cliOptions: CommandLineOptions, version: string) 
     throw new Error(`Specified body-size "${options.bodySize}" has an invalid format.`)
   }
 
-  global.printLog = (args) => {
-    const message = args[0]
-    const rest = args.slice(1)
-
-    launcherLogger.debug(message.trim(), rest)
-  }
-
   launcherLogger.debug('NLU Server Options %o', options)
 
   const engine = await makeEngine(options, launcherLogger)

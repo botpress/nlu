@@ -1,9 +1,8 @@
-import Bluebird from 'bluebird'
-import getos from 'getos'
 import _ from 'lodash'
-import os from 'os'
 import path from 'path'
 import { Worker, WorkerOptions } from 'worker_threads'
+
+const WORKER_ENTRY_POINT = path.resolve(__dirname, './ml-thread-index.js')
 
 // TODO: if thread B, started after thread A but done faster, it should be returned next by BaseScheduler
 export class BaseScheduler<T> {
@@ -34,35 +33,12 @@ export class MLThreadScheduler extends BaseScheduler<Worker> {
 }
 
 async function makeWorker() {
-  const distro = await Bluebird.fromCallback(getos)
-    .timeout(1000)
-    .catch((_err) => ({
-      os: os.platform(),
-      dist: 'default',
-      codename: 'N/A',
-      release: 'N/A'
-    }))
-
-  const clean = (data) => _.omitBy(data, (val) => val == null || typeof val === 'object')
-  const processData = {
-    IS_PRO_AVAILABLE: process.IS_PRO_AVAILABLE,
-    BPFS_STORAGE: process.BPFS_STORAGE,
-    APP_DATA_PATH: process.APP_DATA_PATH,
-    ROOT_PATH: process.ROOT_PATH,
-    IS_LICENSED: process.IS_LICENSED,
-    BOTPRESS_VERSION: process.BOTPRESS_VERSION,
-    SERVER_ID: process.SERVER_ID,
-    LOADED_MODULES: process.LOADED_MODULES,
-    PROJECT_LOCATION: process.PROJECT_LOCATION,
-    distro: JSON.stringify(distro)
-  }
-
-  const workerEntryPoint = path.resolve(__dirname, './ml-thread-index.js')
-  return new Worker(workerEntryPoint, ({
+  const clean = (data: NodeJS.ProcessEnv) => _.omitBy(data, (val) => val === null || typeof val === 'object')
+  return new Worker(WORKER_ENTRY_POINT, {
     workerData: {
-      processData: clean(processData),
+      processData: {},
       processEnv: clean(process.env)
     },
     env: { ...process.env }
-  } as any) as WorkerOptions) // TODO: update nodejs typings to Node 12
+  } as WorkerOptions)
 }
