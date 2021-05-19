@@ -106,8 +106,11 @@ yargs
         type: 'boolean'
       },
       logFilter: {
-        description: 'Filter logs by namespace, ex: "training:svm,api". Does not apply to "Launcher" logger.',
-        default: ''
+        description:
+          'Filter logs by namespace, ex: "--log-filter training:svm api". Namespaces are space separated. Does not apply to "Launcher" logger.',
+        array: true,
+        type: 'string',
+        default: []
       }
     },
     (argv) => {

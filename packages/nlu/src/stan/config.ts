@@ -30,7 +30,7 @@ const DEFAULT_OPTIONS: StanOptions = {
   modelCacheSize: '2.5gb',
   verbose: 3,
   doc: false,
-  logFilter: '',
+  logFilter: [''],
   legacyElection: false,
   modelDir: process.APP_DATA_PATH
 }
