@@ -14,16 +14,14 @@ const loggerWrapper: ILogger = {
   debug: (msg: string) => {
     const response: IncomingMessage<'log'> = {
       type: 'log',
-      payload: { log: { debug: msg }, requestId },
-      srcPID: processId
+      payload: { log: { debug: msg }, requestId }
     }
     process.send!(response)
   },
   info: (msg: string) => {
     const response: IncomingMessage<'log'> = {
       type: 'log',
-      payload: { log: { info: msg }, requestId },
-      srcPID: processId
+      payload: { log: { info: msg }, requestId }
     }
     process.send!(response)
   },
@@ -31,14 +29,13 @@ const loggerWrapper: ILogger = {
     const warning = `${msg} ${serializeError(err)}`
     const response: IncomingMessage<'log'> = {
       type: 'log',
-      payload: { log: { warning }, requestId },
-      srcPID: processId
+      payload: { log: { warning }, requestId }
     }
     process.send!(response)
   },
   error: (msg: string, err?: Error) => {
     const error = `${msg} ${serializeError(err)}`
-    const response: IncomingMessage<'log'> = { type: 'log', payload: { log: { error }, requestId }, srcPID: processId }
+    const response: IncomingMessage<'log'> = { type: 'log', payload: { log: { error }, requestId } }
     process.send!(response)
   }
 }
@@ -51,8 +48,7 @@ const msgHandler = (tools: Tools) => async (msg: AllOutgoingMessages) => {
     const progressCb = (progress: number) => {
       const res: IncomingMessage<'training_progress'> = {
         type: 'training_progress',
-        payload: { progress },
-        srcPID: processId
+        payload: { progress }
       }
       process.send!(res)
     }
@@ -62,13 +58,12 @@ const msgHandler = (tools: Tools) => async (msg: AllOutgoingMessages) => {
     try {
       const output = await Trainer(input, { ...tools, logger: loggerWrapper }, progressCb)
       // TODO: send multiple packet when output is to big
-      const res: IncomingMessage<'training_done'> = { type: 'training_done', payload: { output }, srcPID: processId }
+      const res: IncomingMessage<'training_done'> = { type: 'training_done', payload: { output } }
       process.send!(res)
     } catch (err) {
       const res: IncomingMessage<'training_error'> = {
         type: 'training_error',
-        payload: { error: serializeError(err) },
-        srcPID: processId
+        payload: { error: serializeError(err) }
       }
       process.send!(res)
     } finally {
@@ -81,7 +76,7 @@ const msgHandler = (tools: Tools) => async (msg: AllOutgoingMessages) => {
 initializeTools(config, loggerWrapper)
   .then((tools) => {
     process.on('message', msgHandler(tools))
-    const res: IncomingMessage<'worker_ready'> = { type: 'worker_ready', payload: { requestId }, srcPID: processId }
+    const res: IncomingMessage<'worker_ready'> = { type: 'worker_ready', payload: { requestId } }
     process.send!(res)
   })
   .catch((err) => {

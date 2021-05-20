@@ -98,13 +98,25 @@ export class TrainingProcessPool {
     }
 
     return new Promise((resolve, reject) => {
+      const removeHandlers = () => {
+        worker.off('message', messageHandler)
+        worker.off('error', errorHandler)
+        worker.off('exit', exitHandler)
+      }
+
+      const addHandlers = () => {
+        worker.on('message', messageHandler)
+        worker.on('error', errorHandler)
+        worker.on('exit', exitHandler)
+      }
+
       const messageHandler = (msg: AllIncomingMessages) => {
         if (isTrainingDone(msg)) {
-          worker.off('message', messageHandler)
+          removeHandlers()
           resolve(msg.payload.output)
         }
         if (isTrainingError(msg)) {
-          worker.off('message', messageHandler)
+          removeHandlers()
           reject(deserializeError(msg.payload.error))
         }
         if (isTrainingProgress(msg)) {
@@ -114,10 +126,9 @@ export class TrainingProcessPool {
           this._logMessage(msg)
         }
       }
-      worker.on('message', messageHandler)
 
       const exitHandler = (exitCode: number, signal: string) => {
-        worker.off('message', messageHandler)
+        removeHandlers()
 
         if (signal === SIG_KILL) {
           reject(new TrainingCanceled())
@@ -126,8 +137,13 @@ export class TrainingProcessPool {
         reject(new TrainingExitedUnexpectedly(worker.pid, { exitCode, signal }))
         return
       }
-      worker.once('exit', exitHandler)
 
+      const errorHandler = (err: Error) => {
+        removeHandlers()
+        reject(err)
+      }
+
+      addHandlers()
       worker.send(msg)
     })
   }
@@ -147,18 +163,41 @@ export class TrainingProcessPool {
     })
     logger.debug('Done spawning new training process.', requestId)
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      const removeHandlers = () => {
+        worker.off('message', messageHandler)
+        worker.off('error', errorHandler)
+        worker.off('exit', exitHandler)
+      }
+
+      const addHandlers = () => {
+        worker.on('message', messageHandler)
+        worker.on('error', errorHandler)
+        worker.on('exit', exitHandler)
+      }
+
       const messageHandler = (msg: AllIncomingMessages) => {
         if (isLog(msg) && msg.payload.requestId === requestId) {
           this._logMessage(msg)
         }
 
         if (isWorkerReady(msg) && msg.payload.requestId === requestId) {
-          worker.off('message', messageHandler)
+          removeHandlers()
           resolve(worker)
         }
       }
-      worker.on('message', messageHandler)
+
+      const errorHandler = (err: Error) => {
+        removeHandlers()
+        reject(err)
+      }
+
+      const exitHandler = (exitCode: number, signal: string) => {
+        removeHandlers()
+        reject(new TrainingExitedUnexpectedly(worker.pid, { exitCode, signal }))
+      }
+
+      addHandlers()
     })
   }
 

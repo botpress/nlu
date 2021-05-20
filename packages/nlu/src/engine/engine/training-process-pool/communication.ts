@@ -28,7 +28,6 @@ export type IncomingMessageType = 'log' | 'worker_ready' | 'training_done' | 'tr
 export interface IncomingMessage<T extends IncomingMessageType> {
   type: T
   payload: IncomingPayload<T>
-  srcPID: number
 }
 
 export type AllOutgoingMessages = OutgoingMessage<OutgoingMessageType>
