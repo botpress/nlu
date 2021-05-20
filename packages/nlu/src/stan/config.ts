@@ -1,3 +1,4 @@
+import fse from 'fs-extra'
 import { LanguageSource } from '../engine'
 import { APIOptions } from './api'
 
@@ -6,6 +7,7 @@ export type CommandLineOptions = APIOptions & {
   languageAuthToken?: string
   ducklingURL: string
   ducklingEnabled: boolean
+  config?: string
 }
 
 export type StanOptions = APIOptions & {
@@ -15,7 +17,27 @@ export type StanOptions = APIOptions & {
   legacyElection: boolean // not available from CLI
 }
 
-export const mapCli = (c: CommandLineOptions): StanOptions => {
+const DEFAULT_OPTIONS: StanOptions = {
+  host: 'localhost',
+  port: 3200,
+  limit: 0,
+  limitWindow: '1h',
+  bodySize: '2mb',
+  batchSize: 1,
+  languageSources: [{ endpoint: 'http://localhost:3100' }],
+  ducklingURL: 'http://localhost:8000',
+  ducklingEnabled: true,
+  modelCacheSize: '2.5gb',
+  verbose: 3,
+  doc: false,
+  logFilter: [''],
+  legacyElection: false,
+  modelDir: process.APP_DATA_PATH
+}
+
+type ConfigSource = 'environment' | 'cli' | 'file'
+
+const _mapCli = (c: CommandLineOptions): StanOptions => {
   const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken } = c
   return {
     ...c,
@@ -30,4 +52,44 @@ export const mapCli = (c: CommandLineOptions): StanOptions => {
     modelCacheSize,
     legacyElection: false
   }
+}
+
+const readEnvJSONConfig = (): StanOptions | null => {
+  const rawContent = process.env.STAN_JSON_CONFIG
+  if (!rawContent) {
+    return null
+  }
+  try {
+    const parsedContent = JSON.parse(rawContent)
+    return { ...DEFAULT_OPTIONS, ...parsedContent }
+  } catch {
+    return null
+  }
+}
+
+const readFileConfig = async (configPath: string): Promise<StanOptions> => {
+  try {
+    const rawContent = await fse.readFile(configPath, 'utf8')
+    const parsedContent = JSON.parse(rawContent)
+    return { ...DEFAULT_OPTIONS, ...parsedContent }
+  } catch (err) {
+    const e = new Error(`The following errored occured when reading config file "${configPath}": ${err.message}`)
+    e.stack = err.stack
+    throw e
+  }
+}
+
+export const getConfig = async (c: CommandLineOptions): Promise<{ options: StanOptions; source: ConfigSource }> => {
+  const envConfig = readEnvJSONConfig()
+  if (envConfig) {
+    return { options: envConfig, source: 'environment' }
+  }
+
+  if (c.config) {
+    const options = await readFileConfig(c.config)
+    return { options, source: 'file' }
+  }
+
+  const options = _mapCli(c)
+  return { options, source: 'cli' }
 }

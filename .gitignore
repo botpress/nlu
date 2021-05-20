@@ -72,3 +72,6 @@ jspm_packages/
 .env*.local
 
 dist/
+
+
+config.json

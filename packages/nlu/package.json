@@ -1,6 +1,6 @@
 {
   "name": "nlu",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Botpress NLU main package",
   "main": "./dist/index.js",
   "author": "Botpress, Inc.",
@@ -99,9 +99,9 @@
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "dev": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions ts-node-dev ./src/index.ts",
-    "build": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions tsc --build",
-    "start": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions node ./dist/index.js",
-    "test": "cross-env NATIVE_EXTENSIONS_DIR=../../native-extensions jest -i --detectOpenHandles -c jest.config.js"
+    "dev": "cross-env ts-node-dev ./src/index.ts",
+    "build": "cross-env tsc --build",
+    "start": "cross-env node ./dist/index.js",
+    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js"
   }
 }

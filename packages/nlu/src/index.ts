@@ -3,6 +3,7 @@ global['NativePromise'] = global.Promise
 process.core_env = process.env as BotpressEnvironmentVariables
 
 // eslint-disable-next-line import/order
+import Logger from './utils/logger'
 import path from 'path'
 import yargs from 'yargs'
 
@@ -26,11 +27,18 @@ process.PROJECT_LOCATION = process.pkg
   ? path.dirname(process.execPath) // We point at the binary path
   : __dirname // e.g. /dist/..
 
+const exitLogger = Logger.sub('exit')
+
 yargs
   .command(
     ['nlu', '$0'],
     'Launch a local stand-alone nlu server',
     {
+      config: {
+        description: 'Path to your config file. If defined, rest of the CLI arguments are ignored.',
+        type: 'string',
+        alias: 'c'
+      },
       port: {
         description: 'The port to listen to',
         default: 3200
@@ -98,13 +106,18 @@ yargs
         type: 'boolean'
       },
       logFilter: {
-        description: 'Filter logs by namespace, ex: "training:svm,api". Does not apply to "Launcher" logger.',
-        default: ''
+        description:
+          'Filter logs by namespace, ex: "--log-filter training:svm api". Namespaces are space separated. Does not apply to "Launcher" logger.',
+        array: true,
+        type: 'string',
+        default: []
       }
     },
     (argv) => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      STAN(argv, version)
+      STAN(argv, version).catch((err) => {
+        exitLogger.attachError(err).critical('NLU Server exits after an error occured.')
+      })
     }
   )
   .command(
@@ -167,7 +180,9 @@ yargs
     },
     async (argv) => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      LANG(argv)
+      LANG(argv).catch((err) => {
+        exitLogger.attachError(err).critical('Language Server exits after an error occured.')
+      })
     }
   )
   .help().argv

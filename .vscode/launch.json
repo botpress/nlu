@@ -13,7 +13,7 @@
       "console": "integratedTerminal",
       "sourceMaps": true,
       "autoAttachChildProcesses": true,
-      "args": ["--doc=false"]
+      "args": ["--config=./config.json"]
     }
   ]
 }

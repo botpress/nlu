@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Botpress Standalone NLU Server. Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
@@ -13,6 +13,7 @@
     ]
   },
   "scripts": {
+    "postinstall": "yarn cmd config",
     "cmd": "yarn run gulp",
     "dev": "yarn workspace nlu dev",
     "start": "cross-env node ./packages/nlu/dist/index.js",
