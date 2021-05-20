@@ -1,4 +1,3 @@
-import cluster from 'cluster'
 import _ from 'lodash'
 import kmeans from 'ml-kmeans'
 import nanoid from 'nanoid'
@@ -26,29 +25,28 @@ const MLToolkit: typeof IMLToolkit = {
   SentencePiece: { createProcessor: processor }
 }
 
-if (cluster.isWorker) {
-  const workerPool = new MLThreadPool()
+const workerPool = new MLThreadPool()
 
-  MLToolkit.SVM.Trainer.prototype.train = function (
-    points: IMLToolkit.SVM.DataPoint[],
-    options?: IMLToolkit.SVM.SVMOptions,
-    progressCb?: IMLToolkit.SVM.TrainProgressCallback | undefined
-  ): any {
-    return new Promise(async (resolve, reject) => {
-      const id = nanoid()
-      await workerPool.startSvmTraining(id, points, options, progressCb, resolve, reject)
-    })
-  }
-
-  MLToolkit.CRF.Trainer.prototype.train = (
-    elements: IMLToolkit.CRF.DataPoint[],
-    params: IMLToolkit.CRF.TrainerOptions,
-    progressCb?: (iteration: number) => void
-  ): Promise<string> => {
-    return new Promise(async (resolve, reject) => {
-      const id = nanoid()
-      await workerPool.startCrfTraining(id, elements, params, progressCb, resolve, reject)
-    })
-  }
+MLToolkit.SVM.Trainer.prototype.train = function (
+  points: IMLToolkit.SVM.DataPoint[],
+  options?: IMLToolkit.SVM.SVMOptions,
+  progressCb?: IMLToolkit.SVM.TrainProgressCallback | undefined
+): any {
+  return new Promise(async (resolve, reject) => {
+    const id = nanoid()
+    await workerPool.startSvmTraining(id, points, options, progressCb, resolve, reject)
+  })
 }
+
+MLToolkit.CRF.Trainer.prototype.train = (
+  elements: IMLToolkit.CRF.DataPoint[],
+  params: IMLToolkit.CRF.TrainerOptions,
+  progressCb?: (iteration: number) => void
+): Promise<string> => {
+  return new Promise(async (resolve, reject) => {
+    const id = nanoid()
+    await workerPool.startCrfTraining(id, elements, params, progressCb, resolve, reject)
+  })
+}
+
 export default MLToolkit

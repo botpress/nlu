@@ -4,11 +4,10 @@ import _ from 'lodash'
 import path from 'path'
 import * as NLUEngine from '../engine'
 import Logger, { centerText } from '../utils/logger'
-import { LoggerLevel } from '../utils/logger/typings'
-import { copyDir } from '../utils/pkg-fs'
-import { Logger as ILogger } from '../utils/typings'
+import { LoggerLevel, ILogger } from '../utils/logger/typings'
 import API from './api'
 import { CommandLineOptions, getConfig, StanOptions } from './config'
+import { copyDir } from './copy-dir'
 import { displayDocumentation } from './documentation'
 
 const makeEngine = async (options: StanOptions, logger: ILogger) => {

@@ -1,38 +1,3 @@
-import Knex from 'knex'
-export interface KnexExtension {
-  isLite: boolean
-  location: string
-  createTableIfNotExists(tableName: string, cb: Knex.KnexCallback): Promise<boolean>
-  date: Knex.Date
-  bool: Knex.Bool
-  json: Knex.Json
-  binary: Knex.Binary
-  insertAndRetrieve<T>(
-    tableName: string,
-    data: {},
-    returnColumns?: string | string[],
-    idColumnName?: string,
-    trx?: Knex.Transaction
-  ): Promise<T>
-}
-
-export type KnexExtended = Knex & KnexExtension
-
-export interface Logger {
-  attachError(error: Error): this
-  debug(message: string, metadata?: any): void
-  info(message: string, metadata?: any): void
-  warn(message: string, metadata?: any): void
-  error(message: string, metadata?: any): void
-  critical(message: string, metadata?: any): void
-}
-
-export enum LogLevel {
-  PRODUCTION = 0,
-  DEV = 1,
-  DEBUG = 2
-}
-
 export interface DirectoryListingOptions {
   excludes?: string | string[]
   includeDotFiles?: boolean

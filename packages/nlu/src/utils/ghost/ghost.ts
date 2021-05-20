@@ -12,12 +12,13 @@ import replace from 'replace-in-file'
 import tmp from 'tmp'
 import { VError } from 'verror'
 
-import { DirectoryListingOptions, ListenHandle, Logger, UpsertOptions } from '../typings'
+import { ILogger } from '../logger/typings'
 import { FileRevision, PendingRevisions, ReplaceContent, ServerWidePendingRevisions, StorageDriver } from '.'
 import { DBStorageDriver } from './db-driver'
 import { DiskStorageDriver } from './disk-driver'
 import { ObjectCache } from './memory-cache'
 import { createArchive, filterByGlobs, forceForwardSlashes, sanitize } from './misc'
+import { DirectoryListingOptions, ListenHandle, UpsertOptions } from './typings'
 
 export const BOTID_REGEX = /^[A-Z0-9]+[A-Z0-9_-]{1,}[A-Z0-9]+$/i
 
@@ -62,7 +63,7 @@ export class GhostService {
     private diskDriver: DiskStorageDriver,
     private dbDriver: DBStorageDriver,
     private cache: ObjectCache,
-    private logger: Logger
+    private logger: ILogger
   ) {
     this.cache.events.on && this.cache.events.on('syncDbFilesToDisk', this._onSyncReceived)
   }
