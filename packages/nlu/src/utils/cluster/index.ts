@@ -1,7 +1,5 @@
 import cluster, { Worker } from 'cluster'
 import _ from 'lodash'
-import nanoid from 'nanoid/generate'
-import yn from 'yn'
 import { LanguageConfig } from '../../engine'
 import Logger from '../logger'
 import { Logger as ILogger } from '../typings'
@@ -21,9 +19,6 @@ export interface StartLocalActionServerMessage {
 
 const msgHandlers: { [messageType: string]: (message: any, worker: cluster.Worker) => void } = {}
 
-const maxServerReebots = process.env.BP_MAX_SERVER_REBOOT || 2
-let webServerRebootCount = 0
-
 /**
  * The master process handles training and rebooting the server.
  * The worker process runs the actual server
@@ -36,8 +31,6 @@ export const registerMsgHandler = (messageType: string, handler: (message: any, 
 }
 
 export const setupMasterNode = (logger: ILogger) => {
-  process.SERVER_ID = process.env.SERVER_ID || nanoid('1234567890abcdefghijklmnopqrstuvwxyz', 10)
-
   // Fix an issue with pkg when passing custom options for v8
   cluster.setupMaster({ execArgv: process.pkg ? [] : process.execArgv })
 
@@ -60,26 +53,8 @@ export const setupMasterNode = (logger: ILogger) => {
       return
     }
 
-    // TODO: the debug instance has no access to the debug config. It is in the web process.
     logger.debug('Process exiting %o', { workerId: id, code, signal, exitedAfterDisconnect })
-    // Reset the counter when the reboot was intended
-    if (exitedAfterDisconnect) {
-      webServerRebootCount = 0
-      // Clean exit
-    } else if (code === 0) {
-      process.exit(0)
-    }
-
-    if (!yn(process.env.BP_DISABLE_AUTO_RESTART)) {
-      if (webServerRebootCount >= maxServerReebots) {
-        logger.error(
-          `Exceeded the maximum number of automatic server reboot (${maxServerReebots}). Set the "BP_MAX_SERVER_REBOOT" environment variable to change that`
-        )
-        process.exit(0)
-      }
-      spawnWebWorker()
-      webServerRebootCount++
-    }
+    process.exit(code)
   })
 
   cluster.on('message', (worker: cluster.Worker, message: any) => {
@@ -104,7 +79,6 @@ export const setupMasterNode = (logger: ILogger) => {
 
 function spawnWebWorker() {
   const { id } = cluster.fork({
-    SERVER_ID: process.SERVER_ID,
     WORKER_TYPE: WORKER_TYPES.WEB
   })
   process.WEB_WORKER = id
@@ -118,14 +92,9 @@ export async function spawnNewTrainingWorker(config: LanguageConfig, requestId: 
   const worker = cluster.fork({
     WORKER_TYPE: WORKER_TYPES.TRAINING,
     NLU_CONFIG: JSON.stringify(config),
-    REQUEST_ID: requestId,
-    BP_FAILSAFE: false // training workers are allowed to fail and exit
+    REQUEST_ID: requestId
   })
   const workerId = worker.id
   process.TRAINING_WORKERS.push(workerId)
   return new Promise((resolve) => worker.on('online', () => resolve(workerId)))
-}
-
-export const startLocalActionServer = (message: StartLocalActionServerMessage) => {
-  process.send!({ type: MESSAGE_TYPE_START_LOCAL_ACTION_SERVER, ...message })
 }

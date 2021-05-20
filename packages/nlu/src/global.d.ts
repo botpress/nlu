@@ -8,9 +8,7 @@ declare namespace NodeJS {
     PROXY?: string
     PROJECT_LOCATION: string
     pkg: any
-    core_env: BotpressEnvironmentVariables
     /** A random ID generated on server start to identify each server in a cluster */
-    SERVER_ID: string
     WEB_WORKER: number
     TRAINING_WORKERS: number[]
   }
