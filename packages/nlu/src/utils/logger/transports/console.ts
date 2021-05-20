@@ -15,13 +15,21 @@ export const conforms = (namespace: string, rule: string, delimiter: string) => 
 export class ConsoleTransport implements LogTransporter {
   send(config: LoggerConfig, entry: FormattedLogEntry) {
     if (entry.level <= config.level) {
+      if (!config.filters.length) {
+        this._log(entry.formatted)
+      }
+
       for (const rule of config.filters) {
         if (conforms(entry.namespace, rule, config.namespaceDelimiter)) {
-          // eslint-disable-next-line no-console
-          console.log(entry.formatted)
+          this._log(entry.formatted)
           break
         }
       }
     }
+  }
+
+  private _log(msg: string) {
+    // eslint-disable-next-line no-console
+    console.log(msg)
   }
 }

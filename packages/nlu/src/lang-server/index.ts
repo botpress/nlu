@@ -21,13 +21,13 @@ export interface ArgV {
   dim: number
   domain: string
   verbose: number
-  logFilter: string
+  logFilter: string[]
 }
 
 export default async function (options: ArgV) {
   Logger.configure({
     level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
-    filters: options.logFilter.split(',')
+    filters: options.logFilter
   })
 
   options.langDir = options.langDir || path.join(process.APP_DATA_PATH, 'embeddings')
