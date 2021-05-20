@@ -15,5 +15,5 @@ export function getAppDataPath() {
     chalk.red(`Could not determine your HOME directory.
   Please set the environment variable "APP_DATA_PATH", then start Botpress`)
   )
-  process.exit()
+  process.exit(1)
 }

@@ -6,13 +6,8 @@ import yargs from 'yargs'
 // @ts-ignore
 import { version } from '../package.json'
 
-import { getAppDataPath } from './app-data'
-
-if (process.env.APP_DATA_PATH) {
-  process.APP_DATA_PATH = process.env.APP_DATA_PATH
-} else {
-  process.APP_DATA_PATH = getAppDataPath()
-}
+// eslint-disable-next-line import/order
+import './utils/worker-before'
 
 import LANG from './lang-server'
 import STAN from './stan'

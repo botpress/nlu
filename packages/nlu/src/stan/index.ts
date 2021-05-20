@@ -1,11 +1,8 @@
-// eslint-disable-next-line import/order
 import bytes from 'bytes'
 import chalk from 'chalk'
-import cluster from 'cluster'
 import _ from 'lodash'
 import path from 'path'
 import * as NLUEngine from '../engine'
-import { setupMasterNode, WORKER_TYPES } from '../utils/cluster'
 import Logger, { centerText } from '../utils/logger'
 import { LoggerLevel } from '../utils/logger/typings'
 import { copyDir } from '../utils/pkg-fs'
@@ -59,13 +56,6 @@ export default async function (cliOptions: CommandLineOptions, version: string) 
     level: Math.max(options.verbose, LoggerLevel.Info),
     filters: ['']
   })
-
-  if (cluster.isMaster) {
-    setupMasterNode(launcherLogger)
-    return
-  } else if (cluster.isWorker && process.env.WORKER_TYPE !== WORKER_TYPES.WEB) {
-    return
-  }
 
   for (const dir of ['./pre-trained', './stop-words']) {
     // TODO: no need for copy to APP_DATA_PATH, just use original files
