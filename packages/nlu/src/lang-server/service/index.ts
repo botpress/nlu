@@ -12,7 +12,7 @@ import { VError } from 'verror'
 import toolkit from '../../ml/toolkit'
 import { MLToolkit } from '../../ml/typings'
 import Logger from '../../utils/logger'
-import { ILogger as ILogger } from '../../utils/logger/typings'
+import { ILogger } from '../../utils/logger/typings'
 
 import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet } from './typing'
 
