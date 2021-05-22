@@ -1,10 +1,9 @@
-import { ChildProcess, fork } from 'child_process'
 import _ from 'lodash'
-import path from 'path'
 
 import { deserializeError } from '../error-utils'
 import { TaskAlreadyStartedError, TaskCanceledError, TaskExitedUnexpectedlyError } from '../errors'
-import { FullLogger } from '../typings'
+import { SIG_KILL } from '../signals'
+import { FullLogger, WorkerPool as IWorkerPool } from '../typings'
 
 import {
   AllIncomingMessages,
@@ -16,68 +15,49 @@ import {
   isWorkerReady,
   OutgoingMessage
 } from './communication'
+import { Scheduler } from './scheduler'
+import { Worker } from './worker'
 
-const SIG_KILL = 'SIGKILL'
-
-interface Options {
+export interface Options {
   entryPoint: string
+  maxWorkers: number
   env: _.Dictionary<string>
 }
 
-export class ProcessPool<I = {}, O = {}> {
-  private readyWorkers: ChildProcess[] = []
-  private activeWorkers: { [taskId: string]: ChildProcess } = {}
+export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
+  protected _scheduler = new Scheduler(() => this._createNewWorker(), { maxItems: -1 })
 
   constructor(private logger: FullLogger, private config: Options) {}
 
-  public async cancel(taskId: string): Promise<void> {
-    const worker = this.activeWorkers[taskId]
-    if (!worker) {
-      return
-    }
-
-    worker.kill(SIG_KILL)
-
-    delete this.activeWorkers[taskId]
-    this.readyWorkers = this.readyWorkers.filter((w) => w.pid !== worker.pid) // just in case...
-  }
+  abstract createWorker: (entryPoint: string, env: _.Dictionary<string>) => Promise<Worker>
+  abstract isMainWorker: () => boolean
 
   public async run(taskId: string, input: I, progress: (x: number) => void): Promise<O> {
-    if (!!this.activeWorkers[taskId]) {
+    if (!this.isMainWorker()) {
+      throw new Error("Can't create a worker pool inside a child worker.")
+    }
+
+    if (this._scheduler.isActive(taskId)) {
       throw new TaskAlreadyStartedError(`Task ${taskId} already started`)
     }
 
-    if (!this.readyWorkers.length) {
-      const newWorker = await this._createNewWorker()
-      this.readyWorkers.push(newWorker)
-    }
-
-    const worker = this.readyWorkers.pop()!
-    this.activeWorkers[taskId] = worker
+    const worker = await this._scheduler.getNext(taskId)
 
     let output: O
     try {
       output = await this._startTask(worker, input, progress)
     } catch (err) {
       const isTrainingDead = err instanceof TaskCanceledError || err instanceof TaskExitedUnexpectedlyError
-      if (isTrainingDead) {
-        delete this.activeWorkers[taskId]
-      } else {
-        this._prepareForNextTraining(taskId)
+      if (!isTrainingDead) {
+        this._scheduler.releaseItem(taskId, worker)
       }
       throw err
     }
-    this._prepareForNextTraining(taskId)
+    this._scheduler.releaseItem(taskId, worker)
     return output
   }
 
-  private _prepareForNextTraining(trainSessionId: string) {
-    const worker = this.activeWorkers[trainSessionId]
-    this.readyWorkers.unshift(worker)
-    delete this.activeWorkers[trainSessionId]
-  }
-
-  private async _startTask(worker: ChildProcess, input: I, progress: (x: number) => void): Promise<O> {
+  private async _startTask(worker: Worker, input: I, progress: (x: number) => void): Promise<O> {
     const msg: OutgoingMessage<'start_task', I> = {
       type: 'start_task',
       payload: { input }
@@ -120,7 +100,7 @@ export class ProcessPool<I = {}, O = {}> {
           reject(new TaskCanceledError())
           return
         }
-        reject(new TaskExitedUnexpectedlyError(worker.pid, { exitCode, signal }))
+        reject(new TaskExitedUnexpectedlyError(worker.wid, { exitCode, signal }))
         return
       }
 
@@ -130,14 +110,12 @@ export class ProcessPool<I = {}, O = {}> {
       }
 
       addHandlers()
-      worker.send(msg)
+      worker.message(msg)
     })
   }
 
-  private async _createNewWorker(): Promise<ChildProcess> {
-    const worker = fork(this.config.entryPoint, [], {
-      env: { ...this.config.env }
-    })
+  private async _createNewWorker(): Promise<Worker> {
+    const worker = await this.createWorker(this.config.entryPoint, { ...this.config.env })
 
     return new Promise((resolve, reject) => {
       const removeHandlers = () => {
@@ -170,7 +148,7 @@ export class ProcessPool<I = {}, O = {}> {
 
       const exitHandler = (exitCode: number, signal: string) => {
         removeHandlers()
-        reject(new TaskExitedUnexpectedlyError(worker.pid, { exitCode, signal }))
+        reject(new TaskExitedUnexpectedlyError(worker.wid, { exitCode, signal }))
       }
 
       addHandlers()

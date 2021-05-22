@@ -1,4 +1,4 @@
-import { isTaskCanceled, isTaskAlreadyStarted, isTaskExitedUnexpectedlyError, ProcessPool } from '@botpress/worker'
+import { errors, makeProcessPool, ProcessPool } from '@botpress/worker'
 import _ from 'lodash'
 import path from 'path'
 import Logger from '../../../utils/logger'
@@ -15,7 +15,8 @@ export class TrainingProcessPool {
   private _processPool: ProcessPool<TrainInput, TrainOutput>
 
   constructor(config: LanguageConfig) {
-    this._processPool = new ProcessPool<TrainInput, TrainOutput>(logger, {
+    this._processPool = makeProcessPool<TrainInput, TrainOutput>(logger, {
+      maxWorkers: -1,
       entryPoint: path.resolve(__dirname, PROCESS_ENTRY_POINT),
       env: {
         ...process.env,
@@ -33,18 +34,15 @@ export class TrainingProcessPool {
       const output = await this._processPool.run(input.trainId, input, progress)
       return output
     } catch (err) {
-      if (isTaskCanceled(err)) {
+      if (errors.isTaskCanceled(err)) {
         throw new TrainingCanceled()
       }
-
-      if (isTaskAlreadyStarted(err)) {
+      if (errors.isTaskAlreadyStarted(err)) {
         throw new TrainingAlreadyStarted()
       }
-
-      if (isTaskExitedUnexpectedlyError(err)) {
+      if (errors.isTaskExitedUnexpectedly(err)) {
         throw new TrainingExitedUnexpectedly(err.pid, err.info)
       }
-
       throw err
     }
   }

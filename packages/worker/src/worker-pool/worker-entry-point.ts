@@ -1,20 +1,17 @@
-import { SmallLogger } from 'src/typings'
 import { serializeError } from '../error-utils'
+import { SmallLogger, TaskHandler, WorkerEntryPoint as IWorkerEntryPoint } from '../typings'
 import { AllOutgoingMessages, IncomingMessage, isStartTask } from './communication'
 
-export interface TaskDefinition<I> {
-  input: I
-  logger: SmallLogger // TODO use the actual logger implementation with a custom LogTransporter
-  progress: (p: number) => void
-}
-
-export type TaskHandler<I, O> = (def: TaskDefinition<I>) => Promise<O>
-
-export class TaskEntry<I = {}, O = {}> {
+export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> {
   private _handlers: TaskHandler<I, O>[] = []
 
-  // TODO: make sure you're in child process or throw
+  abstract isMainWorker: () => boolean
+
   public async initialize() {
+    if (this.isMainWorker()) {
+      throw new Error("Can't create a worker entry point inside the main worker.")
+    }
+
     const readyResponse: IncomingMessage<'worker_ready', O> = {
       type: 'worker_ready',
       payload: {}

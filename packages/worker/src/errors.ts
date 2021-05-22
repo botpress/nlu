@@ -15,10 +15,9 @@ export class TaskExitedUnexpectedlyError extends Error {
   constructor(pid: number, info: { exitCode: number; signal: string }) {
     const { exitCode, signal } = info
     super(`Process ${pid} exited with exit code ${exitCode} and signal ${signal}.`)
-
     ;(this.pid = pid), (this.info = info)
   }
 }
-export function isTaskExitedUnexpectedlyError(err: Error): err is TaskExitedUnexpectedlyError {
+export function isTaskExitedUnexpectedly(err: Error): err is TaskExitedUnexpectedlyError {
   return err instanceof TaskExitedUnexpectedlyError
 }
