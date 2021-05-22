@@ -1,84 +1,30 @@
 import '../../../utils/worker-before'
-import { serializeError } from '../../../utils/error-utils'
-import { Logger as ILogger } from '../../typings'
+import { TaskEntry, TaskDefinition } from '@botpress/worker'
 import { initializeTools } from '../initialize-tools'
-import { Trainer } from '../training-pipeline'
-import { Tools } from '../typings'
-import { AllOutgoingMessages, IncomingMessage, isStartTraining } from './communication'
+import { Trainer, TrainInput, TrainOutput } from '../training-pipeline'
 
-const config = JSON.parse(process.env.NLU_CONFIG!)
-const requestId = process.env.REQUEST_ID!
-const processId = process.pid
+const main = async () => {
+  const config = JSON.parse(process.env.NLU_CONFIG!)
+  const processId = process.pid
 
-const loggerWrapper: ILogger = {
-  debug: (msg: string) => {
-    const response: IncomingMessage<'log'> = {
-      type: 'log',
-      payload: { log: { debug: msg }, requestId }
-    }
-    process.send!(response)
-  },
-  info: (msg: string) => {
-    const response: IncomingMessage<'log'> = {
-      type: 'log',
-      payload: { log: { info: msg }, requestId }
-    }
-    process.send!(response)
-  },
-  warning: (msg: string, err?: Error) => {
-    const warning = `${msg} ${serializeError(err)}`
-    const response: IncomingMessage<'log'> = {
-      type: 'log',
-      payload: { log: { warning }, requestId }
-    }
-    process.send!(response)
-  },
-  error: (msg: string, err?: Error) => {
-    const error = `${msg} ${serializeError(err)}`
-    const response: IncomingMessage<'log'> = { type: 'log', payload: { log: { error }, requestId } }
-    process.send!(response)
-  }
-}
-loggerWrapper.info(`Training worker successfully started on process with pid ${processId}.`)
+  const taskEntry = new TaskEntry<TrainInput, TrainOutput>()
+  taskEntry.logger.info(`Training worker successfully started on process with pid ${processId}.`)
 
-const msgHandler = (tools: Tools) => async (msg: AllOutgoingMessages) => {
-  if (isStartTraining(msg)) {
-    const { input } = msg.payload
+  const tools = await initializeTools(config, taskEntry.logger)
 
-    const progressCb = (progress: number) => {
-      const res: IncomingMessage<'training_progress'> = {
-        type: 'training_progress',
-        payload: { progress }
-      }
-      process.send!(res)
-    }
+  taskEntry.listenForTask(async (taskDef: TaskDefinition<TrainInput>) => {
+    const { input, logger, progress } = taskDef
 
     tools.seededLodashProvider.setSeed(input.nluSeed)
 
     try {
-      const output = await Trainer(input, { ...tools, logger: loggerWrapper }, progressCb)
-      // TODO: send multiple packet when output is to big
-      const res: IncomingMessage<'training_done'> = { type: 'training_done', payload: { output } }
-      process.send!(res)
-    } catch (err) {
-      const res: IncomingMessage<'training_error'> = {
-        type: 'training_error',
-        payload: { error: serializeError(err) }
-      }
-      process.send!(res)
+      const output = await Trainer(input, { ...tools, logger }, progress)
+      return output
     } finally {
       tools.seededLodashProvider.resetSeed()
     }
-  }
-}
+  })
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-initializeTools(config, loggerWrapper)
-  .then((tools) => {
-    process.on('message', msgHandler(tools))
-    const res: IncomingMessage<'worker_ready'> = { type: 'worker_ready', payload: { requestId } }
-    process.send!(res)
-  })
-  .catch((err) => {
-    loggerWrapper.error('The following error occured during initialization of tools', err)
-  })
+  await taskEntry.initialize()
+}
+void main()
