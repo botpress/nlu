@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { deserializeError } from '../error-utils'
 import { TaskAlreadyStartedError, TaskCanceledError, TaskExitedUnexpectedlyError } from '../errors'
 import { SIG_KILL } from '../signals'
-import { FullLogger, WorkerPool as IWorkerPool } from '../typings'
+import { FullLogger, PoolOptions, WorkerPool as IWorkerPool } from '../typings'
 
 import {
   AllIncomingMessages,
@@ -18,18 +18,12 @@ import {
 import { Scheduler } from './scheduler'
 import { Worker } from './worker'
 
-export interface Options {
-  entryPoint: string
-  maxWorkers: number
-  env: _.Dictionary<string>
-}
-
 export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
   protected _scheduler = new Scheduler(() => this._createNewWorker(), { maxItems: -1 })
 
-  constructor(private logger: FullLogger, private config: Options) {}
+  constructor(private logger: FullLogger, private config: PoolOptions) {}
 
-  abstract createWorker: (entryPoint: string, env: _.Dictionary<string>) => Promise<Worker>
+  abstract createWorker: (entryPoint: string, env: NodeJS.ProcessEnv) => Promise<Worker>
   abstract isMainWorker: () => boolean
 
   public async run(taskId: string, input: I, progress: (x: number) => void): Promise<O> {
@@ -100,7 +94,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
           reject(new TaskCanceledError())
           return
         }
-        reject(new TaskExitedUnexpectedlyError(worker.wid, { exitCode, signal }))
+        reject(new TaskExitedUnexpectedlyError(worker, { exitCode, signal }))
         return
       }
 
@@ -148,7 +142,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
 
       const exitHandler = (exitCode: number, signal: string) => {
         removeHandlers()
-        reject(new TaskExitedUnexpectedlyError(worker.wid, { exitCode, signal }))
+        reject(new TaskExitedUnexpectedlyError(worker, { exitCode, signal }))
       }
 
       addHandlers()

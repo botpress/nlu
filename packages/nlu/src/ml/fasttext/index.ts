@@ -1,7 +1,7 @@
 import { makeClassifier, makeQuery, Options, Query } from '@botpress/node-fasttext'
 import Bluebird from 'bluebird'
 import { VError } from 'verror'
-import { MLToolkit } from './typings'
+import { MLToolkit } from '../typings'
 
 const FAST_TEXT_VERBOSITY = parseInt(process.env.FAST_TEXT_VERBOSITY || '0')
 const FAST_TEXT_CLEANUP_MS = parseInt(process.env.FAST_TEXT_CLEANUP_MS || '60000') // 60s caching by default

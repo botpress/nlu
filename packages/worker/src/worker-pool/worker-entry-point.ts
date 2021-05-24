@@ -6,6 +6,8 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
   private _handlers: TaskHandler<I, O>[] = []
 
   abstract isMainWorker: () => boolean
+  abstract messageMain: (msg: any) => void
+  abstract listenMain: (event: 'message', l: (msg: any) => void) => void
 
   public async initialize() {
     if (this.isMainWorker()) {
@@ -16,7 +18,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
       type: 'worker_ready',
       payload: {}
     }
-    process.send!(readyResponse)
+    this.messageMain(readyResponse)
 
     const messageHandler = async (msg: AllOutgoingMessages<I>) => {
       if (isStartTask(msg)) {
@@ -25,7 +27,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
         }
       }
     }
-    process.on('message', messageHandler)
+    this.listenMain('message', messageHandler)
   }
 
   public listenForTask(handler: TaskHandler<I, O>) {
@@ -39,7 +41,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
           type: 'task_progress',
           payload: { progress: p }
         }
-        process.send!(progressResponse)
+        this.messageMain(progressResponse)
       }
 
       const output: O = await handler({
@@ -54,7 +56,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
           output
         }
       }
-      process.send!(doneResponse)
+      this.messageMain(doneResponse)
     } catch (err) {
       const errorResponse: IncomingMessage<'task_error', O> = {
         type: 'task_error',
@@ -62,7 +64,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
           error: serializeError(err)
         }
       }
-      process.send!(errorResponse)
+      this.messageMain(errorResponse)
     }
   }
 
@@ -72,14 +74,14 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
         type: 'log',
         payload: { log: { debug: msg } }
       }
-      process.send!(response)
+      this.messageMain(response)
     },
     info: (msg: string) => {
       const response: IncomingMessage<'log', O> = {
         type: 'log',
         payload: { log: { info: msg } }
       }
-      process.send!(response)
+      this.messageMain(response)
     },
     warning: (msg: string, err?: Error) => {
       const warning = `${msg} ${serializeError(err)}`
@@ -87,12 +89,12 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
         type: 'log',
         payload: { log: { warning } }
       }
-      process.send!(response)
+      this.messageMain(response)
     },
     error: (msg: string, err?: Error) => {
       const error = `${msg} ${serializeError(err)}`
       const response: IncomingMessage<'log', O> = { type: 'log', payload: { log: { error } } }
-      process.send!(response)
+      this.messageMain(response)
     }
   }
 }

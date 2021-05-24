@@ -2,7 +2,7 @@ import assert from 'assert'
 import _ from 'lodash'
 import numeric from 'numeric'
 
-import BaseSVM from '../addon'
+import BaseSVM from '../base-svm'
 import { defaultParameters } from '../config'
 import { Data, SvmConfig } from '../typings'
 

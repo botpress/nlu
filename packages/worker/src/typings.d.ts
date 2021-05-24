@@ -28,33 +28,30 @@ export const errors: {
   isTaskExitedUnexpectedly: (err: Error) => boolean
 }
 
-/**
- * #############
- * ### Pools ###
- * #############
- */
+export interface PoolOptions {
+  entryPoint: string
+  maxWorkers: number
+  env: NodeJS.ProcessEnv
+}
+
 export interface WorkerPool<I, O> {
   run(taskId: string, input: I, progress: (x: number) => void): Promise<O>
 }
-export interface ThreadPool<I, O> extends WorkerPool<I, O> {}
-export interface ProcessPool<I, O> extends WorkerPool<I, O> {
-  cancel(id: string)
-}
 
-/**
- * ###############
- * ### Entries ###
- * ###############
- */
 export interface WorkerEntryPoint<I, O> {
   initialize(): Promise<void>
   listenForTask(handler: TaskHandler<I, O>): void
   logger: SmallLogger
 }
+export interface ProcessPool<I, O> extends WorkerPool<I, O> {
+  cancel(id: string)
+}
 export interface ProcessEntyPoint<I, O> extends WorkerEntryPoint<I, O> {}
-export interface ThreadEntyPoint<I, O> extends IWorkerEntryPoint<I, O> {}
 
-export const makeProcessPool: <I, O>(logger: FullLogger, config: Options) => ProcessPool<I, O>
+export interface ThreadPool<I, O> extends WorkerPool<I, O> {}
+export interface ThreadEntyPoint<I, O> extends WorkerEntryPoint<I, O> {}
+
+export const makeProcessPool: <I, O>(logger: FullLogger, config: PoolOptions) => ProcessPool<I, O>
 export const makeProcessEntryPoint: <I, O>() => ProcessEntyPoint<I, O>
-export const makeThreadPool: <I, O>(logger: FullLogger, config: Options) => ThreadPool<I, O>
+export const makeThreadPool: <I, O>(logger: FullLogger, config: PoolOptions) => ThreadPool<I, O>
 export const makeThreadEntryPoint: <I, O>() => ThreadEntyPoint<I, O>
