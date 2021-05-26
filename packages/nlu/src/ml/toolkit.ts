@@ -1,12 +1,12 @@
 import _ from 'lodash'
 import kmeans from 'ml-kmeans'
-import nanoid from 'nanoid'
 
-import { Tagger, Trainer as CRFTrainer } from './crf'
+import { Tagger } from './crf'
+import { MultiThreadTrainer as CRFMultiThreadTrainer } from './crf/multi-thread-trainer'
 import { FastTextModel } from './fasttext'
-import { MLThreadPool } from './ml-thread-pool'
 import { processor } from './sentencepiece'
-import { Predictor, Trainer as SVMTrainer } from './svm'
+import { Predictor } from './svm'
+import { MultiThreadTrainer as SVMMultiThreadTrainer } from './svm/multi-thread-trainer'
 import { MLToolkit as IMLToolkit } from './typings'
 
 const MLToolkit: typeof IMLToolkit = {
@@ -15,38 +15,14 @@ const MLToolkit: typeof IMLToolkit = {
   },
   CRF: {
     Tagger,
-    Trainer: CRFTrainer
+    Trainer: CRFMultiThreadTrainer
   },
   SVM: {
     Predictor,
-    Trainer: SVMTrainer
+    Trainer: SVMMultiThreadTrainer
   },
   FastText: { Model: FastTextModel },
   SentencePiece: { createProcessor: processor }
-}
-
-const workerPool = new MLThreadPool()
-
-MLToolkit.SVM.Trainer.prototype.train = function (
-  points: IMLToolkit.SVM.DataPoint[],
-  options?: IMLToolkit.SVM.SVMOptions,
-  progressCb?: IMLToolkit.SVM.TrainProgressCallback | undefined
-): any {
-  return new Promise(async (resolve, reject) => {
-    const id = nanoid()
-    await workerPool.startSvmTraining(id, points, options, progressCb, resolve, reject)
-  })
-}
-
-MLToolkit.CRF.Trainer.prototype.train = (
-  elements: IMLToolkit.CRF.DataPoint[],
-  params: IMLToolkit.CRF.TrainerOptions,
-  progressCb?: (iteration: number) => void
-): Promise<string> => {
-  return new Promise(async (resolve, reject) => {
-    const id = nanoid()
-    await workerPool.startCrfTraining(id, elements, params, progressCb, resolve, reject)
-  })
 }
 
 export default MLToolkit

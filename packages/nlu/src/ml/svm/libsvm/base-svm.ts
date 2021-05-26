@@ -3,7 +3,7 @@ import assert from 'assert'
 import _ from 'lodash'
 import numeric from 'numeric'
 
-import { Data } from '../typings'
+import { Data } from './typings'
 
 export default class BaseSVM {
   private _clf: NSVM | undefined
