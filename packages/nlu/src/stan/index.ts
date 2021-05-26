@@ -1,17 +1,13 @@
-// eslint-disable-next-line import/order
 import bytes from 'bytes'
 import chalk from 'chalk'
-import cluster from 'cluster'
 import _ from 'lodash'
 import path from 'path'
 import * as NLUEngine from '../engine'
-import { setupMasterNode, WORKER_TYPES } from '../utils/cluster'
 import Logger, { centerText } from '../utils/logger'
-import { LoggerLevel } from '../utils/logger/typings'
-import { copyDir } from '../utils/pkg-fs'
-import { Logger as ILogger } from '../utils/typings'
+import { LoggerLevel, ILogger } from '../utils/logger/typings'
 import API from './api'
 import { CommandLineOptions, getConfig, StanOptions } from './config'
+import { copyDir } from './copy-dir'
 import { displayDocumentation } from './documentation'
 
 const makeEngine = async (options: StanOptions, logger: ILogger) => {
@@ -60,13 +56,6 @@ export default async function (cliOptions: CommandLineOptions, version: string) 
     filters: ['']
   })
 
-  if (cluster.isMaster) {
-    setupMasterNode(launcherLogger)
-    return
-  } else if (cluster.isWorker && process.env.WORKER_TYPE !== WORKER_TYPES.WEB) {
-    return
-  }
-
   for (const dir of ['./pre-trained', './stop-words']) {
     // TODO: no need for copy to APP_DATA_PATH, just use original files
     const srcPath = path.resolve(__dirname, '../../assets', dir)
@@ -76,13 +65,6 @@ export default async function (cliOptions: CommandLineOptions, version: string) 
 
   if (!bytes(options.bodySize)) {
     throw new Error(`Specified body-size "${options.bodySize}" has an invalid format.`)
-  }
-
-  global.printLog = (args) => {
-    const message = args[0]
-    const rest = args.slice(1)
-
-    launcherLogger.debug(message.trim(), rest)
   }
 
   launcherLogger.debug('NLU Server Options %o', options)

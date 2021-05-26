@@ -16,7 +16,7 @@ import {
   MemoryObjectCache
 } from '../utils/ghost'
 import Logger from '../utils/logger'
-import { Logger as ILogger } from '../utils/typings'
+import { ILogger } from '../utils/logger/typings'
 
 interface FSDriver {
   driver: 'fs'

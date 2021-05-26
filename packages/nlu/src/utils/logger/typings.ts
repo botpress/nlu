@@ -1,3 +1,12 @@
+export interface ILogger {
+  attachError(error: Error): this
+  debug(message: string, metadata?: any): void
+  info(message: string, metadata?: any): void
+  warn(message: string, metadata?: any): void
+  error(message: string, metadata?: any): void
+  critical(message: string, metadata?: any): void
+}
+
 export enum LoggerLevel {
   Critical = 0,
   Error = 1,

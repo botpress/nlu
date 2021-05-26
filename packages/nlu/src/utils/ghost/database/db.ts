@@ -3,10 +3,11 @@ import { mkdirpSync } from 'fs-extra'
 import Knex from 'knex'
 import _ from 'lodash'
 import path from 'path'
-import { KnexExtended, Logger } from '../../typings'
+import { ILogger } from '../../logger/typings'
 import { patchKnex } from './helpers'
 
 import AllTables, { Table } from './tables'
+import { KnexExtended } from './typings'
 
 export type DatabaseType = 'postgres' | 'sqlite'
 
@@ -15,7 +16,7 @@ export class Database {
 
   private tables: Table[] = []
 
-  public constructor(private logger: Logger) {}
+  public constructor(private logger: ILogger) {}
 
   async bootstrap() {
     await Bluebird.mapSeries(AllTables, async (Tbl) => {

@@ -1,5 +1,5 @@
 import Knex from 'knex'
-import { KnexExtended } from '../../typings'
+import { KnexExtended } from './typings'
 
 export abstract class Table {
   constructor(public knex: KnexExtended) {}
