@@ -1,9 +1,13 @@
 import { makeTestUtterance } from '../test-utils/fake-utterance'
 
 import { EntityExtractionResult, ListEntityModel } from '../typings'
+import Utterance from '../utterance/utterance'
 import { parseUtterance } from '../utterance/utterance-parser'
 
-import { extractListEntities } from './custom-entity-extractor'
+import { CustomEntityExtractor } from './custom-extractor/index'
+
+const extractor = new CustomEntityExtractor()
+const extractListEntities = (utt: Utterance, models: ListEntityModel[]) => extractor.extractListEntities(utt, models)
 
 const FuzzyTolerance = {
   Loose: 0.65,

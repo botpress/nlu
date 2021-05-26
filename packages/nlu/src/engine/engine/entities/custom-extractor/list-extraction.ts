@@ -1,8 +1,7 @@
 import _ from 'lodash'
-import { extractPattern } from '../tools/patterns-utils'
-import { jaroWinklerSimilarity, levenshteinSimilarity } from '../tools/strings'
-import { EntityExtractionResult, ListEntityModel, PatternEntity, WarmedListEntityModel } from '../typings'
-import Utterance, { UtteranceToken } from '../utterance/utterance'
+import { jaroWinklerSimilarity, levenshteinSimilarity } from '../../tools/strings'
+import { EntityExtractionResult, ListEntityModel } from '../../typings'
+import Utterance, { UtteranceToken } from '../../utterance/utterance'
 
 const ENTITY_SCORE_THRESHOLD = 0.6
 
@@ -72,25 +71,6 @@ function computeStructuralScore(a: string[], b: string[]): number {
   return Math.sqrt(final_charset_score * token_qty_score * token_size_score)
 }
 
-interface SplittedModels {
-  withCacheHit: WarmedListEntityModel[]
-  withCacheMiss: WarmedListEntityModel[]
-}
-
-function splitModelsByCacheHitOrMiss(listModels: WarmedListEntityModel[], cacheKey: string): SplittedModels {
-  return listModels.reduce(
-    ({ withCacheHit, withCacheMiss }, nextModel) => {
-      if (nextModel.cache.has(cacheKey)) {
-        withCacheHit.push(nextModel)
-      } else {
-        withCacheMiss.push(nextModel)
-      }
-      return { withCacheHit, withCacheMiss }
-    },
-    { withCacheHit: [], withCacheMiss: [] } as SplittedModels
-  )
-}
-
 interface Candidate {
   score: number
   canonical: string
@@ -101,7 +81,7 @@ interface Candidate {
   eliminated: boolean
 }
 
-function extractForListModel(utterance: Utterance, listModel: ListEntityModel): EntityExtractionResult[] {
+export function extractForListModel(utterance: Utterance, listModel: ListEntityModel): EntityExtractionResult[] {
   const candidates: Candidate[] = []
   let longestCandidate = 0
 
@@ -173,61 +153,4 @@ function extractForListModel(utterance: Utterance, listModel: ListEntityModel): 
       sensitive: listModel.sensitive,
       type: listModel.entityName
     })) as EntityExtractionResult[]
-}
-
-export const extractListEntities = (
-  utterance: Utterance,
-  list_entities: ListEntityModel[]
-): EntityExtractionResult[] => {
-  return _(list_entities)
-    .map((model) => extractForListModel(utterance, model))
-    .flatten()
-    .value()
-}
-
-export const extractListEntitiesWithCache = (
-  utterance: Utterance,
-  list_entities: WarmedListEntityModel[]
-): EntityExtractionResult[] => {
-  // no need to "keep-value" of entities as this function's purpose is precisly to extract entities before tagging them in the utterance.
-  const cacheKey = utterance.toString({ lowerCase: true })
-  const { withCacheHit, withCacheMiss } = splitModelsByCacheHitOrMiss(list_entities, cacheKey)
-
-  const cachedMatches: EntityExtractionResult[] = _.flatMap(withCacheHit, (listModel) => listModel.cache.get(cacheKey)!)
-
-  const extractedMatches: EntityExtractionResult[] = _(withCacheMiss)
-    .map((model) => {
-      const extractions = extractForListModel(utterance, model)
-      model.cache.set(cacheKey, extractions)
-      return extractions
-    })
-    .flatten()
-    .value()
-
-  return [...cachedMatches, ...extractedMatches]
-}
-
-export const extractPatternEntities = (
-  utterance: Utterance,
-  pattern_entities: PatternEntity[]
-): EntityExtractionResult[] => {
-  const input = utterance.toString()
-  // taken from pattern_extractor
-  return _.flatMap(pattern_entities, (ent) => {
-    const regex = new RegExp(ent.pattern!, ent.matchCase ? '' : 'i')
-
-    return extractPattern(input, regex, []).map((res) => ({
-      confidence: 1,
-      start: Math.max(0, res.sourceIndex),
-      end: Math.min(input.length, res.sourceIndex + res.value.length),
-      value: res.value,
-      metadata: {
-        extractor: 'pattern',
-        source: res.value,
-        entityId: `custom.pattern.${ent.name}`
-      },
-      sensitive: ent.sensitive,
-      type: ent.name
-    }))
-  })
 }

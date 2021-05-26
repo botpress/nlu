@@ -10,7 +10,7 @@ import {
   PredictOutput
 } from '../../typings_v1'
 
-import { extractListEntities, extractPatternEntities } from './entities/custom-entity-extractor'
+import { CustomEntityExtractor } from './entities/custom-extractor'
 import { IntentPrediction, IntentPredictions, NoneableIntentPredictions } from './intents/intent-classifier'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
@@ -98,10 +98,11 @@ async function makePredictionUtterance(input: InitialStep, predictors: Predictor
 async function extractEntities(input: PredictStep, predictors: Predictors, tools: Tools): Promise<PredictStep> {
   const { utterance } = input
 
+  const customEntityExtractor = new CustomEntityExtractor()
   _.forEach(
     [
-      ...extractListEntities(utterance, predictors.list_entities),
-      ...extractPatternEntities(utterance, predictors.pattern_entities),
+      ...customEntityExtractor.extractListEntities(utterance, predictors.list_entities),
+      ...customEntityExtractor.extractPatternEntities(utterance, predictors.pattern_entities),
       ...(await tools.systemEntityExtractor.extract(utterance.toString(), utterance.languageCode))
     ],
     (entityRes) => {

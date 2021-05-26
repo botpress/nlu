@@ -30,10 +30,12 @@ describe('Duckling Extract Multiple', () => {
     unlinkSync(testCachePath)
   })
 
+  const dummyProgress = (p: number) => {}
+
   test('When disabled returns empty array for each input', async () => {
     duck.disable()
     const examples = ['this is one', 'this is two']
-    const res = await duck.extractMultiple(examples, 'en')
+    const res = await duck.extractMultiple(examples, 'en', dummyProgress)
     expect(mockedFetch).not.toHaveBeenCalled()
     res.forEach((r) => {
       expect(r).toEqual([])
@@ -43,21 +45,21 @@ describe('Duckling Extract Multiple', () => {
   test('calls extract with join char', async () => {
     const examples = ['this is one', 'this is two']
     mockedFetch.mockResolvedValue([])
-    await duck.extractMultiple(examples, 'en')
+    await duck.extractMultiple(examples, 'en', dummyProgress)
     expect(mockedFetch.mock.calls[0][0]).toContain(JOIN_CHAR)
   })
 
   test('returns as many results as n examples with single batch', async () => {
     mockedFetch.mockResolvedValue([])
     const examples = ['this is one', 'this is two', 'this is three']
-    const res = await duck.extractMultiple(examples, 'en')
+    const res = await duck.extractMultiple(examples, 'en', dummyProgress)
     expect(res.length).toEqual(examples.length)
   })
 
   test('returns as many results as n examples with multiple batches', async () => {
     mockedFetch.mockResolvedValue([])
     const examples = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '11', '12', '13', '14']
-    const res = await duck.extractMultiple(examples, 'en')
+    const res = await duck.extractMultiple(examples, 'en', dummyProgress)
     expect(res.length).toEqual(examples.length)
   })
 
@@ -74,7 +76,7 @@ describe('Duckling Extract Multiple', () => {
     ]
 
     mockedFetch.mockResolvedValueOnce(extractedEntities)
-    const res = await duck.extractMultiple(examples, 'en')
+    const res = await duck.extractMultiple(examples, 'en', dummyProgress)
     expect(res[0].length).toEqual(3)
     expect(res[0][0].start).toEqual(0)
     expect(res[0][0].end).toEqual(3)
@@ -92,8 +94,8 @@ describe('Duckling Extract Multiple', () => {
     const ex = 'one two three'
     mockedFetch.mockResolvedValue([])
 
-    await duck.extractMultiple([ex], 'en', false)
-    await duck.extractMultiple([ex], 'en', false)
+    await duck.extractMultiple([ex], 'en', dummyProgress, false)
+    await duck.extractMultiple([ex], 'en', dummyProgress, false)
 
     expect(mockedFetch).toHaveBeenCalledTimes(2)
     // make sure ex isn't removed from 2nd call
@@ -107,8 +109,13 @@ describe('Duckling Extract Multiple', () => {
     mockedFetch.mockResolvedValueOnce(cachedExRes)
     mockedFetch.mockResolvedValue([])
 
-    const firstCall = await duck.extractMultiple([cachedEx], 'en', true)
-    const secondCall = await duck.extractMultiple([cachedEx, 'nothing', 'nothing 2', cachedEx], 'en', true)
+    const firstCall = await duck.extractMultiple([cachedEx], 'en', dummyProgress, true)
+    const secondCall = await duck.extractMultiple(
+      [cachedEx, 'nothing', 'nothing 2', cachedEx],
+      'en',
+      dummyProgress,
+      true
+    )
 
     expect(firstCall[0]).toEqual(cachedExRes)
     expect(firstCall[0]).toEqual(secondCall[0])
