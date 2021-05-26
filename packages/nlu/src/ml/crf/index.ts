@@ -16,7 +16,7 @@ export class Trainer implements MLToolkit.CRF.Trainer {
   public async train(
     elements: MLToolkit.CRF.DataPoint[],
     options: MLToolkit.CRF.TrainerOptions,
-    progressCallback?: (iteration: number) => void
+    progressCallback: (iteration: number) => void
   ): Promise<string> {
     this.trainer.set_params(options)
 

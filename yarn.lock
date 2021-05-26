@@ -1513,6 +1513,13 @@
   dependencies:
     "@types/yargs-parser" "*"
 
+"@types/yn@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@types/yn/-/yn-3.1.0.tgz#02e522edc6f869db59326b12caaaa10db97dcc5e"
+  integrity sha512-Qs2tU/syFYlALjR3EoT+NcvpMwAd6voSiDxW+c8bhAN1WbzQUnRfWTmttORf4R1WqDUT+dvHKj+llupSxs0O/w==
+  dependencies:
+    yn "*"
+
 "@typescript-eslint/eslint-plugin@^4.22.0":
   version "4.22.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-4.22.0.tgz#3d5f29bb59e61a9dba1513d491b059e536e16dbc"
@@ -9140,6 +9147,11 @@ yargs@^7.1.0:
     which-module "^1.0.0"
     y18n "^3.2.1"
     yargs-parser "^5.0.1"
+
+yn@*, yn@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/yn/-/yn-4.0.0.tgz#611480051ea43b510da1dfdbe177ed159f00a979"
+  integrity sha512-huWiiCS4TxKc4SfgmTwW1K7JmXPPAmuXWYy4j9qjQo4+27Kni8mGhAAi1cloRWmBe2EqcLgt3IGqQoRL/MtPgg==
 
 yn@3.1.1:
   version "3.1.1"

@@ -117,7 +117,7 @@ export namespace MLToolkit {
 
     export class Trainer {
       constructor()
-      train(points: DataPoint[], options?: SVMOptions, callback?: TrainProgressCallback): Promise<string>
+      train(points: DataPoint[], options?: SVMOptions, callback: TrainProgressCallback): Promise<string>
       isTrained(): boolean
     }
 
@@ -153,7 +153,7 @@ export namespace MLToolkit {
 
     export class Trainer {
       initialize(): Promise<void>
-      train(elements: DataPoint[], options: TrainerOptions, progressCallback?: TrainProgressCallback): Promise<string>
+      train(elements: DataPoint[], options: TrainerOptions, progressCallback: TrainProgressCallback): Promise<string>
     }
   }
 

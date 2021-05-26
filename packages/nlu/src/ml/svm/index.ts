@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import { MLToolkit } from '../typings'
 
-import { getMinKFold } from './grid-search/split-dataset'
-import { SVM } from './svm'
-import { Data, KernelTypes, SvmModel, SvmParameters as Parameters, SvmTypes } from './typings'
+import { SVM } from './libsvm'
+import { getMinKFold } from './libsvm/grid-search/split-dataset'
+import { Data, KernelTypes, SvmModel, SvmParameters as Parameters, SvmTypes } from './libsvm/typings'
 
 type Serialized = SvmModel & {
   labels_idx: string[]
