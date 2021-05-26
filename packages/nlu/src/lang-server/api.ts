@@ -50,9 +50,9 @@ const createExpressApp = (options: APIOptions): Application => {
   app.use(monitoringMiddleware)
   app.use(handleUnexpectedError)
 
-  if (process.core_env.REVERSE_PROXY) {
-    const boolVal = yn(process.core_env.REVERSE_PROXY)
-    app.set('trust proxy', boolVal === null ? process.core_env.REVERSE_PROXY : boolVal)
+  if (process.env.REVERSE_PROXY) {
+    const boolVal = yn(process.env.REVERSE_PROXY)
+    app.set('trust proxy', boolVal === null ? process.env.REVERSE_PROXY : boolVal)
   }
 
   if (options.limit > 0) {

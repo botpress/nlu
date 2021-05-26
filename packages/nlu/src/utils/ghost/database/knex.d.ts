@@ -3,10 +3,6 @@ import 'knex'
 type OriginalDate = Date
 
 declare module 'knex' {
-  interface QueryBuilder {
-    // get(index?: number): ChainableInterface
-  }
-
   type ColumnOrDate = string | OriginalDate | Sql
 
   interface Date {

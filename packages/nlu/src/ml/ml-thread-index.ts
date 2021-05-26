@@ -1,9 +1,15 @@
-// eslint-disable-next-line import/order
-import '../worker-before'
+import { workerData, parentPort } from 'worker_threads'
+
+const processData = workerData?.processData
+if (processData) {
+  Object.assign(process, processData)
+}
+
+if (workerData?.processEnv) {
+  Object.assign(process.env, workerData.processEnv)
+}
 
 // eslint-disable-next-line import/order
-import { parentPort } from 'worker_threads'
-
 import { serializeError } from '../utils/error-utils'
 import { Trainer as CrfTrainer } from './crf'
 import { Message } from './ml-thread-pool'

@@ -53,10 +53,9 @@ const initializeLanguageProvider = async (
     return { languageProvider, health: getHealth() }
   } catch (e) {
     if (e.failure && e.failure.code === 'ECONNREFUSED') {
-      logger.error(`Language server can't be reached at address ${e.failure.address}:${e.failure.port}`)
-      if (!process.IS_FAILSAFE) {
-        process.exit()
-      }
+      const errMsg = `Language server can't be reached at address ${e.failure.address}:${e.failure.port}`
+      logger.error(errMsg)
+      throw new Error(errMsg)
     }
     throw e
   }

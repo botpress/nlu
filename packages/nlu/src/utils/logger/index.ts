@@ -1,8 +1,7 @@
 import _ from 'lodash'
-import { Logger as ILogger } from '../typings'
 import { ConsoleFormatter } from './formatters/console'
 import { ConsoleTransport } from './transports/console'
-import { LogEntry, LoggerConfig, LoggerLevel } from './typings'
+import { LogEntry, LoggerConfig, LoggerLevel, ILogger } from './typings'
 
 export const centerText = (text: string, width: number, indent: number = 0) => {
   const padding = Math.floor((width - text.length) / 2)

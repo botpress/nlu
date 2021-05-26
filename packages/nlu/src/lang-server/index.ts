@@ -39,13 +39,6 @@ export default async function (options: ArgV) {
     filters: ['']
   })
 
-  global.printLog = (args) => {
-    const message = args[0]
-    const rest = args.slice(1)
-
-    launcherLogger.debug(message.trim(), rest)
-  }
-
   launcherLogger.debug('Language Server Options %o', options)
 
   const langService = new LanguageService(options.dim, options.domain, options.langDir)

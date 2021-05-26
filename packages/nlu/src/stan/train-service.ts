@@ -2,14 +2,14 @@ import * as NLUEngine from '../engine'
 
 import { TrainingProgress, TrainingErrorType, TrainInput } from '../typings_v1'
 import { serializeError } from '../utils/error-utils'
-import { Logger } from '../utils/typings'
+import { ILogger } from '../utils/logger/typings'
 import { Credentials } from './http-typings'
 import { ModelRepository } from './model-repo'
 import TrainSessionService from './train-session-service'
 
 export default class TrainService {
   constructor(
-    private logger: Logger,
+    private logger: ILogger,
     private engine: NLUEngine.Engine,
     private modelRepo: ModelRepository,
     private trainSessionService: TrainSessionService

@@ -82,7 +82,7 @@
     "@types/lru-cache": "^5.1.0",
     "@types/mkdirp": "^1.0.1",
     "@types/ms": "^0.7.30",
-    "@types/node": "^10.10.3",
+    "@types/node": "^12.13.0",
     "@types/numeric": "^1.2.1",
     "@types/seedrandom": "^2.4.28",
     "@types/tmp": "^0.0.33",

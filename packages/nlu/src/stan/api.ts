@@ -68,8 +68,8 @@ const createExpressApp = (options: APIOptions): Application => {
 
   app.use(handleUnexpectedError)
 
-  if (process.core_env.REVERSE_PROXY) {
-    app.set('trust proxy', process.core_env.REVERSE_PROXY)
+  if (process.env.REVERSE_PROXY) {
+    app.set('trust proxy', process.env.REVERSE_PROXY)
   }
 
   if (options.limit > 0) {
