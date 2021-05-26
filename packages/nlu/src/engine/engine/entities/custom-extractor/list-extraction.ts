@@ -12,7 +12,7 @@ function takeUntil(
 ): SerializableUtteranceToken[] {
   let total = 0
   const result = _.takeWhile(arr.slice(start), (t) => {
-    const toAdd = t.toString().length
+    const toAdd = tokenToString(t).length
     const current = total
     if (current > 0 && Math.abs(desiredLength - current) < Math.abs(desiredLength - current - toAdd)) {
       // better off as-is
