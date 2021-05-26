@@ -72,7 +72,7 @@ export class MultiThreadCustomEntityExtractor extends CustomEntityExtractor {
 
     const cacheMissResults = await this._launchOnThreads(cacheMiss, progress)
     this._updateCache(utterances, list_entities, cacheMissResults)
-    return this._mapOutputs([...cacheHitResults, ...cacheMissResults])
+    return this._mapOutputs(utterances, [...cacheHitResults, ...cacheMissResults])
   }
 
   private async _launchOnThreads(units: TaskUnitInput[], progress: (p: number) => void) {
@@ -144,14 +144,19 @@ export class MultiThreadCustomEntityExtractor extends CustomEntityExtractor {
     }
   }
 
-  private _mapOutputs(outputs: TaskUnitOutput[]): EntityExtractionResult[][] {
-    return _(outputs)
+  private _mapOutputs(utterances: Utterance[], outputs: TaskUnitOutput[]): EntityExtractionResult[][] {
+    const entitiesPerIdx = _(outputs)
       .groupBy((o) => o.utt_idx)
       .mapValues((ox) => _.flatMap(ox, (o) => o.entities))
-      .toPairs()
-      .orderBy(([idx, e]) => Number(idx))
-      .map(([idx, e]) => e)
       .value()
+
+    return _.range(utterances.length).map((idx) => {
+      const entities = entitiesPerIdx[idx]
+      if (entities) {
+        return entities
+      }
+      return []
+    })
   }
 
   private _getCacheKey(utterance: Utterance) {
