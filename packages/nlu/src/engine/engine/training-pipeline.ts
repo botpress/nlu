@@ -4,7 +4,7 @@ import { MLToolkit } from '../../ml/typings'
 import { Logger } from '../typings'
 
 import { serializeKmeans } from './clustering'
-import { CustomEntityExtractor } from './entities/custom-extractor'
+import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/multi-thread-extractor'
 import { warmEntityCache } from './entities/entity-cache-manager'
 import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
@@ -268,7 +268,7 @@ async function ExtractEntities(input: TrainStep, tools: Tools, progress: progres
   tools.logger?.debug('Extracting list entities')
 
   step = 1
-  const customEntityExtractor = new CustomEntityExtractor()
+  const customEntityExtractor = new MultiThreadCustomEntityExtractor()
   const allListEntities = await customEntityExtractor.extractMultipleListEntities(
     utterances,
     input.list_entities,

@@ -3,6 +3,7 @@ import { extractPattern } from '../../tools/patterns-utils'
 import { EntityExtractionResult, ListEntityModel, PatternEntity, WarmedListEntityModel } from '../../typings'
 import Utterance from '../../utterance/utterance'
 import { extractForListModel } from './list-extraction'
+import { serializeUtteranceToken } from './serializable-token'
 
 interface SplittedModels {
   withCacheHit: WarmedListEntityModel[]
@@ -11,8 +12,9 @@ interface SplittedModels {
 
 export class CustomEntityExtractor {
   public extractListEntities(utterance: Utterance, list_entities: ListEntityModel[]): EntityExtractionResult[] {
+    const serializedTokens = utterance.tokens.map(serializeUtteranceToken)
     return _(list_entities)
-      .map((model) => extractForListModel(utterance, model))
+      .map((model) => extractForListModel(serializedTokens, model))
       .flatten()
       .value()
   }
@@ -80,7 +82,8 @@ export class CustomEntityExtractor {
 
     const extractedMatches: EntityExtractionResult[] = _(withCacheMiss)
       .map((model) => {
-        const extractions = extractForListModel(utterance, model)
+        const serializedTokens = utterance.tokens.map(serializeUtteranceToken)
+        const extractions = extractForListModel(serializedTokens, model)
         model.cache.set(cacheKey, extractions)
         return extractions
       })
