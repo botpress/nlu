@@ -32,7 +32,7 @@ export default async function (options: ArgV) {
 
   options.langDir = options.langDir || path.join(process.APP_DATA_PATH, 'embeddings')
 
-  const launcherLogger = Logger.sub('launcher')
+  const launcherLogger = Logger.sub('Launcher')
   // Launcher always display
   launcherLogger.configure({
     level: LoggerLevel.Info,
