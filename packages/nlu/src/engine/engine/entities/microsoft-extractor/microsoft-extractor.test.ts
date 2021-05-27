@@ -7,6 +7,8 @@ import { createSpyObject, MockObject } from '../../../../utils/mock-extra'
 import { Logger } from '../../../typings'
 import { KeyedItem } from '../../typings'
 
+const dummyProgess = (p: number) => {}
+
 describe('Microsoft Extract Multiple', () => {
   let microsoft: MicrosoftEntityExtractor
   let testCachePath = path.join(' ', 'cache', 'testCache.json')
@@ -25,7 +27,7 @@ describe('Microsoft Extract Multiple', () => {
 
   test('Return nothing for unsupported lang', async () => {
     const examples = ['один два три четыре пять', 'Я говорю по русски сегодня, но и завтра вечером']
-    const res = await microsoft.extractMultiple(examples, 'ru')
+    const res = await microsoft.extractMultiple(examples, 'ru', dummyProgess)
     res.forEach((r) => {
       expect(r).toEqual([])
     })
@@ -134,7 +136,7 @@ describe('Microsoft Extract Multiple', () => {
       'пн электронная почта est hello@helloworld.com',
       'Мой сайт www.thecuteboys.com, пожалуйста, напишите отзыв'
     ]
-    const res = await microsoft.extractMultiple(examples, 'ru')
+    const res = await microsoft.extractMultiple(examples, 'ru', dummyProgess)
 
     for (const [prem, hyp] of _.zip(res, expected)) {
       expect(prem).toHaveLength(1)
@@ -153,7 +155,7 @@ describe('Microsoft Extract Multiple', () => {
       'Is it five degrees outside ?',
       'Oh yes please'
     ]
-    const res = await microsoft.extractMultiple(examples, 'en')
+    const res = await microsoft.extractMultiple(examples, 'en', dummyProgess)
     expect(res.length).toEqual(examples.length)
   })
 
@@ -261,7 +263,7 @@ describe('Microsoft Extract Multiple', () => {
       ]
     ]
 
-    const res = await microsoft.extractMultiple(examples, 'en')
+    const res = await microsoft.extractMultiple(examples, 'en', dummyProgess)
 
     expect(res).toEqual(result)
   })

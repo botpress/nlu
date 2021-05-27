@@ -143,7 +143,12 @@ export interface Tools {
 }
 
 export interface SystemEntityExtractor {
-  extractMultiple(input: string[], lang: string, useCache?: Boolean): Promise<EntityExtractionResult[][]>
+  extractMultiple(
+    input: string[],
+    lang: string,
+    progress: (p: number) => void,
+    useCache?: Boolean
+  ): Promise<EntityExtractionResult[][]>
   extract(input: string, lang: string): Promise<EntityExtractionResult[]>
 }
 

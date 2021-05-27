@@ -1,19 +1,18 @@
 import _ from 'lodash'
-import { extractPattern } from '../tools/patterns-utils'
-import { jaroWinklerSimilarity, levenshteinSimilarity } from '../tools/strings'
-import { EntityExtractionResult, ListEntityModel, PatternEntity, WarmedListEntityModel } from '../typings'
-import Utterance, { UtteranceToken } from '../utterance/utterance'
+import { jaroWinklerSimilarity, levenshteinSimilarity } from '../../tools/strings'
+import { EntityExtractionResult, ListEntityModel } from '../../typings'
+import { SerializableUtteranceToken, tokenToString } from './serializable-token'
 
 const ENTITY_SCORE_THRESHOLD = 0.6
 
 function takeUntil(
-  arr: ReadonlyArray<UtteranceToken>,
+  arr: SerializableUtteranceToken[],
   start: number,
   desiredLength: number
-): ReadonlyArray<UtteranceToken> {
+): SerializableUtteranceToken[] {
   let total = 0
   const result = _.takeWhile(arr.slice(start), (t) => {
-    const toAdd = t.toString().length
+    const toAdd = tokenToString(t).length
     const current = total
     if (current > 0 && Math.abs(desiredLength - current) < Math.abs(desiredLength - current - toAdd)) {
       // better off as-is
@@ -72,25 +71,6 @@ function computeStructuralScore(a: string[], b: string[]): number {
   return Math.sqrt(final_charset_score * token_qty_score * token_size_score)
 }
 
-interface SplittedModels {
-  withCacheHit: WarmedListEntityModel[]
-  withCacheMiss: WarmedListEntityModel[]
-}
-
-function splitModelsByCacheHitOrMiss(listModels: WarmedListEntityModel[], cacheKey: string): SplittedModels {
-  return listModels.reduce(
-    ({ withCacheHit, withCacheMiss }, nextModel) => {
-      if (nextModel.cache.has(cacheKey)) {
-        withCacheHit.push(nextModel)
-      } else {
-        withCacheMiss.push(nextModel)
-      }
-      return { withCacheHit, withCacheMiss }
-    },
-    { withCacheHit: [], withCacheMiss: [] } as SplittedModels
-  )
-}
-
 interface Candidate {
   score: number
   canonical: string
@@ -101,19 +81,24 @@ interface Candidate {
   eliminated: boolean
 }
 
-function extractForListModel(utterance: Utterance, listModel: ListEntityModel): EntityExtractionResult[] {
+export function extractForListModel(
+  tokens: SerializableUtteranceToken[],
+  listModel: ListEntityModel
+): EntityExtractionResult[] {
   const candidates: Candidate[] = []
   let longestCandidate = 0
 
   for (const [canonical, occurrences] of _.toPairs(listModel.mappingsTokens)) {
     for (const occurrence of occurrences) {
-      for (let i = 0; i < utterance.tokens.length; i++) {
-        if (utterance.tokens[i].isSpace) {
+      for (let i = 0; i < tokens.length; i++) {
+        if (tokens[i].isSpace) {
           continue
         }
-        const workset = takeUntil(utterance.tokens, i, _.sumBy(occurrence, 'length'))
-        const worksetStrLow = workset.map((x) => x.toString({ lowerCase: true, realSpaces: true, trim: false }))
-        const worksetStrWCase = workset.map((x) => x.toString({ lowerCase: false, realSpaces: true, trim: false }))
+        const workset = takeUntil(tokens, i, _.sumBy(occurrence, 'length'))
+        const worksetStrLow = workset.map((x) => tokenToString(x, { lowerCase: true, realSpaces: true, trim: false }))
+        const worksetStrWCase = workset.map((x) =>
+          tokenToString(x, { lowerCase: false, realSpaces: true, trim: false })
+        )
         const candidateAsString = occurrence.join('')
 
         if (candidateAsString.length > longestCandidate) {
@@ -135,14 +120,14 @@ function extractForListModel(utterance: Utterance, listModel: ListEntityModel): 
           canonical,
           start: i,
           end: i + workset.length - 1,
-          source: workset.map((t) => t.toString({ lowerCase: false, realSpaces: true })).join(''),
+          source: workset.map((t) => tokenToString(t, { lowerCase: false, realSpaces: true })).join(''),
           occurrence: occurrence.join(''),
           eliminated: false
         })
       }
     }
 
-    for (let i = 0; i < utterance.tokens.length; i++) {
+    for (let i = 0; i < tokens.length; i++) {
       const results = _.orderBy(
         candidates.filter((x) => !x.eliminated && x.start <= i && x.end >= i),
         // we want to favor longer matches (but is obviously less important than score)
@@ -161,8 +146,8 @@ function extractForListModel(utterance: Utterance, listModel: ListEntityModel): 
     .filter((x) => !x.eliminated && x.score >= ENTITY_SCORE_THRESHOLD)
     .map((match) => ({
       confidence: match.score,
-      start: utterance.tokens[match.start].offset,
-      end: utterance.tokens[match.end].offset + utterance.tokens[match.end].value.length,
+      start: tokens[match.start].offset,
+      end: tokens[match.end].offset + tokens[match.end].value.length,
       value: match.canonical,
       metadata: {
         extractor: 'list',
@@ -173,61 +158,4 @@ function extractForListModel(utterance: Utterance, listModel: ListEntityModel): 
       sensitive: listModel.sensitive,
       type: listModel.entityName
     })) as EntityExtractionResult[]
-}
-
-export const extractListEntities = (
-  utterance: Utterance,
-  list_entities: ListEntityModel[]
-): EntityExtractionResult[] => {
-  return _(list_entities)
-    .map((model) => extractForListModel(utterance, model))
-    .flatten()
-    .value()
-}
-
-export const extractListEntitiesWithCache = (
-  utterance: Utterance,
-  list_entities: WarmedListEntityModel[]
-): EntityExtractionResult[] => {
-  // no need to "keep-value" of entities as this function's purpose is precisly to extract entities before tagging them in the utterance.
-  const cacheKey = utterance.toString({ lowerCase: true })
-  const { withCacheHit, withCacheMiss } = splitModelsByCacheHitOrMiss(list_entities, cacheKey)
-
-  const cachedMatches: EntityExtractionResult[] = _.flatMap(withCacheHit, (listModel) => listModel.cache.get(cacheKey)!)
-
-  const extractedMatches: EntityExtractionResult[] = _(withCacheMiss)
-    .map((model) => {
-      const extractions = extractForListModel(utterance, model)
-      model.cache.set(cacheKey, extractions)
-      return extractions
-    })
-    .flatten()
-    .value()
-
-  return [...cachedMatches, ...extractedMatches]
-}
-
-export const extractPatternEntities = (
-  utterance: Utterance,
-  pattern_entities: PatternEntity[]
-): EntityExtractionResult[] => {
-  const input = utterance.toString()
-  // taken from pattern_extractor
-  return _.flatMap(pattern_entities, (ent) => {
-    const regex = new RegExp(ent.pattern!, ent.matchCase ? '' : 'i')
-
-    return extractPattern(input, regex, []).map((res) => ({
-      confidence: 1,
-      start: Math.max(0, res.sourceIndex),
-      end: Math.min(input.length, res.sourceIndex + res.value.length),
-      value: res.value,
-      metadata: {
-        extractor: 'pattern',
-        source: res.value,
-        entityId: `custom.pattern.${ent.name}`
-      },
-      sensitive: ent.sensitive,
-      type: ent.name
-    }))
-  })
 }

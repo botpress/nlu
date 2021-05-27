@@ -81,7 +81,7 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
   }
 
   const fakeSystemEntityExtractor: SystemEntityExtractor = {
-    extractMultiple: async (input: string[], lang: string, useCache?: Boolean) => [],
+    extractMultiple: async (input: string[], lang: string, progress: (p: number) => void, useCache?: Boolean) => [],
     extract: async (input: string, lang: string) => []
   }
 
