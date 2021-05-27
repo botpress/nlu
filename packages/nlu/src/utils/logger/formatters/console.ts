@@ -30,7 +30,7 @@ export class ConsoleFormatter implements LogEntryFormatter {
     const time = moment().format(config.timeFormat)
     const serializedMetadata = entry.metadata ? _serializeArgs(entry.metadata) : ''
 
-    const displayName = this._opts.indent ? entry.namespace.substr(0, 15).padEnd(15, ' ') : entry.namespace
+    const displayName = this._opts.indent ? entry.namespace.substr(0, 15).padEnd(15, ' ') : `[NLU] ${entry.namespace}`
     // eslint-disable-next-line prefer-template
     const newLineIndent = chalk.dim(' '.repeat(`${config.timeFormat} ${displayName}`.length)) + ' '
     let indentedMessage =

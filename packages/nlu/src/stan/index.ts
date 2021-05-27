@@ -53,7 +53,7 @@ export default async function (cliOptions: CommandLineOptions, version: string) 
     filters: options.logFilter
   })
 
-  const launcherLogger = Logger.sub('launcher')
+  const launcherLogger = Logger.sub('Launcher')
   // Launcher always display
   launcherLogger.configure({
     level: Math.max(options.verbose, LoggerLevel.Info),
