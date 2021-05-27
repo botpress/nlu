@@ -27,9 +27,11 @@
     "eslint-fix": "cross-env eslint --fix packages/ --ext .ts"
   },
   "devDependencies": {
-    "pkg": "^4.5.1",
+    "conventional-changelog": "^3.1.24",
     "gulp": "^4.0.0",
-    "gulp-cli": "^2.0.1"
+    "gulp-cli": "^2.0.1",
+    "pkg": "^4.5.1",
+    "semver": "^7.3.5"
   },
   "private": true,
   "workspaces": [

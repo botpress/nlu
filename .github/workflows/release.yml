@@ -1,0 +1,12 @@
+name: Release
+on: push
+jobs:
+  release_bin:
+    name: Release Binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Hello World
+        run: |
+          echo "Hello World!!"
