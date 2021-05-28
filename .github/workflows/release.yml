@@ -7,6 +7,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
+      - name: Fetch Node Packages
+        run: |
+          yarn --verbose
       - name: Release
         run: |
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} yarn cmd release
