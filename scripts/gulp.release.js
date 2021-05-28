@@ -144,21 +144,24 @@ const createNewRelease = async (cb) => {
     const validCurrentVersion = semver.valid(currentVersion)
     const validLatestGitTag = semver.valid(latestGitTag)
 
+    logger.info(`Current version: ${currentVersion}`)
+    logger.info(`Latest Git Tag: ${latestGitTag}`)
+
     if (!validCurrentVersion) {
-      throw new Error(`Current version "${v}" is not a valid semver string.`)
+      throw new Error(`Current version "${currentVersion}" is not a valid semver string.`)
     }
     if (!validLatestGitTag) {
-      throw new Error(`Latest Git Tage "${v}" is not a valid semver string.`)
+      throw new Error(`Latest Git Tag "${latestGitTag}" is not a valid semver string.`)
     }
 
     const isReleaseNeeded = validCurrentVersion !== validLatestGitTag
     if (!isReleaseNeeded) {
-      logger.info(`No release needed, current version is : ${validCurrentVersion}`)
+      logger.info(`No release needed.`)
       cb()
       return
     }
 
-    logger.info(`Release needed for version "${validCurrentVersion}"`)
+    logger.info(`Release needed.`)
 
     const tagName = `v${validCurrentVersion}`
     // const message = `created tag ${tagName}`
