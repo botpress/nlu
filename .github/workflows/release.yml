@@ -10,20 +10,24 @@ jobs:
       - name: Git Unshalow
         run: git fetch --prune --unshallow
       - name: Get Previous Tag
-        id: previoustag
+        id: previous_tag
         uses: 'WyriHaximus/github-action-get-previous-tag@v1'
       - name: Get Current Version
         id: extract_version
         uses: Saionaro/extract-package-version@v1.0.6
-      - name: Is Release Needed
-        id: is_release_needed
-        run: echo '::set-output name=release_needed::${{ steps.extract_version.outputs.version != steps.previoustag.outputs.tag }}'
-      - name: 'Release'
-        if: ${{ steps.extract_version.outputs.version !=  steps.previoustag.outputs.tag }}
+      - name: Validate Semver
+        id: validate_semver
         run: |
-          echo ${{ steps.extract_version.outputs.version }}
-          echo ${{ steps.previoustag.outputs.tag }}
-          echo ${{ steps.is_release_needed.outputs.release_needed }}
+          valid_latest_tag=$(node ./node_modules/semver/bin/semver.js ${{ steps.previous_tag.outputs.tag }})
+          valid_current_version=$(node ./node_modules/semver/bin/semver.js ${{ steps.extract_version.outputs.version }})
+          echo '::set-output name=valid_latest_tag::$valid_latest_tag'
+          echo '::set-output name=valid_current_version::$valid_current_version'
+      - name: 'Release'
+        if: ${{ steps.validate_semver.outputs.valid_latest_tag != steps.validate_semver.outputs.valid_current_version }}
+        run: |
+          echo ${{ steps.validate_semver.outputs.valid_latest_tag }}
+          echo ${{ steps.validate_semver.outputs.valid_current_version }}
+          echo ${{ steps.validate_semver.outputs.valid_latest_tag != steps.validate_semver.outputs.valid_current_version }}
       # - name: Fetch Node Packages
       #   run: |
       #     yarn --verbose
