@@ -15,11 +15,15 @@ jobs:
       - name: Get Current Version
         id: extract_version
         uses: Saionaro/extract-package-version@v1.0.6
-      - name: 'Needs Release'
-        id: needs_release
+      - name: Is Release Needed
+        id: is_release_needed
+        run: echo '::set-output name=release_needed::${{ steps.extract_version.outputs.version != steps.previoustag.outputs.tag }}'
+      - name: 'Release'
+        if: ${{ steps.extract_version.outputs.version !=  steps.previoustag.outputs.tag }}
         run: |
           echo ${{ steps.extract_version.outputs.version }}
           echo ${{ steps.previoustag.outputs.tag }}
+          echo ${{ steps.is_release_needed.outputs.release_needed }}
       # - name: Fetch Node Packages
       #   run: |
       #     yarn --verbose
