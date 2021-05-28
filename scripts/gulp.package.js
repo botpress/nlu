@@ -39,7 +39,7 @@ const package = async (cb) => {
           '--targets',
           target,
           '--output',
-          path.join(projectDist, filename)
+          path.join(projectDist, fileName)
         ],
         { cwd: projectRoot, stdio: 'inherit', shell: true }
       )

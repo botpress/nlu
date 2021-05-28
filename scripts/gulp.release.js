@@ -171,6 +171,14 @@ const createNewRelease = async (cb) => {
 
     const changeLog = await getChangeLog()
 
+    const assets = (await getAssetsPaths()).map((a) => {
+      if (a.includes('win')) {
+        return `${a}.exe`
+      }
+      return a
+    })
+    logger.info(`Assets are: [${assets.join(',')}]`)
+
     var options = {
       tag_name: tagName,
       target_commitish: 'master',
@@ -181,7 +189,7 @@ const createNewRelease = async (cb) => {
       repo: 'nlu',
       owner: 'botpress',
       endpoint: 'https://api.github.com',
-      assets: getAssetsPaths()
+      assets
     }
 
     options.auth = {
