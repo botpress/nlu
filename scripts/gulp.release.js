@@ -83,6 +83,22 @@ const bumpVersion = (cb) => {
     .help().argv
 }
 
+const printChangeLog = async (cb) => {
+  try {
+    const changeLog = await getChangeLog()
+    if (changeLog) {
+      logger.info('Change Log:')
+      logger.info(`\n${changeLog}`)
+    } else {
+      logger.warning('There seems to be no changelog. Make sure this is desired.')
+    }
+    cb()
+  } catch (err) {
+    cb(err)
+  }
+}
+
 module.exports = {
-  bumpVersion
+  bumpVersion,
+  printChangeLog
 }
