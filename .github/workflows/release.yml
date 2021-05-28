@@ -7,6 +7,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
+      - name: Git Unshalow
         run: git fetch --prune --unshallow
       - name: Fetch Node Packages
         run: |
