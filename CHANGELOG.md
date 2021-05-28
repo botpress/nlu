@@ -1,3 +1,12 @@
+## [0.0.6](https://github.com/botpress/nlu/compare/v0.0.5...v0.0.6) (2021-05-28)
+
+
+### Features
+
+* **dx:** add a gulp command to print changelog ([d6da961](https://github.com/botpress/nlu/commit/d6da96134f46c6808ea46d1d38fa36dbb46a5ee1))
+
+
+
 ## [0.0.5](https://github.com/botpress/nlu/compare/v0.0.4...v0.0.5) (2021-05-28)
 
 

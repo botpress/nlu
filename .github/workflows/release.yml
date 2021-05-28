@@ -30,6 +30,7 @@ jobs:
 
           echo $valid_latest_tag
           echo $valid_current_version
+          echo $change_log
 
           echo "::set-output name=valid_latest_tag::$valid_latest_tag"
           echo "::set-output name=valid_current_version::$valid_current_version"

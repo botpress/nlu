@@ -9,7 +9,8 @@ gulp.task('default', (cb) => {
       ==================================
       yarn cmd package                      Packages Application in binaries
       yarn cmd config                       Upsert new NLU server config file
-      yarn cmd bump                         Bump version and update changelog
+      yarn cmd bump                         Bump version and update change log
+      yarn cmd changelog                    Print change log
     `)
   cb()
 })
@@ -17,3 +18,4 @@ gulp.task('default', (cb) => {
 gulp.task('package', package.package)
 gulp.task('config', config.upsertConfigFile)
 gulp.task('bump', release.bumpVersion)
+gulp.task('changelog', release.printChangeLog)
