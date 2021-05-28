@@ -115,10 +115,7 @@ const bumpVersion = (cb) => {
 }
 
 const getLatestGitTag = async () => {
-  logger.info(process.env.GITHUB_REF)
-  const { tag } = await gitDescribe(rootDir, {
-    customArguments: ['--abbrev=0']
-  })
+  const { tag } = await gitDescribe(rootDir)
   return tag
 }
 
