@@ -4,6 +4,10 @@
   "description": "Botpress Standalone NLU Server. Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/botpress/nlu.git"
+  },
   "bin": "./packages/nlu/dist/index.js",
   "pkg": {
     "scripts": "./packages/nlu/dist/**/*.js",

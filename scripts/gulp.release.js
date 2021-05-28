@@ -188,7 +188,7 @@ const createNewRelease = async (cb) => {
       prerelease: false,
       repo: 'nlu',
       owner: 'botpress',
-      endpoint: 'https://api.github.com',
+      endpoint: 'https://github.com',
       assets
     }
 
