@@ -1,9 +1,13 @@
 {
   "name": "@botpress/nlu",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Botpress Standalone NLU Server. Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/botpress/nlu.git"
+  },
   "bin": "./packages/nlu/dist/index.js",
   "pkg": {
     "scripts": "./packages/nlu/dist/**/*.js",
@@ -27,9 +31,12 @@
     "eslint-fix": "cross-env eslint --fix packages/ --ext .ts"
   },
   "devDependencies": {
-    "pkg": "^4.5.1",
+    "conventional-changelog": "^3.1.24",
     "gulp": "^4.0.0",
-    "gulp-cli": "^2.0.1"
+    "gulp-cli": "^2.0.1",
+    "pkg": "^4.5.1",
+    "prepend-file": "^2.0.0",
+    "semver": "^7.3.5"
   },
   "private": true,
   "workspaces": [

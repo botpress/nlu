@@ -1,24 +1,7 @@
-const { spawn } = require('child_process')
+const { spawn } = require('./utils/spawn')
 const { version } = require('../package.json')
 const path = require('path')
 const chalk = require('chalk')
-
-const wrapWithPromise = (spawnCmd) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const spawnedPocess = spawnCmd()
-      spawnedPocess.on('exit', (code, signal) => {
-        if (code !== 0) {
-          console.error(`Process exited with exit-code ${code} and signal ${signal}`)
-          reject()
-        }
-        resolve()
-      })
-    } catch (err) {
-      reject(err)
-    }
-  })
-}
 
 const targets = {
   win: 'node12-win32-x64',
@@ -27,6 +10,7 @@ const targets = {
 }
 
 const projectRoot = path.join(__dirname, '..')
+const projectDist = path.join(projectRoot, 'dist')
 
 const package = async (cb) => {
   const underscores = version.split('.').join('_')
@@ -36,20 +20,18 @@ const package = async (cb) => {
 
       console.log(chalk.green(`Packaging ${fileName}`))
 
-      await wrapWithPromise(() =>
-        spawn(
-          'pkg',
-          [
-            `${projectRoot}/package.json`,
-            '--options',
-            'max_old_space_size=16384',
-            '--targets',
-            target,
-            '--output',
-            `${projectRoot}/dist/${fileName}`
-          ],
-          { cwd: projectRoot, stdio: 'inherit', shell: true }
-        )
+      await spawn(
+        'pkg',
+        [
+          path.join(projectRoot, 'package.json'),
+          '--options',
+          'max_old_space_size=16384',
+          '--targets',
+          target,
+          '--output',
+          path.join(projectDist, fileName)
+        ],
+        { cwd: projectRoot, stdio: 'inherit', shell: true }
       )
     }
     cb()
