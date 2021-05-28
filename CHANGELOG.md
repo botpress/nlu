@@ -1,3 +1,12 @@
+## [0.0.5](https://github.com/botpress/nlu/compare/v0.0.4...v0.0.5) (2021-05-28)
+
+
+### Features
+
+* **dx:** gh action to create a release when needed ([d09b10b](https://github.com/botpress/nlu/commit/d09b10b856d86470265f0862c17e68ea133758be))
+
+
+
 ## [0.0.4](https://github.com/botpress/nlu/compare/v0.0.2...v0.0.4) (2021-05-27)
 
 ### Bug Fixes

@@ -1,8 +1,9 @@
-const gulp = require('gulp')
 const path = require('path')
 const yargs = require('yargs')
 const fse = require('fs-extra')
 const semver = require('semver')
+const prependFile = require('prepend-file')
+
 const conventionalChangelog = require('conventional-changelog')
 const { gitDescribe } = require('git-describe')
 const ghRelease = require('gh-release')
@@ -41,7 +42,7 @@ const getNextVersion = (currentVersion, jump) => {
   return newVersion.join('.')
 }
 
-const getChangeLog = (destFile) => {
+const getChangeLog = () => {
   return new Promise((resolve, reject) => {
     let msg = ''
 
@@ -59,19 +60,7 @@ const getChangeLog = (destFile) => {
     }
     const changelogWriterOpts = {}
 
-    const emitter = conventionalChangelog(
-      changelogOts,
-      context,
-      gitRawCommitsOpts,
-      commitsParserOpts,
-      changelogWriterOpts
-    )
-
-    if (destFile) {
-      gulp.src('CHANGELOG.md').pipe(emitter).pipe(gulp.dest('./'))
-    }
-
-    emitter
+    conventionalChangelog(changelogOts, context, gitRawCommitsOpts, commitsParserOpts, changelogWriterOpts)
       .on('data', (chunk) => {
         msg += chunk.toString()
       })
@@ -115,7 +104,7 @@ const bumpVersion = (cb) => {
             logger.warning('There seems to be no changelog. Make sure this is desired.')
           }
 
-          await fse.appendFile(changeLogPath, changeLog)
+          await prependFile(changeLogPath, changeLog)
           cb()
         } catch (err) {
           cb(err)

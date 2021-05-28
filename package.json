@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Botpress Standalone NLU Server. Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
@@ -33,6 +33,7 @@
     "gulp": "^4.0.0",
     "gulp-cli": "^2.0.1",
     "pkg": "^4.5.1",
+    "prepend-file": "^2.0.0",
     "semver": "^7.3.5"
   },
   "private": true,
