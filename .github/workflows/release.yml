@@ -23,12 +23,14 @@ jobs:
         run: |
           valid_latest_tag=$(node ./node_modules/semver/bin/semver.js ${{ steps.previous_tag.outputs.tag }})
           valid_current_version=$(node ./node_modules/semver/bin/semver.js ${{ steps.extract_version.outputs.version }})
+          change_log=$(node -e "require('./scripts/utils/changelog.js').getChangeLog().then(cl => console.log(cl))")
 
           echo $valid_latest_tag
           echo $valid_current_version
 
           echo "::set-output name=valid_latest_tag::$valid_latest_tag"
           echo "::set-output name=valid_current_version::$valid_current_version"
+          echo "::set-output name=change_log::$change_log"
 
       - name: 'Build and Package'
         if: ${{ steps.validate_semver.outputs.valid_latest_tag != steps.validate_semver.outputs.valid_current_version }}
@@ -42,7 +44,7 @@ jobs:
           files: ./dist/nlu-v*
           prerelease: false
           draft: false
-          body_path: ./CHANGELOG.md
+          body: ${{ steps.validate_semver.outputs.change_log }}
           name: v${{ steps.validate_semver.outputs.valid_current_version }}
           tag_name: v${{ steps.validate_semver.outputs.valid_current_version }}
         env:

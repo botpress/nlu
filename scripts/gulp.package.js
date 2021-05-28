@@ -12,21 +12,11 @@ const targets = {
 const projectRoot = path.join(__dirname, '..')
 const projectDist = path.join(projectRoot, 'dist')
 
-const makeFileName = (dist, version) => {
-  return `nlu-v${version}-${dist}-x64`
-}
-
-const getAssetsPaths = async () => {
-  const underscores = version.split('.').join('_')
-  const dists = ['win', 'linux', 'darwin']
-  return dists.map((d) => makeFileName(d, underscores)).map((fileName) => path.join(projectDist, fileName))
-}
-
 const package = async (cb) => {
   const underscores = version.split('.').join('_')
   try {
     for (const [dist, target] of Object.entries(targets)) {
-      const fileName = makeFileName(dist, underscores)
+      const fileName = `nlu-v${underscores}-${dist}-x64`
 
       console.log(chalk.green(`Packaging ${fileName}`))
 
@@ -51,6 +41,5 @@ const package = async (cb) => {
 }
 
 module.exports = {
-  package,
-  getAssetsPaths
+  package
 }
