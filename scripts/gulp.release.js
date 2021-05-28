@@ -6,6 +6,7 @@ const prependFile = require('prepend-file')
 
 const { spawn } = require('./utils/spawn')
 const logger = require('./utils/logger')
+const { getChangeLog } = require('./utils/changelog')
 
 const rootDir = path.join(__dirname, '..')
 const packageJsonPath = path.join(rootDir, 'package.json')
@@ -43,29 +44,42 @@ const getNextVersion = (currentVersion, jump) => {
  */
 const bumpVersion = (cb) => {
   yargs
-    .command(['$0 <jump>'], 'Bump Version', {}, async (argv) => {
-      try {
-        const { jump } = argv
-
-        const currentVersion = await getCurrentversion()
-        const newVersion = getNextVersion(currentVersion, jump)
-
-        await spawn('yarn', ['version', '--new-version', newVersion, '--no-git-tag-version'], { stdio: 'inherit' })
-
-        const changeLog = await getChangeLog()
-        if (changeLog) {
-          logger.info('Change Log:')
-          logger.info(`\n${changeLog}`)
-        } else {
-          logger.warning('There seems to be no changelog. Make sure this is desired.')
+    .command(
+      ['$0'],
+      'Create New Release',
+      {
+        jump: {
+          alias: 'j',
+          description: 'Weither to jump by a major, a minor or a patch',
+          choices: ['major', 'minor', 'patch'],
+          type: 'string',
+          demandOption: true
         }
+      },
+      async (argv) => {
+        try {
+          const { jump } = argv
 
-        await prependFile(changeLogPath, changeLog)
-        cb()
-      } catch (err) {
-        cb(err)
+          const currentVersion = await getCurrentversion()
+          const newVersion = getNextVersion(currentVersion, jump)
+
+          await spawn('yarn', ['version', '--new-version', newVersion, '--no-git-tag-version'], { stdio: 'inherit' })
+
+          const changeLog = await getChangeLog()
+          if (changeLog) {
+            logger.info('Change Log:')
+            logger.info(`\n${changeLog}`)
+          } else {
+            logger.warning('There seems to be no changelog. Make sure this is desired.')
+          }
+
+          await prependFile(changeLogPath, changeLog)
+          cb()
+        } catch (err) {
+          cb(err)
+        }
       }
-    })
+    )
     .help().argv
 }
 
