@@ -1,3 +1,12 @@
+## [0.0.7](https://github.com/botpress/nlu/compare/v0.0.6...v0.0.7) (2021-05-28)
+
+
+### Bug Fixes
+
+* **dx:** fix truncated change log in release body ([2641652](https://github.com/botpress/nlu/commit/2641652bf3b028d30a7407545702ec4e2d1a00dc))
+
+
+
 ## [0.0.6](https://github.com/botpress/nlu/compare/v0.0.5...v0.0.6) (2021-05-28)
 
 
