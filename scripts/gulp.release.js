@@ -12,6 +12,10 @@ const rootDir = path.join(__dirname, '..')
 const packageJsonPath = path.join(rootDir, 'package.json')
 const changeLogPath = path.join(rootDir, 'CHANGELOG.md')
 
+const pullTags = () => {
+  return spawn('git', ['fetch', '--tags'], { stdio: 'inherit' })
+}
+
 const getCurrentversion = async () => {
   const packageJson = await fse.readJSON(packageJsonPath)
   return packageJson.version
@@ -58,6 +62,8 @@ const bumpVersion = (cb) => {
       },
       async (argv) => {
         try {
+          await pullTags()
+
           const { jump } = argv
 
           const currentVersion = await getCurrentversion()
@@ -85,6 +91,7 @@ const bumpVersion = (cb) => {
 
 const printChangeLog = async (cb) => {
   try {
+    await pullTags()
     const changeLog = await getChangeLog()
     if (changeLog) {
       logger.info('Change Log:')
