@@ -23,8 +23,8 @@ jobs:
         run: |
           valid_latest_tag=$(node ./node_modules/semver/bin/semver.js ${{ steps.previous_tag.outputs.tag }})
           valid_current_version=$(node ./node_modules/semver/bin/semver.js ${{ steps.extract_version.outputs.version }})
-          echo '::set-output name=valid_latest_tag::$valid_latest_tag'
-          echo '::set-output name=valid_current_version::$valid_current_version'
+          echo "::set-output name=valid_latest_tag::$valid_latest_tag"
+          echo "::set-output name=valid_current_version::$valid_current_version"
       - name: 'Release'
         if: ${{ steps.validate_semver.outputs.valid_latest_tag != steps.validate_semver.outputs.valid_current_version }}
         run: |
