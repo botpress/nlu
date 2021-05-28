@@ -9,6 +9,9 @@ jobs:
         uses: actions/checkout@master
       - name: Git Unshalow
         run: git fetch --prune --unshallow
+      - name: Fetch Node Packages
+        run: |
+          yarn --verbose
       - name: Get Previous Tag
         id: previous_tag
         uses: 'WyriHaximus/github-action-get-previous-tag@v1'
@@ -28,9 +31,6 @@ jobs:
           echo ${{ steps.validate_semver.outputs.valid_latest_tag }}
           echo ${{ steps.validate_semver.outputs.valid_current_version }}
           echo ${{ steps.validate_semver.outputs.valid_latest_tag != steps.validate_semver.outputs.valid_current_version }}
-      # - name: Fetch Node Packages
-      #   run: |
-      #     yarn --verbose
       # - name: Build
       #   run: |
       #     yarn build
