@@ -181,7 +181,6 @@ const createNewRelease = async (cb) => {
 
     const options = {
       tag_name: tagName,
-      target_commitish: 'master',
       name: tagName,
       body: changeLog,
       draft: false,
