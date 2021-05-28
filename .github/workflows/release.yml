@@ -9,12 +9,26 @@ jobs:
         uses: actions/checkout@master
       - name: Git Unshalow
         run: git fetch --prune --unshallow
-      - name: Fetch Node Packages
+      - name: Get Previous Tag
+        id: previoustag
+        uses: 'WyriHaximus/github-action-get-previous-tag@v1'
+      - name: Get Current Version
+        id: extract_version
+        uses: Saionaro/extract-package-version@v1.0.6
+      - name: 'Needs Release'
+        id: needs_release
         run: |
-          yarn --verbose
-      - name: Build
-        run: |
-          yarn build
-      - name: Release
-        run: |
-          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} yarn cmd release
+          echo ${{ steps.extract_version.outputs.version }}
+          echo ${{ steps.previoustag.outputs.tag }}
+      # - name: Fetch Node Packages
+      #   run: |
+      #     yarn --verbose
+      # - name: Build
+      #   run: |
+      #     yarn build
+      # - name: Package
+      #   run: |
+      #     yarn package
+      # - name: Release
+      #   run: |
+      #     GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} yarn cmd release
