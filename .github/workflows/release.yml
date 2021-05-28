@@ -7,6 +7,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
-      - name: Hello World
+      - name: Release
         run: |
-          echo "Hello World!!"
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} yarn cmd release

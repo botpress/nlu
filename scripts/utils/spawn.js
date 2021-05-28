@@ -1,13 +1,16 @@
 const child_process = require('child_process')
+const logger = require('./logger')
 
-const wrapWithPromise = (spawnCmd) => {
+const spawn = (program, args, params) => {
+  const cmd = [program, ...args].join(' ')
+  logger.info(`Launching '${cmd}'`)
   return new Promise(async (resolve, reject) => {
     try {
-      const spawnedPocess = spawnCmd()
+      const spawnedPocess = child_process.spawn(program, args, params)
       spawnedPocess.on('exit', (code, signal) => {
         if (code !== 0) {
-          console.error(`Process exited with exit-code ${code} and signal ${signal}`)
-          reject()
+          const error = new Error(`Process exited with exit-code ${code} and signal ${signal}`)
+          reject(error)
         }
         resolve()
       })
@@ -15,10 +18,6 @@ const wrapWithPromise = (spawnCmd) => {
       reject(err)
     }
   })
-}
-
-const spawn = (program, args, params) => {
-  return wrapWithPromise(() => child_process.spawn(program, args, params))
 }
 
 module.exports = {

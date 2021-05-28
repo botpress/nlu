@@ -1,14 +1,24 @@
-const conventionalChangelog = require('conventional-changelog')
+const gulp = require('gulp')
 const path = require('path')
 const yargs = require('yargs')
 const fse = require('fs-extra')
 const semver = require('semver')
+const conventionalChangelog = require('conventional-changelog')
+const { gitDescribe } = require('git-describe')
+const ghRelease = require('gh-release')
 
 const { spawn } = require('./utils/spawn')
 const logger = require('./utils/logger')
+const { getAssetsPaths } = require('./gulp.package')
 
-const packageJsonPath = path.join(__dirname, '..', 'package.json')
-const changeLogPath = path.join(__dirname, '..', 'CHANGELOG.md')
+const rootDir = path.join(__dirname, '..')
+const packageJsonPath = path.join(rootDir, 'package.json')
+const changeLogPath = path.join(rootDir, 'CHANGELOG.md')
+
+const getCurrentversion = async () => {
+  const packageJson = await fse.readJSON(packageJsonPath)
+  return packageJson.version
+}
 
 const getNextVersion = (currentVersion, jump) => {
   const validCurrentVersion = semver.valid(currentVersion)
@@ -31,7 +41,7 @@ const getNextVersion = (currentVersion, jump) => {
   return newVersion.join('.')
 }
 
-const getChangeLog = () => {
+const getChangeLog = (destFile) => {
   return new Promise((resolve, reject) => {
     let msg = ''
 
@@ -49,7 +59,19 @@ const getChangeLog = () => {
     }
     const changelogWriterOpts = {}
 
-    conventionalChangelog(changelogOts, context, gitRawCommitsOpts, commitsParserOpts, changelogWriterOpts)
+    const emitter = conventionalChangelog(
+      changelogOts,
+      context,
+      gitRawCommitsOpts,
+      commitsParserOpts,
+      changelogWriterOpts
+    )
+
+    if (destFile) {
+      gulp.src('CHANGELOG.md').pipe(emitter).pipe(gulp.dest('./'))
+    }
+
+    emitter
       .on('data', (chunk) => {
         msg += chunk.toString()
       })
@@ -80,8 +102,7 @@ const bumpVersion = (cb) => {
         try {
           const { jump } = argv
 
-          const packageJson = await fse.readJSON(packageJsonPath)
-          const currentVersion = packageJson.version
+          const currentVersion = await getCurrentversion()
           const newVersion = getNextVersion(currentVersion, jump)
 
           await spawn('yarn', ['version', '--new-version', newVersion, '--no-git-tag-version'], { stdio: 'inherit' })
@@ -104,16 +125,83 @@ const bumpVersion = (cb) => {
     .help().argv
 }
 
+const getLatestGitTag = async () => {
+  const { tag } = await gitDescribe(rootDir)
+  return tag
+}
+
+const releaseOnGithub = (options) => {
+  return new Promise((resolve, reject) => {
+    ghRelease(options, (err, result) => {
+      if (err) {
+        reject(err)
+      }
+      resolve(result)
+    })
+  })
+}
+
 /**
- * [ ] - Create a git tag with desired version
- * [ ] - Create a release commit
- * [ ] - Package new binaries
- * [ ] - Create a new release on Github
+ * [x] - Create a git tag with desired version
+ * [x] - Package new binaries
+ * [x] - Create a new release on Github
  * [ ] - Push a Docker image
  */
-const createNewRelease = (cb) => {
-  logger.info('Create new releases!')
-  cb()
+const createNewRelease = async (cb) => {
+  try {
+    const currentVersion = await getCurrentversion()
+    const latestGitTag = await getLatestGitTag()
+
+    const validCurrentVersion = semver.valid(currentVersion)
+    const validLatestGitTag = semver.valid(latestGitTag)
+
+    if (!validCurrentVersion) {
+      throw new Error(`Current version "${v}" is not a valid semver string.`)
+    }
+    if (!validLatestGitTag) {
+      throw new Error(`Latest Git Tage "${v}" is not a valid semver string.`)
+    }
+
+    const isReleaseNeeded = validCurrentVersion !== validLatestGitTag
+    if (!isReleaseNeeded) {
+      logger.info(`No release needed, current version is : ${validCurrentVersion}`)
+      cb()
+      return
+    }
+
+    logger.info(`Release needed for version "${validCurrentVersion}"`)
+
+    const tagName = `v${validCurrentVersion}`
+    // const message = `created tag ${tagName}`
+    // await spawn('git', ['tag', '-a', `\"${tagName}\"`, '-m', `\"${message}\"`], { stdio: 'inherit' })
+
+    await spawn('yarn', ['cmd', 'package'], { stdio: 'inherit' })
+
+    const changeLog = await getChangeLog()
+
+    var options = {
+      tag_name: tagName,
+      target_commitish: 'master',
+      name: tagName,
+      body: changeLog,
+      draft: false,
+      prerelease: false,
+      repo: 'nlu',
+      owner: 'botpress',
+      endpoint: 'https://api.github.com',
+      assets: getAssetsPaths()
+    }
+
+    options.auth = {
+      token: process.env.GITHUB_TOKEN
+    }
+
+    await releaseOnGithub(options)
+
+    cb()
+  } catch (err) {
+    cb(err)
+  }
 }
 
 module.exports = {
