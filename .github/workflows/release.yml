@@ -12,9 +12,9 @@ jobs:
       - name: Fetch Node Packages
         run: |
           yarn --verbose
-      - name: 'Get Previous tag'
-        id: previoustag
-        uses: 'WyriHaximus/github-action-get-previous-tag@v1'
+      - name: Build
+        run: |
+          yarn build
       - name: Release
         run: |
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} yarn cmd release
