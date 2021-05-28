@@ -15,10 +15,6 @@ jobs:
       - name: 'Get Previous tag'
         id: previoustag
         uses: 'WyriHaximus/github-action-get-previous-tag@v1'
-      - name: 'Echo Latest Tag'
-        id: echo_tag
+      - name: Release
         run: |
-          echo ${{ steps.previoustag.outputs.tag }}
-      # - name: Release
-      #   run: |
-      #     GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} yarn cmd release
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} yarn cmd release
