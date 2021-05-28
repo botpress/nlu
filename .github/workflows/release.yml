@@ -23,20 +23,27 @@ jobs:
         run: |
           valid_latest_tag=$(node ./node_modules/semver/bin/semver.js ${{ steps.previous_tag.outputs.tag }})
           valid_current_version=$(node ./node_modules/semver/bin/semver.js ${{ steps.extract_version.outputs.version }})
+
+          echo $valid_latest_tag
+          echo $valid_current_version
+
           echo "::set-output name=valid_latest_tag::$valid_latest_tag"
           echo "::set-output name=valid_current_version::$valid_current_version"
-      - name: 'Release'
+
+      - name: 'Build and Package'
         if: ${{ steps.validate_semver.outputs.valid_latest_tag != steps.validate_semver.outputs.valid_current_version }}
         run: |
-          echo ${{ steps.validate_semver.outputs.valid_latest_tag }}
-          echo ${{ steps.validate_semver.outputs.valid_current_version }}
-          echo ${{ steps.validate_semver.outputs.valid_latest_tag != steps.validate_semver.outputs.valid_current_version }}
-      # - name: Build
-      #   run: |
-      #     yarn build
-      # - name: Package
-      #   run: |
-      #     yarn package
-      # - name: Release
-      #   run: |
-      #     GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} yarn cmd release
+          yarn build
+          yarn package
+      - name: 'Release'
+        if: ${{ steps.validate_semver.outputs.valid_latest_tag != steps.validate_semver.outputs.valid_current_version }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./dist/nlu-v*
+          prerelease: false
+          draft: false
+          body_path: ./CHANGELOG.md
+          name: v${{ steps.validate_semver.outputs.valid_current_version }}
+          tag_name: v${{ steps.validate_semver.outputs.valid_current_version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
