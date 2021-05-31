@@ -125,10 +125,10 @@ ${_.repeat(' ', 9)}========================================`)
     launcherLogger.info(`lang server: url=${langSource.endpoint}`)
   }
 
-  launcherLogger.info(`body size: allowing HTTP resquests body of size ${options.bodySize}`)
+  launcherLogger.info(`body size: allowing HTTP requests body of size ${options.bodySize}`)
 
   if (options.dbURL) {
-    launcherLogger.info(`models stored at "${options.dbURL}"`)
+    launcherLogger.info(`models stored in the database`)
   } else {
     launcherLogger.info(`models stored at "${options.modelDir}"`)
   }
