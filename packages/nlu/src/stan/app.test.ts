@@ -35,7 +35,6 @@ test('GET /info', async () => {
   process.PROJECT_LOCATION = process.pkg
     ? path.dirname(process.execPath) // We point at the binary path
     : __dirname // e.g. /dist/..
-  console.log(process.PROJECT_LOCATION)
   const engine = await makeEngine(options, launcherLogger)
 
   const watcher = buildWatcher()
@@ -65,7 +64,6 @@ test('GET /models without auth', async () => {
   process.PROJECT_LOCATION = process.pkg
     ? path.dirname(process.execPath) // We point at the binary path
     : __dirname // e.g. /dist/..
-  console.log(process.PROJECT_LOCATION)
   const engine = await makeEngine(options, launcherLogger)
 
   const watcher = buildWatcher()
