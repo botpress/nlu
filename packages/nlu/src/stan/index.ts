@@ -2,6 +2,7 @@
 import bytes from 'bytes'
 import chalk from 'chalk'
 import Bluebird from 'bluebird'
+import chokidar from 'chokidar'
 import cluster from 'cluster'
 import _ from 'lodash'
 import path from 'path'
@@ -14,6 +15,7 @@ import { createServer } from 'http'
 import { CommandLineOptions, getConfig } from './config'
 import { displayDocumentation } from './documentation'
 import { makeEngine } from './engine'
+import { buildWatcher } from './watcher'
 
 export default async function (cliOptions: CommandLineOptions, version: string) {
   const { options, source: configSource } = await getConfig(cliOptions)
@@ -109,7 +111,9 @@ ${_.repeat(' ', 9)}========================================`)
 
   options.doc && displayDocumentation(launcherLogger, options)
 
-  const app = await createApp(options, engine, version)
+  const watcher = buildWatcher()
+
+  const app = await createApp(options, engine, version, watcher)
   const httpServer = createServer(app)
 
   await Bluebird.fromCallback((callback) => {
