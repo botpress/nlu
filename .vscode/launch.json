@@ -30,7 +30,12 @@
         "-c=${workspaceFolder}/packages/nlu/jest.config.js",
         "--detectOpenHandles",
         "src/stan/app.test.ts"
-      ]
+      ],
+      "env": {
+        "JWKS_ORIGIN": "https://mydomain.net/",
+        "JWKS_URI": "https://mydomain.net/.well-known/jwks.json",
+        "JWT_ISS": "some-issuer"
+      }
     }
   ]
 }
