@@ -128,7 +128,7 @@ ${_.repeat(' ', 9)}========================================`)
   launcherLogger.info(`body size: allowing HTTP requests body of size ${options.bodySize}`)
 
   if (options.dbURL) {
-    launcherLogger.info(`models stored in the database`)
+    launcherLogger.info('models stored in the database')
   } else {
     launcherLogger.info(`models stored at "${options.modelDir}"`)
   }
