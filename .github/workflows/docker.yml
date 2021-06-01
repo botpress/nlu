@@ -1,0 +1,13 @@
+name: Docker
+on: [pull_request]
+jobs:
+  build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Build
+        run: |
+          docker build -t nlu .
