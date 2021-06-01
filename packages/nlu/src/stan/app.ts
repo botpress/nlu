@@ -133,19 +133,19 @@ export const createApp = async (
     }
   })
 
-  // router.get('/models', async (req, res) => {
-  //   try {
-  //     const { appSecret, appId } = await validateCredentialsFormat(req.query)
-  //     const modelIds = await modelRepo.listModels({ appSecret, appId })
-  //     const stringIds = modelIds.map(modelIdService.toString)
+  router.get('/models', async (req, res) => {
+    try {
+      const { appSecret, appId } = await validateCredentialsFormat(req.query)
+      const modelIds = await modelRepo.listModels({ appSecret, appId })
+      const stringIds = modelIds.map(modelIdService.toString)
 
-  //     const resp: ListModelsResponseBody = { success: true, models: stringIds }
-  //     return res.send(resp)
-  //   } catch (err) {
-  //     const resp: ErrorResponse = { success: false, error: err.message }
-  //     res.status(500).send(resp)
-  //   }
-  // })
+      const resp: ListModelsResponseBody = { success: true, models: stringIds }
+      return res.send(resp)
+    } catch (err) {
+      const resp: ErrorResponse = { success: false, error: err.message }
+      res.status(500).send(resp)
+    }
+  })
 
   // router.post('/models/prune', async (req, res) => {
   //   try {

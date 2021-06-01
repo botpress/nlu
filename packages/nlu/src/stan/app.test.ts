@@ -6,6 +6,7 @@ import request from 'supertest'
 import path from 'path'
 import { version } from 'moment'
 import { buildWatcher } from './watcher'
+import util from 'util'
 
 const options: StanOptions = {
   host: 'localhost',
@@ -40,7 +41,37 @@ test('GET /info', async () => {
   const watcher = buildWatcher()
 
   const app = await createApp(options, engine, version, watcher)
-  await request(app).get('/info').expect(200)
+  await request(app)
+    .get('/info')
+    .expect(200, {
+      success: true,
+      info: {
+        health: {
+          isEnabled: true,
+          validProvidersCount: 1,
+          validLanguages: ['ar', 'de', 'en', 'es', 'fr', 'he', 'it', 'ja', 'nl', 'pl', 'pt', 'ru']
+        },
+        specs: { nluVersion: '2.2.0', languageServer: { dimensions: 300, domain: 'bp', version: '1.0.0' } },
+        languages: ['ar', 'de', 'en', 'es', 'fr', 'he', 'it', 'ja', 'nl', 'pl', 'pt', 'ru'],
+        version: '2.24.0'
+      }
+    })
+
+  watcher.close()
+})
+
+test('GET /models without auth', async () => {
+  const launcherLogger = Logger.sub('Launcher')
+  process.PROJECT_LOCATION = process.pkg
+    ? path.dirname(process.execPath) // We point at the binary path
+    : __dirname // e.g. /dist/..
+  console.log(process.PROJECT_LOCATION)
+  const engine = await makeEngine(options, launcherLogger)
+
+  const watcher = buildWatcher()
+
+  const app = await createApp(options, engine, version, watcher)
+  await request(app).get('/models').expect(200, { success: true, models: [] })
 
   watcher.close()
 })
