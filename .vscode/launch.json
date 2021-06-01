@@ -14,6 +14,22 @@
       "sourceMaps": true,
       "autoAttachChildProcesses": true,
       "args": ["--config=./config.json"]
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Debug STAN tests",
+      "cwd": "${workspaceFolder}/packages/nlu",
+      // "sourceMaps": true,
+      "console": "integratedTerminal",
+      "args": [
+        // "--inspect-brk",
+        "${workspaceFolder}/packages/nlu/node_modules/.bin/jest",
+        // "--runInBand",
+        "--rootDir=${workspaceFolder}/packages/nlu",
+        "-c=${workspaceFolder}/packages/nlu/jest.config.js",
+        "src/stan/app.test.ts"
+      ]
     }
   ]
 }
