@@ -29,7 +29,7 @@ const options: StanOptions = {
   modelDir: 'hello'
 }
 
-test('spg test', async () => {
+test('GET /info', async () => {
   const launcherLogger = Logger.sub('Launcher')
   process.PROJECT_LOCATION = process.pkg
     ? path.dirname(process.execPath) // We point at the binary path
