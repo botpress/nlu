@@ -126,6 +126,7 @@ export const createApp = async (
           algorithms: ['RS256']
         })
 
+        // @ts-ignore
         jwtMiddleware(req, res, next)
       }
     })
