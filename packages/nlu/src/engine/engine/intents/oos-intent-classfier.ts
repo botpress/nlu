@@ -1,6 +1,6 @@
 import Joi, { validate } from 'joi'
 import _ from 'lodash'
-import { MLToolkit } from '../../../ml/typings'
+import { MLToolkit } from '../../ml/typings'
 import { ModelLoadingError } from '../../errors'
 import { Logger } from '../../typings'
 import { isPOSAvailable } from '../language/pos-tagger'

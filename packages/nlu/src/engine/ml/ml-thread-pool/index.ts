@@ -2,7 +2,7 @@ import { makeThreadPool, ThreadPool } from '@botpress/worker'
 import _ from 'lodash'
 import os from 'os'
 import path from 'path'
-import Logger from '../../utils/logger'
+import Logger from '../../../utils/logger'
 import { MLToolkit } from '../typings'
 import { TaskInput, TaskOutput } from './typings'
 

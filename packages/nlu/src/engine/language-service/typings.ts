@@ -1,4 +1,4 @@
-import { MLToolkit } from '../../ml/typings'
+import { MLToolkit } from '../ml/typings'
 
 export interface ModelSet {
   bpeModel: AvailableModel | LoadedBPEModel

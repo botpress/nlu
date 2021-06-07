@@ -1,6 +1,6 @@
 import path from 'path'
 import yn from 'yn'
-import MLToolkit from '../../ml/toolkit'
+import MLToolkit from '../ml/toolkit'
 import { Health, Specifications } from '../../typings_v1'
 import { LanguageConfig, Logger } from '../typings'
 import { DucklingEntityExtractor } from './entities/duckling-extractor'

@@ -1,6 +1,6 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
-import { MLToolkit } from '../../ml/typings'
+import { MLToolkit } from '../ml/typings'
 
 import {
   EntityPrediction,
