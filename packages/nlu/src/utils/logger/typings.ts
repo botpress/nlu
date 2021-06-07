@@ -39,11 +39,12 @@ export interface LogTransporter {
 
 export interface LoggerConfig {
   level: LoggerLevel
+  minLevel: LoggerLevel | undefined // if defined, allows to bypass filters
   formatter: LogEntryFormatter
   transports: LogTransporter[]
   timeFormat: string // moment time format
   namespaceDelimiter: string
   colors: { [level: number]: string }
   indent: boolean
-  filters: string[]
+  filters: string[] | undefined
 }

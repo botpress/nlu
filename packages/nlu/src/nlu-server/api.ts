@@ -47,7 +47,7 @@ export interface APIOptions {
   modelDir?: string
   verbose: number
   doc: boolean
-  logFilter: string[]
+  logFilter?: string[]
 }
 
 const requestLogger = Logger.sub('api').sub('request')

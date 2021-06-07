@@ -10,6 +10,7 @@ export const centerText = (text: string, width: number, indent: number = 0) => {
 
 export const defaultConfig: LoggerConfig = {
   level: LoggerLevel.Info,
+  minLevel: undefined,
   timeFormat: 'L HH:mm:ss.SSS',
   namespaceDelimiter: ':',
   colors: {
@@ -22,7 +23,7 @@ export const defaultConfig: LoggerConfig = {
   formatter: new ConsoleFormatter({ indent: !!process.env.INDENT_LOGS }),
   transports: [new ConsoleTransport()],
   indent: false,
-  filters: ['']
+  filters: undefined // show all logs
 }
 
 class Logger implements ILogger {
