@@ -1,3 +1,17 @@
+## [0.1.2](https://github.com/botpress/nlu/compare/v0.1.1...v0.1.2) (2021-06-07)
+
+
+### Bug Fixes
+
+* **logger:** launcher debug logs are not displayed by default when verbose is 4 ([503f0d8](https://github.com/botpress/nlu/commit/503f0d8d040b00bf3fa1538acb2b6e40c4731f75))
+
+
+### Features
+
+* rename env config variable ([e886829](https://github.com/botpress/nlu/commit/e886829bc5b582f63e70a283406f1459b6f2821a))
+
+
+
 ## [0.1.1](https://github.com/botpress/nlu/compare/v0.1.0...v0.1.1) (2021-06-07)
 
 
@@ -8,6 +22,14 @@
 
 
 # [0.1.0](https://github.com/botpress/nlu/compare/v0.0.7...v0.1.0) (2021-06-07)
+
+
+### Bug Fixes
+
+* **build:** test Docker build ([a93d3f3](https://github.com/botpress/nlu/commit/a93d3f3d357e449b782d22af17625c510a1b155f))
+* **build:** test Docker build ([29e3443](https://github.com/botpress/nlu/commit/29e34433de1e16353f96f6378b1305c926504975))
+* **nlu:** remove database connection string from logs ([0dd1d76](https://github.com/botpress/nlu/commit/0dd1d763cc7eb45b520cbc37f4f6be4b65799dbb))
+* **nlu:** remove database connection string from logs ([b2185b3](https://github.com/botpress/nlu/commit/b2185b3442ae80ad657e89d31934607e4d5c2b59))
 
 
 ### Features
