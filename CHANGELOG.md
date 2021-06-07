@@ -1,3 +1,12 @@
+# [0.1.0](https://github.com/botpress/nlu/compare/v0.0.7...v0.1.0) (2021-06-07)
+
+
+### Features
+
+* run list entity extraction on child threads with progress report ([#38](https://github.com/botpress/nlu/issues/38)) ([0ddc473](https://github.com/botpress/nlu/commit/0ddc4731365c5c9f98eea64d70491ee8ecadd25d))
+
+
+
 ## [0.0.7](https://github.com/botpress/nlu/compare/v0.0.6...v0.0.7) (2021-05-28)
 
 
