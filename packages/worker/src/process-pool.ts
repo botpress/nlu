@@ -13,7 +13,8 @@ export class ProcessPool<I, O> extends WorkerPool<I, O> {
 
   createWorker = async (entryPoint: string, env: NodeJS.ProcessEnv) => {
     const worker = child_process.fork(entryPoint, [], {
-      env: { ...env, CHILD: 'true' }
+      env: { ...env, CHILD: 'true' },
+      execArgv: [] // important for pkg
     })
     return Worker.fromProcess(worker)
   }
