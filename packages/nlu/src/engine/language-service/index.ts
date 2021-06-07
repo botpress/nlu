@@ -14,7 +14,7 @@ import { MLToolkit } from '../../ml/typings'
 import Logger from '../../utils/logger'
 import { ILogger } from '../../utils/logger/typings'
 
-import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet } from './typing'
+import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet } from './typings'
 
 interface RamInfos {
   free: number

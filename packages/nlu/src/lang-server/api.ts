@@ -8,13 +8,13 @@ import _ from 'lodash'
 import ms from 'ms'
 import yn from 'yn'
 
+import { LanguageService } from '../engine'
 import { authMiddleware, handleErrorLogging, handleUnexpectedError, isAdminToken, RequestWithLang } from '../utils/http'
 import { BadRequestError } from '../utils/http/errors'
 import Logger from '../utils/logger'
 
 import { getLanguageByCode } from './languages'
 import { monitoringMiddleware, startMonitoring } from './monitoring'
-import LanguageService from './service'
 import DownloadManager from './service/download-manager'
 import { assertValidLanguage, serviceLoadingMiddleware } from './util'
 

@@ -2,6 +2,7 @@ import _ from 'lodash'
 import Engine from './engine'
 import { DUCKLING_ENTITIES } from './engine/entities/duckling-extractor/enums'
 import { isTrainingAlreadyStarted, isTrainingCanceled } from './errors'
+import LanguageService from './language-service'
 import _modelIdService from './model-id-service'
 import { Config, Logger } from './typings'
 
@@ -23,3 +24,5 @@ export const makeEngine = async (config: Config, logger: Logger) => {
 }
 
 export const modelIdService = _modelIdService
+
+export { LanguageService }
