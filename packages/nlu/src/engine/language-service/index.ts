@@ -2,7 +2,7 @@ import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import fs from 'fs'
 import _ from 'lodash'
-import lru from 'lru-cache'
+import LRUCache from 'lru-cache'
 import ms from 'ms'
 import os from 'os'
 import path from 'path'
@@ -39,11 +39,14 @@ const MODEL_MB_OFFSET = -2.35e8 / bytes('1mb')
 export default class LanguageService {
   private _models: _.Dictionary<ModelSet> = {}
   private _ready: boolean = false
-  private _cache
+  private _cache: LRUCache<string, number[]>
   private logger: ILogger
 
   constructor(public readonly dim: number, public readonly domain: string, private readonly langDir: string) {
     this.logger = Logger.sub('lang').sub('service')
+    this._cache = new LRUCache({
+      maxAge: maxAgeCacheInMS
+    })
   }
   private estimateModelSize = (dims: number, langNb: number): number => {
     const estimatedModelSizeInGb = (MODEL_MB_PER_DIM * dims + MODEL_MB_OFFSET) / 1024
@@ -75,10 +78,6 @@ export default class LanguageService {
     if (Object.keys(this._models).length) {
       throw new Error('Language Service already initialized')
     }
-
-    this._cache = new lru({
-      maxAge: maxAgeCacheInMS
-    })
 
     this._models = this._getModels()
     const languages = Object.keys(this._models)
@@ -256,7 +255,7 @@ export default class LanguageService {
     const cacheKey = `${fastTextModel.name}/${fastTextModel.path}/${t}`
 
     if (this._cache.has(cacheKey)) {
-      return this._cache.get(cacheKey)
+      return this._cache.get(cacheKey)!
     }
 
     const val = await fastTextModel.model.queryWordVectors(t)
