@@ -2,10 +2,10 @@ import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
 
+import { LanguageService } from '../engine'
 import Logger, { centerText } from '../utils/logger'
 import { LoggerLevel } from '../utils/logger/typings'
 import API, { APIOptions } from './api'
-import LanguageService from './service'
 import DownloadManager from './service/download-manager'
 
 export interface ArgV {
