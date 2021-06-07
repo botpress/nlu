@@ -8,13 +8,13 @@ import _ from 'lodash'
 import ms from 'ms'
 import yn from 'yn'
 
+import { LanguageService } from '../engine'
 import { authMiddleware, handleErrorLogging, handleUnexpectedError, isAdminToken, RequestWithLang } from '../utils/http'
 import { BadRequestError } from '../utils/http/errors'
 import Logger from '../utils/logger'
 
 import { getLanguageByCode } from './languages'
 import { monitoringMiddleware, startMonitoring } from './monitoring'
-import LanguageService from './service'
 import DownloadManager from './service/download-manager'
 import { assertValidLanguage, serviceLoadingMiddleware } from './util'
 
@@ -50,9 +50,9 @@ const createExpressApp = (options: APIOptions): Application => {
   app.use(monitoringMiddleware)
   app.use(handleUnexpectedError)
 
-  if (process.core_env.REVERSE_PROXY) {
-    const boolVal = yn(process.core_env.REVERSE_PROXY)
-    app.set('trust proxy', boolVal === null ? process.core_env.REVERSE_PROXY : boolVal)
+  if (process.env.REVERSE_PROXY) {
+    const boolVal = yn(process.env.REVERSE_PROXY)
+    app.set('trust proxy', boolVal === null ? process.env.REVERSE_PROXY : boolVal)
   }
 
   if (options.limit > 0) {

@@ -1,10 +1,10 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
-import { MLToolkit } from '../../ml/typings'
+import { MLToolkit } from '../ml/typings'
 import { Logger } from '../typings'
 
 import { serializeKmeans } from './clustering'
-import { extractListEntitiesWithCache, extractPatternEntities } from './entities/custom-entity-extractor'
+import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/multi-thread-extractor'
 import { warmEntityCache } from './entities/entity-cache-manager'
 import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
@@ -64,8 +64,8 @@ export interface TrainOutput {
   kmeans: SerializedKmeansResult | undefined
   contexts: string[]
   ctx_model: string
-  intent_model_by_ctx: Dic<string>
-  slots_model_by_intent: Dic<string>
+  intent_model_by_ctx: _.Dictionary<string>
+  slots_model_by_intent: _.Dictionary<string>
 }
 
 interface Tools extends LanguageTools {
@@ -230,7 +230,7 @@ async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: 
       nluSeed
     },
     (p) => {
-      progress(_.round(p, 1))
+      progress(p)
     }
   )
 
@@ -249,21 +249,51 @@ async function ProcessIntents(
   })
 }
 
-async function ExtractEntities(input: TrainStep, tools: Tools): Promise<TrainStep> {
+async function ExtractEntities(input: TrainStep, tools: Tools, progress: progressCB): Promise<TrainStep> {
   const utterances: Utterance[] = _.chain(input.intents).flatMap('utterances').value()
 
+  tools.logger?.debug('Extracting system entities')
+
+  const clampedProgress = (p: number) => progress(Math.min(0.99, p))
+
+  let step = 0
   // we extract sys entities for all utterances, helps on training and exact matcher
   const allSysEntities = await tools.systemEntityExtractor.extractMultiple(
     utterances.map((u) => u.toString()),
     input.languageCode,
+    (p: number) => clampedProgress((step + p) / 3),
     true
   )
 
-  _.zipWith(utterances, allSysEntities, (utt, sysEntities) => ({ utt, sysEntities }))
-    .map(({ utt, sysEntities }) => {
-      const listEntities = extractListEntitiesWithCache(utt, input.list_entities)
-      const patternEntities = extractPatternEntities(utt, input.pattern_entities)
-      return [utt, [...sysEntities, ...listEntities, ...patternEntities]] as [Utterance, EntityExtractionResult[]]
+  tools.logger?.debug('Extracting list entities')
+
+  step = 1
+  const customEntityExtractor = new MultiThreadCustomEntityExtractor()
+  const allListEntities = await customEntityExtractor.extractMultipleListEntities(
+    utterances,
+    input.list_entities,
+    (p: number) => clampedProgress((step + p) / 3)
+  )
+
+  tools.logger?.debug('Extracting pattern entities')
+
+  step = 2
+  const allPatternEntities = await customEntityExtractor.extractMultiplePatternEntities(
+    utterances,
+    input.pattern_entities,
+    (p: number) => clampedProgress((step + p) / 3)
+  )
+
+  progress(1)
+
+  _.zipWith(utterances, allSysEntities, allListEntities, allPatternEntities, (utt, sys, list, pattern) => ({
+    utt,
+    sys,
+    list,
+    pattern
+  }))
+    .map(({ utt, sys, list, pattern }) => {
+      return [utt, [...sys, ...list, ...pattern]] as [Utterance, EntityExtractionResult[]]
     })
     .forEach(([utt, entities]) => {
       entities.forEach((ent) => {
@@ -338,10 +368,7 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
   let totalProgress = 0
   let normalizedProgress = 0
 
-  const emptyProgress = () => {}
-  const reportTrainingProgress = progress ?? emptyProgress
-
-  const debouncedProgress = _.debounce(reportTrainingProgress, 75, { maxWait: 750 })
+  const debouncedProgress = _.debounce(progress, 75, { maxWait: 750 })
   const reportProgress: progressCB = (stepProgress = 1) => {
     totalProgress = Math.max(totalProgress, Math.floor(totalProgress) + _.round(stepProgress, 2))
     const scaledProgress = Math.min(1, _.round(totalProgress / NB_STEPS, 2))
@@ -353,16 +380,14 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
   }
   const logger = makeLogger(input.trainId, tools.logger)
 
-  reportTrainingProgress(0) // 0%
+  progress(0) // 0%
 
   let step = await logger(PreprocessInput)(input, tools)
-  reportProgress() // 20%
-
   step = await logger(TfidfTokens)(step)
   step = await logger(ClusterTokens)(step, tools)
-  step = await logger(ExtractEntities)(step, tools)
-  reportProgress() // 40%
+  reportProgress(1) // 20%
 
+  step = await logger(ExtractEntities)(step, tools, reportProgress)
   const models = await Promise.all([
     logger(TrainContextClassifier)(step, tools, reportProgress),
     logger(TrainIntentClassifiers)(step, tools, reportProgress),

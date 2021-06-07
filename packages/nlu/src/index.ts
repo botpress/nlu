@@ -1,7 +1,3 @@
-global['NativePromise'] = global.Promise
-
-process.core_env = process.env as BotpressEnvironmentVariables
-
 // eslint-disable-next-line import/order
 import Logger from './utils/logger'
 import path from 'path'
@@ -10,19 +6,13 @@ import yargs from 'yargs'
 // @ts-ignore
 import { version } from '../package.json'
 
-import { getAppDataPath } from './app-data'
-
-if (process.env.APP_DATA_PATH) {
-  process.APP_DATA_PATH = process.env.APP_DATA_PATH
-} else {
-  process.APP_DATA_PATH = getAppDataPath()
-}
+// eslint-disable-next-line import/order
+import './utils/worker-before'
 
 import LANG from './lang-server'
-import STAN from './stan'
+import STAN from './nlu-server'
 import { LoggerLevel } from './utils/logger/typings'
 
-process.LOADED_MODULES = {}
 process.PROJECT_LOCATION = process.pkg
   ? path.dirname(process.execPath) // We point at the binary path
   : __dirname // e.g. /dist/..

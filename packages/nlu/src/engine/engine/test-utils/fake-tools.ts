@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { MLToolkit } from '../../../ml/typings'
+import { MLToolkit } from '../../ml/typings'
 import { POSClass, POS_CLASSES } from '../language/pos-tagger'
 import { SPACE, splitSpaceToken } from '../tools/token-utils'
 import { SystemEntityExtractor, Tools } from '../typings'
@@ -81,7 +81,7 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
   }
 
   const fakeSystemEntityExtractor: SystemEntityExtractor = {
-    extractMultiple: async (input: string[], lang: string, useCache?: Boolean) => [],
+    extractMultiple: async (input: string[], lang: string, progress: (p: number) => void, useCache?: Boolean) => [],
     extract: async (input: string, lang: string) => []
   }
 

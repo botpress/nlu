@@ -91,7 +91,7 @@ export class MemoryObjectCache implements ObjectCache {
   constructor() {
     this.cacheInvalidator = new FileChangedInvalidator()
     this.cache = new LRU({
-      max: bytes(process.core_env.BP_MAX_MEMORY_CACHE_SIZE || '1gb'),
+      max: bytes(process.env.BP_MAX_MEMORY_CACHE_SIZE || '1gb'),
       length: (obj) => {
         if (Buffer.isBuffer(obj)) {
           return obj.length

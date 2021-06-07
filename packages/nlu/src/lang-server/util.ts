@@ -1,7 +1,6 @@
 import _ from 'lodash'
+import { LanguageService } from '../engine'
 import { BadRequestError, NotReadyError } from '../utils/http/errors'
-
-import LanguageService from './service'
 
 export const serviceLoadingMiddleware = (service: LanguageService) => (_req, _res, next) => {
   if (!service.isReady) {

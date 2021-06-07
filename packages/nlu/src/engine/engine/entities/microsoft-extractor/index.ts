@@ -41,6 +41,7 @@ export class MicrosoftEntityExtractor implements SystemEntityExtractor {
   public async extractMultiple(
     inputs: string[],
     lang: string,
+    progress: (p: number) => void,
     useCache?: boolean
   ): Promise<EntityExtractionResult[][]> {
     const options: MicrosoftParams = !isSupportedLanguage(lang)
@@ -53,6 +54,7 @@ export class MicrosoftEntityExtractor implements SystemEntityExtractor {
     const [cached, toFetch] = this._cache.splitCacheHitFromCacheMiss(inputs, !!useCache)
 
     const batchedRes = await this._extractBatch(toFetch, options)
+    progress(1)
 
     return _.chain(batchedRes)
       .flatten()
@@ -63,7 +65,8 @@ export class MicrosoftEntityExtractor implements SystemEntityExtractor {
   }
 
   public async extract(input: string, lang: string, useCache?: boolean): Promise<EntityExtractionResult[]> {
-    return (await this.extractMultiple([input], lang, useCache))[0]
+    const dummyProgress = () => {}
+    return (await this.extractMultiple([input], lang, dummyProgress, useCache))[0]
   }
 
   private formatEntity(entity: MicrosoftEntity): EntityExtractionResult {

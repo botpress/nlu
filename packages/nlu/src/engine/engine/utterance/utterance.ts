@@ -1,12 +1,12 @@
 import _ from 'lodash'
-import { MLToolkit } from '../../../ml/typings'
-import { parseUtterance } from '../../../utils/utterance-parser'
+import { MLToolkit } from '../../ml/typings'
 
 import { POSClass } from '../language/pos-tagger'
 import { computeNorm, scalarDivide, scalarMultiply, vectorAdd, zeroes } from '../tools/math'
 import { replaceConsecutiveSpaces, replaceEllipsis } from '../tools/strings'
 import { convertToRealSpaces, isSpace, isWord, SPACE } from '../tools/token-utils'
 import { ExtractedEntity, ExtractedSlot, TFIDF, Tools } from '../typings'
+import { parseUtterance } from './utterance-parser'
 
 export interface UtteranceToStringOptions {
   lowerCase?: boolean

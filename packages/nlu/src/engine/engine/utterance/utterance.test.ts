@@ -1,4 +1,4 @@
-import { MLToolkit } from '../../../ml/typings'
+import { MLToolkit } from '../../ml/typings'
 import _ from 'lodash'
 import { tokenizeLatinTextForTests } from '../test-utils/fake-tools'
 
