@@ -1,3 +1,12 @@
+## [0.1.1](https://github.com/botpress/nlu/compare/v0.1.0...v0.1.1) (2021-06-07)
+
+
+### Bug Fixes
+
+* no more argv in process fork because of pkg ([1b92c72](https://github.com/botpress/nlu/commit/1b92c72106f3140daf8820f6143c3ca63ea10034))
+
+
+
 # [0.1.0](https://github.com/botpress/nlu/compare/v0.0.7...v0.1.0) (2021-06-07)
 
 

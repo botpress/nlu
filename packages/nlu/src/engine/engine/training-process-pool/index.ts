@@ -15,13 +15,17 @@ export class TrainingProcessPool {
   private _processPool: ProcessPool<TrainInput, TrainOutput>
 
   constructor(config: LanguageConfig) {
+    const entryPoint = path.resolve(__dirname, PROCESS_ENTRY_POINT)
+
+    const env = {
+      ...process.env,
+      NLU_CONFIG: JSON.stringify(config)
+    }
+
     this._processPool = makeProcessPool<TrainInput, TrainOutput>(logger, {
-      maxWorkers: -1,
-      entryPoint: path.resolve(__dirname, PROCESS_ENTRY_POINT),
-      env: {
-        ...process.env,
-        NLU_CONFIG: JSON.stringify(config)
-      }
+      maxWorkers: Number.POSITIVE_INFINITY,
+      entryPoint,
+      env
     })
   }
 

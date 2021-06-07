@@ -19,9 +19,9 @@ import { Scheduler } from './scheduler'
 import { Worker } from './worker'
 
 export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
-  protected _scheduler = new Scheduler(() => this._createNewWorker(), { maxItems: -1 })
+  protected _scheduler = new Scheduler(() => this._createNewWorker(), { maxItems: this.config.maxWorkers })
 
-  constructor(private logger: FullLogger, private config: PoolOptions) {}
+  constructor(protected logger: FullLogger, private config: PoolOptions) {}
 
   abstract createWorker: (entryPoint: string, env: NodeJS.ProcessEnv) => Promise<Worker>
   abstract isMainWorker: () => boolean
@@ -39,6 +39,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
 
     let output: O
     try {
+      this.logger.debug(`About to start task on worker ${worker.wid}`)
       output = await this._startTask(worker, input, progress)
     } catch (err) {
       const isTrainingDead = err instanceof TaskCanceledError || err instanceof TaskExitedUnexpectedlyError
