@@ -1,7 +1,7 @@
 import { AxiosInstance } from 'axios'
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
-import { MLToolkit } from '../../ml/typings'
+import { MLToolkit } from '../ml/typings'
 
 import { Health, Specifications } from '../../typings_v1'
 import { LanguageSource } from '../typings'

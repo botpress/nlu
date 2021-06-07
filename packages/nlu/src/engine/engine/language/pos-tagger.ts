@@ -1,5 +1,5 @@
 import path from 'path'
-import { MLToolkit } from '../../../ml/typings'
+import { MLToolkit } from '../../ml/typings'
 
 import { isSpace, SPACE } from '../tools/token-utils'
 

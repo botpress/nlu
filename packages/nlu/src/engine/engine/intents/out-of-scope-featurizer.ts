@@ -1,4 +1,4 @@
-import { MLToolkit } from '../../../ml/typings'
+import { MLToolkit } from '../../ml/typings'
 
 import { POSClass } from '../language/pos-tagger'
 import { averageVectors, scalarMultiply, zeroes } from '../tools/math'

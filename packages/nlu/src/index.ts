@@ -10,7 +10,7 @@ import { version } from '../package.json'
 import './utils/worker-before'
 
 import LANG from './lang-server'
-import STAN from './stan'
+import STAN from './nlu-server'
 import { LoggerLevel } from './utils/logger/typings'
 
 process.PROJECT_LOCATION = process.pkg

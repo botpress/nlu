@@ -9,10 +9,10 @@ import path from 'path'
 import process from 'process'
 import { VError } from 'verror'
 
-import toolkit from '../../ml/toolkit'
-import { MLToolkit } from '../../ml/typings'
 import Logger from '../../utils/logger'
 import { ILogger } from '../../utils/logger/typings'
+import toolkit from '../ml/toolkit'
+import { MLToolkit } from '../ml/typings'
 
 import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet } from './typings'
 

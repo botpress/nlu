@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import _ from 'lodash'
 import path from 'path'
 import tmp from 'tmp'
-import { MLToolkit } from '../../../ml/typings'
+import { MLToolkit } from '../../ml/typings'
 import { Predictors } from '../predict-pipeline'
 import { Tools } from '../typings'
 
