@@ -55,7 +55,7 @@ const _mapCli = (c: CommandLineOptions): StanOptions => {
 }
 
 const readEnvJSONConfig = (): StanOptions | null => {
-  const rawContent = process.env.STAN_JSON_CONFIG
+  const rawContent = process.env.NLU_SERVER_CONFIG
   if (!rawContent) {
     return null
   }
