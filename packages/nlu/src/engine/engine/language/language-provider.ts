@@ -11,14 +11,13 @@ import ms from 'ms'
 import path from 'path'
 import semver from 'semver'
 import { Health } from '../../../typings_v1'
-import Logger from '../../../utils/logger'
 import { LanguageSource, Logger as ILogger } from '../../typings'
 
 import { setSimilarity, vocabNGram } from '../tools/strings'
 import { isSpace, processUtteranceTokens, restoreOriginalUtteranceCasing } from '../tools/token-utils'
 import { Gateway, LangServerInfo, LangsGateway, LanguageProvider, SeededLodashProvider } from '../typings'
 
-const logger = Logger.sub('lang')
+const debug = DEBUG('lang')
 
 const MAX_PAYLOAD_SIZE = 150 * 1024 // 150kb
 const JUNK_VOCAB_SIZE = 500
@@ -63,7 +62,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
 
   private addProvider(lang: string, source: LanguageSource, client: AxiosInstance) {
     this.langs[lang] = [...(this.langs[lang] || []), { source, client, errors: 0, disabledUntil: undefined }]
-    logger.debug(`[${lang.toUpperCase()}] Language Provider added %o`, source)
+    debug(`[${lang.toUpperCase()}] Language Provider added %o`, source)
   }
 
   async initialize(
@@ -256,9 +255,9 @@ export class RemoteLanguageProvider implements LanguageProvider {
     try {
       await fse.ensureFile(this._tokensCachePath)
       await fse.writeJson(this._tokensCachePath, this._tokensCache.dump())
-      logger.debug('tokens cache updated at: %s', this._tokensCachePath)
+      debug('tokens cache updated at: %s', this._tokensCachePath)
     } catch (err) {
-      logger.debug('could not persist tokens cache, error: %s', err.message)
+      debug('could not persist tokens cache, error: %s', err.message)
       this._cacheDumpDisabled = true
     }
   }
@@ -270,7 +269,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
         this._tokensCache.load(dump)
       }
     } catch (err) {
-      logger.debug('could not restore tokens cache, error: %s', err.message)
+      debug('could not restore tokens cache, error: %s', err.message)
     }
   }
 
@@ -278,9 +277,9 @@ export class RemoteLanguageProvider implements LanguageProvider {
     try {
       await fse.ensureFile(this._vectorsCachePath)
       await fse.writeJSON(this._vectorsCachePath, this._vectorsCache.dump())
-      logger.debug('vectors cache updated at: %s', this._vectorsCachePath)
+      debug('vectors cache updated at: %s', this._vectorsCachePath)
     } catch (err) {
-      logger.debug('could not persist vectors cache, error: %s', err.message)
+      debug('could not persist vectors cache, error: %s', err.message)
       this._cacheDumpDisabled = true
     }
   }
@@ -295,7 +294,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
         }
       }
     } catch (err) {
-      logger.debug('could not restore vectors cache, error: %s', err.message)
+      debug('could not restore vectors cache, error: %s', err.message)
     }
   }
 
@@ -303,9 +302,9 @@ export class RemoteLanguageProvider implements LanguageProvider {
     try {
       await fse.ensureFile(this._junkwordsCachePath)
       await fse.writeJSON(this._junkwordsCachePath, this._junkwordsCache.dump())
-      logger.debug('junk words cache updated at: %s', this._junkwordsCache)
+      debug('junk words cache updated at: %s', this._junkwordsCache)
     } catch (err) {
-      logger.debug('could not persist junk cache, error: %s', err.message)
+      debug('could not persist junk cache, error: %s', err.message)
       this._cacheDumpDisabled = true
     }
   }
@@ -317,7 +316,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
         this._vectorsCache.load(dump)
       }
     } catch (err) {
-      logger.debug('could not restore junk cache, error: %s', err.message)
+      debug('could not restore junk cache, error: %s', err.message)
     }
   }
 
@@ -346,7 +345,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
 
         return data
       } catch (err) {
-        logger.debug('error from language server', {
+        debug('error from language server', {
           message: err.message,
           code: err.code,
           status: err.status,
@@ -359,7 +358,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
             .add(provider.errors++, 'seconds')
             .toDate()
 
-          logger.debug('disabled temporarily source', {
+          debug('disabled temporarily source', {
             source: provider.source,
             err: err.message,
             errors: provider.errors,

@@ -28,9 +28,9 @@ import { TrainingProcessPool } from './training-process-pool'
 import { EntityCacheDump, ListEntity, PatternEntity, Tools } from './typings'
 import { getModifiedContexts, mergeModelOutputs } from './warm-training-handler'
 
-const trainLogger = Logger.sub('training')
-const lifecycleLogger = Logger.sub('lifecycle')
-const predictLogger = Logger.sub('predict')
+const trainDebug = DEBUG('training')
+const lifecycleDebug = DEBUG('lifecycle')
+const predictDebug = DEBUG('predict')
 
 interface LoadedModel {
   model: PredictableModel
@@ -74,7 +74,7 @@ export default class Engine implements IEngine {
       this.modelsById.max === Infinity
         ? 'model cache size is infinite'
         : `model cache size is: ${bytes(this.modelsById.max)}`
-    lifecycleLogger.debug(debugMsg)
+    lifecycleDebug(debugMsg)
   }
 
   private _parseCacheSize = (cacheSize: string): number => {
@@ -120,7 +120,7 @@ export default class Engine implements IEngine {
 
   async train(trainId: string, trainSet: TrainInput, opt: Partial<TrainingOptions> = {}): Promise<Model> {
     const { language, seed, entities, intents } = trainSet
-    trainLogger.debug(`[${trainId}] Started ${language} training`)
+    trainDebug(`[${trainId}] Started ${language} training`)
 
     const options = { ...DEFAULT_TRAINING_OPTIONS, ...opt }
 
@@ -175,7 +175,7 @@ export default class Engine implements IEngine {
     const debugMsg = previousModel
       ? `Retraining only contexts: [${ctxToTrain}] for language: ${language}`
       : `Training all contexts for language: ${language}`
-    trainLogger.debug(`[${trainId}] ${debugMsg}`)
+    trainDebug(`[${trainId}] ${debugMsg}`)
 
     const input: TrainingPipelineInput = {
       trainId,
@@ -210,7 +210,7 @@ export default class Engine implements IEngine {
       model.data.output = mergeModelOutputs(model.data.output, previousModel.model.data.output, contexts)
     }
 
-    trainLogger.debug(`[${trainId}] Successfully finished ${language} training`)
+    trainDebug(`[${trainId}] Successfully finished ${language} training`)
 
     return serializeModel(model)
   }
@@ -221,10 +221,10 @@ export default class Engine implements IEngine {
 
   async loadModel(serialized: Model) {
     const stringId = modelIdService.toString(serialized.id)
-    lifecycleLogger.debug(`Load model ${stringId}`)
+    lifecycleDebug(`Load model ${stringId}`)
 
     if (this.hasModel(serialized.id)) {
-      lifecycleLogger.debug(`Model ${stringId} already loaded.`)
+      lifecycleDebug(`Model ${stringId} already loaded.`)
       return
     }
 
@@ -239,7 +239,7 @@ export default class Engine implements IEngine {
 
     const modelSize = sizeof(modelCacheItem)
     const bytesModelSize = bytes(modelSize)
-    lifecycleLogger.debug(`Size of model ${stringId} is ${bytesModelSize}`)
+    lifecycleDebug(`Size of model ${stringId} is ${bytesModelSize}`)
 
     if (modelSize >= this.modelsById.max) {
       const msg = `Can't load model ${stringId} as it is bigger than the maximum allowed size`
@@ -250,9 +250,9 @@ export default class Engine implements IEngine {
 
     this.modelsById.set(stringId, modelCacheItem)
 
-    lifecycleLogger.debug(`Model cache entries are: [${this.modelsById.keys().join(', ')}]`)
+    lifecycleDebug(`Model cache entries are: [${this.modelsById.keys().join(', ')}]`)
     const debug = this._getMemoryUsage()
-    lifecycleLogger.debug(`Current memory usage: ${JSON.stringify(debug)}`)
+    lifecycleDebug(`Current memory usage: ${JSON.stringify(debug)}`)
   }
 
   private _getMemoryUsage = () => {
@@ -270,15 +270,15 @@ export default class Engine implements IEngine {
 
   unloadModel(modelId: ModelId) {
     const stringId = modelIdService.toString(modelId)
-    lifecycleLogger.debug(`Unload model ${stringId}`)
+    lifecycleDebug(`Unload model ${stringId}`)
 
     if (!this.hasModel(modelId)) {
-      lifecycleLogger.debug(`No model with id ${stringId} was found in cache.`)
+      lifecycleDebug(`No model with id ${stringId} was found in cache.`)
       return
     }
 
     this.modelsById.del(stringId)
-    lifecycleLogger.debug('Model unloaded with success')
+    lifecycleDebug('Model unloaded with success')
   }
 
   private _makeCacheManager(output: TrainingPipelineOutput) {
@@ -332,7 +332,7 @@ export default class Engine implements IEngine {
   }
 
   async predict(text: string, modelId: ModelId): Promise<PredictOutput> {
-    predictLogger.debug(`Predict for input: "${text}"`)
+    predictDebug(`Predict for input: "${text}"`)
 
     const stringId = modelIdService.toString(modelId)
     const loaded = this.modelsById.get(stringId)
@@ -352,7 +352,7 @@ export default class Engine implements IEngine {
   }
 
   async detectLanguage(text: string, modelsByLang: _.Dictionary<ModelId>): Promise<string> {
-    predictLogger.debug(`Detecting language for input: "${text}"`)
+    predictDebug(`Detecting language for input: "${text}"`)
 
     const predictorsByLang = _.mapValues(modelsByLang, (id) => {
       const stringId = modelIdService.toString(id)

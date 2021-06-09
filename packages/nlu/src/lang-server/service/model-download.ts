@@ -15,6 +15,7 @@ export interface DownloadableModel {
 }
 
 const logger = Logger.sub('lang').sub('download')
+const debug = DEBUG('lang:download')
 
 export type DownloadStatus = 'pending' | 'downloading' | 'loading' | 'errored' | 'done'
 
@@ -57,7 +58,7 @@ export default class ModelDownload {
 
   private async _downloadNext() {
     const modelToDownload = this.models.shift() as DownloadableModel
-    logger.debug(`Started to download ${modelToDownload.language} ${modelToDownload.type} model`)
+    debug(`Started to download ${modelToDownload.language} ${modelToDownload.type} model`)
 
     const { data, headers } = await axios.get(modelToDownload.remoteUrl, {
       responseType: 'stream',
@@ -117,21 +118,21 @@ export default class ModelDownload {
       fse.unlinkSync(tmpPath)
     }
 
-    logger.debug('deleting model %o', { path: tmpPath, type: model.type, lang: model.language })
+    debug('deleting model %o', { path: tmpPath, type: model.type, lang: model.language })
   }
 
   private async _makeModelAvailable(model: DownloadableModel) {
     const filePath = this.getFilePath(model) as string
     const tmpPath = `${filePath}.tmp`
     if (fse.existsSync(filePath)) {
-      logger.debug('removing existing model at %s', filePath)
+      debug('removing existing model at %s', filePath)
       fse.unlinkSync(filePath)
     }
 
     try {
       await Bluebird.fromCallback((cb) => fse.rename(tmpPath, filePath, cb))
     } catch (err) {
-      logger.debug('could not rename downloaded file %s', filePath)
+      debug('could not rename downloaded file %s', filePath)
       await Bluebird.fromCallback((cb) => fse.move(tmpPath, filePath, cb))
     }
   }

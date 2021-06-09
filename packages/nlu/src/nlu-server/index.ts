@@ -14,9 +14,16 @@ export default async function (cliOptions: CommandLineOptions, version: string) 
   const { options, source: configSource } = await getConfig(cliOptions)
 
   Logger.configure({
-    level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
-    filters: options.logFilter
+    level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info
   })
+
+  const debugLogger = Logger.sub('')
+  global.printLog = (args) => {
+    const message = args[0]
+    const rest = args.slice(1)
+
+    debugLogger.debug(message.trim(), rest)
+  }
 
   const launcherLogger = Logger.sub('Launcher')
   launcherLogger.configure({

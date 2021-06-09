@@ -11,6 +11,7 @@ import * as NLUEngine from '../engine'
 import { modelIdService } from '../engine'
 
 import { TrainInput } from '../typings_v1'
+import { getDebugScopes, setDebugScopes } from '../utils/debug'
 import { authMiddleware, handleErrorLogging, handleUnexpectedError } from '../utils/http'
 import Logger from '../utils/logger'
 import {
@@ -50,7 +51,7 @@ export interface APIOptions {
   logFilter?: string[]
 }
 
-const requestLogger = Logger.sub('api').sub('request')
+const requestLogger = DEBUG('api:request')
 
 const createExpressApp = (options: APIOptions): Application => {
   const app = express()
@@ -62,7 +63,7 @@ const createExpressApp = (options: APIOptions): Application => {
 
   app.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress NLU')
-    requestLogger.debug(`incoming ${req.path}`, { ip: req.ip })
+    requestLogger(`incoming ${req.path}`, { ip: req.ip })
     next()
   })
 
@@ -82,11 +83,38 @@ const createExpressApp = (options: APIOptions): Application => {
     )
   }
 
+  // TODO: The auth token could also give access to this route
+  if (process.env.INTERNAL_PASSWORD) {
+    setupInternalRouter(app)
+  }
+
   if (options.authToken?.length) {
     app.use(authMiddleware(options.authToken))
   }
 
   return app
+}
+
+const setupInternalRouter = (app) => {
+  const router = express.Router({ mergeParams: true })
+  app.use('/api/internal', router)
+
+  router.use((req, res, next) => {
+    if (req.headers.authorization !== process.env.INTERNAL_PASSWORD) {
+      return next(new Error('Invalid password'))
+    }
+
+    next()
+  })
+
+  router.get('/getDebugScopes', async (req, res) => {
+    res.send(getDebugScopes())
+  })
+
+  router.post('/setDebugScopes', async (req, res) => {
+    setDebugScopes(req.body.scopes)
+    res.sendStatus(200)
+  })
 }
 
 export default async function (options: APIOptions, engine: NLUEngine.Engine, version: string) {

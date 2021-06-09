@@ -15,7 +15,6 @@ import {
   ScopedGhostService,
   MemoryObjectCache
 } from '../utils/ghost'
-import Logger from '../utils/logger'
 import { ILogger } from '../utils/logger/typings'
 
 interface FSDriver {
@@ -43,7 +42,7 @@ interface PruneOptions extends ModelOwnershipOptions {
 const MODELS_DIR = './models'
 const MODELS_EXT = 'model'
 
-const logger = Logger.sub('model-repo')
+const modelRepoDebug = DEBUG('api:model-repo')
 
 // TODO: add a customizable modelDir
 const defaultOtpions: ModelRepoOptions = {
@@ -69,7 +68,7 @@ export class ModelRepository {
   }
 
   async initialize() {
-    logger.debug('Model service initializing...')
+    modelRepoDebug('Model service initializing...')
     if (this.options.driver === 'db') {
       await this._db.initialize('postgres', this.options.dbURL)
     }

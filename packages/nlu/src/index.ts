@@ -1,4 +1,6 @@
 // eslint-disable-next-line import/order
+import './utils/debug'
+// eslint-disable-next-line import/order
 import Logger from './utils/logger'
 import path from 'path'
 import yargs from 'yargs'
