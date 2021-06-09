@@ -101,12 +101,12 @@ describe('With JWKS', () => {
     await request(app).get('/unknown-path').expect(404)
   })
 
-  test('GET /info w/o token', async () => {
+  test.each(['/info', '/v1/info'])('GET %s', async (path) => {
     const engine = await makeEngine(options, launcherLogger)
     const app = await createApp(options, engine, version, watcher, issuer, jwksUri)
 
     await request(app)
-      .get('/info')
+      .get(path)
       .expect(200, {
         success: true,
         info: {

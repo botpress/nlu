@@ -110,7 +110,7 @@ export const createApp = async (
     app.use((req, res, next) => {
       console.log(req.path)
       if (['/info', '/v1/info'].includes(req.path)) {
-        return next()
+        next()
       }
       if (!knownPaths.includes(req.path)) {
         res.status(404).send()
