@@ -109,7 +109,7 @@ export const createApp = async (
     console.log('using JWT')
     app.use((req, res, next) => {
       console.log(req.path)
-      if (req.path === '/info') {
+      if (['/info', '/v1/info'].includes(req.path)) {
         return next()
       }
       if (!knownPaths.includes(req.path)) {
