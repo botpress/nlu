@@ -40,7 +40,7 @@
         "--rootDir=${workspaceFolder}/packages/nlu",
         "-c=${workspaceFolder}/packages/nlu/jest.config.js",
         "--detectOpenHandles",
-        "src/stan/app.test.ts"
+        "src/nlu-server/app.test.ts"
       ]
     }
   ]
