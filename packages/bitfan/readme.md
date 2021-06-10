@@ -100,9 +100,9 @@ async function main() {
     lang: 'en'
   }))
 
-  const stanEndpoint = 'http://localhost:3200'
+  const nluServerEndpoint = process.env.NLU_SERVER_ENDPOINT ?? 'http://localhost:3200'
   const password = '123456'
-  const engine = bitfan.engines.makeBpIntentEngine(stanEndpoint, password)
+  const engine = bitfan.engines.makeBpIntentEngine(nluServerEndpoint, password)
 
   const metrics: Metric<'intent'> = [
     bitfan.metrics.accuracy,

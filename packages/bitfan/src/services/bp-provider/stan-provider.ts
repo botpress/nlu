@@ -9,11 +9,11 @@ const POLLING_INTERVAL = 500
 export class StanProvider {
   private _modelId: string | undefined
 
-  constructor(private _stanEndpoint: string = 'http://localhost:3200', password = '') {}
+  constructor(private _nluServerEndpoint: string = 'http://localhost:3200', password = '') {}
 
   public async getVersion(): Promise<{ version: string } | undefined> {
     try {
-      const { data } = await axios.get(`${this._stanEndpoint}/info`) // just to see if breaking
+      const { data } = await axios.get(`${this._nluServerEndpoint}/info`) // just to see if breaking
       return data
     } catch (err) {
       this._mapErrorAndRethrow('INFO', err)
@@ -21,7 +21,7 @@ export class StanProvider {
   }
 
   private async _getTrainingStatus(modelId: string): Promise<TrainingSession> {
-    const { data } = await axios.get(`${this._stanEndpoint}/train/${modelId}`, {
+    const { data } = await axios.get(`${this._nluServerEndpoint}/train/${modelId}`, {
       params: {}
     })
     return data.session
@@ -49,7 +49,7 @@ export class StanProvider {
     const inputWithPassword = { ...trainInput }
 
     try {
-      const { data } = await axios.post(`${this._stanEndpoint}/train`, inputWithPassword)
+      const { data } = await axios.post(`${this._nluServerEndpoint}/train`, inputWithPassword)
 
       const { modelId } = data
       this._modelId = modelId
@@ -65,7 +65,7 @@ export class StanProvider {
     success: boolean
     predictions: PredictOutput[]
   }> {
-    const { data } = await axios.post(`${this._stanEndpoint}/predict/${this._modelId}`, {
+    const { data } = await axios.post(`${this._nluServerEndpoint}/predict/${this._modelId}`, {
       utterances
     })
     return data
