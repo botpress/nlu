@@ -49,6 +49,7 @@ export class DucklingEntityExtractor implements SystemEntityExtractor {
   public async extractMultiple(
     inputs: string[],
     lang: string,
+    progress: (p: number) => void,
     useCache?: boolean
   ): Promise<EntityExtractionResult[][]> {
     if (!this._enabled) {
@@ -63,8 +64,13 @@ export class DucklingEntityExtractor implements SystemEntityExtractor {
 
     const [cached, toFetch] = this._cache.splitCacheHitFromCacheMiss(inputs, !!useCache)
 
+    let idx = 0
     const chunks = _.chunk(toFetch, BATCH_SIZE)
-    const batchedRes = await Bluebird.mapSeries(chunks, (c) => this._extractBatch(c, options))
+    const batchedRes = await Bluebird.mapSeries(chunks, (c) => {
+      const batch = this._extractBatch(c, options)
+      progress(idx++ / chunks.length)
+      return batch
+    })
 
     return _.chain(batchedRes)
       .flatten()
@@ -75,7 +81,8 @@ export class DucklingEntityExtractor implements SystemEntityExtractor {
   }
 
   public async extract(input: string, lang: string, useCache?: boolean): Promise<EntityExtractionResult[]> {
-    return (await this.extractMultiple([input], lang, useCache))[0]
+    const dummyProgress = () => {}
+    return (await this.extractMultiple([input], lang, dummyProgress, useCache))[0]
   }
 
   private async _extractBatch(batch: KeyedItem[], params: DucklingParams): Promise<KeyedItem[]> {

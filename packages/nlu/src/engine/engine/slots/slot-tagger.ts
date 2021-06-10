@@ -2,7 +2,7 @@ import fse from 'fs-extra'
 import Joi, { validate } from 'joi'
 import _ from 'lodash'
 import tmp from 'tmp'
-import { MLToolkit } from '../../../ml/typings'
+import { MLToolkit } from '../../ml/typings'
 import { ModelLoadingError } from '../../errors'
 import { getEntitiesAndVocabOfIntent } from '../intents/intent-vocab'
 
@@ -246,7 +246,8 @@ export default class SlotTagger {
 
     const trainer = new this.mlToolkit.CRF.Trainer()
     await trainer.initialize()
-    const crfModelFn = await trainer.train(elements, CRF_TRAINER_PARAMS)
+    const dummyProgress = () => {}
+    const crfModelFn = await trainer.train(elements, CRF_TRAINER_PARAMS, dummyProgress)
 
     const crfModel = await fse.readFile(crfModelFn)
 

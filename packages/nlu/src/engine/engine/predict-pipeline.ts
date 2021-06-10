@@ -1,6 +1,6 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
-import { MLToolkit } from '../../ml/typings'
+import { MLToolkit } from '../ml/typings'
 
 import {
   EntityPrediction,
@@ -10,7 +10,7 @@ import {
   PredictOutput
 } from '../../typings_v1'
 
-import { extractListEntities, extractPatternEntities } from './entities/custom-entity-extractor'
+import { CustomEntityExtractor } from './entities/custom-extractor'
 import { IntentPrediction, IntentPredictions, NoneableIntentPredictions } from './intents/intent-classifier'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
@@ -98,10 +98,11 @@ async function makePredictionUtterance(input: InitialStep, predictors: Predictor
 async function extractEntities(input: PredictStep, predictors: Predictors, tools: Tools): Promise<PredictStep> {
   const { utterance } = input
 
+  const customEntityExtractor = new CustomEntityExtractor()
   _.forEach(
     [
-      ...extractListEntities(utterance, predictors.list_entities),
-      ...extractPatternEntities(utterance, predictors.pattern_entities),
+      ...customEntityExtractor.extractListEntities(utterance, predictors.list_entities),
+      ...customEntityExtractor.extractPatternEntities(utterance, predictors.pattern_entities),
       ...(await tools.systemEntityExtractor.extract(utterance.toString(), utterance.languageCode))
     ],
     (entityRes) => {
@@ -190,7 +191,10 @@ function MapStepToOutput(step: SpellStep): PredictOutput {
     .map(entitiesMapper)
     .filter(<(e: EntityPrediction | null) => e is EntityPrediction>((e) => !!e))
 
-  const slotsCollectionReducer = (slots: Dic<SlotPrediction>, s: SlotExtractionResult): Dic<SlotPrediction> => {
+  const slotsCollectionReducer = (
+    slots: _.Dictionary<SlotPrediction>,
+    s: SlotExtractionResult
+  ): _.Dictionary<SlotPrediction> => {
     if (slots[s.slot.name] && slots[s.slot.name].confidence > s.slot.confidence) {
       // we keep only the most confident slots
       return slots

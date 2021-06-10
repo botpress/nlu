@@ -9,7 +9,7 @@ interface IntentVocab {
   slot_entities: string[]
 }
 
-export const buildIntentVocab = (utterances: Utterance[], intentEntities: ListEntityModel[]): Dic<boolean> => {
+export const buildIntentVocab = (utterances: Utterance[], intentEntities: ListEntityModel[]): _.Dictionary<boolean> => {
   // @ts-ignore
   const entitiesTokens: string[] = _.chain(intentEntities)
     .flatMapDeep((e) => Object.values(e.mappingsTokens))
@@ -19,7 +19,7 @@ export const buildIntentVocab = (utterances: Utterance[], intentEntities: ListEn
   return _.chain(utterances)
     .flatMap((u) => u.tokens.filter((t) => _.isEmpty(t.slots)).map((t) => t.toString({ lowerCase: true })))
     .concat(entitiesTokens)
-    .reduce((vocab: Dic<boolean>, tok: string) => ({ ...vocab, [tok]: true }), {})
+    .reduce((vocab: _.Dictionary<boolean>, tok: string) => ({ ...vocab, [tok]: true }), {})
     .value()
 }
 

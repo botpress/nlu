@@ -14,9 +14,15 @@ export const conforms = (namespace: string, rule: string, delimiter: string) => 
 
 export class ConsoleTransport implements LogTransporter {
   send(config: LoggerConfig, entry: FormattedLogEntry) {
+    if (config.minLevel && entry.level <= config.minLevel) {
+      this._log(entry.formatted)
+      return
+    }
+
     if (entry.level <= config.level) {
-      if (!config.filters.length) {
+      if (!config.filters) {
         this._log(entry.formatted)
+        return
       }
 
       for (const rule of config.filters) {

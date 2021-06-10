@@ -1,3 +1,12 @@
+export interface ILogger {
+  attachError(error: Error): this
+  debug(message: string, metadata?: any): void
+  info(message: string, metadata?: any): void
+  warn(message: string, metadata?: any): void
+  error(message: string, metadata?: any): void
+  critical(message: string, metadata?: any): void
+}
+
 export enum LoggerLevel {
   Critical = 0,
   Error = 1,
@@ -30,11 +39,12 @@ export interface LogTransporter {
 
 export interface LoggerConfig {
   level: LoggerLevel
+  minLevel: LoggerLevel | undefined // if defined, allows to bypass filters
   formatter: LogEntryFormatter
   transports: LogTransporter[]
   timeFormat: string // moment time format
   namespaceDelimiter: string
   colors: { [level: number]: string }
   indent: boolean
-  filters: string[]
+  filters: string[] | undefined
 }

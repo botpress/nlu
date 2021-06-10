@@ -2,6 +2,7 @@ const { spawn } = require('./utils/spawn')
 const { version } = require('../package.json')
 const path = require('path')
 const chalk = require('chalk')
+const _ = require('lodash')
 
 const targets = {
   win: 'node12-win32-x64',
@@ -12,10 +13,26 @@ const targets = {
 const projectRoot = path.join(__dirname, '..')
 const projectDist = path.join(projectRoot, 'dist')
 
+const computeDistributions = () => {
+  const packageWindows = process.argv.includes('--win')
+  const packageDarwin = process.argv.includes('--darwin')
+  const packageLinux = process.argv.includes('--linux')
+  const packageAll = !(packageWindows || packageDarwin || packageLinux)
+
+  if (packageAll) {
+    return targets
+  }
+  return _.pickBy(targets, (v, k) => {
+    return (k === 'win' && packageWindows) || (k === 'darwin' && packageDarwin) || (k === 'linux' && packageLinux)
+  })
+}
+
 const package = async (cb) => {
   const underscores = version.split('.').join('_')
   try {
-    for (const [dist, target] of Object.entries(targets)) {
+    const distributions = computeDistributions()
+
+    for (const [dist, target] of Object.entries(distributions)) {
       const fileName = `nlu-v${underscores}-${dist}-x64`
 
       console.log(chalk.green(`Packaging ${fileName}`))

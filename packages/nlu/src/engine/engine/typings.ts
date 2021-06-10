@@ -1,7 +1,7 @@
 import { AxiosInstance } from 'axios'
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
-import { MLToolkit } from '../../ml/typings'
+import { MLToolkit } from '../ml/typings'
 
 import { Health, Specifications } from '../../typings_v1'
 import { LanguageSource } from '../typings'
@@ -143,7 +143,12 @@ export interface Tools {
 }
 
 export interface SystemEntityExtractor {
-  extractMultiple(input: string[], lang: string, useCache?: Boolean): Promise<EntityExtractionResult[][]>
+  extractMultiple(
+    input: string[],
+    lang: string,
+    progress: (p: number) => void,
+    useCache?: Boolean
+  ): Promise<EntityExtractionResult[][]>
   extract(input: string, lang: string): Promise<EntityExtractionResult[]>
 }
 

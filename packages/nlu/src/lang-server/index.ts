@@ -2,10 +2,10 @@ import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
 
+import { LanguageService } from '../engine'
 import Logger, { centerText } from '../utils/logger'
 import { LoggerLevel } from '../utils/logger/typings'
 import API, { APIOptions } from './api'
-import LanguageService from './service'
 import DownloadManager from './service/download-manager'
 
 export interface ArgV {
@@ -38,13 +38,6 @@ export default async function (options: ArgV) {
     level: LoggerLevel.Info,
     filters: ['']
   })
-
-  global.printLog = (args) => {
-    const message = args[0]
-    const rest = args.slice(1)
-
-    launcherLogger.debug(message.trim(), rest)
-  }
 
   launcherLogger.debug('Language Server Options %o', options)
 

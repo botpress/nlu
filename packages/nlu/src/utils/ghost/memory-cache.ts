@@ -74,7 +74,7 @@ export class MemoryObjectCache implements ObjectCache {
   constructor(watcher: chokidar.FSWatcher) {
     this.cacheInvalidator = new FileChangedInvalidator(watcher)
     this.cache = new LRU({
-      max: bytes(process.core_env.BP_MAX_MEMORY_CACHE_SIZE || '1gb'),
+      max: bytes(process.env.BP_MAX_MEMORY_CACHE_SIZE || '1gb'),
       length: (obj) => {
         if (Buffer.isBuffer(obj)) {
           return obj.length

@@ -13,7 +13,21 @@
       "console": "integratedTerminal",
       "sourceMaps": true,
       "autoAttachChildProcesses": true,
-      "args": ["--config=./config.json"]
+      "args": ["--config=./config.json"],
+      "outFiles": ["${workspaceRoot}/packages/**/*.js", "${workspaceRoot}/node_modules/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Jest Current File",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": ["${fileBasenameNoExtension}"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true,
+      "windows": {
+        "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+      }
     },
     {
       "type": "pwa-node",
