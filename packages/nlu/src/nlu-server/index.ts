@@ -93,10 +93,7 @@ ${_.repeat(' ', 9)}========================================`)
 
   const watcher = buildWatcher()
 
-  const issuer = process.env.JWT_ISS
-  const jwksUri = process.env.JWKS_URI
-
-  const app = await createApp(options, engine, version, watcher, issuer, jwksUri)
+  const app = await createApp(options, engine, version, watcher)
   const httpServer = createServer(app)
 
   await Bluebird.fromCallback((callback) => {

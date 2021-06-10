@@ -32,24 +32,16 @@
     {
       "type": "pwa-node",
       "request": "launch",
-      "name": "Debug STAN tests",
+      "name": "Debug App tests",
       "cwd": "${workspaceFolder}/packages/nlu",
-      // "sourceMaps": true,
       "console": "integratedTerminal",
       "args": [
-        // "--inspect-brk",
         "${workspaceFolder}/packages/nlu/node_modules/.bin/jest",
-        // "--runInBand",
         "--rootDir=${workspaceFolder}/packages/nlu",
         "-c=${workspaceFolder}/packages/nlu/jest.config.js",
         "--detectOpenHandles",
         "src/stan/app.test.ts"
-      ],
-      "env": {
-        "JWKS_ORIGIN": "https://mydomain.net/",
-        "JWKS_URI": "https://mydomain.net/.well-known/jwks.json",
-        "JWT_ISS": "some-issuer"
-      }
+      ]
     }
   ]
 }

@@ -4,8 +4,6 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application } from 'express'
 import rateLimit from 'express-rate-limit'
-import jwt from 'express-jwt'
-import jwksRsa from 'jwks-rsa'
 
 import _ from 'lodash'
 import ms from 'ms'
@@ -59,22 +57,9 @@ export const createApp = async (
   options: APIOptions,
   engine: NLUEngine.Engine,
   version: string,
-  watcher: chokidar.FSWatcher,
-  jwtIssuer?: string,
-  jwksUri?: string
+  watcher: chokidar.FSWatcher
 ): Promise<Application> => {
   const app = express()
-
-  const knownPaths: string[] = []
-  const populateKnownPaths = () => {
-    router.stack
-      .filter((r: any) => {
-        return r.route && r.route.path
-      })
-      .map((r: any) => {
-        knownPaths.push(r.route.path)
-      })
-  }
 
   // This must be first, otherwise the /info endpoint can't be called when token is used
   app.use(cors())
@@ -105,31 +90,6 @@ export const createApp = async (
 
   if (options.authToken?.length) {
     app.use(authMiddleware(options.authToken))
-  } else if (jwtIssuer && jwksUri) {
-    app.use((req, res, next) => {
-      if (['/info', '/v1/info'].includes(req.path)) {
-        return next()
-      }
-      if (!knownPaths.includes(req.path)) {
-        res.status(404).send()
-      } else {
-        const jwtMiddleware = jwt({
-          secret: jwksRsa.expressJwtSecret({
-            cache: true,
-            cacheMaxEntries: 5,
-            cacheMaxAge: 600000,
-            rateLimit: true,
-            jwksRequestsPerMinute: 10,
-            jwksUri
-          }),
-          issuer: jwtIssuer,
-          algorithms: ['RS256']
-        })
-
-        // @ts-ignore
-        jwtMiddleware(req, res, next)
-      }
-    })
   }
 
   const router = express.Router({ mergeParams: true })
@@ -403,8 +363,6 @@ export const createApp = async (
       res.status(500).send(resp)
     }
   })
-
-  populateKnownPaths()
 
   return app
 }
