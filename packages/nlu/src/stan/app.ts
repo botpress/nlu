@@ -106,9 +106,7 @@ export const createApp = async (
   if (options.authToken?.length) {
     app.use(authMiddleware(options.authToken))
   } else if (jwtIssuer && jwksUri) {
-    console.log('using JWT')
     app.use((req, res, next) => {
-      console.log(req.path)
       if (['/info', '/v1/info'].includes(req.path)) {
         return next()
       }
