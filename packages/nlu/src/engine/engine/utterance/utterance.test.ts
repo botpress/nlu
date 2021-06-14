@@ -358,9 +358,13 @@ describe('UtteranceClass', () => {
       expect(u.toString({ ...defaultOptions, strategy: 'replace-slot-name' })).toEqual(
         `This IS a ${slot.name} withFire`
       )
-      expect(u.toString({ ...defaultOptions, strategy: 'ignore' })).toEqual(str)
-      expect(u.toString({ ...defaultOptions, strategy: 'ignore' })).toEqual(`This IS a ${entity.value} withFire`)
-      expect(u.toString({ ...defaultOptions, strategy: 'ignore' })).toEqual(`This IS a ${entity.type} withFire`)
+      expect(u.toString({ ...defaultOptions, strategy: 'keep-token' })).toEqual(str)
+      expect(u.toString({ ...defaultOptions, strategy: 'replace-entity-value' })).toEqual(
+        `This IS a ${entity.value} withFire`
+      )
+      expect(u.toString({ ...defaultOptions, strategy: 'replace-entity-name' })).toEqual(
+        `This IS a ${entity.type} withFire`
+      )
       expect(u.toString({ ...defaultOptions, strategy: 'ignore' })).toEqual('This IS a  withFire')
     })
   })
