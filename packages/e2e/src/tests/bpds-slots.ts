@@ -47,9 +47,9 @@ export default function (bitfan) {
       const makeProblem = problemMaker(bitfan)
       const problems = await Bluebird.map(allTopics, makeProblem)
 
-      const stanEndpoint = 'http://localhost:3200'
+      const nluServerEndpoint = process.env.NLU_SERVER_ENDPOINT ?? 'http://localhost:3200'
       const password = '123456'
-      const engine = bitfan.engines.makeBpSlotEngine(stanEndpoint, password)
+      const engine = bitfan.engines.makeBpSlotEngine(nluServerEndpoint, password)
 
       const solution = {
         name: 'bpds slot',
