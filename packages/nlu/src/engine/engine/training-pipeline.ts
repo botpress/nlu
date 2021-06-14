@@ -172,6 +172,8 @@ async function TrainIntentClassifiers(
 ): Promise<_.Dictionary<string>> {
   const { list_entities, pattern_entities, intents, ctxToTrain, nluSeed, languageCode } = input
 
+  const clampedProgress = (p: number) => progress(Math.min(0.99, p))
+
   const svmPerCtx: _.Dictionary<string> = {}
 
   for (let i = 0; i < ctxToTrain.length; i++) {
@@ -192,7 +194,7 @@ async function TrainIntentClassifiers(
       },
       (p) => {
         const completion = (i + p) / input.ctxToTrain.length
-        progress(completion)
+        clampedProgress(completion)
       }
     )
 
@@ -200,11 +202,15 @@ async function TrainIntentClassifiers(
     svmPerCtx[ctx] = model
   }
 
+  progress(1)
+
   return svmPerCtx
 }
 
 async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: progressCB): Promise<string> {
   const { languageCode, intents, contexts, list_entities, pattern_entities, nluSeed } = input
+
+  const clampedProgress = (p: number) => progress(Math.min(0.99, p))
 
   const rootIntents = contexts.map((ctx) => {
     const utterances = _(intents)
@@ -230,10 +236,11 @@ async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: 
       nluSeed
     },
     (p) => {
-      progress(p)
+      clampedProgress(p)
     }
   )
 
+  progress(1)
   return rootIntentClassifier.serialize()
 }
 
@@ -324,6 +331,8 @@ export async function TfidfTokens(input: TrainStep): Promise<TrainStep> {
 async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progressCB): Promise<_.Dictionary<string>> {
   const slotModelByIntent: _.Dictionary<string> = {}
 
+  const clampedProgress = (p: number) => progress(Math.min(0.99, p))
+
   for (let i = 0; i < input.intents.length; i++) {
     const intent = input.intents[i]
 
@@ -336,13 +345,14 @@ async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progre
       },
       (p) => {
         const completion = (i + p) / input.intents.length
-        progress(completion)
+        clampedProgress(completion)
       }
     )
 
     slotModelByIntent[intent.name] = slotTagger.serialize()
   }
 
+  progress(1)
   return slotModelByIntent
 }
 
@@ -368,15 +378,16 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
   let totalProgress = 0
   let normalizedProgress = 0
 
-  const debouncedProgress = _.debounce(progress, 75, { maxWait: 750 })
   const reportProgress: progressCB = (stepProgress = 1) => {
-    totalProgress = Math.max(totalProgress, Math.floor(totalProgress) + _.round(stepProgress, 2))
-    const scaledProgress = Math.min(1, _.round(totalProgress / NB_STEPS, 2))
+    totalProgress = Math.max(totalProgress, Math.floor(totalProgress) + stepProgress)
+    const scaledProgress = Math.min(1, totalProgress / NB_STEPS)
     if (scaledProgress === normalizedProgress) {
       return
     }
     normalizedProgress = scaledProgress
-    debouncedProgress(normalizedProgress)
+
+    const rounded = _.round(normalizedProgress, 2)
+    progress(rounded)
   }
   const logger = makeLogger(input.trainId, tools.logger)
 
@@ -393,8 +404,6 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
     logger(TrainIntentClassifiers)(step, tools, reportProgress),
     logger(TrainSlotTaggers)(step, tools, reportProgress)
   ])
-
-  debouncedProgress.flush()
 
   const [ctx_model, intent_model_by_ctx, slots_model_by_intent] = models
 
