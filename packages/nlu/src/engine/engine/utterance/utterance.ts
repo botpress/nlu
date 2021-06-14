@@ -8,11 +8,17 @@ import { convertToRealSpaces, isSpace, isWord, SPACE } from '../tools/token-util
 import { ExtractedEntity, ExtractedSlot, TFIDF, Tools } from '../typings'
 import { parseUtterance } from './utterance-parser'
 
+type UtteranceToStringStrategy =
+  | 'replace-entity-name' // token keeps is replaced by ...
+  | 'replace-entity-value'
+  | 'replace-slot-name'
+  | 'keep-token' // token keeps it's original value
+  | 'ignore' // token won't be in resulting string
+
 export interface UtteranceToStringOptions {
-  lowerCase?: boolean
-  onlyWords?: boolean
-  slots?: 'keep-default' | 'keep-value' | 'keep-name' | 'ignore'
-  entities?: 'keep-default' | 'keep-value' | 'keep-name' | 'ignore'
+  lowerCase: boolean
+  onlyWords: boolean
+  strategy: UtteranceToStringStrategy
 }
 
 export interface TokenToStringOptions {
@@ -47,6 +53,12 @@ export type UtteranceToken = Readonly<{
 }>
 
 export const DefaultTokenToStringOptions: TokenToStringOptions = { lowerCase: false, realSpaces: true, trim: false }
+
+const DEFAULT_UTT_TO_STRING_OPTIONS: UtteranceToStringOptions = {
+  lowerCase: false,
+  onlyWords: false,
+  strategy: 'keep-token'
+}
 
 export default class Utterance {
   public slots: ReadonlyArray<UtteranceSlot> = []
@@ -168,9 +180,35 @@ export default class Utterance {
     this._kmeans = kmeans
   }
 
+  private _replaceToken(tok: UtteranceToken, options: UtteranceToStringOptions): string {
+    if (!tok.slots.length && !tok.entities.length) {
+      return tok.value
+    }
+
+    if (options.strategy === 'keep-token') {
+      return tok.value
+    }
+
+    if (tok.entities.length && options.strategy === 'replace-entity-name') {
+      return tok.entities[0].type
+    }
+
+    if (tok.entities.length && options.strategy === 'replace-entity-value') {
+      return tok.entities[0].value.toString()
+    }
+
+    if (tok.slots.length && options.strategy === 'replace-slot-name') {
+      return tok.slots[0].name
+    }
+
+    // options.strategy === 'ignore'
+    return ''
+  }
+
   // TODO memoize this for better perf
-  toString(opt?: UtteranceToStringOptions): string {
-    const options: UtteranceToStringOptions = _.defaultsDeep({}, opt, { lowerCase: false, slots: 'keep-value' })
+  toString(opt?: Partial<UtteranceToStringOptions>): string {
+    const nonEmptyOptions = _.pickBy(opt, (v) => v !== undefined)
+    const options: UtteranceToStringOptions = { ...DEFAULT_UTT_TO_STRING_OPTIONS, ...nonEmptyOptions }
 
     let final = ''
     let ret = [...this.tokens]
@@ -179,27 +217,7 @@ export default class Utterance {
     }
 
     for (const tok of ret) {
-      let toAdd = ''
-      if (!tok.slots.length && !tok.entities.length) {
-        toAdd = tok.value
-      }
-
-      // case ignore is handled implicitly
-      if (tok.slots.length && options.slots === 'keep-name') {
-        toAdd = tok.slots[0].name
-      } else if (tok.slots.length && options.slots === 'keep-value') {
-        toAdd = tok.value
-      } else if (tok.slots.length && options.slots === 'keep-default') {
-        toAdd = tok.value
-      } else if (tok.entities.length && options.entities === 'keep-name') {
-        toAdd = tok.entities[0].type
-      } else if (tok.entities.length && options.entities === 'keep-value') {
-        toAdd = tok.entities[0].value.toString()
-      } else if (tok.entities.length && options.entities === 'keep-default') {
-        toAdd = tok.value
-      }
-
-      final += toAdd
+      final += this._replaceToken(tok, options)
     }
 
     if (options.lowerCase) {
