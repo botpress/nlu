@@ -1,7 +1,5 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
-import { MLToolkit } from '../ml/typings'
-
 import {
   EntityPrediction,
   SlotPrediction,
@@ -9,6 +7,7 @@ import {
   IntentPrediction as StanIntentPrediction,
   PredictOutput
 } from '../../typings_v1'
+import { MLToolkit } from '../ml/typings'
 
 import { CustomEntityExtractor } from './entities/custom-extractor'
 import { IntentPrediction, IntentPredictions, NoneableIntentPredictions } from './intents/intent-classifier'
@@ -161,7 +160,7 @@ async function extractSlots(input: IntentStep, predictors: Predictors): Promise<
 
 async function spellCheck(input: SlotStep, predictors: Predictors, tools: Tools): Promise<SpellStep> {
   const spellChecker = makeSpellChecker(predictors.vocab, input.languageCode, tools)
-  const spellChecked = await spellChecker(input.utterance.toString({ entities: 'keep-default', slots: 'keep-default' }))
+  const spellChecked = await spellChecker(input.utterance.toString({ strategy: 'keep-token' }))
   return {
     ...input,
     spellChecked
