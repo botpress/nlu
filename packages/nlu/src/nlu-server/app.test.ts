@@ -3,9 +3,9 @@ import { makeEngine } from './make-engine'
 import Logger from '../utils/logger'
 import { StanOptions } from './config'
 import request from 'supertest'
-import path from 'path'
 import { version } from 'moment'
 import { buildWatcher } from './watcher'
+import { setProjectLocation } from './project'
 
 const options: StanOptions = {
   host: 'localhost',
@@ -33,9 +33,7 @@ const launcherLogger = Logger.sub('Launcher')
 let watcher
 
 beforeEach(async () => {
-  process.PROJECT_LOCATION = process.pkg
-    ? path.dirname(process.execPath) // We point at the binary path
-    : __dirname // e.g. /dist/..
+  setProjectLocation()
   watcher = buildWatcher()
 })
 
