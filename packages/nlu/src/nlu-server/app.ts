@@ -1,9 +1,10 @@
 import Bluebird from 'bluebird'
+import chokidar from 'chokidar'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application } from 'express'
 import rateLimit from 'express-rate-limit'
-import { createServer } from 'http'
+
 import _ from 'lodash'
 import ms from 'ms'
 import * as NLUEngine from '../engine'
@@ -52,7 +53,12 @@ export interface APIOptions {
 
 const requestLogger = Logger.sub('api').sub('request')
 
-const createExpressApp = (options: APIOptions): Application => {
+export const createApp = async (
+  options: APIOptions,
+  engine: NLUEngine.Engine,
+  version: string,
+  watcher: chokidar.FSWatcher
+): Promise<Application> => {
   const app = express()
 
   // This must be first, otherwise the /info endpoint can't be called when token is used
@@ -86,14 +92,15 @@ const createExpressApp = (options: APIOptions): Application => {
     app.use(authMiddleware(options.authToken))
   }
 
-  return app
-}
+  const router = express.Router({ mergeParams: true })
 
-export default async function (options: APIOptions, engine: NLUEngine.Engine, version: string) {
-  const app = createExpressApp(options)
+  app.use(['/v1', '/'], router)
+  app.use(handleErrorLogging)
+
   const logger = Logger.sub('api')
 
   const { dbURL: databaseURL, modelDir } = options
+
   const modelRepoOptions: Partial<ModelRepoOptions> = databaseURL
     ? {
         driver: 'db',
@@ -105,12 +112,11 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
         modelDir
       }
 
-  const modelRepo = new ModelRepository(logger, modelRepoOptions)
+  const modelRepo = new ModelRepository(logger, modelRepoOptions, watcher)
   await modelRepo.initialize()
   const trainSessionService = new TrainSessionService()
   const trainService = new TrainService(logger, engine, modelRepo, trainSessionService)
 
-  const router = express.Router({ mergeParams: true })
   router.get('/info', async (req, res) => {
     try {
       const health = engine.getHealth()
@@ -358,15 +364,5 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
     }
   })
 
-  app.use(['/v1', '/'], router)
-  app.use(handleErrorLogging)
-
-  const httpServer = createServer(app)
-
-  await Bluebird.fromCallback((callback) => {
-    const hostname = options.host === 'localhost' ? undefined : options.host
-    httpServer.listen(options.port, hostname, undefined, () => {
-      callback(null)
-    })
-  })
+  return app
 }

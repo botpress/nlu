@@ -1,13 +1,16 @@
 import bytes from 'bytes'
 import chalk from 'chalk'
+import Bluebird from 'bluebird'
 import _ from 'lodash'
 import path from 'path'
 import Logger, { centerText } from '../utils/logger'
 import { LoggerLevel } from '../utils/logger/typings'
-import API from './api'
+import { createApp } from './app'
+import { createServer } from 'http'
 import { CommandLineOptions, getConfig } from './config'
-import { copyDir } from './copy-dir'
 import { displayDocumentation } from './documentation'
+import { buildWatcher } from './watcher'
+import { copyDir } from './copy-dir'
 import { makeEngine } from './make-engine'
 
 export default async function (cliOptions: CommandLineOptions, version: string) {
@@ -88,7 +91,17 @@ ${_.repeat(' ', 9)}========================================`)
 
   options.doc && displayDocumentation(launcherLogger, options)
 
-  await API(options, engine, version)
+  const watcher = buildWatcher()
+
+  const app = await createApp(options, engine, version, watcher)
+  const httpServer = createServer(app)
+
+  await Bluebird.fromCallback((callback) => {
+    const hostname = options.host === 'localhost' ? undefined : options.host
+    httpServer.listen(options.port, hostname, undefined, () => {
+      callback(null)
+    })
+  })
 
   launcherLogger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
 }

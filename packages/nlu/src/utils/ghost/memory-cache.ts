@@ -41,34 +41,17 @@ export interface ObjectCache {
 // }
 
 class FileChangedInvalidator {
-  constructor() {}
-  watcher!: {
-    start: Function
-    stop: Function
-  }
+  constructor(private watcher: chokidar.FSWatcher) {}
+
   cache?: ObjectCache
 
   install(objectCache: ObjectCache) {
     this.cache = objectCache
 
-    const foldersToWatch = [
-      path.join(process.PROJECT_LOCATION, 'data', 'bots'),
-      path.join(process.PROJECT_LOCATION, 'data', 'global')
-    ]
-
-    const watcher = chokidar.watch(foldersToWatch, {
-      ignoreInitial: true,
-      ignorePermissionErrors: true
-    })
-
-    watcher.on('add', this.handle)
-    watcher.on('change', this.handle)
-    watcher.on('unlink', this.handle)
+    this.watcher.on('add', this.handle)
+    this.watcher.on('change', this.handle)
+    this.watcher.on('unlink', this.handle)
     // watcher.on('error', err => this.logger.attachError(err).error('Watcher error'))
-  }
-
-  async stop() {
-    await this.watcher.stop()
   }
 
   handle = async (file) => {
@@ -88,8 +71,8 @@ export class MemoryObjectCache implements ObjectCache {
 
   public readonly events: EventEmitter = new EventEmitter()
 
-  constructor() {
-    this.cacheInvalidator = new FileChangedInvalidator()
+  constructor(watcher: chokidar.FSWatcher) {
+    this.cacheInvalidator = new FileChangedInvalidator(watcher)
     this.cache = new LRU({
       max: bytes(process.env.BP_MAX_MEMORY_CACHE_SIZE || '1gb'),
       length: (obj) => {
