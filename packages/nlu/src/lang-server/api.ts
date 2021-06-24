@@ -155,7 +155,7 @@ export default async function (
       progress: {
         status: x.getStatus(),
         downloadId: x.id,
-        size: x.downloadSizeProgress
+        size: x.totalDownloadSizeProgress
       }
     }))
 
