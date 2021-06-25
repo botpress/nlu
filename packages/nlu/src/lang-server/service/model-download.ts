@@ -1,6 +1,7 @@
 import axios, { CancelTokenSource } from 'axios'
 import Bluebird from 'bluebird'
 import fse from 'fs-extra'
+import _ from 'lodash'
 import { Readable } from 'stream'
 import Logger from '../../utils/logger'
 type ModelType = 'bpe' | 'embeddings'
@@ -96,8 +97,11 @@ export default class ModelDownload {
       downloadedSize += chunk.length
       this.totalDownloadSizeProgress += chunk.length
 
-      const currentFileProgress = downloadedSize / fileSize
-      const progress = (this.currentModel + currentFileProgress) / this.models.length
+      const progress =
+        this.totalDownloadSizeProgress /
+        _(this.models)
+          .map((m) => m.size)
+          .sum()
       this._progressListeners.forEach((l) => l(progress))
     })
     stream.on('end', () => this._onFinishedDownloading(modelToDownload, downloadedSize, fileSize))

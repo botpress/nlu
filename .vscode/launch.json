@@ -19,6 +19,18 @@
     {
       "type": "pwa-node",
       "request": "launch",
+      "name": "Debug Lang Server",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/packages/nlu/dist/index.js",
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "autoAttachChildProcesses": true,
+      "args": ["lang", "--dim=100"],
+      "outFiles": ["${workspaceRoot}/packages/**/*.js", "${workspaceRoot}/node_modules/**/*.js"]
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
       "name": "Debug Download Model",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/packages/nlu/dist/index.js",
