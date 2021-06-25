@@ -21,7 +21,7 @@ export interface ArgV {
   dim: number
   domain: string
   verbose: number
-  logFilter: string[]
+  logFilter: string[] | undefined
 }
 
 export default async function (options: ArgV) {
@@ -36,7 +36,7 @@ export default async function (options: ArgV) {
   // Launcher always display
   launcherLogger.configure({
     level: LoggerLevel.Info,
-    filters: ['']
+    filters: undefined
   })
 
   launcherLogger.debug('Language Server Options %o', options)

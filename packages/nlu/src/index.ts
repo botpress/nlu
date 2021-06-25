@@ -166,8 +166,7 @@ yargs
         description:
           'Filter logs by namespace, ex: "--log-filter training:svm api". Namespaces are space separated. Does not apply to "Launcher" logger.',
         array: true,
-        type: 'string',
-        default: []
+        type: 'string'
       }
     },
     async (argv) => {
