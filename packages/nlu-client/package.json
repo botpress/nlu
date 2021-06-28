@@ -1,0 +1,20 @@
+{
+  "name": "@botpress/nlu-client",
+  "version": "0.0.1",
+  "author": "Botpress, Inc.",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "lodash": "^4.17.19",
+    "yn": "^4.0.0"
+  },
+  "devDependencies": {
+    "@botpress/nlu-types": "*",
+    "@types/lodash": "^4.14.116",
+    "@types/yn": "^3.1.0"
+  },
+  "types": "./src/typings.d.ts",
+  "main": "./dist/index.js"
+}

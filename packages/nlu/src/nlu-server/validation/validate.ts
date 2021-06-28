@@ -1,7 +1,7 @@
+import { IntentDefinition, ListEntityDefinition, PatternEntityDefinition, SlotDefinition } from '@botpress/nlu-types'
 import { validate } from 'joi'
 
 import * as NLUEngine from '../../engine'
-import { IntentDefinition, ListEntityDefinition, PatternEntityDefinition, SlotDefinition } from '../../typings_v1'
 
 import { isListEntity, isPatternEntity } from '../../utils/guards'
 import * as http from '../http-typings'

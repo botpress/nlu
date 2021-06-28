@@ -1,3 +1,21 @@
+export class Client {
+  constructor(endpoint: string, authToken?: string)
+  async getInfo(): Promise<InfoResponseBody | ErrorResponse>
+  async startTraining(trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse>
+  async getTrainingStatus(modelId: string, credentials: Credentials): Promise<TrainProgressResponseBody | ErrorResponse>
+  async cancelTraining(modelId: string, credentials: Credentials): Promise<SuccessReponse | ErrorResponse>
+  async listModels(credentials: Credentials): Promise<ListModelsResponseBody | ErrorResponse>
+  async pruneModels(credentials: Credentials): Promise<PruneModelsResponseBody | ErrorResponse>
+  async detectLanguage(detectLangRequestBody: DetectLangRequestBody): Promise<DetectLangResponseBody | ErrorResponse>
+  async predict(modelId: string, predictRequestBody: PredictRequestBody): Promise<PredictResponseBody | ErrorResponse>
+}
+
+/**
+ * ############
+ * ### HTTP ###
+ * ############
+ */
+
 import {
   TrainingProgress,
   PredictOutput,
@@ -42,7 +60,6 @@ export interface InfoResponseBody extends SuccessReponse {
     specs: Specifications
     health: Health
     languages: string[]
-    version: string
   }
 }
 

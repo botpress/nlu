@@ -1,12 +1,12 @@
-import Bluebird from 'bluebird'
-import _ from 'lodash'
 import {
   EntityPrediction,
   SlotPrediction,
   ContextPrediction,
   IntentPrediction as StanIntentPrediction,
   PredictOutput
-} from '../../typings_v1'
+} from '@botpress/nlu-types'
+import Bluebird from 'bluebird'
+import _ from 'lodash'
 import { MLToolkit } from '../ml/typings'
 
 import { CustomEntityExtractor } from './entities/custom-extractor'

@@ -1,3 +1,4 @@
+import { TrainInput } from '@botpress/nlu-types'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'
@@ -10,7 +11,6 @@ import * as NLUEngine from '../engine'
 // eslint-disable-next-line no-duplicate-imports
 import { modelIdService } from '../engine'
 
-import { TrainInput } from '../typings_v1'
 import { authMiddleware, handleErrorLogging, handleUnexpectedError } from '../utils/http'
 import Logger from '../utils/logger'
 import {

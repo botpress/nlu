@@ -1,0 +1,12 @@
+{
+  "name": "@botpress/nlu-types",
+  "version": "0.0.1",
+  "author": "Botpress, Inc.",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "types": "./src/typings.d.ts"
+}

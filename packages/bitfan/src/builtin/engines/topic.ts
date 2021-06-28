@@ -1,6 +1,6 @@
+import { ContextPrediction, TrainInput } from '@botpress/nlu-types'
 import * as sdk from 'bitfan/sdk'
 import _ from 'lodash'
-import { ContextPrediction, TrainInput } from 'src/services/bp-provider/stan-typings'
 import { areSame, makeKey, OOS } from '../../builtin/labels'
 
 import { StanProvider } from '../../services/bp-provider/stan-provider'
@@ -39,8 +39,7 @@ export class BpTopicEngine implements sdk.Engine<'topic'> {
       language: trainSet.lang,
       entities: [],
       seed,
-      intents,
-      contexts: allTopics
+      intents
     }
 
     return this._stanProvider.train(trainInput, (_time, progressPercent) => {

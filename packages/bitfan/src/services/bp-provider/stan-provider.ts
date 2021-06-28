@@ -1,30 +1,26 @@
-import axios from 'axios'
+import { Client, Credentials } from '@botpress/nlu-client'
+import { PredictOutput, TrainingProgress, TrainInput } from '@botpress/nlu-types'
+import _ from 'lodash'
 
 import { sleep } from '../../utils'
 
-import { PredictOutput, TrainingSession, TrainInput } from './stan-typings'
-
+const CREDS: Credentials = { appId: '', appSecret: '' }
 const POLLING_INTERVAL = 500
 
 export class StanProvider {
   private _modelId: string | undefined
+  private _client: Client
 
-  constructor(private _nluServerEndpoint: string = 'http://localhost:3200', password = '') {}
-
-  public async getVersion(): Promise<{ version: string } | undefined> {
-    try {
-      const { data } = await axios.get(`${this._nluServerEndpoint}/info`) // just to see if breaking
-      return data
-    } catch (err) {
-      this._mapErrorAndRethrow('INFO', err)
-    }
+  constructor(nluServerEndpoint: string = 'http://localhost:3200', password = '') {
+    this._client = new Client(nluServerEndpoint, password)
   }
 
-  private async _getTrainingStatus(modelId: string): Promise<TrainingSession> {
-    const { data } = await axios.get(`${this._nluServerEndpoint}/train/${modelId}`, {
-      params: {}
-    })
-    return data.session
+  private async _getTrainingStatus(modelId: string): Promise<TrainingProgress> {
+    const data = await this._client.getTrainingStatus(modelId, CREDS)
+    if (data.success) {
+      return data.session
+    }
+    throw new Error(data.error)
   }
 
   private async _waitForTraining(modelId: string, loggingCb?: (time: number, progress: number) => void) {
@@ -46,47 +42,33 @@ export class StanProvider {
   }
 
   public async train(trainInput: TrainInput, loggingCb?: (time: number, progress: number) => void) {
-    const inputWithPassword = { ...trainInput }
+    const contexts = _(trainInput.intents)
+      .flatMap((i) => i.contexts)
+      .uniq()
+      .value()
 
-    try {
-      const { data } = await axios.post(`${this._nluServerEndpoint}/train`, inputWithPassword)
+    const data = await this._client.startTraining({
+      ...CREDS,
+      language: trainInput.language,
+      contexts,
+      intents: trainInput.intents,
+      entities: trainInput.entities,
+      seed: trainInput.seed
+    })
 
+    if (data.success) {
       const { modelId } = data
       this._modelId = modelId
-      await this._waitForTraining(modelId, loggingCb)
-    } catch (err) {
-      this._mapErrorAndRethrow('TRAIN', err)
+      return this._waitForTraining(modelId, loggingCb)
     }
-  }
-
-  private async _postPredict(
-    utterances: string[]
-  ): Promise<{
-    success: boolean
-    predictions: PredictOutput[]
-  }> {
-    const { data } = await axios.post(`${this._nluServerEndpoint}/predict/${this._modelId}`, {
-      utterances
-    })
-    return data
+    throw new Error(data.error)
   }
 
   public async predict(texts: string[]): Promise<PredictOutput[]> {
-    try {
-      const predOutput = await this._postPredict(texts)
-      if (!predOutput.success) {
-        throw new Error('An error occured at prediction. The nature of the error is unknown.')
-      }
-
-      return predOutput.predictions
-    } catch (err) {
-      this._mapErrorAndRethrow('PREDICT', err)
+    const predOutput = await this._client.predict(this._modelId ?? '', { utterances: texts, ...CREDS })
+    if (!predOutput.success) {
+      throw new Error('An error occured at prediction. The nature of the error is unknown.')
     }
-  }
-
-  private _mapErrorAndRethrow(prefix: string, err: any): never {
-    const custom = err?.response?.data?.error ?? 'http related error'
-    const msg = `[${prefix}] ${err.message}\n${custom}`
-    throw new Error(msg)
+    return predOutput.predictions
   }
 }

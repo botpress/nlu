@@ -1,8 +1,8 @@
+import { TrainingProgress } from '@botpress/nlu-types'
 import crypto from 'crypto'
 import LRUCache from 'lru-cache'
 import * as NLUEngine from '../engine'
 
-import { TrainingProgress } from '../typings_v1'
 import { Credentials } from './http-typings'
 
 export default class TrainSessionService {

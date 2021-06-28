@@ -1,4 +1,4 @@
-import { TrainInput, Specifications, Health, PredictOutput } from '../typings_v1'
+import { TrainInput, Specifications, Health, PredictOutput } from '@botpress/nlu-types'
 
 export interface Config extends LanguageConfig {
   modelCacheSize: string
