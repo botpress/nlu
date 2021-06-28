@@ -10,7 +10,7 @@ import { copyDir } from './copy-dir'
 import { displayDocumentation } from './documentation'
 import { makeEngine } from './make-engine'
 
-export default async function (cliOptions: CommandLineOptions, version: string) {
+export const run = async (cliOptions: CommandLineOptions, version: string) => {
   const { options, source: configSource } = await getConfig(cliOptions)
 
   Logger.configure({

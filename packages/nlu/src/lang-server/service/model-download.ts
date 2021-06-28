@@ -1,6 +1,7 @@
 import axios, { CancelTokenSource } from 'axios'
 import Bluebird from 'bluebird'
 import fse from 'fs-extra'
+import _ from 'lodash'
 import { Readable } from 'stream'
 import Logger from '../../utils/logger'
 type ModelType = 'bpe' | 'embeddings'
@@ -18,15 +19,20 @@ const logger = Logger.sub('lang').sub('download')
 
 export type DownloadStatus = 'pending' | 'downloading' | 'loading' | 'errored' | 'done'
 
+export type ProgressListener = (p: number) => void
+export type DoneListener = (id: string) => void
 export default class ModelDownload {
   public readonly id: string = Date.now().toString()
   public readonly lang: string
 
-  public downloadSizeProgress: number = 0
-  private _doneCB = Function
+  public totalDownloadSizeProgress: number = 0
+  private _doneListeners: DoneListener[] = []
+  private _progressListeners: ProgressListener[] = []
   private status: DownloadStatus = 'pending'
   private message: string = ''
   private readonly cancelToken: CancelTokenSource = axios.CancelToken.source()
+
+  private currentModel = 0
 
   constructor(private models: DownloadableModel[], public readonly destDir: string) {
     this.lang = models[0].language
@@ -43,20 +49,30 @@ export default class ModelDownload {
     return `${this.destDir}/${fn}`
   }
 
-  async start(done) {
-    this._doneCB = done
+  async start(done: DoneListener) {
+    this._doneListeners.push(done)
+
     if (this.status !== 'pending') {
       throw new Error("Can't restart download")
     }
 
-    if (this.models.length > 0) {
+    if (this.currentModel < this.models.length) {
       this.status = 'downloading'
       await this._downloadNext()
     }
   }
 
+  async listenProgress(listener: (p: number) => void) {
+    this._progressListeners.push(listener)
+  }
+
+  async listenCompletion(listener: DoneListener) {
+    this._doneListeners.push(listener)
+  }
+
   private async _downloadNext() {
-    const modelToDownload = this.models.shift() as DownloadableModel
+    const modelToDownload = this.models[this.currentModel] as DownloadableModel
+
     logger.debug(`Started to download ${modelToDownload.language} ${modelToDownload.type} model`)
 
     const { data, headers } = await axios.get(modelToDownload.remoteUrl, {
@@ -79,17 +95,26 @@ export default class ModelDownload {
 
     stream.on('data', (chunk) => {
       downloadedSize += chunk.length
-      this.downloadSizeProgress += chunk.length
+      this.totalDownloadSizeProgress += chunk.length
+
+      const progress =
+        this.totalDownloadSizeProgress /
+        _(this.models)
+          .map((m) => m.size)
+          .sum()
+      this._progressListeners.forEach((l) => l(progress))
     })
     stream.on('end', () => this._onFinishedDownloading(modelToDownload, downloadedSize, fileSize))
   }
 
   async _onFinishedDownloading(downloadedModel: DownloadableModel, downloadSize: number, fileSize: number) {
+    this.currentModel++
+
     if (downloadSize !== fileSize) {
       // Download is incomplete
       this.status = 'errored'
       this.message = 'Download incomplete or file is corrupted'
-      this.models = []
+      this.currentModel = this.models.length
       return this._cleanupTmp(downloadedModel)
     }
 
@@ -98,16 +123,16 @@ export default class ModelDownload {
     } catch (err) {
       this.status = 'errored'
       this.message = 'Download incomplete or file is corrupted'
-      this.models = []
+      this.currentModel = this.models.length
       return this._cleanupTmp(downloadedModel)
     }
 
-    if (this.models.length > 0) {
+    if (this.currentModel < this.models.length) {
       await this._downloadNext()
     } else {
       this.status = 'done'
       this.message = ''
-      this._doneCB && this._doneCB(this.id)
+      this._doneListeners.forEach((l) => l(this.id))
     }
   }
 

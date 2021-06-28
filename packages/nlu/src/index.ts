@@ -9,8 +9,8 @@ import { version } from '../package.json'
 // eslint-disable-next-line import/order
 import './utils/worker-before'
 
-import LANG from './lang-server'
-import STAN from './nlu-server'
+import { run as runLanguageServer, download as downloadLang } from './lang-server'
+import { run as runNLUServer } from './nlu-server'
 import { LoggerLevel } from './utils/logger/typings'
 
 process.PROJECT_LOCATION = process.pkg
@@ -104,7 +104,7 @@ yargs
     },
     (argv) => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      STAN(argv, version).catch((err) => {
+      runNLUServer(argv, version).catch((err) => {
         exitLogger.attachError(err).critical('NLU Server exits after an error occured.')
       })
     }
@@ -166,15 +166,52 @@ yargs
         description:
           'Filter logs by namespace, ex: "--log-filter training:svm api". Namespaces are space separated. Does not apply to "Launcher" logger.',
         array: true,
-        type: 'string',
-        default: []
+        type: 'string'
       }
     },
     async (argv) => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      LANG(argv).catch((err) => {
+      runLanguageServer(argv).catch((err) => {
         exitLogger.attachError(err).critical('Language Server exits after an error occured.')
       })
+    }
+  )
+  .command(
+    'download',
+    'Download a language model for lang and dim',
+    {
+      langDir: {
+        description: 'Directory where language embeddings will be saved',
+        type: 'string'
+      },
+      metadataLocation: {
+        description: 'URL of metadata file which lists available languages',
+        default: 'https://nyc3.digitaloceanspaces.com/botpress-public/embeddings/index.json'
+      },
+      dim: {
+        default: 100,
+        description: 'Number of language dimensions provided (25, 100 or 300 at the moment)'
+      },
+      domain: {
+        description: 'Name of the domain where those embeddings were trained on.',
+        default: 'bp'
+      },
+      lang: {
+        alias: 'l',
+        description: 'Language Code to download model from',
+        type: 'string',
+        demandOption: true
+      }
+    },
+    async (argv) => {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      downloadLang(argv)
+        .then(() => {
+          process.exit(0)
+        })
+        .catch((err) => {
+          exitLogger.attachError(err).critical('Language Server exits after an error occured.')
+        })
     }
   )
   .help().argv

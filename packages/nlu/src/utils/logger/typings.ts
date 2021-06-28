@@ -46,5 +46,5 @@ export interface LoggerConfig {
   namespaceDelimiter: string
   colors: { [level: number]: string }
   indent: boolean
-  filters: string[] | undefined
+  filters: string[] | undefined // if undefined, all logs are displayed
 }

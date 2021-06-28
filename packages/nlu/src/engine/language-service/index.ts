@@ -9,7 +9,6 @@ import path from 'path'
 import process from 'process'
 import { VError } from 'verror'
 
-import Logger from '../../utils/logger'
 import { ILogger } from '../../utils/logger/typings'
 import toolkit from '../ml/toolkit'
 import { MLToolkit } from '../ml/typings'
@@ -40,10 +39,13 @@ export default class LanguageService {
   private _models: _.Dictionary<ModelSet> = {}
   private _ready: boolean = false
   private _cache: LRUCache<string, number[]>
-  private logger: ILogger
 
-  constructor(public readonly dim: number, public readonly domain: string, private readonly langDir: string) {
-    this.logger = Logger.sub('lang').sub('service')
+  constructor(
+    public readonly dim: number,
+    public readonly domain: string,
+    private readonly langDir: string,
+    private logger?: ILogger
+  ) {
     this._cache = new LRUCache({
       maxAge: maxAgeCacheInMS
     })
@@ -66,7 +68,7 @@ export default class LanguageService {
 
     if (ramInfos.prediction * (1 + MODEL_SAFETY_BUFFER) > ramInfos.free) {
       const currentUsage = ramInfos.total - ramInfos.free
-      this.logger.warn(
+      this.logger?.warn(
         `The language server may silently crash due to a lack of free memory space.
         Current usage : (${_.round(currentUsage, 2)}/${_.round(ramInfos.total, 2)})Gb,
         Predicted usage : ${_.round(ramInfos.prediction, 2)}Gb.`
@@ -90,7 +92,7 @@ export default class LanguageService {
       })
     }
 
-    this.logger.info(`Found Languages: ${!languages.length ? 'None' : languages.join(', ')}`)
+    this.logger?.info(`Found Languages: ${!languages.length ? 'None' : languages.join(', ')}`)
     await Bluebird.mapSeries(languages, this._loadModels.bind(this))
 
     this._ready = true
@@ -117,14 +119,14 @@ export default class LanguageService {
   }
 
   private async _loadModels(lang: string) {
-    this.logger.info(`Loading Embeddings for ${lang.toUpperCase()}`)
+    this.logger?.info(`Loading Embeddings for ${lang.toUpperCase()}`)
 
     try {
       const fastTextModel = await this._loadFastTextModel(lang)
       const bpeModel = await this._loadBPEModel(lang)
       this._models[lang] = { fastTextModel, bpeModel }
     } catch (err) {
-      this.logger.attachError(err).error(`[${lang.toUpperCase()}] Error loading language. It will be unavailable.`)
+      this.logger?.attachError(err).error(`[${lang.toUpperCase()}] Error loading language. It will be unavailable.`)
     }
   }
 
@@ -245,7 +247,7 @@ export default class LanguageService {
     const usedDelta = Math.round(usedAfter - usedBefore)
     const dtDelta = dtAfter - dtBefore
 
-    this.logger.info(`[${lang.toUpperCase()}] Took ${dtDelta}ms to load ${usedDelta}mb into RAM (${path})`)
+    this.logger?.info(`[${lang.toUpperCase()}] Took ${dtDelta}ms to load ${usedDelta}mb into RAM (${path})`)
 
     return { model, usedDelta, dtDelta }
   }
