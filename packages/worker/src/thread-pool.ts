@@ -1,11 +1,11 @@
 import { Worker as Thread, isMainThread, parentPort } from 'worker_threads'
-import { FullLogger, PoolOptions } from './typings'
+import { Logger, PoolOptions } from './typings'
 import { WorkerPool } from './worker-pool'
 import { Worker } from './worker-pool/worker'
 import { WorkerEntryPoint } from './worker-pool/worker-entry-point'
 
 export class ThreadPool<I, O> extends WorkerPool<I, O> {
-  constructor(logger: FullLogger, config: PoolOptions) {
+  constructor(logger: Logger, config: PoolOptions) {
     super(logger, config)
   }
 

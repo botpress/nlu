@@ -1,4 +1,5 @@
 import { http, TrainInput } from '@botpress/nlu-client'
+import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'
@@ -7,9 +8,6 @@ import rateLimit from 'express-rate-limit'
 import { createServer } from 'http'
 import _ from 'lodash'
 import ms from 'ms'
-import * as NLUEngine from '../engine'
-// eslint-disable-next-line no-duplicate-imports
-import { modelIdService } from '../engine'
 
 import { authMiddleware, handleErrorLogging, handleUnexpectedError } from '../utils/http'
 import Logger from '../utils/logger'
@@ -40,6 +38,7 @@ export interface APIOptions {
 }
 
 const requestLogger = Logger.sub('api').sub('request')
+const { modelIdService } = NLUEngine
 
 const createExpressApp = (options: APIOptions): Application => {
   const app = express()

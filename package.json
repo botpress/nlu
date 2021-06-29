@@ -13,7 +13,7 @@
     "scripts": "./packages/nlu/dist/**/*.js",
     "assets": [
       "node_modules/@botpress/node-*/**/*.node",
-      "packages/nlu/assets/**"
+      "packages/nlu-engine/assets/**"
     ]
   },
   "scripts": {

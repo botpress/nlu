@@ -1,5 +1,5 @@
 import { serializeError } from '../error-utils'
-import { SmallLogger, TaskHandler, WorkerEntryPoint as IWorkerEntryPoint } from '../typings'
+import { Logger, TaskHandler, WorkerEntryPoint as IWorkerEntryPoint } from '../typings'
 import { AllOutgoingMessages, IncomingMessage, isStartTask } from './communication'
 
 export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> {
@@ -68,7 +68,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
     }
   }
 
-  public logger: SmallLogger = {
+  public logger: Logger = {
     debug: (msg: string) => {
       const response: IncomingMessage<'log', O> = {
         type: 'log',
@@ -95,6 +95,9 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
       const error = `${msg} ${serializeError(err)}`
       const response: IncomingMessage<'log', O> = { type: 'log', payload: { log: { error } } }
       this.messageMain(response)
+    },
+    sub: (namespace: string) => {
+      return this.logger
     }
   }
 }

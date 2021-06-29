@@ -1,17 +1,17 @@
 import child_process from 'child_process'
 import yn from 'yn'
 import { SIG_KILL } from './signals'
-import { FullLogger, PoolOptions } from './typings'
+import { Logger, PoolOptions } from './typings'
 import { WorkerPool } from './worker-pool'
 import { Worker } from './worker-pool/worker'
 import { WorkerEntryPoint } from './worker-pool/worker-entry-point'
 
 export class ProcessPool<I, O> extends WorkerPool<I, O> {
-  constructor(logger: FullLogger, config: PoolOptions) {
+  constructor(logger: Logger, config: PoolOptions) {
     super(logger, config)
   }
 
-  createWorker = async (entryPoint: string, env: NodeJS.ProcessEnv) => {
+  public createWorker = async (entryPoint: string, env: NodeJS.ProcessEnv) => {
     const worker = child_process.fork(entryPoint, [], {
       env: { ...env, CHILD: 'true' },
       execArgv: [] // important for pkg
@@ -19,7 +19,7 @@ export class ProcessPool<I, O> extends WorkerPool<I, O> {
     return Worker.fromProcess(worker)
   }
 
-  isMainWorker = () => {
+  public isMainWorker = () => {
     return !yn(process.env.CHILD)
   }
 

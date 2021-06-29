@@ -1,22 +1,14 @@
-export interface FullLogger {
-  attachError(error: Error): this
-  debug(message: string, metadata?: any): void
-  info(message: string, metadata?: any): void
-  warn(message: string, metadata?: any): void
-  error(message: string, metadata?: any): void
-  critical(message: string, metadata?: any): void
-}
-
-export interface SmallLogger {
+export interface Logger {
   debug: (msg: string) => void
   info: (msg: string) => void
   warning: (msg: string, err?: Error) => void
   error: (msg: string, err?: Error) => void
+  sub: (namespace: string) => Logger
 }
 
 export interface TaskDefinition<I> {
   input: I
-  logger: SmallLogger // TODO use the actual logger implementation with a custom LogTransporter
+  logger: Logger // TODO use the actual logger implementation with a custom LogTransporter
   progress: (p: number) => void
 }
 
@@ -41,7 +33,7 @@ export interface WorkerPool<I, O> {
 export interface WorkerEntryPoint<I, O> {
   initialize(): Promise<void>
   listenForTask(handler: TaskHandler<I, O>): void
-  logger: SmallLogger
+  logger: Logger
 }
 export interface ProcessPool<I, O> extends WorkerPool<I, O> {
   cancel(id: string)
@@ -51,7 +43,7 @@ export interface ProcessEntyPoint<I, O> extends WorkerEntryPoint<I, O> {}
 export interface ThreadPool<I, O> extends WorkerPool<I, O> {}
 export interface ThreadEntyPoint<I, O> extends WorkerEntryPoint<I, O> {}
 
-export const makeProcessPool: <I, O>(logger: FullLogger, config: PoolOptions) => ProcessPool<I, O>
+export const makeProcessPool: <I, O>(logger?: Logger, config: PoolOptions) => ProcessPool<I, O>
 export const makeProcessEntryPoint: <I, O>() => ProcessEntyPoint<I, O>
-export const makeThreadPool: <I, O>(logger: FullLogger, config: PoolOptions) => ThreadPool<I, O>
+export const makeThreadPool: <I, O>(logger?: Logger, config: PoolOptions) => ThreadPool<I, O>
 export const makeThreadEntryPoint: <I, O>() => ThreadEntyPoint<I, O>

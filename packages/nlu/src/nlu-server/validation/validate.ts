@@ -5,9 +5,8 @@ import {
   SlotDefinition,
   http
 } from '@botpress/nlu-client'
+import * as NLUEngine from '@botpress/nlu-engine'
 import { validate } from 'joi'
-
-import * as NLUEngine from '../../engine'
 
 import { isListEntity, isPatternEntity } from '../../utils/guards'
 import { PredictInputSchema, TrainInputSchema, CredentialsSchema, DetectLangInputSchema } from './schemas'
