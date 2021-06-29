@@ -1,4 +1,4 @@
-import { ListEntityDefinition, PatternEntityDefinition, SlotDefinition, TrainInput } from '@botpress/nlu-types'
+import { ListEntityDefinition, PatternEntityDefinition, SlotDefinition, TrainInput } from '@botpress/nlu-client'
 import * as sdk from 'bitfan/sdk'
 import _ from 'lodash'
 

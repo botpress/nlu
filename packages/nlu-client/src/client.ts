@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios'
 
 import _ from 'lodash'
+import { Client as IClient } from './index'
 import {
   TrainResponseBody,
   TrainRequestBody,
@@ -14,9 +15,8 @@ import {
   PruneModelsResponseBody,
   PredictRequestBody,
   PredictResponseBody,
-  ErrorResponse,
-  Client as IClient
-} from './typings'
+  ErrorResponse
+} from './typings/http'
 
 export class NLUClient implements IClient {
   private _client: AxiosInstance

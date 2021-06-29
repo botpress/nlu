@@ -1,4 +1,4 @@
-import { PredictOutput, TrainInput } from '@botpress/nlu-types'
+import { PredictOutput, TrainInput } from '@botpress/nlu-client'
 import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import _ from 'lodash'

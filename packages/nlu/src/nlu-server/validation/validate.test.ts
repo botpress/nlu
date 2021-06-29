@@ -1,5 +1,5 @@
-import { IntentDefinition, ListEntityDefinition, PatternEntityDefinition, SlotDefinition } from '@botpress/nlu-types'
-import * as http from '../http-typings'
+import { IntentDefinition, ListEntityDefinition, PatternEntityDefinition, SlotDefinition } from '@botpress/nlu-client'
+import { http } from '@botpress/nlu-client'
 
 import { validateTrainInput } from './validate'
 

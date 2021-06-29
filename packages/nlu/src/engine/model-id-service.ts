@@ -1,4 +1,4 @@
-import { EntityDefinition, IntentDefinition, Specifications } from '@botpress/nlu-types'
+import { EntityDefinition, IntentDefinition, Specifications } from '@botpress/nlu-client'
 import crypto from 'crypto'
 import _ from 'lodash'
 import { ModelId, ModelIdArgs, ModelIdService } from './typings'

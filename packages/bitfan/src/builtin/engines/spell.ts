@@ -1,4 +1,4 @@
-import { TrainInput, IntentDefinition } from '@botpress/nlu-types'
+import { TrainInput, IntentDefinition } from '@botpress/nlu-client'
 import * as sdk from 'bitfan/sdk'
 import _ from 'lodash'
 

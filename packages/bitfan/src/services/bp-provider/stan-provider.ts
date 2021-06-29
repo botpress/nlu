@@ -1,10 +1,9 @@
-import { Client, Credentials } from '@botpress/nlu-client'
-import { PredictOutput, TrainingProgress, TrainInput } from '@botpress/nlu-types'
+import { PredictOutput, TrainingProgress, TrainInput, http, Client } from '@botpress/nlu-client'
 import _ from 'lodash'
 
 import { sleep } from '../../utils'
 
-const CREDS: Credentials = { appId: '', appSecret: '' }
+const CREDS: http.Credentials = { appId: '', appSecret: '' }
 const POLLING_INTERVAL = 500
 
 export class StanProvider {

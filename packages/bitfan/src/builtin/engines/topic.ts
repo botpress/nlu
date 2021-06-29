@@ -1,4 +1,4 @@
-import { ContextPrediction, TrainInput } from '@botpress/nlu-types'
+import { ContextPrediction, TrainInput } from '@botpress/nlu-client'
 import * as sdk from 'bitfan/sdk'
 import _ from 'lodash'
 import { areSame, makeKey, OOS } from '../../builtin/labels'

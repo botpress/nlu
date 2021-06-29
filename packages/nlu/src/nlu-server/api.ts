@@ -1,4 +1,4 @@
-import { TrainInput } from '@botpress/nlu-types'
+import { http, TrainInput } from '@botpress/nlu-client'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'
@@ -13,17 +13,6 @@ import { modelIdService } from '../engine'
 
 import { authMiddleware, handleErrorLogging, handleUnexpectedError } from '../utils/http'
 import Logger from '../utils/logger'
-import {
-  InfoResponseBody,
-  ErrorResponse,
-  ListModelsResponseBody,
-  PruneModelsResponseBody,
-  TrainResponseBody,
-  TrainProgressResponseBody,
-  SuccessReponse,
-  PredictResponseBody,
-  DetectLangResponseBody
-} from './http-typings'
 import { ModelRepoOptions, ModelRepository } from './model-repo'
 import TrainService from './train-service'
 import TrainSessionService from './train-session-service'
@@ -119,10 +108,10 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
 
       const info = { health, specs, languages, version }
 
-      const resp: InfoResponseBody = { success: true, info }
+      const resp: http.InfoResponseBody = { success: true, info }
       res.send(resp)
     } catch (err) {
-      const resp: ErrorResponse = { success: false, error: err.message }
+      const resp: http.ErrorResponse = { success: false, error: err.message }
       res.status(500).send(resp)
     }
   })
@@ -133,10 +122,10 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
       const modelIds = await modelRepo.listModels({ appSecret, appId })
       const stringIds = modelIds.map(modelIdService.toString)
 
-      const resp: ListModelsResponseBody = { success: true, models: stringIds }
+      const resp: http.ListModelsResponseBody = { success: true, models: stringIds }
       return res.send(resp)
     } catch (err) {
-      const resp: ErrorResponse = { success: false, error: err.message }
+      const resp: http.ErrorResponse = { success: false, error: err.message }
       res.status(500).send(resp)
     }
   })
@@ -155,10 +144,10 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
 
       const stringIds = modelIds.map(modelIdService.toString)
 
-      const resp: PruneModelsResponseBody = { success: true, models: stringIds }
+      const resp: http.PruneModelsResponseBody = { success: true, models: stringIds }
       return res.send(resp)
     } catch (err) {
-      const resp: ErrorResponse = { success: false, error: err.message }
+      const resp: http.ErrorResponse = { success: false, error: err.message }
       res.status(500).send(resp)
     }
   })
@@ -186,10 +175,10 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       trainService.train(modelId, { appSecret, appId }, trainInput)
 
-      const resp: TrainResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
+      const resp: http.TrainResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
       return res.send(resp)
     } catch (err) {
-      const resp: ErrorResponse = { success: false, error: err.message }
+      const resp: http.ErrorResponse = { success: false, error: err.message }
       res.status(500).send(resp)
     }
   })
@@ -221,10 +210,10 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
         }
       }
 
-      const resp: TrainProgressResponseBody = { success: true, session }
+      const resp: http.TrainProgressResponseBody = { success: true, session }
       res.send(resp)
     } catch (err) {
-      const resp: ErrorResponse = { success: false, error: err.message }
+      const resp: http.ErrorResponse = { success: false, error: err.message }
       res.status(500).send(resp)
     }
   })
@@ -239,14 +228,14 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
 
       if (session?.status === 'training') {
         await engine.cancelTraining(stringId)
-        const resp: SuccessReponse = { success: true }
+        const resp: http.SuccessReponse = { success: true }
         return res.send(resp)
       }
 
-      const resp: ErrorResponse = { success: false, error: `no current training for model id: ${stringId}` }
+      const resp: http.ErrorResponse = { success: false, error: `no current training for model id: ${stringId}` }
       res.status(404).send(resp)
     } catch (err) {
-      const resp: ErrorResponse = { success: false, error: err.message }
+      const resp: http.ErrorResponse = { success: false, error: err.message }
       res.status(500).send(resp)
     }
   })
@@ -258,7 +247,7 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
 
       if (!_.isArray(utterances) || (options.batchSize > 0 && utterances.length > options.batchSize)) {
         const error = `Batch size of ${utterances.length} is larger than the allowed maximum batch size (${options.batchSize}).`
-        const resp: ErrorResponse = { success: false, error }
+        const resp: http.ErrorResponse = { success: false, error }
         return res.status(400).send(resp)
       }
 
@@ -274,7 +263,7 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
       if (!engine.hasModel(modelId)) {
         const model = await modelRepo.getModel(modelId, { appId, appSecret })
         if (!model) {
-          const resp: ErrorResponse = { success: false, error: modelNotFoundError }
+          const resp: http.ErrorResponse = { success: false, error: modelNotFoundError }
           return res.status(404).send(resp)
         }
 
@@ -287,10 +276,10 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
         return { entities, contexts, spellChecked, detectedLanguage }
       })
 
-      const resp: PredictResponseBody = { success: true, predictions }
+      const resp: http.PredictResponseBody = { success: true, predictions }
       res.send(resp)
     } catch (err) {
-      const resp: ErrorResponse = { success: false, error: err.message }
+      const resp: http.ErrorResponse = { success: false, error: err.message }
       res.status(500).send(resp)
     }
   })
@@ -350,10 +339,10 @@ export default async function (options: APIOptions, engine: NLUEngine.Engine, ve
         return detectedLanguage
       })
 
-      const resp: DetectLangResponseBody = { success: true, detectedLanguages }
+      const resp: http.DetectLangResponseBody = { success: true, detectedLanguages }
       res.send(resp)
     } catch (err) {
-      const resp: ErrorResponse = { success: false, error: err.message }
+      const resp: http.ErrorResponse = { success: false, error: err.message }
       res.status(500).send(resp)
     }
   })

@@ -1,11 +1,10 @@
-import {
-  TrainingProgress,
-  PredictOutput,
-  IntentDefinition,
-  EntityDefinition,
-  Specifications,
-  Health
-} from '@botpress/nlu-types'
+/**
+ * ############
+ * ### HTTP ###
+ * ############
+ */
+
+import { TrainingProgress, PredictOutput, IntentDefinition, EntityDefinition, Specifications, Health } from './sdk'
 
 export interface Credentials {
   appId: string
@@ -42,7 +41,6 @@ export interface InfoResponseBody extends SuccessReponse {
     specs: Specifications
     health: Health
     languages: string[]
-    version: string
   }
 }
 

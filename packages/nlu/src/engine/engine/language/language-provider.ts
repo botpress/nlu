@@ -1,4 +1,4 @@
-import { Health } from '@botpress/nlu-types'
+import { Health } from '@botpress/nlu-client'
 import axios, { AxiosInstance } from 'axios'
 import Bluebird from 'bluebird'
 import retry from 'bluebird-retry'

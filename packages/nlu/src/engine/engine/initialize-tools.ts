@@ -1,4 +1,4 @@
-import { Health, Specifications } from '@botpress/nlu-types'
+import { Health, Specifications } from '@botpress/nlu-client'
 import path from 'path'
 import yn from 'yn'
 import MLToolkit from '../ml/toolkit'

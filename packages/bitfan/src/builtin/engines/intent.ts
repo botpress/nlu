@@ -1,4 +1,4 @@
-import { TrainInput, IntentPrediction } from '@botpress/nlu-types'
+import { TrainInput, IntentPrediction } from '@botpress/nlu-client'
 import * as sdk from 'bitfan/sdk'
 import _ from 'lodash'
 import { areSame, getOOSLabel, makeKey } from '../../builtin/labels'

@@ -4,7 +4,7 @@ import {
   ContextPrediction,
   IntentPrediction as StanIntentPrediction,
   PredictOutput
-} from '@botpress/nlu-types'
+} from '@botpress/nlu-client'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { MLToolkit } from '../ml/typings'

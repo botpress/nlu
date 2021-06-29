@@ -1,5 +1,5 @@
 import modelIdService, { HALF_MD5_REG } from './model-id-service'
-import { IntentDefinition, EntityDefinition, Specifications } from '@botpress/nlu-types'
+import { IntentDefinition, EntityDefinition, Specifications } from '@botpress/nlu-client'
 import { ModelIdArgs } from './typings'
 
 const intents: IntentDefinition[] = [
