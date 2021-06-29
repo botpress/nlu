@@ -17,7 +17,6 @@
   "dependencies": {
     "@botpress/nlu-client": "*",
     "@botpress/nlu-types": "*",
-    "axios": "^0.20.0",
     "bluebird": "^3.7.2",
     "chalk": "^4.1.0",
     "cli-progress": "^3.8.2",
@@ -33,7 +32,6 @@
     "@babel/plugin-proposal-optional-chaining": "^7.11.0",
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-typescript": "^7.10.4",
-    "@types/axios": "^0.14.0",
     "@types/bluebird": "^3.5.33",
     "@types/cli-progress": "^3.8.0",
     "@types/fs-extra": "^9.0.1",
