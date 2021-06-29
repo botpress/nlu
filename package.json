@@ -1,7 +1,7 @@
 {
   "name": "@botpress/nlu",
   "version": "0.1.2",
-  "description": "Botpress Standalone NLU Server. Contains all of Botpress NLU related code.",
+  "description": "Botpress NLU; Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "repository": {
@@ -19,12 +19,12 @@
   "scripts": {
     "postinstall": "yarn cmd config",
     "cmd": "yarn run gulp",
-    "dev": "yarn workspace nlu dev",
+    "dev": "yarn workspace @botpress/nlu-server dev",
     "start": "cross-env node ./packages/nlu/dist/index.js",
     "build": "cross-env tsc --build",
     "package": "yarn cmd package",
     "e2e": "yarn workspace e2e start",
-    "test": "yarn workspace nlu test",
+    "test": "yarn workspace @botpress/nlu-server test",
     "prettier": "cross-env prettier --check './packages/**/*.ts' '!**/*.d.ts'",
     "prettier-fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "cross-env eslint packages/ --ext .ts",
