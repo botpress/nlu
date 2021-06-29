@@ -8,12 +8,11 @@
     "build": "tsc"
   },
   "dependencies": {
-    "lodash": "^4.17.19",
-    "yn": "^4.0.0"
+    "axios": "^0.21.1",
+    "lodash": "^4.17.19"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.116",
-    "@types/yn": "^3.1.0"
+    "@types/lodash": "^4.14.116"
   },
   "types": "./src/typings/index.d.ts",
   "main": "./dist/index.js"
