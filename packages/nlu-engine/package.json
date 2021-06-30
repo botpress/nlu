@@ -63,7 +63,6 @@
     "yn": "^2.0.0"
   },
   "devDependencies": {
-    "@botpress/mocks": "*",
     "@types/bluebird-retry": "^0.11.4",
     "@types/bytes": "^3.1.0",
     "@types/diff": "^5.0.0",

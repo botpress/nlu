@@ -7,7 +7,7 @@ export const errors: {
   isTrainingCanceled: (err: Error) => boolean
 }
 
-export const makeEngine: (config: Config, logger: Logger) => Engine
+export const makeEngine: (config: Config, logger: Logger) => Promise<Engine>
 
 export const modelIdService: ModelIdService
 
@@ -33,6 +33,7 @@ export interface LanguageConfig {
   ducklingURL: string
   ducklingEnabled: boolean
   languageSources: LanguageSource[]
+  cachePath: string
 }
 
 export interface LanguageSource {

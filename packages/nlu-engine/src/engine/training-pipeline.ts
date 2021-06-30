@@ -69,7 +69,7 @@ export interface TrainOutput {
 }
 
 interface Tools extends LanguageTools {
-  logger?: Logger
+  logger: Logger
 }
 
 type progressCB = (p?: number) => void
@@ -226,7 +226,7 @@ async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: 
     }
   })
 
-  const rootIntentClassifier = new SvmIntentClassifier(tools, getCtxFeatures)
+  const rootIntentClassifier = new SvmIntentClassifier(tools, getCtxFeatures, tools.logger)
   await rootIntentClassifier.train(
     {
       intents: rootIntents,
@@ -359,21 +359,21 @@ async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progre
 const NB_STEPS = 5 // change this if the training pipeline changes
 
 type AsyncFunction<A extends any[], R extends Promise<any>> = (...args: A) => R
-const makeLogger = (trainId: string, logger?: Logger) => {
+const makeLogger = (trainId: string, logger: Logger) => {
   return <A extends any[], R extends Promise<any>>(fn: AsyncFunction<A, R>) => (...args: A): R => {
-    logger?.debug(`[${trainId}] Started ${fn.name}`)
+    logger.debug(`[${trainId}] Started ${fn.name}`)
     const ret = fn(...args)
 
     // awaiting if not responsibility of this logger decorator
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    ret.then(() => logger?.debug(`[${trainId}] Done ${fn.name}`))
+    ret.then(() => logger.debug(`[${trainId}] Done ${fn.name}`))
 
     return ret
   }
 }
 
 export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: number) => void): Promise<TrainOutput> => {
-  tools.logger?.debug(`[${input.trainId}] Started running training pipeline.`)
+  tools.logger.debug(`[${input.trainId}] Started running training pipeline.`)
 
   let totalProgress = 0
   let normalizedProgress = 0
@@ -423,6 +423,6 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
     kmeans: step.kmeans && serializeKmeans(step.kmeans)
   }
 
-  tools.logger?.debug(`[${input.trainId}] Done running training pipeline.`)
+  tools.logger.debug(`[${input.trainId}] Done running training pipeline.`)
   return output
 }

@@ -1,7 +1,7 @@
 import Joi, { validate } from 'joi'
 import _ from 'lodash'
-import { MLToolkit } from '../../ml/typings'
 import { ModelLoadingError } from '../../errors'
+import { MLToolkit } from '../../ml/typings'
 import { Logger } from '../../typings'
 import { isPOSAvailable } from '../language/pos-tagger'
 import { SMALL_TFIDF } from '../tools/tfidf'
@@ -79,7 +79,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
 
   private _options: Options
 
-  constructor(private tools: Tools, private logger?: Logger, opt: Partial<Options> = {}) {
+  constructor(private tools: Tools, private _logger: Logger, opt: Partial<Options> = {}) {
     this._options = { ...DEFAULT_OPTIONS, ...opt }
   }
 
@@ -199,7 +199,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const noneUtts = noneIntent.utterances
 
     if (!isPOSAvailable(languageCode) || noneUtts.length === 0) {
-      this.logger?.debug('Cannot train OOS svm because there is no training data.')
+      this._logger.debug('Cannot train OOS svm because there is no training data.')
       progress(1)
       return
     }
@@ -212,7 +212,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       .flatMap((i) => featurizeInScopeUtterances(i.utterances, i.name))
       .value()
 
-    const svm = new this.tools.mlToolkit.SVM.Trainer()
+    const svm = new this.tools.mlToolkit.SVM.Trainer(this._logger)
 
     const model = await svm.train([...in_scope_points, ...oos_points], trainingOptions, progress)
     return model
@@ -223,7 +223,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     noneIntent: Omit<Intent<Utterance>, 'contexts'>,
     progress: (p: number) => void
   ): Promise<string> {
-    const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this.logger)
+    const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
     const noneUtts = noneIntent.utterances.filter((u) => u.tokens.filter((t) => t.isWord).length >= 3)
     const trainableIntents = trainInput.intents.filter(
       (i) => i.name !== NONE_INTENT && i.utterances.length >= MIN_NB_UTTERANCES
@@ -275,7 +275,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { oosSvmModel, baseIntentClfModel, trainingVocab, exactMatchModel } = model
 
-    const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures)
+    const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
     await baseIntentClf.load(baseIntentClfModel)
 
     const exactMatcher = new ExactIntenClassifier()

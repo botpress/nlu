@@ -35,7 +35,7 @@ export class SvmIntentClassifier implements IntentClassifier {
   private model: Model | undefined
   private predictors: Predictors | undefined
 
-  constructor(private tools: Tools, private featurizer: Featurizer, private logger?: Logger) {}
+  constructor(private tools: Tools, private featurizer: Featurizer, private _logger: Logger) {}
 
   get name() {
     return SvmIntentClassifier._name
@@ -58,7 +58,7 @@ export class SvmIntentClassifier implements IntentClassifier {
 
     const classCount = _.uniqBy(points, (p) => p.label).length
     if (points.length === 0 || classCount <= 1) {
-      this.logger?.debug('No SVM to train because there is less than two classes.')
+      this._logger.debug('No SVM to train because there is less than two classes.')
       this.model = {
         svmModel: undefined,
         intentNames: intents.map((i) => i.name),
@@ -68,7 +68,7 @@ export class SvmIntentClassifier implements IntentClassifier {
       return
     }
 
-    const svm = new this.tools.mlToolkit.SVM.Trainer()
+    const svm = new this.tools.mlToolkit.SVM.Trainer(this._logger)
 
     const seed = nluSeed
     const svmModel = await svm.train(points, { kernel: 'LINEAR', classifier: 'C_SVC', seed }, progress)

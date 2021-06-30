@@ -302,13 +302,13 @@ export default class Engine implements IEngine {
     const intent_classifier_per_ctx: _.Dictionary<OOSIntentClassifier> = await Bluebird.props(
       _.mapValues(intent_model_by_ctx, async (model) => {
         const { legacyElection } = this._options
-        const intentClf = new OOSIntentClassifier(tools, undefined, { legacyElection })
+        const intentClf = new OOSIntentClassifier(tools, this._predictLogger, { legacyElection })
         await intentClf.load(model)
         return intentClf
       })
     )
 
-    const ctx_classifier = new SvmIntentClassifier(tools, getCtxFeatures)
+    const ctx_classifier = new SvmIntentClassifier(tools, getCtxFeatures, this._predictLogger)
     await ctx_classifier.load(ctx_model)
 
     const slot_tagger_per_intent: _.Dictionary<SlotTagger> = await Bluebird.props(

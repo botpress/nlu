@@ -25,7 +25,7 @@ export class DucklingClient {
   constructor(private logger?: Logger) {}
 
   public static async init(url: string, logger?: Logger): Promise<boolean> {
-    const proxyConfig = process.PROXY ? { httpsAgent: new httpsProxyAgent(process.PROXY) } : {}
+    const proxyConfig = process.env.PROXY ? { httpsAgent: new httpsProxyAgent(process.env.PROXY) } : {}
     this.client = Axios.create({
       baseURL: url,
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

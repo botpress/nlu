@@ -43,7 +43,7 @@ export interface ProcessEntyPoint<I, O> extends WorkerEntryPoint<I, O> {}
 export interface ThreadPool<I, O> extends WorkerPool<I, O> {}
 export interface ThreadEntyPoint<I, O> extends WorkerEntryPoint<I, O> {}
 
-export const makeProcessPool: <I, O>(logger?: Logger, config: PoolOptions) => ProcessPool<I, O>
+export const makeProcessPool: <I, O>(logger: Logger, config: PoolOptions) => ProcessPool<I, O>
 export const makeProcessEntryPoint: <I, O>() => ProcessEntyPoint<I, O>
-export const makeThreadPool: <I, O>(logger?: Logger, config: PoolOptions) => ThreadPool<I, O>
+export const makeThreadPool: <I, O>(logger: Logger, config: PoolOptions) => ThreadPool<I, O>
 export const makeThreadEntryPoint: <I, O>() => ThreadEntyPoint<I, O>

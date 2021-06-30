@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { Logger } from 'src/typings'
 
 import { makeFakeTools } from '../test-utils/fake-tools'
 import { makeTestUtterance } from '../test-utils/fake-utterance'
@@ -27,6 +28,8 @@ const [u1, u2, u3, u4, u5, u6, u7, u8, u9] = allUtterances
 
 const uBetterCheckYoSelf: Utterance = makeTestUtterance('you better check yourself before you wreck yourself')
 
+const dummyLogger: Partial<Logger> = { debug: () => {} }
+
 const makeTrainset = (intents: Intent<Utterance>[]) => {
   return {
     languageCode: 'en',
@@ -40,7 +43,7 @@ const makeTrainset = (intents: Intent<Utterance>[]) => {
 
 test('predict with exact match returns confidence 1 for exact-match', async () => {
   // arrange
-  let oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  let oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
 
   const intentsDefs = [
     {
@@ -59,7 +62,7 @@ test('predict with exact match returns confidence 1 for exact-match', async () =
   await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
 
   const model = oosIntentClassifier.serialize()
-  oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 
   // act
@@ -72,7 +75,7 @@ test('predict with exact match returns confidence 1 for exact-match', async () =
 
 test('predict with no exact match returns confidence that sums up to 1', async () => {
   // arrange
-  let oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  let oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
 
   const intentsDefs = [
     {
@@ -91,7 +94,7 @@ test('predict with no exact match returns confidence that sums up to 1', async (
   await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
 
   const model = oosIntentClassifier.serialize()
-  oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 
   // act
@@ -105,7 +108,7 @@ test('predict with no exact match returns confidence that sums up to 1', async (
 
 test('predict with less than min utterances for ml should not match', async () => {
   // arrange
-  let oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  let oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
 
   const intentsDefs = [
     {
@@ -124,7 +127,7 @@ test('predict with less than min utterances for ml should not match', async () =
   await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
 
   const model = oosIntentClassifier.serialize()
-  oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 
   // act
@@ -139,7 +142,7 @@ test('predict with less than min utterances for ml should not match', async () =
 
 test('predict with available oos should give oos prediction', async () => {
   // arrange
-  let oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  let oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
 
   const intentsDefs = [
     {
@@ -158,7 +161,7 @@ test('predict with available oos should give oos prediction', async () => {
   await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
 
   const model = oosIntentClassifier.serialize()
-  oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 
   // act
@@ -170,7 +173,7 @@ test('predict with available oos should give oos prediction', async () => {
 
 test('When model is corrupted, loading a model throws', async () => {
   // arrange
-  const oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  const oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
 
   const intentsDefs = [
     {
@@ -202,7 +205,7 @@ test('When model is corrupted, loading a model throws', async () => {
 
 test('Classifier always pick between exact match or svm', async () => {
   // arrange
-  let oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  let oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
 
   const intentsDefs = [
     {
@@ -214,7 +217,7 @@ test('Classifier always pick between exact match or svm', async () => {
   ]
   await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
   const model = oosIntentClassifier.serialize()
-  oosIntentClassifier = new OOSIntentClassifier(fakeTools)
+  oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 
   // act

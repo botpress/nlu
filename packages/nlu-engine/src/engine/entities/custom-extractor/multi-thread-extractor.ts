@@ -3,11 +3,11 @@ import Bluebird from 'bluebird'
 import _ from 'lodash'
 import os from 'os'
 import path from 'path'
+import { Logger } from 'src/typings'
 import { EntityExtractionResult, ListEntityModel, WarmedListEntityModel } from '../../typings'
 import Utterance from '../../utterance/utterance'
 import { CustomEntityExtractor } from '.'
 import { SerializableUtteranceToken, serializeUtteranceToken } from './serializable-token'
-import { Logger } from 'src/typings'
 
 const THREAD_ENTRY_POINT = 'thread-entry-point.js'
 
@@ -46,7 +46,7 @@ export interface TaskOutput {
 let threadPool!: ThreadPool<TaskInput, TaskOutput>
 
 export class MultiThreadCustomEntityExtractor extends CustomEntityExtractor {
-  constructor(logger?: Logger) {
+  constructor(logger: Logger) {
     super()
 
     if (!threadPool) {

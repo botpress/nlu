@@ -116,7 +116,7 @@ export namespace MLToolkit {
     }
 
     export class Trainer {
-      constructor(logger?: Logger)
+      constructor(logger: Logger)
       train(points: DataPoint[], options?: SVMOptions, callback: TrainProgressCallback): Promise<string>
       isTrained(): boolean
     }

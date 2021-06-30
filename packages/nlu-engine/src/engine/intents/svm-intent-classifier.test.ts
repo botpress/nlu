@@ -6,12 +6,14 @@ import Utterance from '../utterance/utterance'
 import { SvmIntentClassifier } from './svm-intent-classifier'
 import { Intent } from '../typings'
 import { ModelLoadingError } from '../../errors'
+import { Logger } from 'src/typings'
 
 const languageDimension = 10
 const languages = ['en']
 const fakeTools = makeFakeTools(languageDimension, languages)
 const fakeFeaturizer = (utt: Utterance) => [..._.range(languageDimension)]
 const dummyProgress = (p: number) => {}
+const dummyLogger: Partial<Logger> = { debug: () => {} }
 
 const emptyDataset = {
   languageCode: 'en',
@@ -48,11 +50,11 @@ const helloILoveYou = makeTestUtterance("hello, I love you won't you tell me you
 
 test('predict with no data points returns empty array', async () => {
   // arrange
-  let intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer)
+  let intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.train(emptyDataset, dummyProgress)
 
   const model = intentClassifier.serialize()
-  intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer)
+  intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.load(model)
 
   // act
@@ -64,11 +66,11 @@ test('predict with no data points returns empty array', async () => {
 
 test('predict with only one class returns the only class with confidence 1', async () => {
   // arrange
-  let intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer)
+  let intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.train(makeTrainset([intentA]), dummyProgress)
 
   const model = intentClassifier.serialize()
-  intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer)
+  intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.load(model)
 
   // act
@@ -83,11 +85,11 @@ test('predict with only one class returns the only class with confidence 1', asy
 
 test('predict with multiple class returns svm prediction', async () => {
   // arrange
-  let intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer)
+  let intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.train(makeTrainset([intentA, intentB, intentC]), dummyProgress)
 
   const model = intentClassifier.serialize()
-  intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer)
+  intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.load(model)
 
   // act
@@ -104,7 +106,7 @@ test('predict with multiple class returns svm prediction', async () => {
 
 test('When model is corrupted, loading a model throws', async () => {
   // arrange
-  const intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer)
+  const intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.train(makeTrainset([intentA, intentB, intentC]), dummyProgress)
   const model = intentClassifier.serialize()
 

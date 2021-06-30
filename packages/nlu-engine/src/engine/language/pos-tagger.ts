@@ -34,7 +34,7 @@ export function isPOSAvailable(lang: string): boolean {
 }
 
 function getPretrainedModelFilePath(preTrainedDir: string, languageCode: string): string {
-  return path.join(preTrainedDir, `./pre-trained/pos.${languageCode}.model`)
+  return path.join(preTrainedDir, `pos.${languageCode}.model`)
 }
 
 function n_alpha(word: string): number {

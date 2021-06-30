@@ -1,8 +1,10 @@
 import { Health, Specifications } from '@botpress/nlu-client'
 import path from 'path'
 import yn from 'yn'
-// @ts-ignore
-import { version as nluVersion } from '../../package.json'
+
+// eslint-disable-next-line import/order
+const { version: nluVersion } = require('../../package.json')
+
 import MLToolkit from '../ml/toolkit'
 import { LanguageConfig, Logger } from '../typings'
 import { DucklingEntityExtractor } from './entities/duckling-extractor'
@@ -52,6 +54,7 @@ const initializeLanguageProvider = async (
       config.languageSources,
       logger,
       nluVersion,
+      config.cachePath,
       seededLodashProvider
     )
     const getHealth = healthGetter(languageProvider)
@@ -68,7 +71,7 @@ const initializeLanguageProvider = async (
 
 const makeSystemEntityExtractor = async (config: LanguageConfig, logger: Logger): Promise<SystemEntityExtractor> => {
   const makeCacheManager = (cacheFileName: string) =>
-    new SystemEntityCacheManager(path.join(process.APP_DATA_PATH, 'cache', cacheFileName), true, logger)
+    new SystemEntityCacheManager(path.join(config.cachePath, 'cache', cacheFileName), true, logger)
 
   if (yn(process.env.BP_MICROSOFT_RECOGNIZER)) {
     logger.warning(
@@ -98,7 +101,7 @@ export async function initializeTools(config: LanguageConfig & { assetsPath: str
     identify_language: languageId,
 
     partOfSpeechUtterances: async (tokenUtterances: string[][], lang: string) => {
-      const tagger = await getPOSTagger(PRE_TRAINED_DIR, lang, MLToolkit)
+      const tagger = await getPOSTagger(path.resolve(config.assetsPath, PRE_TRAINED_DIR), lang, MLToolkit)
       return tokenUtterances.map((u) => tagSentence(tagger, u))
     },
     tokenize_utterances: (utterances: string[], lang: string, vocab?: string[]) =>
@@ -108,7 +111,7 @@ export async function initializeTools(config: LanguageConfig & { assetsPath: str
       return a.map((x) => Array.from(x.values()))
     },
     generateSimilarJunkWords: (vocab: string[], lang: string) => languageProvider.generateSimilarJunkWords(vocab, lang),
-    getStopWordsForLang: getStopWordsForLang(STOP_WORDS_DIR),
+    getStopWordsForLang: getStopWordsForLang(path.resolve(config.assetsPath, STOP_WORDS_DIR)),
 
     getHealth: healthGetter(languageProvider),
     getLanguages: () => languageProvider.languages,

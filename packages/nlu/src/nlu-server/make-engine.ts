@@ -14,7 +14,8 @@ export const makeEngine = async (options: StanOptions, logger: ILogger) => {
       ducklingEnabled,
       ducklingURL,
       modelCacheSize,
-      legacyElection
+      legacyElection,
+      cachePath: process.APP_DATA_PATH
     }
 
     const engine = await NLUEngine.makeEngine(config, loggerWrapper)

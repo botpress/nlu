@@ -1,3 +1,4 @@
+import { Logger } from 'src/typings'
 import { Predictor, Trainer } from '.'
 import { MLToolkit } from '../typings'
 
@@ -18,7 +19,8 @@ describe('SVM', () => {
       { coordinates: [1, 1], label: 'B' }
     ]
 
-    const trainer = new Trainer()
+    const dummyLogger: Partial<Logger> = { debug: () => {} }
+    const trainer = new Trainer(dummyLogger as Logger)
     const mod = await trainer.train(line, { classifier: 'C_SVC', kernel: 'LINEAR', c: 1, seed: SEED })
 
     const predictor = new Predictor(mod)
@@ -44,7 +46,8 @@ describe('SVM', () => {
       { coordinates: [1, 1], label: 'B' }
     ]
 
-    const trainer = new Trainer()
+    const dummyLogger: Partial<Logger> = { debug: () => {} }
+    const trainer = new Trainer(dummyLogger as Logger)
 
     let errorThrown = false
     try {

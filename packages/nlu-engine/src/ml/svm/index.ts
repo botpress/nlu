@@ -14,7 +14,7 @@ export class Trainer implements MLToolkit.SVM.Trainer {
   private model?: SvmModel
   private svm?: SVM
 
-  constructor(protected logger?: Logger) {}
+  constructor(protected logger: Logger) {}
 
   cancelTraining() {
     this.svm?.cancelTraining()

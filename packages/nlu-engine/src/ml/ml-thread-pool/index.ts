@@ -11,7 +11,7 @@ const ENTRY_POINT = 'thread-entry-point.js'
 class MLThreadPool {
   private _threadPool: ThreadPool<TaskInput, TaskOutput>
 
-  constructor(logger?: Logger) {
+  constructor(logger: Logger) {
     const maxMLThreads = Math.max(os.cpus().length - 1, 1) // ncpus - webworker
     const userMlThread = process.env.BP_NUM_ML_THREADS ? Number(process.env.BP_NUM_ML_THREADS) : 4
     const numMLThreads = Math.min(maxMLThreads, userMlThread)
@@ -48,7 +48,7 @@ class MLThreadPool {
 }
 
 let mLThreadPool: MLThreadPool
-export default (logger?: Logger) => {
+export default (logger: Logger) => {
   if (!mLThreadPool) {
     mLThreadPool = new MLThreadPool(logger)
   }

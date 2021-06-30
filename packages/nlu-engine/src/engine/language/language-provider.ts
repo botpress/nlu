@@ -27,7 +27,7 @@ const TOKEN_FILE_PREFIX = 'utterance_tokens'
 const JUNK_FILE_PREFIX = 'junk_words'
 
 export class RemoteLanguageProvider implements LanguageProvider {
-  private _cacheDir = path.join(process.APP_DATA_PATH, 'cache')
+  private _cacheDir!: string
   private _vectorsCachePath!: string
   private _junkwordsCachePath!: string
   private _tokensCachePath!: string
@@ -69,11 +69,13 @@ export class RemoteLanguageProvider implements LanguageProvider {
     sources: LanguageSource[],
     logger: ILogger,
     nluVersion: string,
+    cacheDir: string,
     seededLodashProvider: SeededLodashProvider
   ): Promise<LanguageProvider> {
     this._nluVersion = nluVersion
     this._validProvidersCount = 0
     this._logger = logger
+    this._cacheDir = cacheDir
 
     this._seededLodashProvider = seededLodashProvider
 
@@ -119,7 +121,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
         headers['authorization'] = `bearer ${source.authToken}`
       }
 
-      const proxyConfig = process.PROXY ? { httpsAgent: new httpsProxyAgent(process.PROXY) } : {}
+      const proxyConfig = process.env.PROXY ? { httpsAgent: new httpsProxyAgent(process.env.PROXY) } : {}
 
       const client = axios.create({
         baseURL: source.endpoint,
