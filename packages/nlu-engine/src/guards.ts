@@ -1,4 +1,4 @@
-import { PatternEntityDefinition, ListEntityDefinition } from '@botpress/nlu-client'
+import { PatternEntityDefinition, ListEntityDefinition } from 'src/typings'
 
 export const isListEntity = (e: ListEntityDefinition | PatternEntityDefinition): e is ListEntityDefinition => {
   return e.type === 'list'

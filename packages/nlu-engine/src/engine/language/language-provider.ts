@@ -1,4 +1,3 @@
-import { Health } from '@botpress/nlu-client'
 import axios, { AxiosInstance } from 'axios'
 import Bluebird from 'bluebird'
 import retry from 'bluebird-retry'
@@ -11,6 +10,7 @@ import moment from 'moment'
 import ms from 'ms'
 import path from 'path'
 import semver from 'semver'
+import { Health } from 'src/typings'
 import { LanguageSource, Logger as ILogger } from '../../typings'
 
 import { setSimilarity, vocabNGram } from '../tools/strings'

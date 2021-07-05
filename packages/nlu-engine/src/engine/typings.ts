@@ -1,7 +1,7 @@
-import { Health, Specifications } from '@botpress/nlu-client'
 import { AxiosInstance } from 'axios'
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
+import { Health, Specifications } from 'src/typings'
 import { MLToolkit } from '../ml/typings'
 
 import { LanguageSource } from '../typings'

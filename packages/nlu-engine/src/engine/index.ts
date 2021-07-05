@@ -1,9 +1,9 @@
-import { PredictOutput, TrainInput } from '@botpress/nlu-client'
 import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
 import sizeof from 'object-sizeof'
+import { PredictOutput, TrainInput } from 'src/typings'
 
 import v8 from 'v8'
 import { isListEntity, isPatternEntity } from '../guards'

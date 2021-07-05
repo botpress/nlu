@@ -1,5 +1,5 @@
-import { Health, Specifications } from '@botpress/nlu-client'
 import path from 'path'
+import { Health, Specifications } from 'src/typings'
 import yn from 'yn'
 
 // eslint-disable-next-line import/order

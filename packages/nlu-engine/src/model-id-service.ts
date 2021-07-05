@@ -1,6 +1,6 @@
-import { EntityDefinition, IntentDefinition, Specifications } from '@botpress/nlu-client'
 import crypto from 'crypto'
 import _ from 'lodash'
+import { EntityDefinition, IntentDefinition, Specifications } from 'src/typings'
 import { ModelId, ModelIdArgs, ModelIdService } from './typings'
 
 export const HALF_MD5_REG = /^[a-fA-F0-9]{16}$/
