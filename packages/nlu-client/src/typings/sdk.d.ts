@@ -1,5 +1,3 @@
-// Typings for Stan's API v1
-
 export interface Specifications {
   nluVersion: string // semver string
   languageServer: {

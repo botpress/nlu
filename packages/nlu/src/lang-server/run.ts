@@ -1,10 +1,11 @@
+import { LanguageService } from '@botpress/nlu-engine'
 import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
 
-import { LanguageService } from '../engine'
 import Logger, { centerText } from '../utils/logger'
 import { LoggerLevel } from '../utils/logger/typings'
+import { wrapLogger } from '../utils/logger/wrap'
 import API, { APIOptions } from './api'
 import DownloadManager from './service/download-manager'
 
@@ -42,7 +43,13 @@ export default async function (options: ArgV) {
   launcherLogger.debug('Language Server Options %o', options)
 
   const languageServiceLogger = Logger.sub('lang').sub('service')
-  const langService = new LanguageService(options.dim, options.domain, options.langDir, languageServiceLogger)
+
+  const langService = new LanguageService(
+    options.dim,
+    options.domain,
+    options.langDir,
+    wrapLogger(languageServiceLogger)
+  )
   const downloadManager = new DownloadManager(options.dim, options.domain, options.langDir, options.metadataLocation)
 
   const version = '1.1.0' // TODO: declare this elsewhere

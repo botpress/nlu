@@ -1,8 +1,8 @@
+import { LanguageService } from '@botpress/nlu-engine'
 import cliProgress from 'cli-progress'
 import fse from 'fs-extra'
 import _ from 'lodash'
 import path from 'path'
-import { LanguageService } from '../engine'
 
 import Logger from '../utils/logger'
 import { LoggerLevel } from '../utils/logger/typings'

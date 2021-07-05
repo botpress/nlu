@@ -1,15 +1,11 @@
+import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
-import * as NLUEngine from '../engine'
 import { ILogger } from '../utils/logger/typings'
+import { wrapLogger } from '../utils/logger/wrap'
 import { StanOptions } from './config'
 
 export const makeEngine = async (options: StanOptions, logger: ILogger) => {
-  const loggerWrapper: NLUEngine.Logger = {
-    debug: (msg: string) => logger.debug(msg),
-    info: (msg: string) => logger.info(msg),
-    warning: (msg: string, err?: Error) => (err ? logger.attachError(err).warn(msg) : logger.warn(msg)),
-    error: (msg: string, err?: Error) => (err ? logger.attachError(err).error(msg) : logger.error(msg))
-  }
+  const loggerWrapper: NLUEngine.Logger = wrapLogger(logger)
 
   try {
     const { ducklingEnabled, ducklingURL, modelCacheSize, languageSources, legacyElection } = options
@@ -18,7 +14,8 @@ export const makeEngine = async (options: StanOptions, logger: ILogger) => {
       ducklingEnabled,
       ducklingURL,
       modelCacheSize,
-      legacyElection
+      legacyElection,
+      cachePath: process.APP_DATA_PATH
     }
 
     const engine = await NLUEngine.makeEngine(config, loggerWrapper)

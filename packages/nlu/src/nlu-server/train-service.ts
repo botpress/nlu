@@ -1,5 +1,5 @@
 import { TrainingProgress, TrainingErrorType, TrainInput, http } from '@botpress/nlu-client'
-import * as NLUEngine from '../engine'
+import * as NLUEngine from '@botpress/nlu-engine'
 
 import { serializeError } from '../utils/error-utils'
 import { ILogger } from '../utils/logger/typings'
