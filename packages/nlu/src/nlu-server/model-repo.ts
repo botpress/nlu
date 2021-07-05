@@ -1,5 +1,6 @@
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
+import chokidar from 'chokidar'
 import fse, { WriteStream } from 'fs-extra'
 import _ from 'lodash'
 import path from 'path'
@@ -56,14 +57,14 @@ export class ModelRepository {
   private _db: Database
   private options: ModelRepoOptions
 
-  constructor(private logger: ILogger, options: Partial<ModelRepoOptions> = {}) {
+  constructor(private logger: ILogger, options: Partial<ModelRepoOptions> = {}, watcher: chokidar.FSWatcher) {
     const isDefined = _.negate(_.isUndefined)
     this.options = { ...defaultOtpions, ..._.pickBy(options, isDefined) } as ModelRepoOptions
 
     this._db = new Database(logger)
     const diskDriver = new DiskStorageDriver({ basePath: this.options.modelDir })
     const dbdriver = new DBStorageDriver(this._db)
-    const cache = new MemoryObjectCache()
+    const cache = new MemoryObjectCache(watcher)
 
     this._ghost = new GhostService(diskDriver, dbdriver, cache, logger)
   }

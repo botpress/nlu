@@ -1,5 +1,5 @@
 import fse from 'fs-extra'
-import { APIOptions } from './api'
+import { APIOptions } from './app'
 
 interface LanguageSource {
   endpoint: string
