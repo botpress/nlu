@@ -1,4 +1,7 @@
+import Bluebird from 'bluebird'
+import fs from 'fs'
 import path from 'path'
+import tmp from 'tmp'
 import { MLToolkit } from '../../ml/typings'
 
 import { isSpace, SPACE } from '../tools/token-utils'
@@ -111,7 +114,17 @@ export async function getPOSTagger(
   if (!taggersByLang[languageCode]) {
     const tagger = new toolkit.CRF.Tagger()
     await tagger.initialize()
-    tagger.open(getPretrainedModelFilePath(preTrainedDir, languageCode))
+    const preTrainedPath = getPretrainedModelFilePath(preTrainedDir, languageCode)
+
+    // copy file to actual disk using only read/write functions because of pkg
+    const tmpFile = await Bluebird.fromCallback<string>(tmp.file)
+    const model = await Bluebird.fromCallback<Buffer>((cb) => fs.readFile(preTrainedPath, cb))
+    await Bluebird.fromCallback((cb) => fs.writeFile(tmpFile, model, cb))
+
+    const openSuccess = tagger.open(tmpFile)
+    if (!openSuccess) {
+      throw new Error(`Could not open POS tagger for language "${languageCode}".`)
+    }
     taggersByLang[languageCode] = tagger
   }
 

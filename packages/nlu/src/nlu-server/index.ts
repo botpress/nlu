@@ -1,12 +1,10 @@
 import bytes from 'bytes'
 import chalk from 'chalk'
 import _ from 'lodash'
-import path from 'path'
 import Logger, { centerText } from '../utils/logger'
 import { LoggerLevel } from '../utils/logger/typings'
 import API from './api'
 import { CommandLineOptions, getConfig } from './config'
-import { copyDir } from './copy-dir'
 import { displayDocumentation } from './documentation'
 import { makeEngine } from './make-engine'
 
@@ -22,13 +20,6 @@ export const run = async (cliOptions: CommandLineOptions, version: string) => {
   launcherLogger.configure({
     minLevel: LoggerLevel.Info // Launcher always display
   })
-
-  for (const dir of ['./pre-trained', './stop-words']) {
-    // TODO: no need for copy to APP_DATA_PATH, just use original files
-    const srcPath = path.resolve(__dirname, '../../assets', dir)
-    const destPath = path.resolve(process.APP_DATA_PATH, dir)
-    await copyDir(srcPath, destPath)
-  }
 
   if (!bytes(options.bodySize)) {
     throw new Error(`Specified body-size "${options.bodySize}" has an invalid format.`)

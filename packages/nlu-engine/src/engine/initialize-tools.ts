@@ -19,7 +19,7 @@ import { LanguageProvider, SystemEntityExtractor, Tools } from './typings'
 
 const PRE_TRAINED_DIR = 'pre-trained'
 const STOP_WORDS_DIR = 'stop-words'
-const LANG_ID_MODEL = path.join(PRE_TRAINED_DIR, 'lid.176.ftz')
+const LANG_ID_MODEL = 'lid.176.ftz'
 
 const healthGetter = (languageProvider: LanguageProvider) => (): Health => {
   const { validProvidersCount, validLanguages } = languageProvider.getHealth()
@@ -54,7 +54,7 @@ const initializeLanguageProvider = async (
       config.languageSources,
       logger,
       nluVersion,
-      config.cachePath,
+      path.join(config.cachePath, 'cache'),
       seededLodashProvider
     )
     const getHealth = healthGetter(languageProvider)
@@ -94,7 +94,7 @@ export async function initializeTools(config: LanguageConfig & { assetsPath: str
   const { languageProvider } = await initializeLanguageProvider(config, logger, seededLodashProvider)
 
   const fastTextLanguageId = new FastTextLanguageId(MLToolkit)
-  await fastTextLanguageId.initializeModel(path.resolve(config.assetsPath, LANG_ID_MODEL))
+  await fastTextLanguageId.initializeModel(path.resolve(config.assetsPath, PRE_TRAINED_DIR, LANG_ID_MODEL))
   const languageId = languageIdentifier(fastTextLanguageId)
 
   return {
