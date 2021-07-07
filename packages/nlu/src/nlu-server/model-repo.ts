@@ -1,13 +1,12 @@
+import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
+import chokidar from 'chokidar'
 import fse, { WriteStream } from 'fs-extra'
 import _ from 'lodash'
 import path from 'path'
 import { Stream } from 'stream'
 import tar from 'tar'
 import tmp from 'tmp'
-import * as NLUEngine from '../engine'
-import modelIdService, { halfmd5 } from '../engine/model-id-service'
-import chokidar from 'chokidar'
 import {
   Database,
   DBStorageDriver,
@@ -45,6 +44,7 @@ const MODELS_DIR = './models'
 const MODELS_EXT = 'model'
 
 const logger = Logger.sub('model-repo')
+const { modelIdService } = NLUEngine
 
 // TODO: add a customizable modelDir
 const defaultOtpions: ModelRepoOptions = {
@@ -212,6 +212,6 @@ export class ModelRepository {
   }
 
   private _computeSecretHash(appSecret: string): string {
-    return halfmd5(appSecret) // makes shorter file name than full regular md5
+    return modelIdService.halfmd5(appSecret) // makes shorter file name than full regular md5
   }
 }

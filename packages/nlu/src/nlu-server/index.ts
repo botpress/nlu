@@ -1,19 +1,17 @@
+import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import chalk from 'chalk'
-import Bluebird from 'bluebird'
+import { createServer } from 'http'
 import _ from 'lodash'
-import path from 'path'
 import Logger, { centerText } from '../utils/logger'
 import { LoggerLevel } from '../utils/logger/typings'
 import { createApp } from './app'
-import { createServer } from 'http'
 import { CommandLineOptions, getConfig } from './config'
 import { displayDocumentation } from './documentation'
-import { buildWatcher } from './watcher'
-import { copyDir } from './copy-dir'
 import { makeEngine } from './make-engine'
+import { buildWatcher } from './watcher'
 
-export default async function (cliOptions: CommandLineOptions, version: string) {
+export const run = async (cliOptions: CommandLineOptions, version: string) => {
   const { options, source: configSource } = await getConfig(cliOptions)
 
   Logger.configure({
@@ -25,13 +23,6 @@ export default async function (cliOptions: CommandLineOptions, version: string) 
   launcherLogger.configure({
     minLevel: LoggerLevel.Info // Launcher always display
   })
-
-  for (const dir of ['./pre-trained', './stop-words']) {
-    // TODO: no need for copy to APP_DATA_PATH, just use original files
-    const srcPath = path.resolve(__dirname, '../../assets', dir)
-    const destPath = path.resolve(process.APP_DATA_PATH, dir)
-    await copyDir(srcPath, destPath)
-  }
 
   if (!bytes(options.bodySize)) {
     throw new Error(`Specified body-size "${options.bodySize}" has an invalid format.`)

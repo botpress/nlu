@@ -1,5 +1,5 @@
+import { LanguageService } from '@botpress/nlu-engine'
 import _ from 'lodash'
-import { LanguageService } from '../engine'
 import { BadRequestError, NotReadyError } from '../utils/http/errors'
 
 export const serviceLoadingMiddleware = (service: LanguageService) => (_req, _res, next) => {

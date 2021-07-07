@@ -1,9 +1,8 @@
-import * as NLUEngine from '../engine'
+import { TrainingProgress, TrainingErrorType, TrainInput, http } from '@botpress/nlu-client'
+import * as NLUEngine from '@botpress/nlu-engine'
 
-import { TrainingProgress, TrainingErrorType, TrainInput } from '../typings_v1'
 import { serializeError } from '../utils/error-utils'
 import { ILogger } from '../utils/logger/typings'
-import { Credentials } from './http-typings'
 import { ModelRepository } from './model-repo'
 import TrainSessionService from './train-session-service'
 
@@ -15,7 +14,7 @@ export default class TrainService {
     private trainSessionService: TrainSessionService
   ) {}
 
-  train = async (modelId: NLUEngine.ModelId, credentials: Credentials, trainInput: TrainInput) => {
+  train = async (modelId: NLUEngine.ModelId, credentials: http.Credentials, trainInput: TrainInput) => {
     const stringId = NLUEngine.modelIdService.toString(modelId)
     this.logger.info(`[${stringId}] Training Started.`)
 

@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { deserializeError } from '../error-utils'
 import { TaskAlreadyStartedError, TaskCanceledError, TaskExitedUnexpectedlyError } from '../errors'
 import { SIG_KILL } from '../signals'
-import { FullLogger, PoolOptions, WorkerPool as IWorkerPool } from '../typings'
+import { Logger, PoolOptions, WorkerPool as IWorkerPool } from '../typings'
 
 import {
   AllIncomingMessages,
@@ -21,7 +21,7 @@ import { Worker } from './worker'
 export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
   protected _scheduler = new Scheduler(() => this._createNewWorker(), { maxItems: this.config.maxWorkers })
 
-  constructor(protected logger: FullLogger, private config: PoolOptions) {}
+  constructor(protected logger: Logger, private config: PoolOptions) {}
 
   abstract createWorker: (entryPoint: string, env: NodeJS.ProcessEnv) => Promise<Worker>
   abstract isMainWorker: () => boolean
@@ -154,7 +154,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
     const { log } = msg.payload
     log.debug && this.logger.debug(log.debug)
     log.info && this.logger.info(log.info)
-    log.warning && this.logger.warn(log.warning)
+    log.warning && this.logger.warning(log.warning)
     log.error && this.logger.error(log.error)
   }
 }

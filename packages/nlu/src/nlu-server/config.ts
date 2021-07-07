@@ -1,6 +1,10 @@
 import fse from 'fs-extra'
-import { LanguageSource } from '../engine'
 import { APIOptions } from './app'
+
+interface LanguageSource {
+  endpoint: string
+  authToken?: string
+}
 
 export type CommandLineOptions = APIOptions & {
   languageURL: string

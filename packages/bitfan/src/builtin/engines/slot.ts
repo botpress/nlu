@@ -1,13 +1,8 @@
+import { ListEntityDefinition, PatternEntityDefinition, SlotDefinition, TrainInput } from '@botpress/nlu-client'
 import * as sdk from 'bitfan/sdk'
 import _ from 'lodash'
 
 import { StanProvider } from '../../services/bp-provider/stan-provider'
-import {
-  ListEntityDefinition,
-  PatternEntityDefinition,
-  SlotDefinition,
-  TrainInput
-} from '../../services/bp-provider/stan-typings'
 
 const MAIN_TOPIC = 'main'
 const MAIN_INTENT = 'main'
@@ -46,7 +41,6 @@ export class BpSlotEngine implements sdk.Engine<'slot'> {
       entities: [...enums.map(this._mapEnums), ...patterns.map(this._mapPatterns)],
       language: lang,
       seed,
-      contexts: [MAIN_TOPIC],
       intents: [
         {
           name: MAIN_INTENT,

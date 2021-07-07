@@ -1,3 +1,4 @@
+import { LanguageService } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'
@@ -8,7 +9,6 @@ import _ from 'lodash'
 import ms from 'ms'
 import yn from 'yn'
 
-import { LanguageService } from '../engine'
 import { authMiddleware, handleErrorLogging, handleUnexpectedError, isAdminToken, RequestWithLang } from '../utils/http'
 import { BadRequestError } from '../utils/http/errors'
 import Logger from '../utils/logger'
@@ -155,7 +155,7 @@ export default async function (
       progress: {
         status: x.getStatus(),
         downloadId: x.id,
-        size: x.downloadSizeProgress
+        size: x.totalDownloadSizeProgress
       }
     }))
 

@@ -1,10 +1,14 @@
+import {
+  IntentDefinition,
+  ListEntityDefinition,
+  PatternEntityDefinition,
+  SlotDefinition,
+  http
+} from '@botpress/nlu-client'
+import * as NLUEngine from '@botpress/nlu-engine'
 import { validate } from 'joi'
 
-import * as NLUEngine from '../../engine'
-import { IntentDefinition, ListEntityDefinition, PatternEntityDefinition, SlotDefinition } from '../../typings_v1'
-
 import { isListEntity, isPatternEntity } from '../../utils/guards'
-import * as http from '../http-typings'
 import { PredictInputSchema, TrainInputSchema, CredentialsSchema, DetectLangInputSchema } from './schemas'
 
 const SLOT_ANY = 'any'

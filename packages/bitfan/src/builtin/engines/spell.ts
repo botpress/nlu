@@ -1,8 +1,8 @@
+import { TrainInput, IntentDefinition } from '@botpress/nlu-client'
 import * as sdk from 'bitfan/sdk'
 import _ from 'lodash'
 
 import { StanProvider } from '../../services/bp-provider/stan-provider'
-import { TrainInput, IntentDefinition } from '../../services/bp-provider/stan-typings'
 
 const MAIN_TOPIC = 'main'
 const MAIN_INTENT = 'main'
@@ -35,7 +35,6 @@ export class BpSpellingEngine implements sdk.UnsupervisedEngine<'spell'> {
       language: corpus[0].lang,
       entities: [],
       seed,
-      contexts: [MAIN_TOPIC],
       intents: [dummyIntent]
     }
 

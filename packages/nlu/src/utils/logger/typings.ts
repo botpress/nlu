@@ -5,6 +5,7 @@ export interface ILogger {
   warn(message: string, metadata?: any): void
   error(message: string, metadata?: any): void
   critical(message: string, metadata?: any): void
+  sub(namespace: string): ILogger
 }
 
 export enum LoggerLevel {
@@ -46,5 +47,5 @@ export interface LoggerConfig {
   namespaceDelimiter: string
   colors: { [level: number]: string }
   indent: boolean
-  filters: string[] | undefined
+  filters: string[] | undefined // if undefined, all logs are displayed
 }
