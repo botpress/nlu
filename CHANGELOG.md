@@ -1,3 +1,21 @@
+## [0.1.3](https://github.com/botpress/nlu/compare/v0.1.2...v0.1.3) (2021-07-07)
+
+
+### Bug Fixes
+
+* exact matcher now works even with different entities ([#56](https://github.com/botpress/nlu/issues/56)) ([6c14b8c](https://github.com/botpress/nlu/commit/6c14b8ce6b14398fcdc621455382c0e18aaa0570))
+* **training:** porgress now won't skip steps ([#55](https://github.com/botpress/nlu/issues/55)) ([4073d61](https://github.com/botpress/nlu/commit/4073d617edf19d683833ee8394ead2376c94fdfa))
+
+
+### Features
+
+* **dx:** added a CLI command to download a language model in a given language ([#58](https://github.com/botpress/nlu/issues/58)) ([64e7871](https://github.com/botpress/nlu/commit/64e78714ed47bf90744ba1dbf0ee300fd1a632a2))
+* **e2e:** configurable NLU server endpoint ([50fd701](https://github.com/botpress/nlu/commit/50fd701111fb6ea3fb93772db12ee629df7de9cd))
+* **e2e:** configurable NLU server endpoint ([dd71ea0](https://github.com/botpress/nlu/commit/dd71ea04311944dd7170611c9940222b80a7250f))
+* **nlu-server:** App tests ([b7c2cc2](https://github.com/botpress/nlu/commit/b7c2cc25b5afe3b557b64239f908788d5b76e091))
+
+
+
 ## [0.1.2](https://github.com/botpress/nlu/compare/v0.1.1...v0.1.2) (2021-06-07)
 
 

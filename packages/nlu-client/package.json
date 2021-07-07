@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu-client",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Client and typings for NLU Server's API",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
