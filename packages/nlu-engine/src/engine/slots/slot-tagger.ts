@@ -174,7 +174,7 @@ export default class SlotTagger {
   private predictors: Predictors | undefined
   private mlToolkit: typeof MLToolkit
 
-  constructor(tools: Tools, private logger?: Logger) {
+  constructor(tools: Tools, private logger: Logger) {
     this.mlToolkit = tools.mlToolkit
   }
 

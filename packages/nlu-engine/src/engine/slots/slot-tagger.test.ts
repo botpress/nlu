@@ -8,9 +8,11 @@ import SlotTagger, { labelizeUtterance, makeExtractedSlots } from './slot-tagger
 import { TagResult } from './typings'
 import { makeFakeTools } from '../test-utils/fake-tools'
 import { ModelLoadingError } from '../../errors'
+import { Logger } from 'src/typings'
 
 const fakeTools = makeFakeTools(300, ['en'])
 const dummyProgress = (p: number) => {}
+const dummyLogger: Partial<Logger> = { debug: () => {} }
 
 const dudeWheresMyCar = makeTestUtterance("Dude, where's my car?")
 
@@ -145,7 +147,7 @@ describe('makeExtractedSlots', () => {
 
 describe('Slot tagger component lifecycle', () => {
   test('Slot tagger with no slots should predict empty array', async () => {
-    let slotTagger = new SlotTagger(fakeTools)
+    let slotTagger = new SlotTagger(fakeTools, dummyLogger as Logger)
     await slotTagger.train(
       {
         intent: {
@@ -160,7 +162,7 @@ describe('Slot tagger component lifecycle', () => {
     )
 
     const model = slotTagger.serialize()
-    slotTagger = new SlotTagger(fakeTools)
+    slotTagger = new SlotTagger(fakeTools, dummyLogger as Logger)
     await slotTagger.load(model)
 
     const prediction = await slotTagger.predict(dudeWheresMyCar)
@@ -168,7 +170,7 @@ describe('Slot tagger component lifecycle', () => {
   })
 
   test('When model is corrupted, loading throws', async () => {
-    const slotTagger = new SlotTagger(fakeTools)
+    const slotTagger = new SlotTagger(fakeTools, dummyLogger as Logger)
     await slotTagger.train(
       {
         intent: {

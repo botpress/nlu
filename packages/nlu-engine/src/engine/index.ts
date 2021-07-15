@@ -313,7 +313,7 @@ export default class Engine implements IEngine {
 
     const slot_tagger_per_intent: _.Dictionary<SlotTagger> = await Bluebird.props(
       _.mapValues(slots_model_by_intent, async (model) => {
-        const slotTagger = new SlotTagger(tools)
+        const slotTagger = new SlotTagger(tools, this._predictLogger)
         await slotTagger.load(model)
         return slotTagger
       })

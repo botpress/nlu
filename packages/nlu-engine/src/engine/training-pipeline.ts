@@ -336,7 +336,7 @@ async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progre
   for (let i = 0; i < input.intents.length; i++) {
     const intent = input.intents[i]
 
-    const slotTagger = new SlotTagger(tools)
+    const slotTagger = new SlotTagger(tools, tools.logger)
 
     await slotTagger.train(
       {
