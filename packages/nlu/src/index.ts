@@ -10,8 +10,8 @@ import './utils/worker-before'
 
 import { run as runLanguageServer, download as downloadLang } from './lang-server'
 import { run as runNLUServer } from './nlu-server'
-import { LoggerLevel } from './utils/logger/typings'
 import { setProjectLocation } from './nlu-server/project'
+import { LoggerLevel } from './utils/logger/typings'
 
 setProjectLocation()
 const exitLogger = Logger.sub('exit')

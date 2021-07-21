@@ -1,13 +1,13 @@
 import { http, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import * as Sentry from '@sentry/node'
+import * as Tracing from '@sentry/tracing'
 import Bluebird from 'bluebird'
-import chokidar from 'chokidar'
 import bodyParser from 'body-parser'
+import chokidar from 'chokidar'
 import cors from 'cors'
 import express, { Application } from 'express'
 import rateLimit from 'express-rate-limit'
-import * as Sentry from "@sentry/node";
-import * as Tracing from "@sentry/tracing";
 
 import _ from 'lodash'
 import ms from 'ms'
@@ -57,9 +57,7 @@ export const createApp = async (
   app.use(cors())
 
   if (options.sentryEnabled) {
-    console.log(options.sentrySampleRate)
-
-    Sentry.init({ 
+    Sentry.init({
       integrations: [
         new Sentry.Integrations.Http({ tracing: true }),
         new Tracing.Integrations.Express({ app })
@@ -68,6 +66,7 @@ export const createApp = async (
     })
 
     app.use(Sentry.Handlers.requestHandler())
+    app.use(Sentry.Handlers.tracingHandler())
   }
 
   app.use(bodyParser.json({ limit: options.bodySize }))

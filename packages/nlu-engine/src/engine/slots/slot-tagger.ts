@@ -1,9 +1,10 @@
 import fse from 'fs-extra'
 import Joi, { validate } from 'joi'
 import _ from 'lodash'
+import { Logger } from 'src/typings'
 import tmp from 'tmp'
-import { MLToolkit } from '../../ml/typings'
 import { ModelLoadingError } from '../../errors'
+import { MLToolkit } from '../../ml/typings'
 import { getEntitiesAndVocabOfIntent } from '../intents/intent-vocab'
 
 import { BIO, Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } from '../typings'
@@ -12,7 +13,6 @@ import Utterance, { UtteranceToken } from '../utterance/utterance'
 import { SlotDefinitionSchema } from './schemas'
 import * as featurizer from './slot-featurizer'
 import { TagResult, IntentSlotFeatures } from './typings'
-import { Logger } from 'src/typings'
 
 const CRF_TRAINER_PARAMS = {
   c1: '0.0001',
