@@ -62,10 +62,15 @@ yargs
         description: 'Authentification token for your language server',
         type: 'string'
       },
-      sentryDSN: {
-        description: 'The Sentry DSN endpoint',
-        default: process.env.SENTRY_DSN,
-        type: 'string'
+      sentryEnabled: {
+        description: 'When enabled, Sentry is added to the express server allowing the use of the environment variables SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE',
+        default: process.env.SENTRY_ENABLED === 'true',
+        type: 'boolean'
+      },
+      sentrySampleRate: {
+        description: 'If Sentry is configured, this option sets the sample rate of sentry',
+        default: 1.0,
+        type: 'number'
       },
       ducklingURL: {
         description: 'URL of your Duckling server; Only relevant if "ducklingEnabled" is true',

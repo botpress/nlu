@@ -37,7 +37,8 @@ export interface APIOptions {
   modelDir?: string
   verbose: number
   doc: boolean
-  sentryDSN?: string
+  sentryEnabled?: boolean
+  sentrySampleRate: number
   logFilter?: string[]
 }
 
@@ -55,14 +56,15 @@ export const createApp = async (
   // This must be first, otherwise the /info endpoint can't be called when token is used
   app.use(cors())
 
-  if (options.sentryDSN) {
+  if (options.sentryEnabled) {
+    console.log(options.sentrySampleRate)
+
     Sentry.init({ 
-      dsn: options.sentryDSN,
       integrations: [
         new Sentry.Integrations.Http({ tracing: true }),
         new Tracing.Integrations.Express({ app })
       ],
-      sampleRate: 1.0,
+      sampleRate: options.sentrySampleRate,
     })
 
     app.use(Sentry.Handlers.requestHandler())
@@ -76,7 +78,7 @@ export const createApp = async (
     next()
   })
 
-  if (options.sentryDSN) {
+  if (options.sentryEnabled) {
     app.use(Sentry.Handlers.errorHandler())
   }
 
