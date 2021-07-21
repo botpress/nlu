@@ -6,6 +6,8 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application } from 'express'
 import rateLimit from 'express-rate-limit'
+import * as Sentry from "@sentry/node";
+import * as Tracing from "@sentry/tracing";
 
 import _ from 'lodash'
 import ms from 'ms'
@@ -35,6 +37,7 @@ export interface APIOptions {
   modelDir?: string
   verbose: number
   doc: boolean
+  sentryDSN?: string
   logFilter?: string[]
 }
 
@@ -52,6 +55,19 @@ export const createApp = async (
   // This must be first, otherwise the /info endpoint can't be called when token is used
   app.use(cors())
 
+  if (options.sentryDSN) {
+    Sentry.init({ 
+      dsn: options.sentryDSN,
+      integrations: [
+        new Sentry.Integrations.Http({ tracing: true }),
+        new Tracing.Integrations.Express({ app })
+      ],
+      sampleRate: 1.0,
+    })
+
+    app.use(Sentry.Handlers.requestHandler())
+  }
+
   app.use(bodyParser.json({ limit: options.bodySize }))
 
   app.use((req, res, next) => {
@@ -59,6 +75,10 @@ export const createApp = async (
     requestLogger.debug(`incoming ${req.path}`, { ip: req.ip })
     next()
   })
+
+  if (options.sentryDSN) {
+    app.use(Sentry.Handlers.errorHandler())
+  }
 
   app.use(handleUnexpectedError)
 

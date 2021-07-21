@@ -62,6 +62,11 @@ yargs
         description: 'Authentification token for your language server',
         type: 'string'
       },
+      sentryDSN: {
+        description: 'The Sentry DSN endpoint',
+        default: process.env.SENTRY_DSN,
+        type: 'string'
+      },
       ducklingURL: {
         description: 'URL of your Duckling server; Only relevant if "ducklingEnabled" is true',
         default: 'https://duckling.botpress.io'
