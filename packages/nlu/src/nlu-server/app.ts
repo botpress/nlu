@@ -38,7 +38,7 @@ export interface APIOptions {
   verbose: number
   doc: boolean
   sentryEnabled?: boolean
-  sentrySampleRate: number
+  sentrySampleRate?: number
   logFilter?: string[]
 }
 
@@ -58,11 +58,8 @@ export const createApp = async (
 
   if (options.sentryEnabled) {
     Sentry.init({
-      integrations: [
-        new Sentry.Integrations.Http({ tracing: true }),
-        new Tracing.Integrations.Express({ app })
-      ],
-      sampleRate: options.sentrySampleRate,
+      integrations: [new Sentry.Integrations.Http({ tracing: true }), new Tracing.Integrations.Express({ app })],
+      sampleRate: options.sentrySampleRate ?? 1.0
     })
 
     app.use(Sentry.Handlers.requestHandler())
