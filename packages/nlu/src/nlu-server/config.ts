@@ -33,7 +33,6 @@ const DEFAULT_OPTIONS: StanOptions = {
   ducklingEnabled: true,
   modelCacheSize: '2.5gb',
   verbose: 3,
-  sentrySampleRate: 1.0,
   doc: false,
   logFilter: [],
   legacyElection: false,
