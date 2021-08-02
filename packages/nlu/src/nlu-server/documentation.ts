@@ -1,5 +1,5 @@
+import { ILogger } from '@botpress/nlu-logger'
 import chalk from 'chalk'
-import { ILogger } from '../utils/logger/typings'
 import { StanOptions } from './config'
 
 const GH_TYPINGS_FILE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/typings_v1.d.ts'

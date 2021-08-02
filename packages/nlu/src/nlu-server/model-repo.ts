@@ -1,4 +1,5 @@
 import * as NLUEngine from '@botpress/nlu-engine'
+import { ILogger } from '@botpress/nlu-logger'
 import Bluebird from 'bluebird'
 import chokidar from 'chokidar'
 import fse, { WriteStream } from 'fs-extra'
@@ -15,8 +16,6 @@ import {
   ScopedGhostService,
   MemoryObjectCache
 } from '../utils/ghost'
-import Logger from '../utils/logger'
-import { ILogger } from '../utils/logger/typings'
 
 interface FSDriver {
   driver: 'fs'
@@ -43,7 +42,6 @@ interface PruneOptions extends ModelOwnershipOptions {
 const MODELS_DIR = './models'
 const MODELS_EXT = 'model'
 
-const logger = Logger.sub('model-repo')
 const { modelIdService } = NLUEngine
 
 // TODO: add a customizable modelDir
@@ -55,26 +53,28 @@ const defaultOtpions: ModelRepoOptions = {
 export class ModelRepository {
   private _ghost: GhostService
   private _db: Database
-  private options: ModelRepoOptions
+  private _options: ModelRepoOptions
+  private _logger: ILogger
 
-  constructor(private logger: ILogger, options: Partial<ModelRepoOptions> = {}, watcher: chokidar.FSWatcher) {
+  constructor(logger: ILogger, options: Partial<ModelRepoOptions> = {}, watcher: chokidar.FSWatcher) {
+    this._logger = logger.sub('model-repo')
     const isDefined = _.negate(_.isUndefined)
-    this.options = { ...defaultOtpions, ..._.pickBy(options, isDefined) } as ModelRepoOptions
+    this._options = { ...defaultOtpions, ..._.pickBy(options, isDefined) } as ModelRepoOptions
 
-    this._db = new Database(logger)
-    const diskDriver = new DiskStorageDriver({ basePath: this.options.modelDir })
+    this._db = new Database(this._logger)
+    const diskDriver = new DiskStorageDriver({ basePath: this._options.modelDir })
     const dbdriver = new DBStorageDriver(this._db)
     const cache = new MemoryObjectCache(watcher)
 
-    this._ghost = new GhostService(diskDriver, dbdriver, cache, logger)
+    this._ghost = new GhostService(diskDriver, dbdriver, cache, this._logger)
   }
 
   async initialize() {
-    logger.debug('Model service initializing...')
-    if (this.options.driver === 'db') {
-      await this._db.initialize('postgres', this.options.dbURL)
+    this._logger.debug('Model service initializing...')
+    if (this._options.driver === 'db') {
+      await this._db.initialize('postgres', this._options.dbURL)
     }
-    await this._ghost.initialize(this.options.driver === 'db')
+    await this._ghost.initialize(this._options.driver === 'db')
   }
 
   public async hasModel(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<boolean> {

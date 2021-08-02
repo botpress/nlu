@@ -1,11 +1,9 @@
-import { LanguageService } from '@botpress/nlu-engine'
+import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
+import { centerText, LoggerLevel, Logger, ILogger } from '@botpress/nlu-logger'
 import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
 
-import Logger, { centerText } from '../utils/logger'
-import { LoggerLevel } from '../utils/logger/typings'
-import { wrapLogger } from '../utils/logger/wrap'
 import API, { APIOptions } from './api'
 import DownloadManager from './service/download-manager'
 
@@ -23,6 +21,16 @@ export interface ArgV {
   domain: string
   verbose: number
   logFilter: string[] | undefined
+}
+
+const wrapLogger = (logger: ILogger): EngineLogger => {
+  return {
+    debug: (msg: string) => logger.debug(msg),
+    info: (msg: string) => logger.info(msg),
+    warning: (msg: string, err?: Error) => (err ? logger.attachError(err).warn(msg) : logger.warn(msg)),
+    error: (msg: string, err?: Error) => (err ? logger.attachError(err).error(msg) : logger.error(msg)),
+    sub: (namespace: string) => wrapLogger(logger.sub(namespace))
+  }
 }
 
 export default async function (options: ArgV) {

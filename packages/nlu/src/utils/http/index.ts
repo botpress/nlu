@@ -1,6 +1,6 @@
+import { Logger } from '@botpress/nlu-logger'
 import { Request } from 'express'
 import _ from 'lodash'
-import Logger from '../logger'
 import { UnauthorizedError } from './errors'
 
 const logger = Logger.sub('api').sub('auth')

@@ -1,11 +1,10 @@
 import { LanguageService } from '@botpress/nlu-engine'
+import { Logger, LoggerLevel } from '@botpress/nlu-logger'
 import cliProgress from 'cli-progress'
 import fse from 'fs-extra'
 import _ from 'lodash'
 import path from 'path'
 
-import Logger from '../utils/logger'
-import { LoggerLevel } from '../utils/logger/typings'
 import DownloadManager from './service/download-manager'
 
 interface Argv {

@@ -1,6 +1,6 @@
 import { createApp } from './app'
 import { makeEngine } from './make-engine'
-import Logger from '../utils/logger'
+import { Logger } from '@botpress/nlu-logger'
 import { StanOptions } from './config'
 import request from 'supertest'
 import { version } from 'moment'

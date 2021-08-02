@@ -1,9 +1,9 @@
+import { ILogger } from '@botpress/nlu-logger'
 import Bluebird from 'bluebird'
 import { mkdirpSync } from 'fs-extra'
 import Knex from 'knex'
 import _ from 'lodash'
 import path from 'path'
-import { ILogger } from '../../logger/typings'
 import { patchKnex } from './helpers'
 
 import AllTables, { Table } from './tables'

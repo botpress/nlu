@@ -1,5 +1,6 @@
 export interface ILogger {
   attachError(error: Error): this
+  configure(config: Partial<LoggerConfig>): void
   debug(message: string, metadata?: any): void
   info(message: string, metadata?: any): void
   warn(message: string, metadata?: any): void
@@ -8,19 +9,11 @@ export interface ILogger {
   sub(namespace: string): ILogger
 }
 
-export enum LoggerLevel {
-  Critical = 0,
-  Error = 1,
-  Warn = 2,
-  Info = 3,
-  Debug = 4
-}
-
 export type LogEntryType = 'log' | 'stacktrace'
 
 export interface LogEntry {
   type: LogEntryType
-  level: LoggerLevel
+  level: number
   message: string
   namespace: string
   metadata?: any
@@ -34,13 +27,14 @@ export type FormattedLogEntry = LogEntry & {
 export interface LogEntryFormatter {
   format(config: LoggerConfig, entry: LogEntry): FormattedLogEntry
 }
+
 export interface LogTransporter {
   send(config: LoggerConfig, entry: FormattedLogEntry): Promise<void> | void
 }
 
 export interface LoggerConfig {
-  level: LoggerLevel
-  minLevel: LoggerLevel | undefined // if defined, allows to bypass filters
+  level: number
+  minLevel: number | undefined // if defined, allows to bypass filters
   formatter: LogEntryFormatter
   transports: LogTransporter[]
   timeFormat: string // moment time format
@@ -49,3 +43,15 @@ export interface LoggerConfig {
   indent: boolean
   filters: string[] | undefined // if undefined, all logs are displayed
 }
+
+// implementations
+
+export const centerText: (text: string, width: number, indent: number = 0) => string
+export const LoggerLevel: {
+  Critical: 0
+  Error: 1
+  Warn: 2
+  Info: 3
+  Debug: 4
+}
+export const Logger: ILogger

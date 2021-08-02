@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/order
-import Logger from './utils/logger'
+import { Logger, LoggerLevel } from '@botpress/nlu-logger'
 import yargs from 'yargs'
 
 // @ts-ignore
@@ -10,7 +10,6 @@ import './utils/worker-before'
 
 import { run as runLanguageServer, download as downloadLang } from './lang-server'
 import { run as runNLUServer } from './nlu-server'
-import { LoggerLevel } from './utils/logger/typings'
 import { setProjectLocation } from './nlu-server/project'
 
 setProjectLocation()

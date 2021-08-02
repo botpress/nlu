@@ -1,9 +1,9 @@
+import { Logger } from '@botpress/nlu-logger'
 import axios, { CancelTokenSource } from 'axios'
 import Bluebird from 'bluebird'
 import fse from 'fs-extra'
 import _ from 'lodash'
 import { Readable } from 'stream'
-import Logger from '../../utils/logger'
 type ModelType = 'bpe' | 'embeddings'
 
 export interface DownloadableModel {

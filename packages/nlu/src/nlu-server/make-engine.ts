@@ -1,8 +1,17 @@
 import * as NLUEngine from '@botpress/nlu-engine'
+import { ILogger } from '@botpress/nlu-logger'
 import _ from 'lodash'
-import { ILogger } from '../utils/logger/typings'
-import { wrapLogger } from '../utils/logger/wrap'
 import { StanOptions } from './config'
+
+const wrapLogger = (logger: ILogger): NLUEngine.Logger => {
+  return {
+    debug: (msg: string) => logger.debug(msg),
+    info: (msg: string) => logger.info(msg),
+    warning: (msg: string, err?: Error) => (err ? logger.attachError(err).warn(msg) : logger.warn(msg)),
+    error: (msg: string, err?: Error) => (err ? logger.attachError(err).error(msg) : logger.error(msg)),
+    sub: (namespace: string) => wrapLogger(logger.sub(namespace))
+  }
+}
 
 export const makeEngine = async (options: StanOptions, logger: ILogger) => {
   const loggerWrapper: NLUEngine.Logger = wrapLogger(logger)

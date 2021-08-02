@@ -1,42 +1,25 @@
 import _ from 'lodash'
-import { ConsoleFormatter } from './formatters/console'
-import { ConsoleTransport } from './transports/console'
-import { LogEntry, LoggerConfig, LoggerLevel, ILogger } from './typings'
+import { defaultConfig, LoggerLevel } from './config'
+import * as sdk from './typings'
 
-export const centerText = (text: string, width: number, indent: number = 0) => {
+export const centerText: typeof sdk.centerText = (text: string, width: number, indent: number = 0) => {
   const padding = Math.floor((width - text.length) / 2)
   return _.repeat(' ', padding + indent) + text + _.repeat(' ', padding)
 }
 
-export const defaultConfig: LoggerConfig = {
-  level: LoggerLevel.Info,
-  minLevel: undefined,
-  timeFormat: 'L HH:mm:ss.SSS',
-  namespaceDelimiter: ':',
-  colors: {
-    [LoggerLevel.Debug]: 'blue',
-    [LoggerLevel.Info]: 'green',
-    [LoggerLevel.Warn]: 'yellow',
-    [LoggerLevel.Error]: 'red',
-    [LoggerLevel.Critical]: 'red'
-  },
-  formatter: new ConsoleFormatter({ indent: !!process.env.INDENT_LOGS }),
-  transports: [new ConsoleTransport()],
-  indent: false,
-  filters: undefined // show all logs
-}
+export { LoggerLevel } from './config'
 
-class Logger implements ILogger {
-  public static default = new Logger()
+class _Logger implements sdk.ILogger {
+  public static default = new _Logger()
   private static _GLOBAL_NAMESPACE = 'global'
-  private _loggers = new Map<string, Logger>()
-  private _config: LoggerConfig = defaultConfig
-  public parent: Logger | null = null
+  private _loggers = new Map<string, _Logger>()
+  private _config: sdk.LoggerConfig = defaultConfig
+  public parent: _Logger | null = null
   public namespace: string = ''
 
-  constructor(private _name: string = Logger._GLOBAL_NAMESPACE) {}
+  constructor(private _name: string = _Logger._GLOBAL_NAMESPACE) {}
 
-  configure(config: Partial<LoggerConfig>) {
+  configure(config: Partial<sdk.LoggerConfig>) {
     this._config = { ...this._config, ...config }
 
     // logger configures all childs
@@ -45,13 +28,13 @@ class Logger implements ILogger {
     }
   }
 
-  public sub(name: string): Logger {
+  public sub(name: string): _Logger {
     if (this._loggers.has(name)) {
       return this._loggers.get(name)!
     }
-    const logger = new Logger(name)
+    const logger = new _Logger(name)
 
-    if (name === Logger._GLOBAL_NAMESPACE) {
+    if (name === _Logger._GLOBAL_NAMESPACE) {
       logger.parent = null
       logger.namespace = ''
     } else {
@@ -70,7 +53,7 @@ class Logger implements ILogger {
     return this
   }
 
-  private push(entry: Omit<LogEntry, 'namespace'>) {
+  private push(entry: Omit<sdk.LogEntry, 'namespace'>) {
     const formattedEntry = this._config.formatter.format(this._config, { ...entry, namespace: this.namespace })
     this._config.transports.forEach((transport) => transport.send(this._config, formattedEntry))
   }
@@ -95,7 +78,4 @@ class Logger implements ILogger {
     this.push({ type: 'log', level: LoggerLevel.Error, message, metadata })
   }
 }
-
-const globalLogger = new Logger()
-
-export default globalLogger
+export const Logger = new _Logger()
