@@ -1,4 +1,4 @@
-import { ILogger } from '@botpress/nlu-logger'
+import { Logger } from '@botpress/nlu-logger'
 import Bluebird from 'bluebird'
 import { mkdirpSync } from 'fs-extra'
 import Knex from 'knex'
@@ -16,7 +16,7 @@ export class Database {
 
   private tables: Table[] = []
 
-  public constructor(private logger: ILogger) {}
+  public constructor(private logger: Logger) {}
 
   async bootstrap() {
     await Bluebird.mapSeries(AllTables, async (Tbl) => {

@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/order
-import { Logger, LoggerLevel } from '@botpress/nlu-logger'
+import { makeLogger, LoggerLevel } from '@botpress/nlu-logger'
 import yargs from 'yargs'
 
 // @ts-ignore
@@ -13,7 +13,7 @@ import { run as runNLUServer } from './nlu-server'
 import { setProjectLocation } from './nlu-server/project'
 
 setProjectLocation()
-const exitLogger = Logger.sub('exit')
+const exitLogger = makeLogger().sub('exit')
 
 yargs
   .command(

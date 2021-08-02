@@ -3,13 +3,13 @@ import _ from 'lodash'
 import ms from 'ms'
 import onHeaders from 'on-headers'
 
-const logger = Logger.sub('lang').sub('api').sub('monitoring')
-
 let collectionEnabled = false
 let metrics = {}
 
-export const startMonitoring = () => {
-  logger.debug('Metrics collection enabled. Interval: ', process.env.MONITORING_INTERVAL)
+export const startMonitoring = (baseLogger: Logger) => {
+  const monitoringLogger = baseLogger.sub('lang').sub('api').sub('monitoring')
+
+  monitoringLogger.debug('Metrics collection enabled. Interval: ', process.env.MONITORING_INTERVAL)
 
   setInterval(() => {
     if (!metrics || !Object.keys(metrics).length) {
@@ -17,7 +17,7 @@ export const startMonitoring = () => {
     }
 
     try {
-      logger.debug(
+      monitoringLogger.debug(
         'Stats %o',
         _.flatMap(Object.keys(metrics), (lang) => ({
           [lang]: {

@@ -1,4 +1,4 @@
-export interface ILogger {
+export interface Logger {
   attachError(error: Error): this
   configure(config: Partial<LoggerConfig>): void
   debug(message: string, metadata?: any): void
@@ -6,7 +6,7 @@ export interface ILogger {
   warn(message: string, metadata?: any): void
   error(message: string, metadata?: any): void
   critical(message: string, metadata?: any): void
-  sub(namespace: string): ILogger
+  sub(namespace: string): Logger
 }
 
 export type LogEntryType = 'log' | 'stacktrace'
@@ -44,8 +44,6 @@ export interface LoggerConfig {
   filters: string[] | undefined // if undefined, all logs are displayed
 }
 
-// implementations
-
 export const centerText: (text: string, width: number, indent: number = 0) => string
 export const LoggerLevel: {
   Critical: 0
@@ -54,4 +52,4 @@ export const LoggerLevel: {
   Info: 3
   Debug: 4
 }
-export const Logger: ILogger
+export const makeLogger: (config?: Partial<LoggerConfig>) => Logger

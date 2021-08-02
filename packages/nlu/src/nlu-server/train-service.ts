@@ -1,14 +1,14 @@
 import { TrainingProgress, TrainingErrorType, TrainInput, http } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 
-import { ILogger } from '@botpress/nlu-logger'
+import { Logger } from '@botpress/nlu-logger'
 import { serializeError } from '../utils/error-utils'
 import { ModelRepository } from './model-repo'
 import TrainSessionService from './train-session-service'
 
 export default class TrainService {
   constructor(
-    private logger: ILogger,
+    private logger: Logger,
     private engine: NLUEngine.Engine,
     private modelRepo: ModelRepository,
     private trainSessionService: TrainSessionService

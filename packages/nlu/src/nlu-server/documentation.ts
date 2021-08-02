@@ -1,11 +1,11 @@
-import { ILogger } from '@botpress/nlu-logger'
+import { Logger } from '@botpress/nlu-logger'
 import chalk from 'chalk'
 import { StanOptions } from './config'
 
 const GH_TYPINGS_FILE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/typings_v1.d.ts'
 const GH_TRAIN_INPUT_EXAMPLE = 'https://github.com/botpress/nlu/blob/master/packages/nlu/src/stan/train-example.json'
 
-export const displayDocumentation = (logger: ILogger, options: StanOptions) => {
+export const displayDocumentation = (logger: Logger, options: StanOptions) => {
   const { host, port } = options
   const baseUrl = `http://${host}:${port}/v1`
 

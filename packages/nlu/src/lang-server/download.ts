@@ -1,5 +1,5 @@
 import { LanguageService } from '@botpress/nlu-engine'
-import { Logger, LoggerLevel } from '@botpress/nlu-logger'
+import { Logger, LoggerLevel, makeLogger } from '@botpress/nlu-logger'
 import cliProgress from 'cli-progress'
 import fse from 'fs-extra'
 import _ from 'lodash'
@@ -16,17 +16,23 @@ interface Argv {
 }
 
 export default async (options: Argv) => {
-  Logger.configure({
+  const baseLogger = makeLogger({
     level: LoggerLevel.Info,
     filters: undefined
   })
 
   const languageDirectory = options.langDir || path.join(process.APP_DATA_PATH, 'embeddings')
 
-  const launcherLogger = Logger.sub('Launcher')
+  const launcherLogger = baseLogger.sub('Launcher')
 
   const langService = new LanguageService(options.dim, options.domain, languageDirectory)
-  const downloadManager = new DownloadManager(options.dim, options.domain, languageDirectory, options.metadataLocation)
+  const downloadManager = new DownloadManager(
+    options.dim,
+    options.domain,
+    languageDirectory,
+    options.metadataLocation,
+    baseLogger
+  )
 
   await langService.initialize()
   await downloadManager.initialize()

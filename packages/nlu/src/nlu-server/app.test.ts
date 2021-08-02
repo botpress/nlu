@@ -1,6 +1,6 @@
 import { createApp } from './app'
 import { makeEngine } from './make-engine'
-import { Logger } from '@botpress/nlu-logger'
+import { Logger, makeLogger } from '@botpress/nlu-logger'
 import { StanOptions } from './config'
 import request from 'supertest'
 import { version } from 'moment'
@@ -29,7 +29,7 @@ const options: StanOptions = {
   modelDir: 'testdir'
 }
 
-const launcherLogger = Logger.sub('Launcher')
+const baseLogger = makeLogger()
 let watcher
 
 beforeEach(async () => {
@@ -42,22 +42,22 @@ afterEach(() => {
 })
 
 test('GET /unknown-path', async () => {
-  const engine = await makeEngine(options, launcherLogger)
-  const app = await createApp(options, engine, version, watcher)
+  const engine = await makeEngine(options, baseLogger.sub('Launcher'))
+  const app = await createApp(options, engine, version, watcher, baseLogger)
 
   await request(app).get('/unknown-path').expect(404)
 })
 
 test.each(['/info', '/v1/info'])('GET %s', async (path) => {
-  const engine = await makeEngine(options, launcherLogger)
-  const app = await createApp(options, engine, version, watcher)
+  const engine = await makeEngine(options, baseLogger)
+  const app = await createApp(options, engine, version, watcher, baseLogger)
 
   await request(app).get(path).expect(200)
 })
 
 test('GET /models', async () => {
-  const engine = await makeEngine(options, launcherLogger)
-  const app = await createApp(options, engine, version, watcher)
+  const engine = await makeEngine(options, baseLogger)
+  const app = await createApp(options, engine, version, watcher, baseLogger)
 
   await request(app).get('/models').expect(200, { success: true, models: [] })
 })

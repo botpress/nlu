@@ -1,4 +1,4 @@
-import { Logger, centerText, LoggerLevel } from '@botpress/nlu-logger'
+import { centerText, LoggerLevel, makeLogger } from '@botpress/nlu-logger'
 import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import chalk from 'chalk'
@@ -13,12 +13,12 @@ import { buildWatcher } from './watcher'
 export const run = async (cliOptions: CommandLineOptions, version: string) => {
   const { options, source: configSource } = await getConfig(cliOptions)
 
-  Logger.configure({
+  const baseLogger = makeLogger({
     level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
     filters: options.logFilter
   })
 
-  const launcherLogger = Logger.sub('Launcher')
+  const launcherLogger = baseLogger.sub('Launcher')
   launcherLogger.configure({
     minLevel: LoggerLevel.Info // Launcher always display
   })
@@ -83,7 +83,7 @@ ${_.repeat(' ', 9)}========================================`)
 
   const watcher = buildWatcher()
 
-  const app = await createApp(options, engine, version, watcher)
+  const app = await createApp(options, engine, version, watcher, baseLogger)
   const httpServer = createServer(app)
 
   await Bluebird.fromCallback((callback) => {

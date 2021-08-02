@@ -15,8 +15,6 @@ export interface DownloadableModel {
   domain?: string
 }
 
-const logger = Logger.sub('lang').sub('download')
-
 export type DownloadStatus = 'pending' | 'downloading' | 'loading' | 'errored' | 'done'
 
 export type ProgressListener = (p: number) => void
@@ -34,7 +32,7 @@ export default class ModelDownload {
 
   private currentModel = 0
 
-  constructor(private models: DownloadableModel[], public readonly destDir: string) {
+  constructor(private models: DownloadableModel[], public readonly destDir: string, private _dowloadLogger: Logger) {
     this.lang = models[0].language
   }
 
@@ -73,7 +71,7 @@ export default class ModelDownload {
   private async _downloadNext() {
     const modelToDownload = this.models[this.currentModel] as DownloadableModel
 
-    logger.debug(`Started to download ${modelToDownload.language} ${modelToDownload.type} model`)
+    this._dowloadLogger.debug(`Started to download ${modelToDownload.language} ${modelToDownload.type} model`)
 
     const { data, headers } = await axios.get(modelToDownload.remoteUrl, {
       responseType: 'stream',
@@ -88,7 +86,7 @@ export default class ModelDownload {
 
     stream.pipe(fse.createWriteStream(tmpPath))
     stream.on('error', (err) => {
-      logger.error('model download failed', { lang: modelToDownload.language, error: err.message })
+      this._dowloadLogger.error('model download failed', { lang: modelToDownload.language, error: err.message })
       this.status = 'errored'
       this.message = 'Error: ' + err.message
     })
@@ -142,21 +140,21 @@ export default class ModelDownload {
       fse.unlinkSync(tmpPath)
     }
 
-    logger.debug('deleting model %o', { path: tmpPath, type: model.type, lang: model.language })
+    this._dowloadLogger.debug('deleting model %o', { path: tmpPath, type: model.type, lang: model.language })
   }
 
   private async _makeModelAvailable(model: DownloadableModel) {
     const filePath = this.getFilePath(model) as string
     const tmpPath = `${filePath}.tmp`
     if (fse.existsSync(filePath)) {
-      logger.debug('removing existing model at %s', filePath)
+      this._dowloadLogger.debug('removing existing model at %s', filePath)
       fse.unlinkSync(filePath)
     }
 
     try {
       await Bluebird.fromCallback((cb) => fse.rename(tmpPath, filePath, cb))
     } catch (err) {
-      logger.debug('could not rename downloaded file %s', filePath)
+      this._dowloadLogger.debug('could not rename downloaded file %s', filePath)
       await Bluebird.fromCallback((cb) => fse.move(tmpPath, filePath, cb))
     }
   }

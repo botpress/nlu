@@ -1,5 +1,5 @@
 import * as NLUEngine from '@botpress/nlu-engine'
-import { ILogger } from '@botpress/nlu-logger'
+import { Logger } from '@botpress/nlu-logger'
 import Bluebird from 'bluebird'
 import chokidar from 'chokidar'
 import fse, { WriteStream } from 'fs-extra'
@@ -54,9 +54,9 @@ export class ModelRepository {
   private _ghost: GhostService
   private _db: Database
   private _options: ModelRepoOptions
-  private _logger: ILogger
+  private _logger: Logger
 
-  constructor(logger: ILogger, options: Partial<ModelRepoOptions> = {}, watcher: chokidar.FSWatcher) {
+  constructor(logger: Logger, options: Partial<ModelRepoOptions> = {}, watcher: chokidar.FSWatcher) {
     this._logger = logger.sub('model-repo')
     const isDefined = _.negate(_.isUndefined)
     this._options = { ...defaultOtpions, ..._.pickBy(options, isDefined) } as ModelRepoOptions

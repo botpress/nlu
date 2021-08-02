@@ -1,9 +1,9 @@
 import * as NLUEngine from '@botpress/nlu-engine'
-import { ILogger } from '@botpress/nlu-logger'
+import { Logger } from '@botpress/nlu-logger'
 import _ from 'lodash'
 import { StanOptions } from './config'
 
-const wrapLogger = (logger: ILogger): NLUEngine.Logger => {
+const wrapLogger = (logger: Logger): NLUEngine.Logger => {
   return {
     debug: (msg: string) => logger.debug(msg),
     info: (msg: string) => logger.info(msg),
@@ -13,7 +13,7 @@ const wrapLogger = (logger: ILogger): NLUEngine.Logger => {
   }
 }
 
-export const makeEngine = async (options: StanOptions, logger: ILogger) => {
+export const makeEngine = async (options: StanOptions, logger: Logger) => {
   const loggerWrapper: NLUEngine.Logger = wrapLogger(logger)
 
   try {

@@ -1,5 +1,5 @@
 import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
-import { centerText, LoggerLevel, Logger, ILogger } from '@botpress/nlu-logger'
+import { centerText, LoggerLevel, Logger, makeLogger } from '@botpress/nlu-logger'
 import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
@@ -23,7 +23,7 @@ export interface ArgV {
   logFilter: string[] | undefined
 }
 
-const wrapLogger = (logger: ILogger): EngineLogger => {
+const wrapLogger = (logger: Logger): EngineLogger => {
   return {
     debug: (msg: string) => logger.debug(msg),
     info: (msg: string) => logger.info(msg),
@@ -34,14 +34,14 @@ const wrapLogger = (logger: ILogger): EngineLogger => {
 }
 
 export default async function (options: ArgV) {
-  Logger.configure({
+  const baseLogger = makeLogger({
     level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
     filters: options.logFilter
   })
 
   options.langDir = options.langDir || path.join(process.APP_DATA_PATH, 'embeddings')
 
-  const launcherLogger = Logger.sub('Launcher')
+  const launcherLogger = baseLogger.sub('Launcher')
   // Launcher always display
   launcherLogger.configure({
     level: LoggerLevel.Info,
@@ -50,7 +50,7 @@ export default async function (options: ArgV) {
 
   launcherLogger.debug('Language Server Options %o', options)
 
-  const languageServiceLogger = Logger.sub('lang').sub('service')
+  const languageServiceLogger = baseLogger.sub('lang').sub('service')
 
   const langService = new LanguageService(
     options.dim,
@@ -58,7 +58,13 @@ export default async function (options: ArgV) {
     options.langDir,
     wrapLogger(languageServiceLogger)
   )
-  const downloadManager = new DownloadManager(options.dim, options.domain, options.langDir, options.metadataLocation)
+  const downloadManager = new DownloadManager(
+    options.dim,
+    options.domain,
+    options.langDir,
+    options.metadataLocation,
+    baseLogger
+  )
 
   const version = '1.1.0' // TODO: declare this elsewhere
 
@@ -116,10 +122,10 @@ ${_.repeat(' ', 9)}========================================`)
   launcherLogger.info(`Serving ${options.dim} language dimensions from ${options.langDir}`)
 
   if (options.offline) {
-    await Promise.all([API(apiOptions, langService), langService.initialize()])
+    await Promise.all([API(apiOptions, baseLogger, langService), langService.initialize()])
   } else {
     await Promise.all([
-      API(apiOptions, langService, downloadManager),
+      API(apiOptions, baseLogger, langService, downloadManager),
       downloadManager.initialize(),
       langService.initialize()
     ])

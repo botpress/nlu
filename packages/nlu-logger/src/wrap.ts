@@ -1,7 +1,7 @@
 import { Logger as EngineLogger } from '@botpress/nlu-engine'
-import { ILogger } from './typings'
+import { Logger } from './typings'
 
-export const wrapLogger = (logger: ILogger): EngineLogger => {
+export const wrapLogger = (logger: Logger): EngineLogger => {
   return {
     debug: (msg: string) => logger.debug(msg),
     info: (msg: string) => logger.info(msg),

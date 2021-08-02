@@ -38,15 +38,16 @@ export interface APIOptions {
   logFilter?: string[]
 }
 
-const requestLogger = Logger.sub('api').sub('request')
 const { modelIdService } = NLUEngine
 
 export const createApp = async (
   options: APIOptions,
   engine: NLUEngine.Engine,
   version: string,
-  watcher: chokidar.FSWatcher
+  watcher: chokidar.FSWatcher,
+  baseLogger: Logger
 ): Promise<Application> => {
+  const requestLogger = baseLogger.sub('api').sub('request')
   const app = express()
 
   // This must be first, otherwise the /info endpoint can't be called when token is used
@@ -77,7 +78,7 @@ export const createApp = async (
   }
 
   if (options.authToken?.length) {
-    app.use(authMiddleware(options.authToken))
+    app.use(authMiddleware(options.authToken, baseLogger))
   }
 
   const router = express.Router({ mergeParams: true })
@@ -85,7 +86,7 @@ export const createApp = async (
   app.use(['/v1', '/'], router)
   app.use(handleErrorLogging)
 
-  const logger = Logger.sub('api')
+  const apiLogger = baseLogger.sub('api')
 
   const { dbURL: databaseURL, modelDir } = options
 
@@ -100,10 +101,10 @@ export const createApp = async (
         modelDir
       }
 
-  const modelRepo = new ModelRepository(logger, modelRepoOptions, watcher)
+  const modelRepo = new ModelRepository(baseLogger, modelRepoOptions, watcher)
   await modelRepo.initialize()
   const trainSessionService = new TrainSessionService()
-  const trainService = new TrainService(logger, engine, modelRepo, trainSessionService)
+  const trainService = new TrainService(baseLogger, engine, modelRepo, trainSessionService)
 
   router.get('/info', async (req, res) => {
     try {
@@ -328,7 +329,7 @@ export const createApp = async (
 
       if (missingModels.length) {
         const stringMissingModels = missingModels.map(modelIdService.toString)
-        logger.warn(
+        apiLogger.warn(
           `About to detect language but your model cache seems to small to contains all models simultaneously. The following models are missing [${stringMissingModels.join(
             ', '
           )}. You can increase your cache size by setting the CLI parameter "modelCacheSize".]`

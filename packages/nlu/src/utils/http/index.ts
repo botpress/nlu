@@ -3,8 +3,6 @@ import { Request } from 'express'
 import _ from 'lodash'
 import { UnauthorizedError } from './errors'
 
-const logger = Logger.sub('api').sub('auth')
-
 // This method is only used for basic escaping of error messages, do not use for page display
 export const escapeHtmlSimple = (str: string) => {
   return str
@@ -32,10 +30,12 @@ const makeUnauthorizedError = (msg: string) => {
   return err
 }
 
-export const authMiddleware = (secureToken: string, secondToken?: string) => (req, _res, next) => {
+export const authMiddleware = (secureToken: string, baseLogger: Logger, secondToken?: string) => (req, _res, next) => {
   if (!secureToken || !secureToken.length) {
     return next()
   }
+
+  const logger = baseLogger.sub('api').sub('auth')
 
   if (!req.headers.authorization) {
     logger.error('Authorization header missing', { ip: req.ip })

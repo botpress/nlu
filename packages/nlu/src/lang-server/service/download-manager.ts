@@ -8,8 +8,6 @@ import ModelDownload from './model-download'
 
 type ModelType = 'bpe' | 'embeddings'
 
-const logger = Logger.sub('lang').sub('download')
-
 export interface DownloadableModel {
   type: ModelType
   remoteUrl: string
@@ -42,12 +40,17 @@ export default class DownloadManager {
   private _refreshTimer?: NodeJS.Timeout
   private meta: Meta | undefined
 
+  private _logger: Logger
+
   constructor(
     public readonly dim: number,
     public readonly domain: string,
     public readonly destDir: string,
-    public readonly metaUrl: string
-  ) {}
+    public readonly metaUrl: string,
+    baseLogger: Logger
+  ) {
+    this._logger = baseLogger.sub('lang').sub('download')
+  }
 
   async initialize() {
     fse.ensureDirSync(this.destDir)
@@ -63,7 +66,7 @@ export default class DownloadManager {
       new URL(this.metaUrl)
       return this._refreshRemoteMeta()
     } catch (e) {
-      logger.debug('Fetching models locally', { url: this.metaUrl })
+      this._logger.debug('Fetching models locally', { url: this.metaUrl })
       return this._refreshLocalMeta()
     }
   }
@@ -75,22 +78,22 @@ export default class DownloadManager {
         this.meta = data
       }
     } catch (err) {
-      logger.debug('Error fetching models', { url: this.metaUrl, message: err.message })
+      this._logger.debug('Error fetching models', { url: this.metaUrl, message: err.message })
       throw err
     }
   }
 
   private _isValidMetadata(meta: Meta) {
     if (!meta) {
-      logger.debug('Not refreshing metadata, empty response')
+      this._logger.debug('Not refreshing metadata, empty response')
       return false
     }
     if (!meta.languages || !Object.keys(meta.languages).length) {
-      logger.debug('Not refreshing metadata, missing languages')
+      this._logger.debug('Not refreshing metadata, missing languages')
       return false
     }
     if (!meta.embeddings || !Object.keys(meta.embeddings).length) {
-      logger.debug('Not refreshing metadata, missing embeddings')
+      this._logger.debug('Not refreshing metadata, missing embeddings')
       return false
     }
 
@@ -105,7 +108,7 @@ export default class DownloadManager {
         this.meta = json
       }
     } catch (err) {
-      logger.debug('Error reading metadata file', { file: filePath, message: err.message })
+      this._logger.debug('Error reading metadata file', { file: filePath, message: err.message })
     }
   }
 
@@ -155,7 +158,7 @@ export default class DownloadManager {
     const embedding = this._getEmbeddingModel(lang)
     const bpe = this.meta!.bpe[lang]
 
-    const dl = new ModelDownload([bpe, embedding!], this.destDir)
+    const dl = new ModelDownload([bpe, embedding!], this.destDir, this._logger)
     await dl.start(this._remove.bind(this, dl.id))
     this.inProgress.push(dl)
 

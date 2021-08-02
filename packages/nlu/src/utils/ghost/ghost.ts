@@ -1,4 +1,4 @@
-import { ILogger } from '@botpress/nlu-logger'
+import { Logger } from '@botpress/nlu-logger'
 import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import { diffLines } from 'diff'
@@ -63,7 +63,7 @@ export class GhostService {
     private diskDriver: DiskStorageDriver,
     private dbDriver: DBStorageDriver,
     private cache: ObjectCache,
-    private logger: ILogger
+    private logger: Logger
   ) {
     this.cache.events.on && this.cache.events.on('syncDbFilesToDisk', this._onSyncReceived)
   }

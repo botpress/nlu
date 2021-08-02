@@ -1,4 +1,5 @@
 import { LanguageService } from '@botpress/nlu-engine'
+import { Logger } from '@botpress/nlu-logger'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'
@@ -11,7 +12,6 @@ import yn from 'yn'
 
 import { authMiddleware, handleErrorLogging, handleUnexpectedError, isAdminToken, RequestWithLang } from '../utils/http'
 import { BadRequestError } from '../utils/http/errors'
-import { Logger } from '@botpress/nlu-logger'
 
 import { getLanguageByCode } from './languages'
 import { monitoringMiddleware, startMonitoring } from './monitoring'
@@ -30,11 +30,11 @@ export interface APIOptions {
 
 const OFFLINE_ERR_MSG = 'The server is running in offline mode. This function is disabled.'
 
-const logger = Logger.sub('api').sub('request')
 const cachePolicy = { 'Cache-Control': `max-age=${ms('1d')}` }
 
-const createExpressApp = (options: APIOptions): Application => {
+const createExpressApp = (options: APIOptions, baseLogger: Logger): Application => {
   const app = express()
+  const requestLogger = baseLogger.sub('api').sub('request')
 
   // This must be first, otherwise the /info endpoint can't be called when token is used
   app.use(cors())
@@ -43,7 +43,7 @@ const createExpressApp = (options: APIOptions): Application => {
 
   app.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress')
-    logger.debug(`incoming ${req.path}`, { ip: req.ip })
+    requestLogger.debug(`incoming ${req.path}`, { ip: req.ip })
     next()
   })
 
@@ -67,7 +67,7 @@ const createExpressApp = (options: APIOptions): Application => {
 
   if (options.authToken && options.authToken.length) {
     // Both tokens can be used to query the language server
-    app.use(authMiddleware(options.authToken, options.adminToken))
+    app.use(authMiddleware(options.authToken, baseLogger, options.adminToken))
   }
 
   return app
@@ -75,15 +75,16 @@ const createExpressApp = (options: APIOptions): Application => {
 
 export default async function (
   options: APIOptions,
+  baseLogger: Logger,
   languageService: LanguageService,
   downloadManager?: DownloadManager
 ) {
-  const app = createExpressApp(options)
-  const logger = Logger.sub('lang').sub('api')
+  const app = createExpressApp(options, baseLogger)
+  const logger = baseLogger.sub('lang').sub('api')
 
   const waitForServiceMw = serviceLoadingMiddleware(languageService)
   const validateLanguageMw = assertValidLanguage(languageService)
-  const adminTokenMw = authMiddleware(options.adminToken)
+  const adminTokenMw = authMiddleware(options.adminToken, baseLogger)
 
   app.get('/info', (req, res) => {
     res.send({
@@ -219,6 +220,6 @@ export default async function (
   logger.info(`Language Server is ready at http://${options.host}:${options.port}/`)
 
   if (process.env.MONITORING_INTERVAL) {
-    startMonitoring()
+    startMonitoring(baseLogger)
   }
 }
