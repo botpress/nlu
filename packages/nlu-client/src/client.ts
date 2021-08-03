@@ -19,9 +19,9 @@ import {
 } from './typings/http'
 
 export class NLUClient implements IClient {
-  private _client: AxiosInstance
+  protected _client: AxiosInstance
 
-  constructor(private _endpoint: string, private _authToken?: string) {
+  constructor(protected _endpoint: string, protected _authToken?: string) {
     this._client = axios.create({
       baseURL: this._endpoint,
       headers: { Authorization: `Bearer ${this._authToken}` }
