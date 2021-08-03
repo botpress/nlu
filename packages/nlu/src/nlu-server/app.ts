@@ -37,8 +37,8 @@ export interface APIOptions {
   modelDir?: string
   verbose: number
   doc: boolean
-  sentryEnabled?: boolean
-  sentrySampleRate?: number
+  apmEnabled?: boolean
+  apmSampleRate?: number
   logFilter?: string[]
 }
 
@@ -56,10 +56,10 @@ export const createApp = async (
   // This must be first, otherwise the /info endpoint can't be called when token is used
   app.use(cors())
 
-  if (options.sentryEnabled) {
+  if (options.apmEnabled) {
     Sentry.init({
       integrations: [new Sentry.Integrations.Http({ tracing: true }), new Tracing.Integrations.Express({ app })],
-      sampleRate: options.sentrySampleRate ?? 1.0
+      sampleRate: options.apmSampleRate ?? 1.0
     })
 
     app.use(Sentry.Handlers.requestHandler())
@@ -74,7 +74,7 @@ export const createApp = async (
     next()
   })
 
-  if (options.sentryEnabled) {
+  if (options.apmEnabled) {
     app.use(Sentry.Handlers.errorHandler())
   }
 

@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/order
 import Logger from './utils/logger'
 import yargs from 'yargs'
+import yn from 'yn'
 
 // @ts-ignore
 import { version } from '../package.json'
@@ -62,14 +63,14 @@ yargs
         description: 'Authentification token for your language server',
         type: 'string'
       },
-      sentryEnabled: {
+      apmEnabled: {
         description:
           'When enabled, Sentry is added to the express server allowing the use of the environment variables SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE',
-        default: process.env.SENTRY_ENABLED === 'true',
+        default: yn(process.env.APM_ENABLED),
         type: 'boolean'
       },
-      sentrySampleRate: {
-        description: 'If Sentry is configured, this option sets the sample rate of sentry',
+      apmSampleRate: {
+        description: 'If apm is configured, this option sets the sample rate of traces',
         default: 1.0,
         type: 'number'
       },
