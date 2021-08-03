@@ -63,7 +63,8 @@ yargs
         type: 'string'
       },
       sentryEnabled: {
-        description: 'When enabled, Sentry is added to the express server allowing the use of the environment variables SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE',
+        description:
+          'When enabled, Sentry is added to the express server allowing the use of the environment variables SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE',
         default: process.env.SENTRY_ENABLED === 'true',
         type: 'boolean'
       },
