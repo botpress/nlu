@@ -1,4 +1,4 @@
-# Project's main package
+# NLU Server
 
 ## LICENSING
 

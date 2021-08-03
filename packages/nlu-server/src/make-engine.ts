@@ -1,8 +1,8 @@
-import * as NLUEngine from '@botpress/nlu-engine'
 import { Logger } from '@botpress/logger'
+import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
+import { getAppDataPath } from './app-data'
 import { StanOptions } from './config'
-import { getAppDataPath } from './utils/app-data'
 
 const wrapLogger = (logger: Logger): NLUEngine.Logger => {
   return {

@@ -3,7 +3,6 @@ module.exports = {
   testEnvironment: 'node',
   testPathIgnorePatterns: ['dist', 'node_modules'],
   rootDir: '.',
-  globalSetup: '<rootDir>/jest-setup.ts',
   resetModules: true,
   verbose: true,
   modulePaths: ['<rootDir>/src/'],

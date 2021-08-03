@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "allowJs": true,
-    "typeRoots": ["./packages/nlu/src/bp-typings", "./node_modules/@types"],
+    "typeRoots": ["./node_modules/@types"],
     "types": ["jest", "node", "botpress", "global", "knex", "string"]
   }
 }

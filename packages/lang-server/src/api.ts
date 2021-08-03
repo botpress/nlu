@@ -1,5 +1,5 @@
-import { LanguageService } from '@botpress/nlu-engine'
 import { Logger } from '@botpress/logger'
+import { LanguageService } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'

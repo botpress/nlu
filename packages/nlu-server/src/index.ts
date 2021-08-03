@@ -4,13 +4,18 @@ import bytes from 'bytes'
 import chalk from 'chalk'
 import { createServer } from 'http'
 import _ from 'lodash'
-import { createApp } from './app'
+
+// @ts-ignore
+import { version } from '../package.json'
+
+import { createApp } from './api/app'
 import { CommandLineOptions, getConfig } from './config'
 import { displayDocumentation } from './documentation'
 import { makeEngine } from './make-engine'
+import * as sdk from './typings'
 import { buildWatcher } from './watcher'
 
-export const run = async (cliOptions: CommandLineOptions, version: string) => {
+export const run: typeof sdk.run = async (cliOptions: CommandLineOptions) => {
   const { options, source: configSource } = await getConfig(cliOptions)
 
   const baseLogger = makeLogger({

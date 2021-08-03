@@ -1,6 +1,6 @@
 import fse from 'fs-extra'
-import { APIOptions } from './app'
-import { getAppDataPath } from './utils/app-data'
+import { APIOptions } from './api/app'
+import { getAppDataPath } from './app-data'
 
 interface LanguageSource {
   endpoint: string

@@ -1,6 +1,6 @@
+import { Logger } from '@botpress/logger'
 import { http, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
-import { Logger } from '@botpress/logger'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import chokidar from 'chokidar'
@@ -11,10 +11,10 @@ import rateLimit from 'express-rate-limit'
 import _ from 'lodash'
 import ms from 'ms'
 
-import { ModelRepoOptions, ModelRepository } from './model-repo'
-import TrainService from './train-service'
-import TrainSessionService from './train-session-service'
-import { authMiddleware, handleErrorLogging, handleUnexpectedError } from './utils/http'
+import TrainService from '../application/train-service'
+import { ModelRepoOptions, ModelRepository } from '../infrastructure/model-repo'
+import TrainSessionService from '../infrastructure/train-session-service'
+import { authMiddleware, handleErrorLogging, handleUnexpectedError } from './http'
 import {
   validateCredentialsFormat,
   validatePredictInput,

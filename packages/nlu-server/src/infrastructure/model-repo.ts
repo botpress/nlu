@@ -1,5 +1,5 @@
-import * as NLUEngine from '@botpress/nlu-engine'
 import { Logger } from '@botpress/logger'
+import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import chokidar from 'chokidar'
 import fse, { WriteStream } from 'fs-extra'
@@ -8,7 +8,7 @@ import path from 'path'
 import { Stream } from 'stream'
 import tar from 'tar'
 import tmp from 'tmp'
-import { getAppDataPath } from './utils/app-data'
+import { getAppDataPath } from '../app-data'
 import {
   Database,
   DBStorageDriver,
@@ -16,7 +16,7 @@ import {
   GhostService,
   ScopedGhostService,
   MemoryObjectCache
-} from './utils/ghost'
+} from './ghost'
 
 interface FSDriver {
   driver: 'fs'

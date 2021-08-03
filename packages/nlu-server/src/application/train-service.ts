@@ -1,10 +1,10 @@
+import { Logger } from '@botpress/logger'
 import { TrainingProgress, TrainingErrorType, TrainInput, http } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 
-import { Logger } from '@botpress/logger'
-import { ModelRepository } from './model-repo'
-import TrainSessionService from './train-session-service'
-import { serializeError } from './utils/error-utils'
+import { ModelRepository } from '../infrastructure/model-repo'
+import TrainSessionService from '../infrastructure/train-session-service'
+import { serializeError } from '../utils/error-utils'
 
 export default class TrainService {
   constructor(

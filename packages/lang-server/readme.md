@@ -1,4 +1,4 @@
-# Project's main package
+# Language Server
 
 ## LICENSING
 

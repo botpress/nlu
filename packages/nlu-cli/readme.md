@@ -1,4 +1,6 @@
-# Project's main package
+# NLU CLI
+
+Allows launching nlu-server and language server from CLI
 
 ## LICENSING
 

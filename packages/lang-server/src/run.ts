@@ -1,5 +1,5 @@
-import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
 import { centerText, LoggerLevel, Logger, makeLogger } from '@botpress/logger'
+import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
 import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'

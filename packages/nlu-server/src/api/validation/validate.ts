@@ -8,7 +8,7 @@ import {
 import * as NLUEngine from '@botpress/nlu-engine'
 import { validate } from 'joi'
 
-import { isListEntity, isPatternEntity } from '../utils/guards'
+import { isListEntity, isPatternEntity } from '../../utils/guards'
 import { PredictInputSchema, TrainInputSchema, CredentialsSchema, DetectLangInputSchema } from './schemas'
 
 const SLOT_ANY = 'any'

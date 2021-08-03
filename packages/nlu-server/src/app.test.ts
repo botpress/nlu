@@ -1,4 +1,4 @@
-import { createApp } from './app'
+import { createApp } from './api/app'
 import { makeEngine } from './make-engine'
 import { makeLogger } from '@botpress/logger'
 import { StanOptions } from './config'

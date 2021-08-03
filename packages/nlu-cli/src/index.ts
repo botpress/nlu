@@ -4,8 +4,6 @@ import { makeLogger, LoggerLevel } from '@botpress/logger'
 import { run as runNLUServer } from '@botpress/nlu-server'
 import yargs from 'yargs'
 
-// @ts-ignore
-import { version } from '../package.json'
 import { getAppDataPath } from './app-data'
 
 const exitLogger = makeLogger().sub('exit')
@@ -95,7 +93,7 @@ yargs
     },
     (argv) => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      runNLUServer(argv, version).catch((err) => {
+      runNLUServer(argv).catch((err) => {
         exitLogger.attachError(err).critical('NLU Server exits after an error occured.')
       })
     }

@@ -24,7 +24,7 @@
     "cmd": "yarn run gulp",
     "dev": "yarn workspace @botpress/nlu-cli dev",
     "start": "cross-env node ./packages/nlu-cli/dist/index.js",
-    "build": "cross-env tsc --build",
+    "build": "tsc --build",
     "package": "yarn cmd package",
     "e2e": "yarn workspace e2e start",
     "test": "yarn workspace @botpress/nlu-cli test",
