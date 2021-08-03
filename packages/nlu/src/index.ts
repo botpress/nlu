@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/order
 import Logger from './utils/logger'
 import yargs from 'yargs'
+import yn from 'yn'
 
 // @ts-ignore
 import { version } from '../package.json'
@@ -10,8 +11,8 @@ import './utils/worker-before'
 
 import { run as runLanguageServer, download as downloadLang } from './lang-server'
 import { run as runNLUServer } from './nlu-server'
-import { LoggerLevel } from './utils/logger/typings'
 import { setProjectLocation } from './nlu-server/project'
+import { LoggerLevel } from './utils/logger/typings'
 
 setProjectLocation()
 const exitLogger = Logger.sub('exit')
@@ -61,6 +62,17 @@ yargs
       languageAuthToken: {
         description: 'Authentification token for your language server',
         type: 'string'
+      },
+      apmEnabled: {
+        description:
+          'When enabled, Sentry is added to the express server allowing the use of the environment variables SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE',
+        default: yn(process.env.APM_ENABLED),
+        type: 'boolean'
+      },
+      apmSampleRate: {
+        description: 'If apm is configured, this option sets the sample rate of traces',
+        default: 1.0,
+        type: 'number'
       },
       ducklingURL: {
         description: 'URL of your Duckling server; Only relevant if "ducklingEnabled" is true',

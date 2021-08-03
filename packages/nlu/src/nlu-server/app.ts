@@ -1,8 +1,10 @@
 import { http, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import * as Sentry from '@sentry/node'
+import * as Tracing from '@sentry/tracing'
 import Bluebird from 'bluebird'
-import chokidar from 'chokidar'
 import bodyParser from 'body-parser'
+import chokidar from 'chokidar'
 import cors from 'cors'
 import express, { Application } from 'express'
 import rateLimit from 'express-rate-limit'
@@ -35,6 +37,8 @@ export interface APIOptions {
   modelDir?: string
   verbose: number
   doc: boolean
+  apmEnabled?: boolean
+  apmSampleRate?: number
   logFilter?: string[]
 }
 
@@ -52,6 +56,16 @@ export const createApp = async (
   // This must be first, otherwise the /info endpoint can't be called when token is used
   app.use(cors())
 
+  if (options.apmEnabled) {
+    Sentry.init({
+      integrations: [new Sentry.Integrations.Http({ tracing: true }), new Tracing.Integrations.Express({ app })],
+      sampleRate: options.apmSampleRate ?? 1.0
+    })
+
+    app.use(Sentry.Handlers.requestHandler())
+    app.use(Sentry.Handlers.tracingHandler())
+  }
+
   app.use(bodyParser.json({ limit: options.bodySize }))
 
   app.use((req, res, next) => {
@@ -59,6 +73,10 @@ export const createApp = async (
     requestLogger.debug(`incoming ${req.path}`, { ip: req.ip })
     next()
   })
+
+  if (options.apmEnabled) {
+    app.use(Sentry.Handlers.errorHandler())
+  }
 
   app.use(handleUnexpectedError)
 

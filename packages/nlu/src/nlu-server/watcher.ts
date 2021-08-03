@@ -1,5 +1,5 @@
-import path from 'path'
 import chokidar from 'chokidar'
+import path from 'path'
 
 export const buildWatcher = () => {
   const foldersToWatch = [
