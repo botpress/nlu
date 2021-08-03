@@ -3,7 +3,7 @@ import chokidar from 'chokidar'
 import { EventEmitter } from 'events'
 import LRU from 'lru-cache'
 import path from 'path'
-import { getProjectLocation } from '../../watcher'
+import { getProjectLocation } from '../../project-location'
 import { forceForwardSlashes } from './misc'
 
 export interface ObjectCache {

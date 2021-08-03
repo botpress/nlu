@@ -1,6 +1,7 @@
+import bytes from 'bytes'
 import fse from 'fs-extra'
-import { APIOptions } from './api/app'
-import { getAppDataPath } from './app-data'
+import { APIOptions } from '../api'
+import { getAppDataPath } from '../app-data'
 
 interface LanguageSource {
   endpoint: string
@@ -15,14 +16,14 @@ export type CommandLineOptions = APIOptions & {
   config?: string
 }
 
-export type StanOptions = APIOptions & {
+export type NLUServerOptions = APIOptions & {
   languageSources: LanguageSource[] // when passed by env variable, there can be more than one lang server
   ducklingURL: string
   ducklingEnabled: boolean
   legacyElection: boolean // not available from CLI
 }
 
-const DEFAULT_OPTIONS: StanOptions = {
+const DEFAULT_OPTIONS: NLUServerOptions = {
   host: 'localhost',
   port: 3200,
   limit: 0,
@@ -40,9 +41,9 @@ const DEFAULT_OPTIONS: StanOptions = {
   modelDir: getAppDataPath()
 }
 
-type ConfigSource = 'environment' | 'cli' | 'file'
+export type ConfigSource = 'environment' | 'cli' | 'file'
 
-const _mapCli = (c: CommandLineOptions): StanOptions => {
+const _mapCli = (c: CommandLineOptions): NLUServerOptions => {
   const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken } = c
   return {
     ...c,
@@ -59,7 +60,7 @@ const _mapCli = (c: CommandLineOptions): StanOptions => {
   }
 }
 
-const readEnvJSONConfig = (): StanOptions | null => {
+const readEnvJSONConfig = (): NLUServerOptions | null => {
   const rawContent = process.env.NLU_SERVER_CONFIG
   if (!rawContent) {
     return null
@@ -72,7 +73,7 @@ const readEnvJSONConfig = (): StanOptions | null => {
   }
 }
 
-const readFileConfig = async (configPath: string): Promise<StanOptions> => {
+const readFileConfig = async (configPath: string): Promise<NLUServerOptions> => {
   try {
     const rawContent = await fse.readFile(configPath, 'utf8')
     const parsedContent = JSON.parse(rawContent)
@@ -84,7 +85,9 @@ const readFileConfig = async (configPath: string): Promise<StanOptions> => {
   }
 }
 
-export const getConfig = async (c: CommandLineOptions): Promise<{ options: StanOptions; source: ConfigSource }> => {
+export const getConfig = async (
+  c: CommandLineOptions
+): Promise<{ options: NLUServerOptions; source: ConfigSource }> => {
   const envConfig = readEnvJSONConfig()
   if (envConfig) {
     return { options: envConfig, source: 'environment' }
@@ -97,4 +100,10 @@ export const getConfig = async (c: CommandLineOptions): Promise<{ options: StanO
 
   const options = _mapCli(c)
   return { options, source: 'cli' }
+}
+
+export const validateConfig = (options: NLUServerOptions) => {
+  if (!bytes(options.bodySize)) {
+    throw new Error(`Specified body-size "${options.bodySize}" has an invalid format.`)
+  }
 }

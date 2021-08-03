@@ -1,12 +1,12 @@
 import { Logger } from '@botpress/logger'
 import chalk from 'chalk'
-import { StanOptions } from './config'
+import { NLUServerOptions } from './config'
 
 const GH_TYPINGS_FILE = 'https://github.com/botpress/nlu/blob/master/packages/nlu-client/src/typings/sdk.d.ts'
 const GH_TRAIN_INPUT_EXAMPLE =
   'https://github.com/botpress/nlu/blob/master/packages/nlu-server/examples/train-example.json'
 
-export const displayDocumentation = (logger: Logger, options: StanOptions) => {
+export const displayDocumentation = (logger: Logger, options: NLUServerOptions) => {
   const { host, port } = options
   const baseUrl = `http://${host}:${port}/v1`
 

@@ -1,11 +1,6 @@
 import chokidar from 'chokidar'
 import path from 'path'
-
-export const getProjectLocation = () => {
-  return process.pkg
-    ? path.dirname(process.execPath) // We point at the binary path
-    : __dirname // e.g. /dist/..
-}
+import { getProjectLocation } from '../project-location'
 
 export const buildWatcher = () => {
   const projectLocation = getProjectLocation()

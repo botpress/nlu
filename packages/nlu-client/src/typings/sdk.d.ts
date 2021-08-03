@@ -1,3 +1,10 @@
+export interface ServerInfo {
+  specs: Specifications
+  health: Health
+  languages: string[]
+  version: string
+}
+
 export interface Specifications {
   nluVersion: string // semver string
   languageServer: {

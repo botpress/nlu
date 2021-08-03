@@ -4,7 +4,7 @@ import { mkdirpSync } from 'fs-extra'
 import Knex from 'knex'
 import _ from 'lodash'
 import path from 'path'
-import { getProjectLocation } from '../../../watcher'
+import { getProjectLocation } from '../../../project-location'
 import { patchKnex } from './helpers'
 
 import AllTables, { Table } from './tables'

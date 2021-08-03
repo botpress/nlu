@@ -1,12 +1,12 @@
-import { createApp } from './api/app'
-import { makeEngine } from './make-engine'
+import { createAPI } from './api'
 import { makeLogger } from '@botpress/logger'
-import { StanOptions } from './config'
 import request from 'supertest'
 import { version } from 'moment'
-import { buildWatcher } from './watcher'
+import { makeApplication } from './bootstrap/make-application'
+import { NLUServerOptions } from './bootstrap/config'
+import { buildWatcher } from './bootstrap/watcher'
 
-const options: StanOptions = {
+const options: NLUServerOptions = {
   host: 'localhost',
   port: 3200,
   limitWindow: '1m',
@@ -40,22 +40,22 @@ afterEach(() => {
 })
 
 test('GET /unknown-path', async () => {
-  const engine = await makeEngine(options, baseLogger.sub('Launcher'))
-  const app = await createApp(options, engine, version, watcher, baseLogger)
+  const app = await makeApplication(options, version, baseLogger, watcher)
+  const expressApp = await createAPI(options, app, baseLogger)
 
-  await request(app).get('/unknown-path').expect(404)
+  await request(expressApp).get('/unknown-path').expect(404)
 })
 
 test.each(['/info', '/v1/info'])('GET %s', async (path) => {
-  const engine = await makeEngine(options, baseLogger)
-  const app = await createApp(options, engine, version, watcher, baseLogger)
+  const app = await makeApplication(options, version, baseLogger, watcher)
+  const expressApp = await createAPI(options, app, baseLogger)
 
-  await request(app).get(path).expect(200)
+  await request(expressApp).get(path).expect(200)
 })
 
 test('GET /models', async () => {
-  const engine = await makeEngine(options, baseLogger)
-  const app = await createApp(options, engine, version, watcher, baseLogger)
+  const app = await makeApplication(options, version, baseLogger, watcher)
+  const expressApp = await createAPI(options, app, baseLogger)
 
-  await request(app).get('/models').expect(200, { success: true, models: [] })
+  await request(expressApp).get('/models').expect(200, { success: true, models: [] })
 })
