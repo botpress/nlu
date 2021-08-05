@@ -13,7 +13,7 @@ export const makeApplication = async (
   baseLogger: Logger,
   watcher: chokidar.FSWatcher
 ): Promise<Application> => {
-  const engine = await makeEngine(options, baseLogger.sub('Launcher'))
+  const engine = await makeEngine(options, baseLogger.sub('Engine'))
 
   const { dbURL: databaseURL, modelDir } = options
   const modelRepoOptions: Partial<ModelRepoOptions> = databaseURL
@@ -28,9 +28,10 @@ export const makeApplication = async (
       }
 
   const modelRepo = new ModelRepository(baseLogger, modelRepoOptions, watcher)
-  const trainSessionService = new InMemoryTrainingRepo()
+  const trainSessionService = new InMemoryTrainingRepo(baseLogger)
   const trainService = new TrainingQueue(baseLogger, engine, modelRepo, trainSessionService)
   const application = new Application(modelRepo, trainSessionService, trainService, engine, serverVersion, baseLogger)
+  await application.initialize()
 
   return application
 }

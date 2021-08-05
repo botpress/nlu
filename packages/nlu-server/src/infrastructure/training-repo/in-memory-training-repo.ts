@@ -1,6 +1,9 @@
+import { Logger } from '@botpress/logger'
 import { TrainingState } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import Bluebird from 'bluebird'
 import _ from 'lodash'
+import moment from 'moment'
 import ms from 'ms'
 import { AsynchronousTaskQueue } from './async-task-queue'
 
@@ -8,17 +11,23 @@ import { Training, TrainingId, TrainingRepository, TrainingTrx, WrittableTrainin
 
 const KEY_JOIN_CHAR = '\u2581'
 
-const JANITOR_INTERVAL = ms('1m') // 60,000 ms
+const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
+const MS_BEFORE_PRUNE = ms('1h')
 
 class WrittableTrainingRepo implements WrittableTrainingRepository {
-  private trainSessions: {
-    [key: string]: TrainingState & { updatedOn: Date }
+  private _trainSessions: {
+    [key: string]: { state: TrainingState; updatedOn: Date }
   } = {}
+
+  private _logger: Logger
+  constructor(logger: Logger) {
+    this._logger = logger.sub('training-repo')
+  }
 
   private _janitorIntervalId: NodeJS.Timeout | undefined
 
   public async initialize(): Promise<void> {
-    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_INTERVAL)
+    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
   }
 
   public async teardown(): Promise<void> {
@@ -26,23 +35,37 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _janitor() {
-    // TODO: prune old trainings that are done / canceled / errored
+    const allTrainings = _(this._trainSessions)
+      .toPairs()
+      .map(([key, state]) => ({ id: this._parseTrainingKey(key), state }))
+      .value()
+
+    const trainingsToPrune = allTrainings.filter((t) => {
+      const diff = moment(new Date()).diff(t.state.updatedOn)
+      const msDuration = moment.duration(diff).asMilliseconds()
+      return msDuration >= MS_BEFORE_PRUNE
+    })
+
+    if (trainingsToPrune.length) {
+      this._logger.debug(`Pruning ${trainingsToPrune.length} training state from memory`)
+    }
+    return Bluebird.each(trainingsToPrune, (t) => this.delete(t.id))
   }
 
   public async get(id: TrainingId): Promise<TrainingState | undefined> {
     const key = this._makeTrainingKey(id)
-    return this.trainSessions[key]
+    return this._trainSessions[key].state
   }
 
   public async set(id: TrainingId, state: TrainingState): Promise<void> {
     const key = this._makeTrainingKey(id)
-    this.trainSessions[key] = { ...state, updatedOn: new Date() }
+    this._trainSessions[key] = { state, updatedOn: new Date() }
   }
 
   public async query(query: Partial<TrainingState>): Promise<Training[]> {
-    let queryResult: Training[] = _(this.trainSessions)
+    let queryResult: Training[] = _(this._trainSessions)
       .toPairs()
-      .map(([key, state]) => ({ id: this._parseTrainingKey(key), state }))
+      .map(([key, value]) => ({ id: this._parseTrainingKey(key), state: value.state }))
       .value()
 
     for (const field in query) {
@@ -54,7 +77,7 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
 
   async delete(id: TrainingId): Promise<void> {
     const key = this._makeTrainingKey(id)
-    delete this.trainSessions[key]
+    delete this._trainSessions[key]
   }
 
   private _makeTrainingKey(id: TrainingId) {
@@ -71,10 +94,13 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
 }
 
 export default class InMemoryTrainingRepo implements TrainingRepository {
-  private _taskQueue = new AsynchronousTaskQueue<void>()
-  private _writtableRepo = new WrittableTrainingRepo()
+  private _taskQueue: AsynchronousTaskQueue<void>
+  private _writtableRepo: WrittableTrainingRepo
 
-  constructor() {}
+  constructor(logger: Logger) {
+    this._taskQueue = new AsynchronousTaskQueue()
+    this._writtableRepo = new WrittableTrainingRepo(logger)
+  }
 
   public async initialize(): Promise<void> {
     return this._writtableRepo.initialize()
@@ -92,11 +118,11 @@ export default class InMemoryTrainingRepo implements TrainingRepository {
     return this._writtableRepo.delete(id)
   }
 
-  public async inTransaction(trx: TrainingTrx): Promise<void> {
-    return this._taskQueue.runInQueue(() => trx(this._writtableRepo))
-  }
-
   public async teardown() {
     return this._writtableRepo.teardown()
+  }
+
+  public async inTransaction(trx: TrainingTrx): Promise<void> {
+    return this._taskQueue.runInQueue(() => trx(this._writtableRepo))
   }
 }

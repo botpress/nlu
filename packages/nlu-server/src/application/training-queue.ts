@@ -7,12 +7,16 @@ import { TrainingRepository } from '../infrastructure/training-repo/typings'
 import { serializeError } from '../utils/error-utils'
 
 export default class TrainingQueue {
+  private logger: Logger
+
   constructor(
-    private logger: Logger,
+    logger: Logger,
     private engine: NLUEngine.Engine,
     private modelRepo: ModelRepository,
     private trainingRepo: TrainingRepository
-  ) {}
+  ) {
+    this.logger = logger.sub('training-queue')
+  }
 
   startTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials, trainInput: TrainInput) => {
     const stringId = NLUEngine.modelIdService.toString(modelId)

@@ -57,13 +57,11 @@ export default class Engine implements IEngine {
   private modelsById: LRUCache<string, LoadedModel>
 
   private _trainLogger: Logger
-  private _lifecycleLogger: Logger
   private _predictLogger: Logger
 
   constructor(private _logger: Logger, opt: Partial<EngineOptions> = {}) {
     this._trainLogger = _logger.sub('training')
     this._predictLogger = _logger.sub('predict')
-    this._lifecycleLogger = _logger.sub('lifecycle')
 
     this._options = { ...DEFAULT_ENGINE_OPTIONS, ...opt }
 
@@ -77,7 +75,7 @@ export default class Engine implements IEngine {
         ? 'model cache size is infinite'
         : `model cache size is: ${bytes(this.modelsById.max)}`
 
-    this._lifecycleLogger.debug(debugMsg)
+    this._logger.debug(debugMsg)
   }
 
   private _parseCacheSize = (cacheSize: string): number => {
@@ -113,7 +111,7 @@ export default class Engine implements IEngine {
       this._logger.warning('Either the nlu version or the lang server version is not set correctly.')
     }
 
-    this._trainingWorkerQueue = new TrainingProcessPool(this._logger, config)
+    this._trainingWorkerQueue = new TrainingProcessPool(this._trainLogger, config)
   }
 
   public hasModel(modelId: ModelId) {
@@ -224,10 +222,10 @@ export default class Engine implements IEngine {
 
   async loadModel(serialized: Model) {
     const stringId = modelIdService.toString(serialized.id)
-    this._lifecycleLogger.debug(`Load model ${stringId}`)
+    this._logger.debug(`Load model ${stringId}`)
 
     if (this.hasModel(serialized.id)) {
-      this._lifecycleLogger.debug(`Model ${stringId} already loaded.`)
+      this._logger.debug(`Model ${stringId} already loaded.`)
       return
     }
 
@@ -242,7 +240,7 @@ export default class Engine implements IEngine {
 
     const modelSize = sizeof(modelCacheItem)
     const bytesModelSize = bytes(modelSize)
-    this._lifecycleLogger.debug(`Size of model ${stringId} is ${bytesModelSize}`)
+    this._logger.debug(`Size of model ${stringId} is ${bytesModelSize}`)
 
     if (modelSize >= this.modelsById.max) {
       const msg = `Can't load model ${stringId} as it is bigger than the maximum allowed size`
@@ -253,9 +251,9 @@ export default class Engine implements IEngine {
 
     this.modelsById.set(stringId, modelCacheItem)
 
-    this._lifecycleLogger.debug(`Model cache entries are: [${this.modelsById.keys().join(', ')}]`)
+    this._logger.debug(`Model cache entries are: [${this.modelsById.keys().join(', ')}]`)
     const debug = this._getMemoryUsage()
-    this._lifecycleLogger.debug(`Current memory usage: ${JSON.stringify(debug)}`)
+    this._logger.debug(`Current memory usage: ${JSON.stringify(debug)}`)
   }
 
   private _getMemoryUsage = () => {
@@ -273,15 +271,15 @@ export default class Engine implements IEngine {
 
   unloadModel(modelId: ModelId) {
     const stringId = modelIdService.toString(modelId)
-    this._lifecycleLogger.debug(`Unload model ${stringId}`)
+    this._logger.debug(`Unload model ${stringId}`)
 
     if (!this.hasModel(modelId)) {
-      this._lifecycleLogger.debug(`No model with id ${stringId} was found in cache.`)
+      this._logger.debug(`No model with id ${stringId} was found in cache.`)
       return
     }
 
     this.modelsById.del(stringId)
-    this._lifecycleLogger.debug('Model unloaded with success')
+    this._logger.debug('Model unloaded with success')
   }
 
   private _makeCacheManager(output: TrainingPipelineOutput) {
