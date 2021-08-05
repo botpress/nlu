@@ -1,35 +1,39 @@
 import { Logger } from '@botpress/logger'
-import { TrainingProgress, TrainingErrorType, TrainInput, http } from '@botpress/nlu-client'
+import { TrainingState, TrainingErrorType, TrainInput, http } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 
 import { ModelRepository } from '../infrastructure/model-repo'
-import TrainSessionService from '../infrastructure/train-session-service'
+import { TrainingRepository } from '../infrastructure/training-repo/typings'
 import { serializeError } from '../utils/error-utils'
 
-export default class TrainService {
+export default class TrainingQueue {
   constructor(
     private logger: Logger,
     private engine: NLUEngine.Engine,
     private modelRepo: ModelRepository,
-    private trainSessionService: TrainSessionService
+    private trainingRepo: TrainingRepository
   ) {}
 
-  train = async (modelId: NLUEngine.ModelId, credentials: http.Credentials, trainInput: TrainInput) => {
+  startTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials, trainInput: TrainInput) => {
     const stringId = NLUEngine.modelIdService.toString(modelId)
     this.logger.info(`[${stringId}] Training Started.`)
 
-    const ts: TrainingProgress = {
+    const ts: TrainingState = {
       status: 'training-pending',
       progress: 0
     }
-    this.trainSessionService.setTrainingSession(modelId, credentials, ts)
+    await this.trainingRepo.inTransaction(async (repo) => {
+      return repo.set({ ...modelId, ...credentials }, ts)
+    })
 
-    const progressCallback = (progress: number) => {
+    const progressCallback = async (progress: number) => {
       if (ts.status === 'training-pending') {
         ts.status = 'training'
       }
       ts.progress = progress
-      this.trainSessionService.setTrainingSession(modelId, credentials, ts)
+      await this.trainingRepo.inTransaction(async (repo) => {
+        return repo.set({ ...modelId, ...credentials }, ts)
+      })
     }
 
     try {
@@ -40,15 +44,17 @@ export default class TrainService {
       await this.modelRepo.pruneModels({ ...credentials, keep: 1 }, { languageCode }) // TODO: make the max amount of models on FS (by appId + lang) configurable
       await this.modelRepo.saveModel(model, credentials)
       ts.status = 'done'
-      this.trainSessionService.setTrainingSession(modelId, credentials, ts)
-      this.trainSessionService.releaseTrainingSession(modelId, credentials)
+      await this.trainingRepo.inTransaction(async (repo) => {
+        return repo.set({ ...modelId, ...credentials }, ts)
+      })
     } catch (err) {
       if (NLUEngine.errors.isTrainingCanceled(err)) {
         this.logger.info(`[${stringId}] Training Canceled.`)
 
         ts.status = 'canceled'
-        this.trainSessionService.setTrainingSession(modelId, credentials, ts)
-        this.trainSessionService.releaseTrainingSession(modelId, credentials)
+        await this.trainingRepo.inTransaction(async (repo) => {
+          return repo.set({ ...modelId, ...credentials }, ts)
+        })
         return
       }
 
@@ -62,8 +68,9 @@ export default class TrainService {
       ts.status = 'errored'
       ts.error = { ...serializeError(err), type }
 
-      this.trainSessionService.setTrainingSession(modelId, credentials, ts)
-      this.trainSessionService.releaseTrainingSession(modelId, credentials)
+      await this.trainingRepo.inTransaction(async (repo) => {
+        return repo.set({ ...modelId, ...credentials }, ts)
+      })
       this.logger.attachError(err).error('an error occured during training')
       return
     }

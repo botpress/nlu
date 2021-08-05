@@ -1,9 +1,9 @@
 import { Logger } from '@botpress/logger'
 import chokidar from 'chokidar'
 import { Application } from '../application'
-import TrainService from '../application/train-service'
+import TrainingQueue from '../application/training-queue'
 import { ModelRepoOptions, ModelRepository } from '../infrastructure/model-repo'
-import TrainSessionService from '../infrastructure/train-session-service'
+import InMemoryTrainingRepo from '../infrastructure/training-repo/in-memory-training-repo'
 import { NLUServerOptions } from './config'
 import { makeEngine } from './make-engine'
 
@@ -28,8 +28,8 @@ export const makeApplication = async (
       }
 
   const modelRepo = new ModelRepository(baseLogger, modelRepoOptions, watcher)
-  const trainSessionService = new TrainSessionService()
-  const trainService = new TrainService(baseLogger, engine, modelRepo, trainSessionService)
+  const trainSessionService = new InMemoryTrainingRepo()
+  const trainService = new TrainingQueue(baseLogger, engine, modelRepo, trainSessionService)
   const application = new Application(modelRepo, trainSessionService, trainService, engine, serverVersion, baseLogger)
 
   return application

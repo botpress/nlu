@@ -83,7 +83,7 @@ export interface TrainingError {
   stackTrace?: string
 }
 
-export interface TrainingProgress {
+export interface TrainingState {
   status: TrainingStatus
   progress: number
   error?: TrainingError

@@ -1,20 +1,20 @@
 import { Logger } from '@botpress/logger'
-import { TrainingProgress, http, PredictOutput, TrainInput, ServerInfo } from '@botpress/nlu-client'
+import { TrainingState, http, PredictOutput, TrainInput, ServerInfo } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelRepository } from '../infrastructure/model-repo'
-import TrainSessionService from '../infrastructure/train-session-service'
+import { TrainingRepository } from '../infrastructure/training-repo/typings'
 import { ModelDoesNotExistError, TrainingNotFoundError } from './errors'
-import TrainService from './train-service'
+import TrainingQueue from './training-queue'
 
 export class Application {
   private _logger: Logger
 
   constructor(
     private _modelRepo: ModelRepository,
-    private _trainingRepo: TrainSessionService,
-    private _trainService: TrainService,
+    private _trainingRepo: TrainingRepository,
+    private _trainService: TrainingQueue,
     private _engine: Engine,
     private _serverVersion: string,
     baseLogger: Logger
@@ -45,7 +45,7 @@ export class Application {
       if (this._engine.hasModel(modelId)) {
         this._engine.unloadModel(modelId)
       }
-      this._trainingRepo.deleteTrainingSession(modelId, credentials)
+      await this._trainingRepo.delete({ ...modelId, ...credentials })
     }
 
     return modelIds
@@ -59,13 +59,13 @@ export class Application {
 
     // return the modelId as fast as possible
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._trainService.train(modelId, credentials, trainInput)
+    this._trainService.startTraining(modelId, credentials, trainInput)
 
     return modelId
   }
 
-  public async getTrainingState(modelId: ModelId, credentials: http.Credentials): Promise<TrainingProgress> {
-    let session = this._trainingRepo.getTrainingSession(modelId, credentials)
+  public async getTrainingState(modelId: ModelId, credentials: http.Credentials): Promise<TrainingState> {
+    let session = await this._trainingRepo.get({ ...modelId, ...credentials })
     if (!session) {
       const model = await this._modelRepo.getModel(modelId, credentials)
       if (!model) {
@@ -81,7 +81,7 @@ export class Application {
   }
 
   public async cancelTraining(modelId: ModelId, credentials: http.Credentials): Promise<void> {
-    const session = this._trainingRepo.getTrainingSession(modelId, credentials)
+    const session = await this._trainingRepo.get({ ...modelId, ...credentials })
 
     if (session?.status === 'training') {
       const trainingKey = modelIdService.toString(modelId)

@@ -4,7 +4,7 @@
  * ############
  */
 
-import { TrainingProgress, PredictOutput, IntentDefinition, EntityDefinition, Specifications, Health } from './sdk'
+import { TrainingState, PredictOutput, IntentDefinition, EntityDefinition, Specifications, Health } from './sdk'
 
 export interface Credentials {
   appId: string
@@ -45,7 +45,7 @@ export interface TrainResponseBody extends SuccessReponse {
 }
 
 export interface TrainProgressResponseBody extends SuccessReponse {
-  session: TrainingProgress
+  session: TrainingState
 }
 
 export interface ListModelsResponseBody extends SuccessReponse {
