@@ -2,6 +2,7 @@ import { Logger } from '@botpress/logger'
 import { http, TrainingError, TrainingErrorType, TrainingStatus } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
 import Knex, { Transaction } from 'knex'
+import moment from 'moment'
 import ms from 'ms'
 import { nanoid } from 'nanoid'
 import {
@@ -23,7 +24,8 @@ const timeout = (ms: number) => {
 }
 
 const KEY_JOIN_CHAR = '\u2581'
-
+const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
+const MS_BEFORE_PRUNE = ms('1h')
 const CLUSTER_ID = nanoid()
 
 interface TableId {
@@ -82,6 +84,11 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   public delete = async (trainId: TrainingId): Promise<void> => {
     const tableId = this._trainIdToRow(trainId)
     return this.table.where(tableId).delete()
+  }
+
+  public deleteOldTrainings = async (threshold: Date): Promise<number> => {
+    const iso = moment(threshold).toDate().toISOString()
+    return this.table.where('updatedOn', '<=', iso).delete()
   }
 
   private _trainingToRow(train: Training): TableRow {
@@ -163,9 +170,13 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
 
 export class DbTrainingRepository implements TrainingRepository {
   private _writtableTrainingRepo: DbWrittableTrainingRepo
+  private _janitorIntervalId: NodeJS.Timeout | undefined
+  private _logger: Logger
 
-  constructor(private _database: Knex, private _logger: Logger) {
+  constructor(private _database: Knex, logger: Logger) {
     this._writtableTrainingRepo = new DbWrittableTrainingRepo(_database)
+    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
+    this._logger = logger.sub('training-repo')
   }
 
   public initialize = async (): Promise<void> => {
@@ -183,7 +194,19 @@ export class DbTrainingRepository implements TrainingRepository {
     })
   }
 
-  public teardown = async (): Promise<void> => {}
+  public async teardown(): Promise<void> {
+    this._janitorIntervalId && clearInterval(this._janitorIntervalId)
+  }
+
+  private async _janitor() {
+    const now = moment()
+    const before = now.subtract({ milliseconds: MS_BEFORE_PRUNE })
+    const nDeletions = await this._writtableTrainingRepo.deleteOldTrainings(before.toDate())
+    if (nDeletions) {
+      this._logger.debug(`Pruning ${nDeletions} training state from database`)
+    }
+    return
+  }
 
   private _createTableIfNotExists = async (knex: Knex, tableName: string, cb: Knex.KnexCallback): Promise<boolean> => {
     return knex.schema.hasTable(tableName).then((exists) => {
