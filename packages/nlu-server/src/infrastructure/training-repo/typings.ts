@@ -1,4 +1,4 @@
-import { TrainingState, http } from '@botpress/nlu-client'
+import { TrainingState as TrainingStateDto, http } from '@botpress/nlu-client'
 import { ModelId } from '@botpress/nlu-engine'
 
 export type TrainingTrx = (repo: WrittableTrainingRepository) => Promise<void>
@@ -20,6 +20,10 @@ export interface TrainingRepository extends ReadonlyTrainingRepository {
 }
 
 export type TrainingId = ModelId & http.Credentials
+export type TrainingState = TrainingStateDto & {
+  updatedOn?: Date
+  cluster?: string
+}
 
 export interface Training {
   id: TrainingId

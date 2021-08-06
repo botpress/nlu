@@ -1,5 +1,4 @@
 import { Logger } from '@botpress/logger'
-import { TrainingState } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
@@ -7,7 +6,14 @@ import moment from 'moment'
 import ms from 'ms'
 import { AsynchronousTaskQueue } from './async-task-queue'
 
-import { Training, TrainingId, TrainingRepository, TrainingTrx, WrittableTrainingRepository } from './typings'
+import {
+  Training,
+  TrainingId,
+  TrainingState,
+  TrainingRepository,
+  TrainingTrx,
+  WrittableTrainingRepository
+} from './typings'
 
 const KEY_JOIN_CHAR = '\u2581'
 
@@ -16,7 +22,7 @@ const MS_BEFORE_PRUNE = ms('1h')
 
 class WrittableTrainingRepo implements WrittableTrainingRepository {
   private _trainSessions: {
-    [key: string]: { state: TrainingState; updatedOn: Date }
+    [key: string]: TrainingState
   } = {}
 
   private _logger: Logger
@@ -54,18 +60,18 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
 
   public async get(id: TrainingId): Promise<TrainingState | undefined> {
     const key = this._makeTrainingKey(id)
-    return this._trainSessions[key].state
+    return this._trainSessions[key]
   }
 
   public async set(id: TrainingId, state: TrainingState): Promise<void> {
     const key = this._makeTrainingKey(id)
-    this._trainSessions[key] = { state, updatedOn: new Date() }
+    this._trainSessions[key] = { ...state, updatedOn: new Date() }
   }
 
   public async query(query: Partial<TrainingState>): Promise<Training[]> {
     let queryResult: Training[] = _(this._trainSessions)
       .toPairs()
-      .map(([key, value]) => ({ id: this._parseTrainingKey(key), state: value.state }))
+      .map(([key, state]) => ({ id: this._parseTrainingKey(key), state }))
       .value()
 
     for (const field in query) {
