@@ -64,7 +64,7 @@ export class Application {
 
     // return the modelId as fast as possible
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._trainService.startTraining(modelId, credentials, trainInput)
+    this._trainService.queueTraining(modelId, credentials, trainInput)
 
     return modelId
   }

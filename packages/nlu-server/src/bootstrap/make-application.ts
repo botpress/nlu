@@ -1,6 +1,7 @@
 import { Logger } from '@botpress/logger'
 import chokidar from 'chokidar'
 import knex from 'knex'
+import { nanoid } from 'nanoid'
 import { Application } from '../application'
 import TrainingQueue from '../application/training-queue'
 import { makeGhost } from '../infrastructure/make-ghost'
@@ -10,6 +11,8 @@ import { DbTrainingRepository } from '../infrastructure/training-repo/db-trainin
 import InMemoryTrainingRepo from '../infrastructure/training-repo/in-memory-training-repo'
 import { NLUServerOptions } from './config'
 import { makeEngine } from './make-engine'
+
+const CLUSTER_ID = nanoid()
 
 const makeKnexDb = (dbURL: string) => {
   return knex({
@@ -44,10 +47,10 @@ export const makeApplication = async (
   const trainSetRepo = new TrainingSetRepository(ghost, baseLogger)
 
   const trainSessionService = databaseURL
-    ? new DbTrainingRepository(makeKnexDb(databaseURL), baseLogger)
+    ? new DbTrainingRepository(makeKnexDb(databaseURL), baseLogger, CLUSTER_ID)
     : new InMemoryTrainingRepo(baseLogger)
 
-  const trainService = new TrainingQueue(baseLogger, engine, modelRepo, trainSessionService, trainSetRepo)
+  const trainService = new TrainingQueue(baseLogger, engine, modelRepo, trainSessionService, trainSetRepo, CLUSTER_ID)
   const application = new Application(modelRepo, trainSessionService, trainService, engine, serverVersion, baseLogger)
   await application.initialize()
 

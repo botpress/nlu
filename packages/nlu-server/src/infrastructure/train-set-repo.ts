@@ -13,12 +13,12 @@ export class TrainingSetRepository {
     this._logger = logger.sub('train-set-repo')
   }
 
-  public async get(modelId: ModelId, options: http.Credentials): Promise<TrainInput | undefined> {
+  public async get(modelId: ModelId, user: http.Credentials): Promise<TrainInput | undefined> {
     const stringId = modelIdService.toString(modelId)
-    const fExtension = this._getFileExtension(options.appSecret)
+    const fExtension = this._getFileExtension(user.appSecret)
     const fname = `${stringId}.${fExtension}`
 
-    const scopedGhost = this._getScopedGhostForAppID(options.appId)
+    const scopedGhost = this._getScopedGhostForAppID(user.appId)
     return scopedGhost.readFileAsObject<TrainInput>(TRAIN_SET_DIR, fname)
   }
 
@@ -32,12 +32,12 @@ export class TrainingSetRepository {
     return scopedGhost.upsertFile(TRAIN_SET_DIR, fname, JSON.stringify(trainSet, null, 2))
   }
 
-  public async delete(modelId: ModelId, options: http.Credentials): Promise<void> {
+  public async delete(modelId: ModelId, user: http.Credentials): Promise<void> {
     const stringId = modelIdService.toString(modelId)
-    const fExtension = this._getFileExtension(options.appSecret)
+    const fExtension = this._getFileExtension(user.appSecret)
     const fname = `${stringId}.${fExtension}`
 
-    const scopedGhost = this._getScopedGhostForAppID(options.appId)
+    const scopedGhost = this._getScopedGhostForAppID(user.appId)
 
     return scopedGhost.deleteFile(TRAIN_SET_DIR, fname)
   }

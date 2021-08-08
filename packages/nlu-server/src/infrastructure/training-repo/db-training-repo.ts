@@ -4,7 +4,6 @@ import { modelIdService } from '@botpress/nlu-engine'
 import Knex, { Transaction } from 'knex'
 import moment from 'moment'
 import ms from 'ms'
-import { nanoid } from 'nanoid'
 import {
   Training,
   TrainingId,
@@ -26,7 +25,6 @@ const timeout = (ms: number) => {
 const KEY_JOIN_CHAR = '\u2581'
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
 const MS_BEFORE_PRUNE = ms('1h')
-const CLUSTER_ID = nanoid()
 
 interface TableId {
   userId: string
@@ -43,7 +41,7 @@ interface TableRow extends TableId {
 }
 
 class DbWrittableTrainingRepo implements WrittableTrainingRepository {
-  constructor(protected _database: Knex, public transaction: Transaction | null = null) {}
+  constructor(protected _database: Knex, private _clusterId: string, public transaction: Transaction | null = null) {}
 
   public async initialize(): Promise<void> {}
   public async teardown(): Promise<void> {}
@@ -118,7 +116,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       error_type,
       error_message,
       error_stack,
-      cluster: CLUSTER_ID,
+      cluster: this._clusterId,
       updatedOn: this._now()
     }
   }
@@ -173,8 +171,8 @@ export class DbTrainingRepository implements TrainingRepository {
   private _janitorIntervalId: NodeJS.Timeout | undefined
   private _logger: Logger
 
-  constructor(private _database: Knex, logger: Logger) {
-    this._writtableTrainingRepo = new DbWrittableTrainingRepo(_database)
+  constructor(private _database: Knex, logger: Logger, private _clusterId: string) {
+    this._writtableTrainingRepo = new DbWrittableTrainingRepo(_database, this._clusterId)
     this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
     this._logger = logger.sub('training-repo')
   }
@@ -221,7 +219,7 @@ export class DbTrainingRepository implements TrainingRepository {
     await this._database.transaction(async (trx) => {
       const operation = async () => {
         try {
-          const ctx = new DbWrittableTrainingRepo(this._database, trx)
+          const ctx = new DbWrittableTrainingRepo(this._database, this._clusterId, trx)
           const res = await action(ctx)
           await trx.commit(res)
           return res
