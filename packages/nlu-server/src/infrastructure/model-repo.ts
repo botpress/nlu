@@ -52,29 +52,17 @@ const defaultOtpions: ModelRepoOptions = {
 }
 
 export class ModelRepository {
-  private _ghost: GhostService
-  private _db: Database
   private _options: ModelRepoOptions
   private _logger: Logger
 
-  constructor(logger: Logger, options: Partial<ModelRepoOptions> = {}, watcher: chokidar.FSWatcher) {
+  constructor(private _ghost: GhostService, logger: Logger, options: Partial<ModelRepoOptions> = {}) {
     this._logger = logger.sub('model-repo')
     const isDefined = _.negate(_.isUndefined)
     this._options = { ...defaultOtpions, ..._.pickBy(options, isDefined) } as ModelRepoOptions
-
-    this._db = new Database(this._logger)
-    const diskDriver = new DiskStorageDriver({ basePath: this._options.modelDir })
-    const dbdriver = new DBStorageDriver(this._db)
-    const cache = new MemoryObjectCache(watcher)
-
-    this._ghost = new GhostService(diskDriver, dbdriver, cache, this._logger)
   }
 
   async initialize() {
     this._logger.debug('Model service initializing...')
-    if (this._options.driver === 'db') {
-      await this._db.initialize('postgres', this._options.dbURL)
-    }
     await this._ghost.initialize(this._options.driver === 'db')
   }
 

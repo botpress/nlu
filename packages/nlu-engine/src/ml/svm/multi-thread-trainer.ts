@@ -1,4 +1,4 @@
-import nanoid from 'nanoid'
+import { nanoid } from 'nanoid'
 import mLThreadPool from '../ml-thread-pool'
 import { MLToolkit } from '../typings'
 import { Trainer } from '.'

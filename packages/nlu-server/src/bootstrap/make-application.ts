@@ -3,7 +3,9 @@ import chokidar from 'chokidar'
 import knex from 'knex'
 import { Application } from '../application'
 import TrainingQueue from '../application/training-queue'
+import { makeGhost } from '../infrastructure/make-ghost'
 import { ModelRepoOptions, ModelRepository } from '../infrastructure/model-repo'
+import { TrainingSetRepository } from '../infrastructure/train-set-repo'
 import { DbTrainingRepository } from '../infrastructure/training-repo/db-training-repo'
 import InMemoryTrainingRepo from '../infrastructure/training-repo/in-memory-training-repo'
 import { NLUServerOptions } from './config'
@@ -36,13 +38,16 @@ export const makeApplication = async (
         modelDir
       }
 
-  const modelRepo = new ModelRepository(baseLogger, modelRepoOptions, watcher)
+  const ghost = makeGhost(baseLogger, modelDir!, watcher)
+  await ghost.initialize(!!databaseURL)
+  const modelRepo = new ModelRepository(ghost, baseLogger, modelRepoOptions)
+  const trainSetRepo = new TrainingSetRepository(ghost, baseLogger)
 
   const trainSessionService = databaseURL
     ? new DbTrainingRepository(makeKnexDb(databaseURL), baseLogger)
     : new InMemoryTrainingRepo(baseLogger)
 
-  const trainService = new TrainingQueue(baseLogger, engine, modelRepo, trainSessionService)
+  const trainService = new TrainingQueue(baseLogger, engine, modelRepo, trainSessionService, trainSetRepo)
   const application = new Application(modelRepo, trainSessionService, trainService, engine, serverVersion, baseLogger)
   await application.initialize()
 

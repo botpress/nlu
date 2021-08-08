@@ -3,6 +3,7 @@ import { TrainingState, TrainingErrorType, TrainInput, http } from '@botpress/nl
 import * as NLUEngine from '@botpress/nlu-engine'
 
 import { ModelRepository } from '../infrastructure/model-repo'
+import { TrainingSetRepository } from '../infrastructure/train-set-repo'
 import { TrainingRepository } from '../infrastructure/training-repo/typings'
 import { serializeError } from '../utils/error-utils'
 
@@ -13,7 +14,8 @@ export default class TrainingQueue {
     logger: Logger,
     private engine: NLUEngine.Engine,
     private modelRepo: ModelRepository,
-    private trainingRepo: TrainingRepository
+    private trainingRepo: TrainingRepository,
+    private trainSetRepo: TrainingSetRepository
   ) {
     this.logger = logger.sub('training-queue')
   }

@@ -11,6 +11,10 @@ import { filterByGlobs, forceForwardSlashes } from './misc'
 export class DBStorageDriver implements StorageDriver {
   constructor(private database: Database) {}
 
+  async initialize() {
+    await this.database.initialize('postgres')
+  }
+
   async upsertFile(filePath: string, content: string | Buffer, recordRevision: boolean): Promise<void>
   async upsertFile(filePath: string, content: string | Buffer): Promise<void>
   async upsertFile(filePath: string, content: string | Buffer, recordRevision: boolean = true): Promise<void> {
