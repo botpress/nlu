@@ -2,6 +2,7 @@ import { Logger } from '@botpress/logger'
 import { http, TrainingError, TrainingErrorType, TrainingStatus } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
 import Knex, { Transaction } from 'knex'
+import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
 import {
@@ -37,7 +38,7 @@ interface TableRow extends TableId {
   error_message?: string
   error_stack?: string
   cluster?: string
-  updatedOn: Knex.Raw
+  updatedOn: Knex.Raw | string
 }
 
 class DbWrittableTrainingRepo implements WrittableTrainingRepository {
@@ -75,7 +76,8 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   public query = async (query: Partial<TrainingState>): Promise<Training[]> => {
-    const rows: TableRow[] = await this.table.where(this._trainStateToRow(query as TrainingState)).select('*')
+    const rowFilters: Partial<TableRow> = this._partialTrainStateToQuery(query)
+    const rows: TableRow[] = await this.table.where(rowFilters).select('*')
     return rows.map(this._rowToTraining.bind(this))
   }
 
@@ -90,9 +92,9 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
-    const iso = moment(threshold).toDate().toISOString()
+    const iso = this._toISO(threshold)
 
-    const rowFilters: Partial<TableRow> = this._trainStateToRow(query as TrainingState)
+    const rowFilters: Partial<TableRow> = this._partialTrainStateToQuery(query)
     const rows: TableRow[] = await this.table.where(rowFilters).where('updatedOn', '<=', iso).select('*')
 
     return rows.map(this._rowToTraining.bind(this))
@@ -116,8 +118,24 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
     }
   }
 
+  private _partialTrainStateToQuery = (state: Partial<TrainingState>): Partial<Omit<TableRow, keyof TableId>> => {
+    const { progress, status, error, updatedOn } = state
+    const { type: error_type, message: error_message, stackTrace: error_stack } = error || {}
+    const rowFilters = {
+      status,
+      progress,
+      error_type,
+      error_message,
+      error_stack,
+      cluster: this._clusterId,
+      updatedOn: updatedOn && this._toISO(updatedOn)
+    }
+
+    return _.pickBy(rowFilters, _.identity)
+  }
+
   private _trainStateToRow = (state: TrainingState): Omit<TableRow, keyof TableId> => {
-    const { progress, status, error } = state
+    const { progress, status, error, updatedOn } = state
     const { type: error_type, message: error_message, stackTrace: error_stack } = error || {}
     return {
       status,
@@ -126,8 +144,12 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       error_message,
       error_stack,
       cluster: this._clusterId,
-      updatedOn: this._now()
+      updatedOn: updatedOn ? this._toISO(updatedOn) : this._now()
     }
+  }
+
+  private _toISO(date: Date): string {
+    return moment(date).toDate().toISOString()
   }
 
   private _rowToTraining(row: TableRow): Training {

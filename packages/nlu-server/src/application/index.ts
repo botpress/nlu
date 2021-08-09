@@ -56,16 +56,13 @@ export class Application {
     return modelIds
   }
 
-  public startTraining(trainInput: TrainInput, credentials: http.Credentials): ModelId {
+  public async startTraining(trainInput: TrainInput, credentials: http.Credentials): Promise<ModelId> {
     const modelId = modelIdService.makeId({
       ...trainInput,
       specifications: this._engine.getSpecifications()
     })
 
-    // return the modelId as fast as possible
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._trainService.queueTraining(modelId, credentials, trainInput)
-
+    await this._trainService.queueTraining(modelId, credentials, trainInput)
     return modelId
   }
 

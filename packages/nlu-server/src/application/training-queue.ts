@@ -37,7 +37,6 @@ export default class TrainingQueue {
 
   public queueTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials, trainInput: TrainInput) => {
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    this.logger.info(`[${stringId}] Training Queued.`)
 
     const ts: TrainingState = {
       status: 'training-pending',
@@ -48,7 +47,10 @@ export default class TrainingQueue {
       return repo.set({ ...modelId, ...credentials }, ts)
     })
     await this.trainSetRepo.set(modelId, credentials, trainInput)
+    this.logger.info(`[${stringId}] Training Queued.`)
 
+    // to return asap
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.task.run()
   }
 
@@ -106,13 +108,14 @@ export default class TrainingQueue {
 
     try {
       const model = await this.engine.train(stringId, trainInput, { progressCallback })
-      this.logger.info(`[${stringId}] Training Done.`)
 
       const { language: languageCode } = trainInput
       await this.modelRepo.pruneModels({ ...credentials, keep: MAX_MODEL_PER_USER_PER_LANG }, { languageCode }) // TODO: make the max amount of models on FS (by appId + lang) configurable
       await this.modelRepo.saveModel(model, credentials)
-      ts.status = 'done'
 
+      this.logger.info(`[${stringId}] Training Done.`)
+
+      ts.status = 'done'
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set({ ...modelId, ...credentials }, ts)
       })
@@ -137,6 +140,9 @@ export default class TrainingQueue {
       this.logger.attachError(err).error('an error occured during training')
     } finally {
       await this.trainSetRepo.delete(modelId, credentials) // no need to keep this on file-system
+
+      // to return asap
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.task.run()
     }
   }

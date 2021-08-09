@@ -25,7 +25,10 @@ const makeKnexDb = (dbURL: string) => {
 }
 
 const makeBroadcaster = (dbURL: string) => {
-  const pubsub = new PGPubsub(dbURL)
+  const dummyLogger = () => {}
+  const pubsub = new PGPubsub(dbURL, {
+    log: dummyLogger
+  })
   return new DBBroadcaster(pubsub)
 }
 
@@ -49,7 +52,7 @@ export const makeApplication = async (
         modelDir
       }
 
-  const ghost = makeGhost(baseLogger, modelDir!, watcher)
+  const ghost = makeGhost(baseLogger, modelDir!, watcher, databaseURL)
   await ghost.initialize(!!databaseURL)
   const modelRepo = new ModelRepository(ghost, baseLogger, modelRepoOptions)
   const trainSetRepo = new TrainingSetRepository(ghost, baseLogger)

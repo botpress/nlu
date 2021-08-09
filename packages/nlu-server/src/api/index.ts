@@ -48,7 +48,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   expressApp.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress NLU')
-    requestLogger.debug(`incoming ${req.path}`, { ip: req.ip })
+    requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
     next()
   })
 
@@ -124,7 +124,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         seed: pickedSeed
       }
 
-      const modelId = app.startTraining(trainInput, { appId, appSecret })
+      const modelId = await app.startTraining(trainInput, { appId, appSecret })
 
       const resp: http.TrainResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
       return res.send(resp)
