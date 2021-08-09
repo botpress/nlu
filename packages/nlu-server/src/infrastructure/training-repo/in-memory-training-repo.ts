@@ -40,18 +40,10 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
     this._janitorIntervalId && clearInterval(this._janitorIntervalId)
   }
 
-  private _janitor() {
-    const allTrainings = _(this._trainSessions)
-      .toPairs()
-      .map(([key, state]) => ({ id: this._parseTrainingKey(key), state }))
-      .value()
+  private async _janitor() {
+    const threshold = moment().subtract(MS_BEFORE_PRUNE, 'ms').toDate()
 
-    const trainingsToPrune = allTrainings.filter((t) => {
-      const diff = moment(new Date()).diff(t.state.updatedOn)
-      const msDuration = moment.duration(diff).asMilliseconds()
-      return msDuration >= MS_BEFORE_PRUNE
-    })
-
+    const trainingsToPrune = await this.queryOlderThan({}, threshold)
     if (trainingsToPrune.length) {
       this._logger.debug(`Pruning ${trainingsToPrune.length} training state from memory`)
     }
@@ -69,16 +61,31 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   public async query(query: Partial<TrainingState>): Promise<Training[]> {
-    let queryResult: Training[] = _(this._trainSessions)
-      .toPairs()
-      .map(([key, state]) => ({ id: this._parseTrainingKey(key), state }))
-      .value()
+    const allTrainings = this._getAllTrainings()
+    return this._filter(allTrainings, query)
+  }
 
-    for (const field in query) {
-      queryResult = queryResult.filter((t) => t.state[field] === query[field])
+  public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
+    const allTrainings = this._getAllTrainings()
+    const olderThan = allTrainings.filter((t) => moment(t.state.updatedOn).isBefore(threshold))
+    return this._filter(olderThan, query)
+  }
+
+  private _filter = (trainings: Training[], filters: Partial<TrainingState>) => {
+    let queryResult: Training[] = trainings
+
+    for (const field in filters) {
+      queryResult = queryResult.filter((t) => t.state[field] === filters[field])
     }
 
     return queryResult
+  }
+
+  private _getAllTrainings = (): Training[] => {
+    return _(this._trainSessions)
+      .toPairs()
+      .map(([key, state]) => ({ id: this._parseTrainingKey(key), state }))
+      .value()
   }
 
   async delete(id: TrainingId): Promise<void> {
@@ -118,6 +125,10 @@ export default class InMemoryTrainingRepo implements TrainingRepository {
 
   public async query(query: Partial<TrainingState>): Promise<Training[]> {
     return this._writtableRepo.query(query)
+  }
+
+  public async queryOlderThan(query: Partial<TrainingState>, threshold: Date): Promise<Training[]> {
+    return this._writtableRepo.queryOlderThan(query, threshold)
   }
 
   public async delete(id: TrainingId): Promise<void> {

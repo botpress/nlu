@@ -1,17 +1,23 @@
 import { Logger } from '@botpress/logger'
 import { TrainingState, TrainingErrorType, TrainInput, http } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import Bluebird from 'bluebird'
+import moment from 'moment'
+import ms from 'ms'
 
 import { ModelRepository } from '../infrastructure/model-repo'
 import { TrainingSetRepository } from '../infrastructure/train-set-repo'
 import { TrainingRepository } from '../infrastructure/training-repo/typings'
 import { serializeError } from '../utils/error-utils'
+import { watchDog, WatchDog } from '../utils/watch-dog'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
 const MAX_TRAINING_PER_INSTANCE = 2
+const MAX_TRAINING_HEARTBEAT = ms('5m')
 
 export default class TrainingQueue {
   private logger: Logger
+  private task: WatchDog<[]>
 
   constructor(
     logger: Logger,
@@ -22,6 +28,11 @@ export default class TrainingQueue {
     private _clusterId: string
   ) {
     this.logger = logger.sub('training-queue')
+    this.task = watchDog(this._runTask.bind(this), MAX_TRAINING_HEARTBEAT / 2)
+  }
+
+  public teardown() {
+    this.task.stop()
   }
 
   public queueTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials, trainInput: TrainInput) => {
@@ -38,9 +49,7 @@ export default class TrainingQueue {
     })
     await this.trainSetRepo.set(modelId, credentials, trainInput)
 
-    // to return asap
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._runTask()
+    this.task.run()
   }
 
   private _runTask = async () => {
@@ -48,6 +57,13 @@ export default class TrainingQueue {
       const localTrainings = await repo.query({ cluster: this._clusterId, status: 'training' })
       if (localTrainings.length >= MAX_TRAINING_PER_INSTANCE) {
         return
+      }
+
+      const zombieThreshold = moment().subtract(MAX_TRAINING_HEARTBEAT, 'ms').toDate()
+      const zombieTrainings = await repo.queryOlderThan({ status: 'training' }, zombieThreshold)
+      if (zombieTrainings.length) {
+        this.logger.debug(`Queuing back ${zombieTrainings.length} trainings because they seem to be zombies.`)
+        await Bluebird.each(zombieTrainings, (z) => repo.set(z.id, { ...z.state, status: 'training-pending' }))
       }
 
       const pendings = await repo.query({ status: 'training-pending' })
@@ -62,6 +78,7 @@ export default class TrainingQueue {
       await repo.set(id, state)
 
       this.logger.debug(`training ${NLUEngine.modelIdService.toString(id)} is about to start.`)
+
       // floating promise to return fast from task
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this._train(modelId, { appId, appSecret })
@@ -118,11 +135,9 @@ export default class TrainingQueue {
         return repo.set({ ...modelId, ...credentials }, ts)
       })
       this.logger.attachError(err).error('an error occured during training')
-      return
     } finally {
-      // to prevent from loading the stack
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._runTask()
+      await this.trainSetRepo.delete(modelId, credentials) // no need to keep this on file-system
+      this.task.run()
     }
   }
 }

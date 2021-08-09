@@ -8,6 +8,7 @@ export interface ReadonlyTrainingRepository {
   teardown: () => Promise<void>
   get: (id: TrainingId) => Promise<TrainingState | undefined>
   query: (query: Partial<TrainingState>) => Promise<Training[]>
+  queryOlderThan: (query: Partial<TrainingState>, threshold: Date) => Promise<Training[]>
   delete: (id: TrainingId) => Promise<void>
 }
 

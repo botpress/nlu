@@ -84,9 +84,18 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
     return this.table.where(tableId).delete()
   }
 
-  public deleteOldTrainings = async (threshold: Date): Promise<number> => {
+  public deleteOlderThan = async (threshold: Date): Promise<number> => {
     const iso = moment(threshold).toDate().toISOString()
     return this.table.where('updatedOn', '<=', iso).delete()
+  }
+
+  public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
+    const iso = moment(threshold).toDate().toISOString()
+
+    const rowFilters: Partial<TableRow> = this._trainStateToRow(query as TrainingState)
+    const rows: TableRow[] = await this.table.where(rowFilters).where('updatedOn', '<=', iso).select('*')
+
+    return rows.map(this._rowToTraining.bind(this))
   }
 
   private _trainingToRow(train: Training): TableRow {
@@ -199,7 +208,7 @@ export class DbTrainingRepository implements TrainingRepository {
   private async _janitor() {
     const now = moment()
     const before = now.subtract({ milliseconds: MS_BEFORE_PRUNE })
-    const nDeletions = await this._writtableTrainingRepo.deleteOldTrainings(before.toDate())
+    const nDeletions = await this._writtableTrainingRepo.deleteOlderThan(before.toDate())
     if (nDeletions) {
       this._logger.debug(`Pruning ${nDeletions} training state from database`)
     }
@@ -241,6 +250,10 @@ export class DbTrainingRepository implements TrainingRepository {
 
   public query = async (query: Partial<TrainingState>): Promise<Training[]> => {
     return this._writtableTrainingRepo.query(query)
+  }
+
+  public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
+    return this._writtableTrainingRepo.queryOlderThan(query, threshold)
   }
 
   public async delete(id: TrainingId): Promise<void> {
