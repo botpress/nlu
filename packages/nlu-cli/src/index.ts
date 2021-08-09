@@ -3,6 +3,7 @@ import { run as runLanguageServer, download as downloadLang } from '@botpress/la
 import { makeLogger, LoggerLevel } from '@botpress/logger'
 import { run as runNLUServer } from '@botpress/nlu-server'
 import yargs from 'yargs'
+import yn from 'yn'
 
 import { getAppDataPath } from './app-data'
 
@@ -53,6 +54,17 @@ yargs
       languageAuthToken: {
         description: 'Authentification token for your language server',
         type: 'string'
+      },
+      apmEnabled: {
+        description:
+          'When enabled, Sentry is added to the express server allowing the use of the environment variables SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE',
+        default: yn(process.env.APM_ENABLED),
+        type: 'boolean'
+      },
+      apmSampleRate: {
+        description: 'If apm is configured, this option sets the sample rate of traces',
+        default: 1.0,
+        type: 'number'
       },
       ducklingURL: {
         description: 'URL of your Duckling server; Only relevant if "ducklingEnabled" is true',
