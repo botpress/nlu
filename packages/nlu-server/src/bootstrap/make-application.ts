@@ -2,13 +2,16 @@ import { Logger } from '@botpress/logger'
 import chokidar from 'chokidar'
 import knex from 'knex'
 import { nanoid } from 'nanoid'
+import PGPubsub from 'pg-pubsub'
 import { Application } from '../application'
+import { DistributedApp } from '../application/distributed'
 import TrainingQueue from '../application/training-queue'
 import { makeGhost } from '../infrastructure/make-ghost'
 import { ModelRepoOptions, ModelRepository } from '../infrastructure/model-repo'
 import { TrainingSetRepository } from '../infrastructure/train-set-repo'
 import { DbTrainingRepository } from '../infrastructure/training-repo/db-training-repo'
 import InMemoryTrainingRepo from '../infrastructure/training-repo/in-memory-training-repo'
+import { DBBroadcaster, InMemoryBroadcaster } from '../utils/broadcast'
 import { NLUServerOptions } from './config'
 import { makeEngine } from './make-engine'
 
@@ -19,6 +22,11 @@ const makeKnexDb = (dbURL: string) => {
     connection: dbURL,
     client: 'pg'
   })
+}
+
+const makeBroadcaster = (dbURL: string) => {
+  const pubsub = new PGPubsub(dbURL)
+  return new DBBroadcaster(pubsub)
 }
 
 export const makeApplication = async (
@@ -51,7 +59,17 @@ export const makeApplication = async (
     : new InMemoryTrainingRepo(baseLogger)
 
   const trainService = new TrainingQueue(baseLogger, engine, modelRepo, trainSessionService, trainSetRepo, CLUSTER_ID)
-  const application = new Application(modelRepo, trainSessionService, trainService, engine, serverVersion, baseLogger)
+
+  const broadcaster = databaseURL ? makeBroadcaster(databaseURL) : new InMemoryBroadcaster()
+  const application = new DistributedApp(
+    modelRepo,
+    trainSessionService,
+    trainService,
+    engine,
+    serverVersion,
+    baseLogger,
+    broadcaster
+  )
   await application.initialize()
 
   return application
