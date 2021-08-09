@@ -1,6 +1,8 @@
 import { Logger } from '@botpress/logger'
 import { http, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import * as Sentry from '@sentry/node'
+import * as Tracing from '@sentry/tracing'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application as ExpressApp } from 'express'
@@ -33,6 +35,8 @@ export interface APIOptions {
   verbose: number
   doc: boolean
   logFilter?: string[]
+  apmEnabled?: boolean
+  apmSampleRate?: number
 }
 
 const { modelIdService } = NLUEngine
@@ -44,6 +48,19 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   // This must be first, otherwise the /info endpoint can't be called when token is used
   expressApp.use(cors())
 
+  if (options.apmEnabled) {
+    Sentry.init({
+      integrations: [
+        new Sentry.Integrations.Http({ tracing: true }),
+        new Tracing.Integrations.Express({ app: expressApp })
+      ],
+      sampleRate: options.apmSampleRate ?? 1.0
+    })
+
+    expressApp.use(Sentry.Handlers.requestHandler())
+    expressApp.use(Sentry.Handlers.tracingHandler())
+  }
+
   expressApp.use(bodyParser.json({ limit: options.bodySize }))
 
   expressApp.use((req, res, next) => {
@@ -51,6 +68,10 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
     next()
   })
+
+  if (options.apmEnabled) {
+    expressApp.use(Sentry.Handlers.errorHandler())
+  }
 
   expressApp.use(handleError)
 
