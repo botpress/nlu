@@ -4,7 +4,8 @@
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "echo \"no tests\""
   },
   "dependencies": {
     "lodash": "^4.17.19",

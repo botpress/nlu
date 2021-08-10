@@ -10,7 +10,8 @@
   "scripts": {
     "install": ":",
     "build-native": "node-gyp install && node-gyp rebuild",
-    "build": "./node_modules/.bin/tsc"
+    "build": "./node_modules/.bin/tsc",
+    "test": "echo \"no tests\""
   },
   "repository": {
     "type": "git",

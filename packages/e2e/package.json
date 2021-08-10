@@ -19,6 +19,7 @@
   },
   "scripts": {
     "start": "node ./dist/index.js",
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "test": "echo \"no tests\""
   }
 }
