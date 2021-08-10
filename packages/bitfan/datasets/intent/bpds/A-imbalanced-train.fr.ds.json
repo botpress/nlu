@@ -1,0 +1,100 @@
+{
+  "name": "A-imbalanced-train",
+  "type": "intent",
+  "lang": "fr",
+  "samples": [
+    {
+      "label": "bill-inquiry",
+      "text": "Je ne comprend pas quelque chose sur ma note"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "J'ai des questions concernant ma note"
+    },
+    { "label": "bill-inquiry", "text": "Mon relevé n'a aucun sens" },
+    { "label": "cancellation", "text": "Comment puis-je annuler mon contrat?" },
+    { "label": "cancellation", "text": "Je veux arrêter mon contrat" },
+    {
+      "label": "cancellation",
+      "text": "J'ai besoin de mettre fin à mon entente avec vous"
+    },
+    { "label": "contact-details", "text": "Quel est le numéro de contact?" },
+    { "label": "contact-details", "text": "Quel est votre numéro?" },
+    {
+      "label": "contact-details",
+      "text": "Pouvez-vous me donner votre numéro de téléphone?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Quel numéro devrais-je prendre pour vous rejoindre?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Quel est le numéro pour votre entreprise?"
+    },
+    {
+      "label": "contact-details",
+      "text": "S'il vous plait donnez moi votre numéro"
+    },
+    { "label": "contact-details", "text": "Numéro de contact" },
+    {
+      "label": "contact-details",
+      "text": "J'ai besoin de votre numéro pour être en contact"
+    },
+    {
+      "label": "contact-details",
+      "text": "J'ai besoin d'un numéro sur lequel je peux vous appeler"
+    },
+    {
+      "label": "contact-details",
+      "text": "Quel est le meilleur numéro pour vous rejoindre?"
+    },
+    {
+      "label": "contact-details",
+      "text": "J'ai besoin de votre numéro de téléphone"
+    },
+    {
+      "label": "contact-details",
+      "text": "S'il vous plait donnez moi votre numéro de ligne d'aide"
+    },
+    { "label": "contact-details", "text": "J'ai besoin de parler à quelqu'un" },
+    {
+      "label": "contact-details",
+      "text": "Est-ce possible de parler à un opérateur"
+    },
+    {
+      "label": "contact-details",
+      "text": "Comment est-ce que je vous appelle?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Y'a-t-il une façon d'avoir de l'assistance?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Comment puis-je parler avec l'un de vos employés?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Puis-je parler avec un technicien?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Est-ce que je peux parler avec un vrai humain?"
+    },
+    {
+      "label": "contact-details",
+      "text": "J'ai besoin de parler avec un de vos hommes"
+    },
+    {
+      "label": "contact-details",
+      "text": "À quel numéro est-ce que je peux vous joindre?"
+    },
+    { "label": "problem", "text": "J'ai un problème" },
+    {
+      "label": "problem",
+      "text": "Quelque chose ne fonctionne pas comme il faut sur mon ordinateur"
+    },
+    { "label": "problem", "text": "J'ai un ennui technique" }
+  ]
+}

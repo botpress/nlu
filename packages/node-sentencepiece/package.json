@@ -14,7 +14,8 @@
     "build-native": "run-script-os",
     "build-native:linux": "./scripts/linux_build_sentencepiece.sh && node-gyp rebuild",
     "build-native:darwin": "./scripts/macos_build_sentencepiece.sh && node-gyp rebuild",
-    "build-native:win32": "(.\\scripts\\win_build_sentencepiece.bat || true) && node-gyp rebuild"
+    "build-native:win32": "(.\\scripts\\win_build_sentencepiece.bat || true) && node-gyp rebuild",
+    "test": "echo \"no tests\""
   },
   "devDependencies": {
     "node-gyp": "^4.0.0",

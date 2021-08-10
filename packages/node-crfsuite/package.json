@@ -10,7 +10,8 @@
   "scripts": {
     "install": ":",
     "build-native": "node-gyp install && node-gyp rebuild",
-    "build": "./node_modules/.bin/tsc"
+    "build": "./node_modules/.bin/tsc",
+    "test": "echo \"no tests\""
   },
   "keywords": [
     "crf",
@@ -33,8 +34,7 @@
     "index.js",
     "index.d.ts"
   ],
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "node-addon-api": "^3.0.0",
     "node-gyp": "^5.0.0",

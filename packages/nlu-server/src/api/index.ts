@@ -50,7 +50,10 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   if (options.apmEnabled) {
     Sentry.init({
-      integrations: [new Sentry.Integrations.Http({ tracing: true }), new Tracing.Integrations.Express({ app })],
+      integrations: [
+        new Sentry.Integrations.Http({ tracing: true }),
+        new Tracing.Integrations.Express({ app: expressApp })
+      ],
       sampleRate: options.apmSampleRate ?? 1.0
     })
 

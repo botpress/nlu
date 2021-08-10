@@ -1,0 +1,73 @@
+{
+  "name": "E-test",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "employe_to_fire",
+      "types": [
+        "email",
+        "employe-number",
+        "any"
+      ]
+    }
+  ],
+  "enums": [],
+  "patterns": [],
+  "samples": [
+    {
+      "text": "fire employe #426661",
+      "label": [
+        {
+          "name": "employe_to_fire",
+          "start": 14,
+          "end": 20
+        }
+      ]
+    },
+    {
+      "text": "Jim Crow, you're fired!",
+      "label": [
+        {
+          "name": "employe_to_fire",
+          "start": 0,
+          "end": 12
+        }
+      ]
+    },
+    {
+      "text": "fire employe from email: jim.crow@botpress.com",
+      "label": [
+        {
+          "name": "employe_to_fire",
+          "start": 25,
+          "end": 50
+        }
+      ]
+    },
+    {
+      "text": "get rid of J.C right now",
+      "label": [
+        {
+          "name": "employe_to_fire",
+          "start": 11,
+          "end": 13
+        }
+      ]
+    },
+    {
+      "text": "fire employe Svensk next monday",
+      "label": [
+        {
+          "name": "employe_to_fire",
+          "start": 13,
+          "end": 20
+        }
+      ]
+    },
+    {
+      "text": "how can I fire someone?",
+      "label": []
+    }
+  ]
+}

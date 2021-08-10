@@ -1,0 +1,120 @@
+{
+  "name": "H-train",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "flight",
+      "types": ["flight-number"]
+    },
+    {
+      "name": "hockey_stick",
+      "types": ["hockey_stick"]
+    }
+  ],
+  "enums": [],
+  "patterns": [
+    {
+      "name": "flight-number",
+      "regex": "\\w{1,2}-?\\d{2,4}",
+      "case_sensitive": false
+    },
+    {
+      "name": "hockey_stick",
+      "regex": "\\w{1,2}-?\\d{2,4}",
+      "case_sensitive": false
+    }
+  ],
+  "samples": [
+    {
+      "text": "Rules for RC-889 about laws on TR-89",
+      "label": [
+        {
+          "name": "flight",
+          "start": 10,
+          "end": 16
+        },
+        {
+          "name": "hockey_stick",
+          "start": 31,
+          "end": 36
+        }
+      ]
+    },
+    {
+      "text": "I have one FD-56, can I bring it on my B5689 trip",
+      "label": [
+        {
+          "name": "hockey_stick",
+          "start": 11,
+          "end": 16
+        },
+        {
+          "name": "flight",
+          "start": 39,
+          "end": 44
+        }
+      ]
+    },
+    {
+      "text": "The police won't let me go to new york on the TR9878 flight with a BM-25",
+      "label": [
+        {
+          "name": "flight",
+          "start": 46,
+          "end": 52
+        },
+        {
+          "name": "hockey_stick",
+          "start": 67,
+          "end": 72
+        }
+      ]
+    },
+    {
+      "text": "I would like to take my RE-53 on the air japan JP6597 flight to Tokyo",
+      "label": [
+        {
+          "name": "hockey_stick",
+          "start": 24,
+          "end": 29
+        },
+        {
+          "name": "flight",
+          "start": 47,
+          "end": 53
+        }
+      ]
+    },
+    {
+      "text": "I want to bring a Warrior AK-27 on the flight AC446",
+      "label": [
+        {
+          "name": "hockey_stick",
+          "start": 18,
+          "end": 23
+        },
+        {
+          "name": "flight",
+          "start": 38,
+          "end": 44
+        }
+      ]
+    },
+    {
+      "text": "I have one FD-56, can I take it on my trip to Frankfurt B5689?",
+      "label": [
+        {
+          "name": "hockey_stick",
+          "start": 11,
+          "end": 16
+        },
+        {
+          "name": "flight",
+          "start": 56,
+          "end": 61
+        }
+      ]
+    }
+  ]
+}
