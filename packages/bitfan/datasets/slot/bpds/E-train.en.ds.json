@@ -22,7 +22,7 @@
   ],
   "samples": [
     {
-      "text": "I want to fire François Xavier",
+      "text": "I want to fire Jean-Guy",
       "label": [
         {
           "name": "employe_to_fire",
@@ -32,7 +32,7 @@
       ]
     },
     {
-      "text": "fire jean-bernard@botpress.com",
+      "text": "fire jim.crow@botpress.com",
       "label": [
         {
           "name": "employe_to_fire",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "text": "How can I expel Jean Bernard from this compagny?",
+      "text": "How can I expel Justin Bieber from this compagny?",
       "label": [
         {
           "name": "employe_to_fire",
@@ -62,7 +62,7 @@
       ]
     },
     {
-      "text": "Get rid of sylvain@botpress.com tonight.",
+      "text": "Get rid of svensk@botpress.com tonight.",
       "label": [
         {
           "name": "employe_to_fire",
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "Yann, you're fired!",
+      "text": "Igor, you're fired!",
       "label": [
         {
           "name": "employe_to_fire",
