@@ -1,0 +1,1046 @@
+{
+  "name": "I-train",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "thing_to_shoot",
+      "types": ["fruit", "hockey_stick"]
+    },
+    {
+      "name": "time_or_place",
+      "types": ["city", "time"]
+    }
+  ],
+  "enums": [
+    {
+      "name": "city",
+      "values": [
+        {
+          "name": "Paris",
+          "synonyms": ["city of lights"]
+        },
+        {
+          "name": "Sydney",
+          "synonyms": []
+        },
+        {
+          "name": "Tataouine",
+          "synonyms": []
+        },
+        {
+          "name": "Chaï",
+          "synonyms": []
+        },
+        {
+          "name": "Quebec",
+          "synonyms": []
+        },
+        {
+          "name": "Lyon",
+          "synonyms": []
+        },
+        {
+          "name": "Dubai",
+          "synonyms": []
+        },
+        {
+          "name": "Abuja",
+          "synonyms": []
+        },
+        {
+          "name": "Accra",
+          "synonyms": []
+        },
+        {
+          "name": "Achgabat",
+          "synonyms": []
+        },
+        {
+          "name": "Addis-Abeba",
+          "synonyms": []
+        },
+        {
+          "name": "Alger",
+          "synonyms": []
+        },
+        {
+          "name": "Alofi",
+          "synonyms": []
+        },
+        {
+          "name": "Amman",
+          "synonyms": []
+        },
+        {
+          "name": "Amsterdam",
+          "synonyms": []
+        },
+        {
+          "name": "Andorre-la-Vieille",
+          "synonyms": []
+        },
+        {
+          "name": "Ankara",
+          "synonyms": []
+        },
+        {
+          "name": "Antananarivo",
+          "synonyms": []
+        },
+        {
+          "name": "Apia",
+          "synonyms": []
+        },
+        {
+          "name": "Asmara",
+          "synonyms": []
+        },
+        {
+          "name": "Asuncion",
+          "synonyms": []
+        },
+        {
+          "name": "Athènes",
+          "synonyms": []
+        },
+        {
+          "name": "Avarua",
+          "synonyms": []
+        },
+        {
+          "name": "Bagdad",
+          "synonyms": []
+        },
+        {
+          "name": "Bakou",
+          "synonyms": []
+        },
+        {
+          "name": "Bamako",
+          "synonyms": []
+        },
+        {
+          "name": "Bangkok",
+          "synonyms": []
+        },
+        {
+          "name": "Bangui",
+          "synonyms": []
+        },
+        {
+          "name": "Banjul",
+          "synonyms": []
+        },
+        {
+          "name": "Basseterre",
+          "synonyms": []
+        },
+        {
+          "name": "Belgrade",
+          "synonyms": []
+        },
+        {
+          "name": "Belmopan",
+          "synonyms": []
+        },
+        {
+          "name": "Berlin",
+          "synonyms": []
+        },
+        {
+          "name": "Berne",
+          "synonyms": []
+        },
+        {
+          "name": "Beyrouth",
+          "synonyms": []
+        },
+        {
+          "name": "Bichkek",
+          "synonyms": []
+        },
+        {
+          "name": "Bissau",
+          "synonyms": []
+        },
+        {
+          "name": "Bogota",
+          "synonyms": []
+        },
+        {
+          "name": "Brasilia",
+          "synonyms": []
+        },
+        {
+          "name": "Bratislava",
+          "synonyms": []
+        },
+        {
+          "name": "Brazzaville",
+          "synonyms": []
+        },
+        {
+          "name": "Bridgetown",
+          "synonyms": []
+        },
+        {
+          "name": "Bruxelles",
+          "synonyms": []
+        },
+        {
+          "name": "Bucarest",
+          "synonyms": []
+        },
+        {
+          "name": "Budapest",
+          "synonyms": []
+        },
+        {
+          "name": "Buenos Aires",
+          "synonyms": []
+        },
+        {
+          "name": "Le Caire",
+          "synonyms": []
+        },
+        {
+          "name": "Canberra",
+          "synonyms": []
+        },
+        {
+          "name": "Le Cap",
+          "synonyms": []
+        },
+        {
+          "name": "Caracas",
+          "synonyms": []
+        },
+        {
+          "name": "Castries",
+          "synonyms": []
+        },
+        {
+          "name": "Chisinau",
+          "synonyms": []
+        },
+        {
+          "name": "Conakry",
+          "synonyms": []
+        },
+        {
+          "name": "Copenhague",
+          "synonyms": []
+        },
+        {
+          "name": "Dakar",
+          "synonyms": []
+        },
+        {
+          "name": "Damas",
+          "synonyms": []
+        },
+        {
+          "name": "Dacca",
+          "synonyms": []
+        },
+        {
+          "name": "Dili",
+          "synonyms": []
+        },
+        {
+          "name": "Djibouti",
+          "synonyms": []
+        },
+        {
+          "name": "Dodoma",
+          "synonyms": []
+        },
+        {
+          "name": "Doha",
+          "synonyms": []
+        },
+        {
+          "name": "Dublin",
+          "synonyms": []
+        },
+        {
+          "name": "Erevan",
+          "synonyms": []
+        },
+        {
+          "name": "Freetown",
+          "synonyms": []
+        },
+        {
+          "name": "Gaborone",
+          "synonyms": []
+        },
+        {
+          "name": "Georgetown",
+          "synonyms": []
+        },
+        {
+          "name": "Gitega",
+          "synonyms": []
+        },
+        {
+          "name": "Guatemala",
+          "synonyms": []
+        },
+        {
+          "name": "Hanoï",
+          "synonyms": []
+        },
+        {
+          "name": "Harare",
+          "synonyms": []
+        },
+        {
+          "name": "La Havane",
+          "synonyms": []
+        },
+        {
+          "name": "Helsinki",
+          "synonyms": []
+        },
+        {
+          "name": "Honiara",
+          "synonyms": []
+        },
+        {
+          "name": "Islamabad",
+          "synonyms": []
+        },
+        {
+          "name": "Jakarta",
+          "synonyms": []
+        },
+        {
+          "name": "Jérusalem",
+          "synonyms": []
+        },
+        {
+          "name": "Kaboul",
+          "synonyms": []
+        },
+        {
+          "name": "Kampala",
+          "synonyms": []
+        },
+        {
+          "name": "Katmandou",
+          "synonyms": []
+        },
+        {
+          "name": "Khartoum",
+          "synonyms": []
+        },
+        {
+          "name": "Kiev",
+          "synonyms": []
+        },
+        {
+          "name": "Kigali",
+          "synonyms": []
+        },
+        {
+          "name": "Kingston",
+          "synonyms": []
+        },
+        {
+          "name": "Kingstown",
+          "synonyms": []
+        },
+        {
+          "name": "Kinshasa",
+          "synonyms": []
+        },
+        {
+          "name": "Melekeok24",
+          "synonyms": []
+        },
+        {
+          "name": "Koweït",
+          "synonyms": []
+        },
+        {
+          "name": "Kuala Lumpur",
+          "synonyms": []
+        },
+        {
+          "name": "Libreville",
+          "synonyms": []
+        },
+        {
+          "name": "Lilongwe",
+          "synonyms": []
+        },
+        {
+          "name": "Lima",
+          "synonyms": []
+        },
+        {
+          "name": "Lisbonne",
+          "synonyms": []
+        },
+        {
+          "name": "Ljubljana",
+          "synonyms": []
+        },
+        {
+          "name": "Lomé",
+          "synonyms": []
+        },
+        {
+          "name": "Londres",
+          "synonyms": []
+        },
+        {
+          "name": "Luanda",
+          "synonyms": []
+        },
+        {
+          "name": "Lusaka",
+          "synonyms": []
+        },
+        {
+          "name": "Luxembourg",
+          "synonyms": []
+        },
+        {
+          "name": "Madrid",
+          "synonyms": []
+        },
+        {
+          "name": "Malabo",
+          "synonyms": []
+        },
+        {
+          "name": "Malé",
+          "synonyms": []
+        },
+        {
+          "name": "Managua",
+          "synonyms": []
+        },
+        {
+          "name": "Manama",
+          "synonyms": []
+        },
+        {
+          "name": "Manille",
+          "synonyms": []
+        },
+        {
+          "name": "Maputo",
+          "synonyms": []
+        },
+        {
+          "name": "Mascate",
+          "synonyms": []
+        },
+        {
+          "name": "Maseru",
+          "synonyms": []
+        },
+        {
+          "name": "Mbabane",
+          "synonyms": []
+        },
+        {
+          "name": "Mexico",
+          "synonyms": []
+        },
+        {
+          "name": "Minsk",
+          "synonyms": []
+        },
+        {
+          "name": "Mogadiscio",
+          "synonyms": []
+        },
+        {
+          "name": "Monaco",
+          "synonyms": []
+        },
+        {
+          "name": "Monrovia",
+          "synonyms": []
+        },
+        {
+          "name": "Montevideo",
+          "synonyms": []
+        },
+        {
+          "name": "Moroni",
+          "synonyms": []
+        },
+        {
+          "name": "Moscou",
+          "synonyms": []
+        },
+        {
+          "name": "Nairobi",
+          "synonyms": []
+        },
+        {
+          "name": "Nassau",
+          "synonyms": []
+        },
+        {
+          "name": "New Delhi",
+          "synonyms": []
+        },
+        {
+          "name": "Niamey",
+          "synonyms": []
+        },
+        {
+          "name": "Nicosie",
+          "synonyms": []
+        },
+        {
+          "name": "Nouakchott",
+          "synonyms": []
+        },
+        {
+          "name": "Noursoultan28",
+          "synonyms": []
+        },
+        {
+          "name": "Nuku'alofa",
+          "synonyms": []
+        },
+        {
+          "name": "Oslo",
+          "synonyms": []
+        },
+        {
+          "name": "Ottawa",
+          "synonyms": []
+        },
+        {
+          "name": "Ouagadougou",
+          "synonyms": []
+        },
+        {
+          "name": "Oulan-Bator",
+          "synonyms": []
+        },
+        {
+          "name": "Palikir",
+          "synonyms": []
+        },
+        {
+          "name": "Panama",
+          "synonyms": []
+        },
+        {
+          "name": "Paramaribo",
+          "synonyms": []
+        },
+        {
+          "name": "Paris",
+          "synonyms": []
+        },
+        {
+          "name": "La Paz ",
+          "synonyms": []
+        },
+        {
+          "name": "Pékin",
+          "synonyms": []
+        },
+        {
+          "name": "Phnom Penh",
+          "synonyms": []
+        },
+        {
+          "name": "Podgorica",
+          "synonyms": []
+        },
+        {
+          "name": "Port Moresby",
+          "synonyms": []
+        },
+        {
+          "name": "Port-au-Prince",
+          "synonyms": []
+        },
+        {
+          "name": "Port-d'Espagne",
+          "synonyms": []
+        },
+        {
+          "name": "Port-Louis",
+          "synonyms": []
+        },
+        {
+          "name": "Porto-Novo ",
+          "synonyms": []
+        },
+        {
+          "name": "Port-Vila",
+          "synonyms": []
+        },
+        {
+          "name": "Prague",
+          "synonyms": []
+        },
+        {
+          "name": "Praia",
+          "synonyms": []
+        },
+        {
+          "name": "Pretoria ",
+          "synonyms": []
+        },
+        {
+          "name": "Putrajaya ",
+          "synonyms": []
+        },
+        {
+          "name": "Pyongyang",
+          "synonyms": []
+        },
+        {
+          "name": "Quito",
+          "synonyms": []
+        },
+        {
+          "name": "Rabat",
+          "synonyms": []
+        },
+        {
+          "name": "Ramallah",
+          "synonyms": []
+        },
+        {
+          "name": "Reykjavik",
+          "synonyms": []
+        },
+        {
+          "name": "Riga",
+          "synonyms": []
+        },
+        {
+          "name": "Riyad",
+          "synonyms": []
+        },
+        {
+          "name": "Rome",
+          "synonyms": []
+        },
+        {
+          "name": "Roseau",
+          "synonyms": []
+        },
+        {
+          "name": "Saint John's",
+          "synonyms": []
+        },
+        {
+          "name": "Saint-Domingue",
+          "synonyms": []
+        },
+        {
+          "name": "Saint-Georges",
+          "synonyms": []
+        },
+        {
+          "name": "Saint-Marin",
+          "synonyms": []
+        },
+        {
+          "name": "San José",
+          "synonyms": []
+        },
+        {
+          "name": "San Salvador",
+          "synonyms": []
+        },
+        {
+          "name": "Sanaa",
+          "synonyms": []
+        },
+        {
+          "name": "Santiago",
+          "synonyms": []
+        },
+        {
+          "name": "São Tomé",
+          "synonyms": []
+        },
+        {
+          "name": "Sarajevo",
+          "synonyms": []
+        },
+        {
+          "name": "Séoul",
+          "synonyms": []
+        },
+        {
+          "name": "Singapour",
+          "synonyms": []
+        },
+        {
+          "name": "Skopje",
+          "synonyms": []
+        },
+        {
+          "name": "Sofia",
+          "synonyms": []
+        },
+        {
+          "name": "Stockholm",
+          "synonyms": []
+        },
+        {
+          "name": "Sucre",
+          "synonyms": []
+        },
+        {
+          "name": "Suva",
+          "synonyms": []
+        },
+        {
+          "name": "Tachkent",
+          "synonyms": []
+        },
+        {
+          "name": "Tallinn",
+          "synonyms": []
+        },
+        {
+          "name": "Tarawa-Sud31",
+          "synonyms": []
+        },
+        {
+          "name": "Tbilissi",
+          "synonyms": []
+        },
+        {
+          "name": "Tegucigalpa",
+          "synonyms": []
+        },
+        {
+          "name": "Téhéran",
+          "synonyms": []
+        },
+        {
+          "name": "Thimphou",
+          "synonyms": []
+        },
+        {
+          "name": "Tirana",
+          "synonyms": []
+        },
+        {
+          "name": "Tokyo",
+          "synonyms": []
+        },
+        {
+          "name": "Tripoli",
+          "synonyms": []
+        },
+        {
+          "name": "Tunis",
+          "synonyms": []
+        },
+        {
+          "name": "Vaduz",
+          "synonyms": []
+        },
+        {
+          "name": "La Valette",
+          "synonyms": []
+        },
+        {
+          "name": "Varsovie",
+          "synonyms": []
+        },
+        {
+          "name": "Cité du Vatican",
+          "synonyms": []
+        },
+        {
+          "name": "Victoria",
+          "synonyms": []
+        },
+        {
+          "name": "Vienne",
+          "synonyms": []
+        },
+        {
+          "name": "Vientiane",
+          "synonyms": []
+        },
+        {
+          "name": "Vilnius",
+          "synonyms": []
+        },
+        {
+          "name": "Washington",
+          "synonyms": []
+        },
+        {
+          "name": "Wellington",
+          "synonyms": []
+        },
+        {
+          "name": "Windhoek",
+          "synonyms": []
+        },
+        {
+          "name": "Yamoussoukro",
+          "synonyms": []
+        },
+        {
+          "name": "Yaoundé",
+          "synonyms": []
+        },
+        {
+          "name": "Yaren",
+          "synonyms": []
+        },
+        {
+          "name": "Zagreb",
+          "synonyms": []
+        }
+      ]
+    },
+    {
+      "name": "fruit",
+      "values": [
+        {
+          "name": "apples",
+          "synonyms": []
+        },
+        {
+          "name": "banana",
+          "synonyms": []
+        },
+        {
+          "name": "orange",
+          "synonyms": []
+        },
+        {
+          "name": "apricot",
+          "synonyms": []
+        },
+        {
+          "name": "blackberry",
+          "synonyms": []
+        },
+        {
+          "name": "blueberry",
+          "synonyms": []
+        },
+        {
+          "name": "strawberry",
+          "synonyms": []
+        },
+        {
+          "name": "cherry",
+          "synonyms": ["cherries"]
+        },
+        {
+          "name": "coconut",
+          "synonyms": []
+        },
+        {
+          "name": "date",
+          "synonyms": []
+        },
+        {
+          "name": "grape",
+          "synonyms": []
+        },
+        {
+          "name": "kiwi",
+          "synonyms": []
+        },
+        {
+          "name": "mango",
+          "synonyms": []
+        },
+        {
+          "name": "melon",
+          "synonyms": ["Galia melon"]
+        },
+        {
+          "name": "nectarine",
+          "synonyms": []
+        },
+        {
+          "name": "pineapple",
+          "synonyms": []
+        },
+        {
+          "name": "peach",
+          "synonyms": []
+        },
+        {
+          "name": "passion fruit",
+          "synonyms": []
+        },
+        {
+          "name": "papaya",
+          "synonyms": []
+        },
+        {
+          "name": "Bell pepper",
+          "synonyms": ["Chile pepper"]
+        },
+        {
+          "name": "Purple mangosteen",
+          "synonyms": []
+        },
+        {
+          "name": "Japanese plum",
+          "synonyms": []
+        },
+        {
+          "name": "Black sapote",
+          "synonyms": []
+        },
+        {
+          "name": "Chico fruit",
+          "synonyms": []
+        },
+        {
+          "name": "Goji berry",
+          "synonyms": []
+        },
+        {
+          "name": "tesguino",
+          "synonyms": []
+        }
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "name": "hockey_stick",
+      "regex": "\\w{1,2}-?\\d{2,4}",
+      "case_sensitive": false
+    }
+  ],
+  "samples": [
+    {
+      "text": "I'm gonna shoot my AK27 at 8pm",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 18,
+          "end": 22
+        },
+        {
+          "name": "time_or_place",
+          "start": 26,
+          "end": 29
+        }
+      ]
+    },
+    {
+      "text": "I'm going to fire apples in quebec city tonight",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 18,
+          "end": 24
+        },
+        {
+          "name": "time_or_place",
+          "start": 40,
+          "end": 47
+        }
+      ]
+    },
+    {
+      "text": "There's an orange shooting planned next tuesday",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 11,
+          "end": 17
+        },
+        {
+          "name": "time_or_place",
+          "start": 35,
+          "end": 47
+        }
+      ]
+    },
+    {
+      "text": "I'm heading to quebec city's arena to test my T-90",
+      "label": [
+        {
+          "name": "time_or_place",
+          "start": 15,
+          "end": 26
+        },
+        {
+          "name": "thing_to_shoot",
+          "start": 52,
+          "end": 55
+        }
+      ]
+    },
+    {
+      "text": "let's shoot some reebok AX1 at christmas",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 17,
+          "end": 20
+        },
+        {
+          "name": "time_or_place",
+          "start": 24,
+          "end": 33
+        }
+      ]
+    },
+    {
+      "text": "at 5pm is the time I will fire apples",
+      "label": [
+        {
+          "name": "time_or_place",
+          "start": 3,
+          "end": 6
+        },
+        {
+          "name": "thing_to_shoot",
+          "start": 31,
+          "end": 37
+        }
+      ]
+    },
+    {
+      "text": "Go to montreal to shoot some fruits!",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 6,
+          "end": 11
+        }
+      ]
+    },
+    {
+      "text": "Shoot pucks with your AK27 at some place or time!",
+      "label": [
+        {
+          "name": "time_or_place",
+          "start": 10,
+          "end": 14
+        }
+      ]
+    },
+    {
+      "text": "I'm going to fire fruits or a hockey stick at some place or time",
+      "label": []
+    }
+  ]
+}

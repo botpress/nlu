@@ -1,0 +1,124 @@
+{
+  "name": "I-test",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "thing_to_shoot",
+      "types": ["fruit", "hockey_stick"]
+    },
+    {
+      "name": "time_or_place",
+      "types": ["city", "time"]
+    }
+  ],
+  "enums": [],
+  "patterns": [],
+  "samples": [
+    {
+      "text": "I'm heading to montreal to fire cherries on buildings",
+      "label": [
+        {
+          "name": "time_or_place",
+          "start": 15,
+          "end": 23
+        },
+        {
+          "name": "thing_to_shoot",
+          "start": 32,
+          "end": 40
+        }
+      ]
+    },
+    {
+      "text": "I will try out my AK27 at the party monday",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 18,
+          "end": 22
+        },
+        {
+          "name": "time_or_place",
+          "start": 36,
+          "end": 42
+        }
+      ]
+    },
+    {
+      "text": "I will try out my AK27 at the party tonight",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 18,
+          "end": 22
+        },
+        {
+          "name": "time_or_place",
+          "start": 36,
+          "end": 43
+        }
+      ]
+    },
+    {
+      "text": "fire melons in new-york",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 5,
+          "end": 11
+        },
+        {
+          "name": "time_or_place",
+          "start": 15,
+          "end": 23
+        }
+      ]
+    },
+    {
+      "text": "let's go fire melons in montreal",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 14,
+          "end": 20
+        },
+        {
+          "name": "time_or_place",
+          "start": 24,
+          "end": 32
+        }
+      ]
+    },
+    {
+      "text": "I'm going to fire cherries on buildings",
+      "label": [
+        {
+          "name": "thing_to_shoot",
+          "start": 18,
+          "end": 26
+        }
+      ]
+    },
+    {
+      "text": "I'm going to fire things at 8am!",
+      "label": [
+        {
+          "name": "time_or_place",
+          "start": 28,
+          "end": 31
+        }
+      ]
+    },
+    {
+      "text": "Let shoot on London!",
+      "label": [
+        {
+          "name": "time_or_place",
+          "start": 13,
+          "end": 19
+        }
+      ]
+    }
+  ]
+}

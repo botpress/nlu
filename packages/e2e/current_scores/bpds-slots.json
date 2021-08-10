@@ -1,23 +1,23 @@
 {
-  "generatedOn": "2021-04-27T21:41:51.502Z",
+  "generatedOn": "2021-08-10T01:27:29.457Z",
   "scores": [
     {
       "metric": "avgScore:slotsAre",
       "problem": "bpds slot A",
       "seed": 42,
-      "score": 0.9
+      "score": 0.3
     },
     {
       "metric": "avgScore:slotIncludes",
       "problem": "bpds slot A",
       "seed": 42,
-      "score": 0.9
+      "score": 0.3
     },
     {
       "metric": "avgScore:slotCountIs",
       "problem": "bpds slot A",
       "seed": 42,
-      "score": 0.9
+      "score": 0.6
     },
     {
       "metric": "avgScore:slotsAre",
@@ -119,7 +119,7 @@
       "metric": "avgScore:slotIncludes",
       "problem": "bpds slot H",
       "seed": 42,
-      "score": 0.5714285714285714
+      "score": 0.5
     },
     {
       "metric": "avgScore:slotCountIs",

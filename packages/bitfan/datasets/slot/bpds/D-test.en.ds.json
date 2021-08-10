@@ -1,0 +1,121 @@
+{
+  "name": "D-test",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "restaurant",
+      "types": [
+        "any"
+      ]
+    }
+  ],
+  "enums": [],
+  "patterns": [],
+  "samples": [
+    {
+      "text": "vote for wendys",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 9,
+          "end": 15
+        }
+      ]
+    },
+    {
+      "text": "I voTE The Mc'Donald Hambergers",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 7,
+          "end": 31
+        }
+      ]
+    },
+    {
+      "text": "I choose Burger King",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 9,
+          "end": 20
+        }
+      ]
+    },
+    {
+      "text": "I choose BK",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 9,
+          "end": 11
+        }
+      ]
+    },
+    {
+      "text": "I vote for subway",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 11,
+          "end": 17
+        }
+      ]
+    },
+    {
+      "text": "vote one for Burgerking",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 13,
+          "end": 23
+        }
+      ]
+    },
+    {
+      "text": "vote for victor",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 9,
+          "end": 15
+        }
+      ]
+    },
+    {
+      "text": "vote for Chez Victor",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 9,
+          "end": 20
+        }
+      ]
+    },
+    {
+      "text": "How can I vote for a restaurant",
+      "label": []
+    },
+    {
+      "text": "vote for Chez-Victor",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 9,
+          "end": 20
+        }
+      ]
+    },
+    {
+      "text": "Harvey's",
+      "label": [
+        {
+          "name": "restaurant",
+          "start": 0,
+          "end": 8
+        }
+      ]
+    }
+  ]
+}

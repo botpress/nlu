@@ -1,0 +1,109 @@
+{
+  "name": "A-test",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "hockey_stick_to_buy",
+      "types": ["hockey_stick"]
+    }
+  ],
+  "enums": [],
+  "patterns": [],
+  "samples": [
+    {
+      "text": "A MP34 I WHAT I WISH FOR LOL",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 2,
+          "end": 6
+        }
+      ]
+    },
+    {
+      "text": "I wanto by a AKP446",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 13,
+          "end": 19
+        }
+      ]
+    },
+    {
+      "text": "I wish to get my hands on a Ak27",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 28,
+          "end": 33
+        }
+      ]
+    },
+    {
+      "text": "I really want a sherwood T90 right now",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 17,
+          "end": 20
+        }
+      ]
+    },
+    {
+      "text": "please give me an AB12",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 18,
+          "end": 22
+        }
+      ]
+    },
+    {
+      "text": "How can I get an cd-42?",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 17,
+          "end": 22
+        }
+      ]
+    },
+    {
+      "text": "buy ON90",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 4,
+          "end": 7
+        }
+      ]
+    },
+    {
+      "text": "Can I get my hands on a hockey stick?",
+      "label": []
+    },
+    {
+      "text": "PLEASE GIVE ME A WARRIOR AK-27",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 18,
+          "end": 23
+        }
+      ]
+    },
+    {
+      "text": "I WANT A Bauer on90 RIGHT NOW",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 9,
+          "end": 12
+        }
+      ]
+    }
+  ]
+}

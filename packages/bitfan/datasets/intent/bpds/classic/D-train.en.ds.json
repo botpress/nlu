@@ -1,0 +1,219 @@
+{
+  "name": "D-train",
+  "lang": "en",
+  "type": "intent",
+  "samples": [
+    {
+      "text": "How can I pay my bill?",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "How to make payment?",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "I want to to pay my invoice, how do I do that?",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "What are the payment options?",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "Can I use my credit card for my monthly fees?",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "I need details on the options available to pay for my contract",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "Do you have any payment plans?",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "What are the payment plans that's available?",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "Can I get details on payment plans?",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "Where can I get information on paying my contract?",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "I can't find any information on how to pay fees",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "Can you send me info on paying my fees, I can't find it",
+      "label": "d-bill-inquiry"
+    },
+    {
+      "text": "I need to cancel my contract",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "I want to stop my contract",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "I want to terminate my account",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "How do I go about ending my contract?",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "What to do if I want to terminate my contract?",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "How can I discontinue this service?",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "I don't want to continue anymore",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "I'm no longer interested in this service",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "Can I discontinue this service now?",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "What should I do to cancel my contract?",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "I can't find the way to cancel this service",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "I have a problem cancelling",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "My cancellations is not working",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "I got an error trying to cancel",
+      "label": "d-cancellation"
+    },
+    {
+      "text": "What is the helpline number?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "What is the support number?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "What number can I call support on?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "I need assistance, who can help me?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "How can I get help?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "How can I talk to someone?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "Where can I find details for a help line?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "I can't find the contact number on your website?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "What number should I call to get to a person that can help?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "Where can I get information to contact you?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "Which number should I use to reach you?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "What should I do to get help?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "What can I do to talk to support?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "Where is your contact number, I can't find it?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "What can I do to get someone to help me?",
+      "label": "d-contact-details"
+    },
+    {
+      "text": "I have an IT issue",
+      "label": "d-problem"
+    },
+    {
+      "text": "There is a technical problem",
+      "label": "d-problem"
+    },
+    {
+      "text": "I got an error",
+      "label": "d-problem"
+    },
+    {
+      "text": "I'm not sure if the system is working correctly",
+      "label": "d-problem"
+    },
+    {
+      "text": "Something seems to be wrong with the system",
+      "label": "d-problem"
+    },
+    {
+      "text": "Is the system working fine?",
+      "label": "d-problem"
+    },
+    {
+      "text": "What should I do if I have technical problems?",
+      "label": "d-problem"
+    },
+    {
+      "text": "I've got a technical problem, how can I get support?",
+      "label": "d-problem"
+    },
+    {
+      "text": "How can I deal with an IT issue?",
+      "label": "d-problem"
+    },
+    {
+      "text": "I think I made an error on the system",
+      "label": "d-problem"
+    },
+    {
+      "text": "I did something wrong on the system",
+      "label": "d-problem"
+    },
+    {
+      "text": "My system is not working due to an error I made",
+      "label": "d-problem"
+    }
+  ]
+}
