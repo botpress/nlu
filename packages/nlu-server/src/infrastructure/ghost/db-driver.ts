@@ -12,7 +12,7 @@ export class DBStorageDriver implements StorageDriver {
   constructor(private database: Database) {}
 
   async initialize() {
-    await this.database.initialize('postgres')
+    await this.database.initialize()
   }
 
   async upsertFile(filePath: string, content: string | Buffer, recordRevision: boolean): Promise<void>

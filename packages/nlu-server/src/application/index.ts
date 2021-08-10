@@ -14,7 +14,7 @@ export class Application {
   constructor(
     private _modelRepo: ModelRepository,
     private _trainingRepo: TrainingRepository,
-    private _trainService: TrainingQueue,
+    private _trainingQueue: TrainingQueue,
     private _engine: Engine,
     private _serverVersion: string,
     baseLogger: Logger
@@ -29,6 +29,7 @@ export class Application {
 
   public async teardown() {
     await this._trainingRepo.teardown()
+    await this._trainingQueue.teardown()
   }
 
   public getInfo(): ServerInfo {
@@ -62,7 +63,7 @@ export class Application {
       specifications: this._engine.getSpecifications()
     })
 
-    await this._trainService.queueTraining(modelId, credentials, trainInput)
+    await this._trainingQueue.queueTraining(modelId, credentials, trainInput)
     return modelId
   }
 

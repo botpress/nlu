@@ -31,8 +31,8 @@ export default class TrainingQueue {
     this.task = watchDog(this._runTask.bind(this), MAX_TRAINING_HEARTBEAT / 2)
   }
 
-  public teardown() {
-    this.task.stop()
+  public async teardown() {
+    return this.task.stop()
   }
 
   public queueTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials, trainInput: TrainInput) => {

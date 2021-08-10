@@ -47,7 +47,7 @@ export class Database {
     })
   }
 
-  async initialize(databaseType?: DatabaseType) {
+  async initialize(databaseType: DatabaseType = 'postgres') {
     const logger = this.logger
     const { DATABASE_URL, DATABASE_POOL } = process.env
 

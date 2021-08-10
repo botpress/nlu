@@ -1,35 +1,13 @@
 import { Logger } from '@botpress/logger'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
-import chokidar from 'chokidar'
 import fse, { WriteStream } from 'fs-extra'
 import _ from 'lodash'
 import path from 'path'
 import { Stream } from 'stream'
 import tar from 'tar'
 import tmp from 'tmp'
-import { getAppDataPath } from '../app-data'
-import {
-  Database,
-  DBStorageDriver,
-  DiskStorageDriver,
-  GhostService,
-  ScopedGhostService,
-  MemoryObjectCache
-} from './ghost'
-
-interface FSDriver {
-  driver: 'fs'
-}
-
-interface DBDriver {
-  driver: 'db'
-  dbURL: string
-}
-
-export type ModelRepoOptions = (FSDriver | DBDriver) & {
-  modelDir: string
-}
+import { GhostService, ScopedGhostService } from './ghost'
 
 interface ModelOwnershipOptions {
   appId: string
@@ -45,25 +23,15 @@ const MODELS_EXT = 'model'
 
 const { modelIdService } = NLUEngine
 
-// TODO: add a customizable modelDir
-const defaultOtpions: ModelRepoOptions = {
-  driver: 'fs',
-  modelDir: getAppDataPath()
-}
-
 export class ModelRepository {
-  private _options: ModelRepoOptions
   private _logger: Logger
 
-  constructor(private _ghost: GhostService, logger: Logger, options: Partial<ModelRepoOptions> = {}) {
+  constructor(private _ghost: GhostService, logger: Logger) {
     this._logger = logger.sub('model-repo')
-    const isDefined = _.negate(_.isUndefined)
-    this._options = { ...defaultOtpions, ..._.pickBy(options, isDefined) } as ModelRepoOptions
   }
 
   async initialize() {
     this._logger.debug('Model service initializing...')
-    await this._ghost.initialize(this._options.driver === 'db')
   }
 
   public async hasModel(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<boolean> {

@@ -5,12 +5,13 @@ import { version } from 'moment'
 import { makeApplication } from './bootstrap/make-application'
 import { NLUServerOptions } from './bootstrap/config'
 import { buildWatcher } from './bootstrap/watcher'
+import { Application } from './application'
 
 const options: NLUServerOptions = {
   host: 'localhost',
   port: 3200,
   limitWindow: '1m',
-  limit: 1,
+  limit: 0,
   bodySize: '',
   batchSize: 1,
   modelCacheSize: '',
@@ -30,32 +31,29 @@ const options: NLUServerOptions = {
 
 const baseLogger = makeLogger()
 let watcher
+let app: Application
 
 beforeEach(async () => {
   watcher = buildWatcher()
+  app = await makeApplication(options, version, baseLogger, watcher)
 })
 
-afterEach(() => {
+afterEach(async () => {
   watcher.close()
+  await app.teardown()
 })
 
 test('GET /unknown-path', async () => {
-  const app = await makeApplication(options, version, baseLogger, watcher)
   const expressApp = await createAPI(options, app, baseLogger)
-
   await request(expressApp).get('/unknown-path').expect(404)
 })
 
 test.each(['/info', '/v1/info'])('GET %s', async (path) => {
-  const app = await makeApplication(options, version, baseLogger, watcher)
   const expressApp = await createAPI(options, app, baseLogger)
-
   await request(expressApp).get(path).expect(200)
 })
 
 test('GET /models', async () => {
-  const app = await makeApplication(options, version, baseLogger, watcher)
   const expressApp = await createAPI(options, app, baseLogger)
-
   await request(expressApp).get('/models').expect(200, { success: true, models: [] })
 })
