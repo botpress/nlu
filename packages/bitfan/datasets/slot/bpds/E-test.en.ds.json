@@ -26,7 +26,7 @@
       ]
     },
     {
-      "text": "Jean-Bernard, you're fired!",
+      "text": "Jim Crow, you're fired!",
       "label": [
         {
           "name": "employe_to_fire",
@@ -36,7 +36,7 @@
       ]
     },
     {
-      "text": "fire employe from email: jean-bernard@botpress.com",
+      "text": "fire employe from email: jim.crow@botpress.com",
       "label": [
         {
           "name": "employe_to_fire",
@@ -46,7 +46,7 @@
       ]
     },
     {
-      "text": "get rid of JB right now",
+      "text": "get rid of J.C right now",
       "label": [
         {
           "name": "employe_to_fire",
@@ -56,7 +56,7 @@
       ]
     },
     {
-      "text": "fire employe Sylvain next monday",
+      "text": "fire employe Svensk next monday",
       "label": [
         {
           "name": "employe_to_fire",
