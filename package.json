@@ -27,7 +27,7 @@
     "build": "tsc --build",
     "package": "yarn cmd package",
     "e2e": "yarn workspace e2e start",
-    "test": "yarn workspace @botpress/nlu-cli test",
+    "test": "yarn workspaces run test",
     "prettier": "cross-env prettier --check './packages/**/*.ts' '!**/*.d.ts'",
     "prettier-fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "cross-env eslint packages/ --ext .ts",

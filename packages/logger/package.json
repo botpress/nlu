@@ -16,6 +16,7 @@
     "ts-jest": "^26.5.5"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js"
   }
 }

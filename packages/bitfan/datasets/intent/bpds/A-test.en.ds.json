@@ -1,0 +1,866 @@
+{
+  "name": "A-test",
+  "type": "intent",
+  "lang": "en",
+  "samples": [
+    {
+      "label": "bill-inquiry",
+      "text": "Details of my bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I need my bill verified"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I want to see my bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I want to check my statement"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I want to verify my statements"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I want to verify a charge"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "Please give me my statement"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "help statement"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "help with bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "question about bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I don't understand invoice"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "questions on billing"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I got questions on charge"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "Can I see billing info"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "Can I see charge info"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I want bill details"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "show charge details"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "bill details"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "information on invoice"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I am facing an issue with my bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I believe there is an error on my bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I got an error on my bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I want to resolve a billing issue"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "Rectify my bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "something is not working with my statement"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "problem with bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "there is an error in my bill"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "I've been charge to much"
+    },
+    {
+      "label": "bill-inquiry",
+      "text": "error with charging"
+    },
+    {
+      "label": "cancellation",
+      "text": "terminate my monthly subscription"
+    },
+    {
+      "label": "cancellation",
+      "text": "I am unsatisfied, I want to cancel my account"
+    },
+    {
+      "label": "cancellation",
+      "text": "I can't continue with my subscription"
+    },
+    { "label": "cancellation", "text": "I have an inquiry about termination" },
+    {
+      "label": "cancellation",
+      "text": "I want to stop my business relationship with you"
+    },
+    {
+      "label": "cancellation",
+      "text": "cancel"
+    },
+    {
+      "label": "cancellation",
+      "text": "cancellation inquiry"
+    },
+    {
+      "label": "cancellation",
+      "text": "help cancel contract"
+    },
+    {
+      "label": "cancellation",
+      "text": "help cancellation"
+    },
+    {
+      "label": "cancellation",
+      "text": "how can I cancel your service"
+    },
+    {
+      "label": "cancellation",
+      "text": "how do I go about cancelling"
+    },
+    {
+      "label": "cancellation",
+      "text": "how do I go about cancellings"
+    },
+    {
+      "label": "cancellation",
+      "text": "please help end my subscription"
+    },
+    {
+      "label": "cancellation",
+      "text": "please help me cancel this service"
+    },
+    {
+      "label": "cancellation",
+      "text": "terminate"
+    },
+    {
+      "label": "cancellation",
+      "text": "termination inquiry"
+    },
+    {
+      "label": "cancellation",
+      "text": "who do I contact to cancel"
+    },
+    {
+      "label": "cancellation",
+      "text": "how to cancel"
+    },
+    {
+      "label": "cancellation",
+      "text": "how to terminate"
+    },
+    {
+      "label": "cancellation",
+      "text": "can you cancel service"
+    },
+    {
+      "label": "cancellation",
+      "text": "cancel contract"
+    },
+    {
+      "label": "cancellation",
+      "text": "terminate our agreement"
+    },
+    {
+      "label": "cancellation",
+      "text": "who should I ask to cancel"
+    },
+    {
+      "label": "cancellation",
+      "text": "I want to stop my subscription"
+    },
+    {
+      "label": "cancellation",
+      "text": "stop my yearly subscription"
+    },
+    {
+      "label": "cancellation",
+      "text": "stop billing me for service"
+    },
+    {
+      "label": "cancellation",
+      "text": "I can't keep paying my contract"
+    },
+    {
+      "label": "cancellation",
+      "text": "termination request"
+    },
+    {
+      "label": "cancellation",
+      "text": "request to cancel"
+    },
+    {
+      "label": "cancellation",
+      "text": "cancel fees"
+    },
+    {
+      "label": "contact-details",
+      "text": "can I get your contact number"
+    },
+    {
+      "label": "contact-details",
+      "text": "can you give me phone number"
+    },
+    {
+      "label": "contact-details",
+      "text": "Do you have an 1-800 number?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Do you have toll free line?"
+    },
+    {
+      "label": "contact-details",
+      "text": "I can't seem to locate your help line"
+    },
+    {
+      "label": "contact-details",
+      "text": "I inquire your contact number"
+    },
+    {
+      "label": "contact-details",
+      "text": "I need to talk to someone"
+    },
+    {
+      "label": "contact-details",
+      "text": "I want to find your number"
+    },
+    {
+      "label": "contact-details",
+      "text": "I want to find your phone line"
+    },
+    {
+      "label": "contact-details",
+      "text": "I want to locate your toll free line"
+    },
+    {
+      "label": "contact-details",
+      "text": "Is there someone I can talk to"
+    },
+    {
+      "label": "contact-details",
+      "text": "May I inquire about your contact number"
+    },
+    {
+      "label": "contact-details",
+      "text": "What is the contact number?"
+    },
+    {
+      "label": "contact-details",
+      "text": "What number can I call to make an inquiry"
+    },
+    {
+      "label": "contact-details",
+      "text": "Where can I find your landline?"
+    },
+    {
+      "label": "contact-details",
+      "text": "Where can I find your landlines?"
+    },
+    {
+      "label": "contact-details",
+      "text": "contact"
+    },
+    {
+      "label": "contact-details",
+      "text": "contact number"
+    },
+    {
+      "label": "contact-details",
+      "text": "how can I reach you"
+    },
+    {
+      "label": "contact-details",
+      "text": "how do I go about contacting you"
+    },
+    {
+      "label": "contact-details",
+      "text": "how do I go about reaching out to you"
+    },
+    {
+      "label": "contact-details",
+      "text": "phone number please"
+    },
+    {
+      "label": "contact-details",
+      "text": "what is phone number"
+    },
+    {
+      "label": "contact-details",
+      "text": "how to call you"
+    },
+    {
+      "label": "contact-details",
+      "text": "how to contact you"
+    },
+    {
+      "label": "contact-details",
+      "text": "what is your contacting info"
+    },
+    {
+      "label": "contact-details",
+      "text": "adress and phone"
+    },
+    {
+      "label": "contact-details",
+      "text": "what phone can I join you"
+    },
+    {
+      "label": "contact-details",
+      "text": "How to reach you"
+    },
+    {
+      "label": "contact-details",
+      "text": "how to talk to your entreprise"
+    },
+    {
+      "label": "problem",
+      "text": "I am experiencing difficulties using the system"
+    },
+    {
+      "label": "problem",
+      "text": "I'm experiencing dificulties using the system"
+    },
+    {
+      "label": "problem",
+      "text": "I have an inquiry about an IT issue"
+    },
+    {
+      "label": "problem",
+      "text": "I have bugs"
+    },
+    {
+      "label": "problem",
+      "text": "I need advice regarding my technical issue"
+    },
+    {
+      "label": "problem",
+      "text": "I need technical support"
+    },
+    {
+      "label": "problem",
+      "text": "I want to resolve a technical issue"
+    },
+    {
+      "label": "problem",
+      "text": "I want to resolve an IT issue"
+    },
+    {
+      "label": "problem",
+      "text": "I want to solve a problem"
+    },
+    {
+      "label": "problem",
+      "text": "I want to solve some bugs"
+    },
+    {
+      "label": "problem",
+      "text": "I am facing several bugs"
+    },
+    {
+      "label": "problem",
+      "text": "I've got a problem with login"
+    },
+    {
+      "label": "problem",
+      "text": "I've got a problem with my results"
+    },
+    {
+      "label": "problem",
+      "text": "I've got an error when trying to loging"
+    },
+    {
+      "label": "problem",
+      "text": "IT issue"
+    },
+    {
+      "label": "problem",
+      "text": "IT problem"
+    },
+    {
+      "label": "problem",
+      "text": "Please give me your tech support"
+    },
+    {
+      "label": "problem",
+      "text": "Please help with technical issue"
+    },
+    {
+      "label": "problem",
+      "text": "Please help with technical issues"
+    },
+    {
+      "label": "problem",
+      "text": "Please help with technical support"
+    },
+    {
+      "label": "problem",
+      "text": "Tech help"
+    },
+    {
+      "label": "problem",
+      "text": "There is a problem with my screen"
+    },
+    {
+      "label": "problem",
+      "text": "There is a problem with the result"
+    },
+    {
+      "label": "problem",
+      "text": "There is an error in the result"
+    },
+    {
+      "label": "problem",
+      "text": "There's a problem with my screen"
+    },
+    {
+      "label": "problem",
+      "text": "There is a problem with my keyboard"
+    },
+    {
+      "label": "problem",
+      "text": "how do I go about getting help for an issue"
+    },
+    {
+      "label": "problem",
+      "text": "technical problem"
+    },
+    {
+      "label": "problem",
+      "text": "there is a major bug"
+    },
+    {
+      "label": "problem",
+      "text": "there is a major glitch"
+    },
+    {
+      "label": "oos",
+      "text": "rgchafu cparung jizobra icis oofrfr eysp ooui elgesorg juckth isck ldodplp jdalkeuc neatuc"
+    },
+    {
+      "label": "oos",
+      "text": "otseik nnkedur ouas wdanere oonn naikos gpno tonfu keldh hoolla rgchafu goplk maob mamag"
+    },
+    {
+      "label": "oos",
+      "text": "dhizmi apma elan daou ikel ldnnma cparung peymelk cerc boneon"
+    },
+    {
+      "label": "oos",
+      "text": "ceuod rentle etho tojo rafrng meu nese frsera cnnfth"
+    },
+    {
+      "label": "oos",
+      "text": "ndmollp etknn miitlo genpng okgmur lduime brsli"
+    },
+    {
+      "label": "oos",
+      "text": "innce geneon fupl gre tojo wayju rorce genpng zwda plcwhs keapes bada eyplli omrar"
+    },
+    { "label": "oos", "text": "nach odng nawhrg tedan erasoo fuuil" },
+    { "label": "oos", "text": "gndbo" },
+    {
+      "label": "oos",
+      "text": "odcfoom gndbo foap lear brsli kiatui mod walich ntag apyhrc datpds"
+    },
+    {
+      "label": "oos",
+      "text": "noon anopa eswap miitlo ucp nso obro lalisho kiatui venjui"
+    },
+    {
+      "label": "oos",
+      "text": "osavhi illkhi lzniea frv palzbng ilzinay ayrvha lduime"
+    },
+    { "label": "oos", "text": "ndmollp irad rnn oil ldwat" },
+    {
+      "label": "oos",
+      "text": "oora baca otseik eyleto rahebdy yakot arct payo omvepe isck"
+    },
+    { "label": "oos", "text": "leormon recaet plel omlklz ceolgru atui anopa" },
+    {
+      "label": "oos",
+      "text": "ldlkap avnd rgil fred frikha lpssme mood atyoel nso cais jon odoo"
+    },
+    {
+      "label": "oos",
+      "text": "lej arleav anopa pahiyo roucnn haomjlp ikas pemnj"
+    },
+    { "label": "oos", "text": "obro rourgo cho fiis elw" },
+    {
+      "label": "oos",
+      "text": "nghi ayolll dta keapes ikas meu goyofo dafi uhwejo bnaki lkch nss erht"
+    },
+    {
+      "label": "oos",
+      "text": "atui jdalkeuc lzitis moss ldodplp obetom avjlz rahebdy"
+    },
+    {
+      "label": "oos",
+      "text": "jhehch foap ylla nghi ooui egeob limeis itth nni mong"
+    },
+    {
+      "label": "oos",
+      "text": "medal inspector blade warm satisfaction ego"
+    },
+    {
+      "label": "oos",
+      "text": "tasty virus consumption seed relief monkey"
+    },
+    {
+      "label": "oos",
+      "text": "accept collection prescription cope mild poor"
+    },
+    {
+      "label": "oos",
+      "text": "fan central dog hot paper shareholder battlefield hover"
+    },
+    {
+      "label": "oos",
+      "text": "cutting extreme loose miss serious addition"
+    },
+    {
+      "label": "oos",
+      "text": "tendency donor"
+    },
+    {
+      "label": "oos",
+      "text": "chimney mobile survey deer directory rich static parking"
+    },
+    {
+      "label": "oos",
+      "text": "costume multiplication taker lean apology blower recommendation sit us write"
+    },
+    {
+      "label": "oos",
+      "text": "rare contract discuss junior funny van"
+    },
+    {
+      "label": "oos",
+      "text": "writer someone year fast ecological cucumber step warm favorable action"
+    },
+    {
+      "label": "oos",
+      "text": "opponent face communication substraction kidnap serious sausage you"
+    },
+    {
+      "label": "oos",
+      "text": "heavy object"
+    },
+    {
+      "label": "oos",
+      "text": "slow sacred bible steak bee horse sword destruction"
+    },
+    {
+      "label": "oos",
+      "text": "satisfaction seed locally fist stop prediction minister continuous blade software"
+    },
+    {
+      "label": "oos",
+      "text": "remunerate conception course carrot cat reflection first active kill medal"
+    },
+    {
+      "label": "oos",
+      "text": "opperation differ commit capital hay frequent established wait"
+    },
+    {
+      "label": "oos",
+      "text": "daughter clerk"
+    },
+    {
+      "label": "oos",
+      "text": "cold accompany bird leopard garlic rack"
+    },
+    {
+      "label": "oos",
+      "text": "man even trophy flavor"
+    },
+    {
+      "label": "oos",
+      "text": "tumour volunteer disco scatter"
+    },
+    {
+      "label": "oos",
+      "text": "There is only one Lord of the Ring."
+    },
+    {
+      "label": "oos",
+      "text": "That there’s some good in this world, Mr. Frodo… and it’s worth fighting for."
+    },
+    {
+      "label": "oos",
+      "text": "Even the smallest person can change the course of the future."
+    },
+    {
+      "label": "oos",
+      "text": "We swears, to serve the master of the Precious."
+    },
+    {
+      "label": "oos",
+      "text": "I am Gandalf the White. And I come back to you now at the turn of the tide."
+    },
+    {
+      "label": "oos",
+      "text": "Oh, it’s quite simple. If you are a friend, you speak the password, and the doors will open."
+    },
+    {
+      "label": "oos",
+      "text": "Well, what can I tell you? Life in the wide world goes on much as it has this past Age."
+    },
+    {
+      "label": "oos",
+      "text": "For the time will soon come when Hobbits will shape the fortunes of all."
+    },
+    {
+      "label": "oos",
+      "text": "There is no curse in Elvish, Entish, or the tongues of Men for this treachery."
+    },
+    {
+      "label": "oos",
+      "text": "I would rather share one lifetime with you than face all the Ages of this world alone."
+    },
+    {
+      "label": "oos",
+      "text": "A day may come when the courage of men fails, but it is not this day."
+    },
+    {
+      "label": "oos",
+      "text": "The Ring has awoken, it’s heard its masters call."
+    },
+    {
+      "label": "oos",
+      "text": "Your time will come. You will face the same Evil, and you will defeat it."
+    },
+    {
+      "label": "oos",
+      "text": "The board is set, the pieces are moving. We come to it at last, the great battle of our time."
+    },
+    {
+      "label": "oos",
+      "text": "But the fat Hobbit, he knows. Eyes always watching."
+    },
+    { "label": "oos", "text": "Let’s face it, Mr. Frodo, we’re lost." },
+    {
+      "label": "oos",
+      "text": "I thought up an ending for my book. And he lives happily ever after, till the end of his days."
+    },
+    {
+      "label": "oos",
+      "text": "You are the luckiest, the canniest, and the most reckless man I ever knew. Bless you, laddie."
+    },
+    {
+      "label": "oos",
+      "text": "I’m glad to be with you, Samwise Gamgee… here at the end of all things."
+    },
+    {
+      "label": "oos",
+      "text": "Fool of a Took! Throw yourself in next time and rid us of your stupidity!"
+    },
+    {
+      "label": "oos",
+      "text": "Here's my number"
+    },
+    {
+      "label": "oos",
+      "text": "Do you need my number?"
+    },
+    {
+      "label": "oos",
+      "text": "Will you call me if I leave you my number"
+    },
+    {
+      "label": "oos",
+      "text": "Here's my coordinates"
+    },
+    {
+      "label": "oos",
+      "text": "here's the information to contact me"
+    },
+    {
+      "label": "oos",
+      "text": "You'll find my number on my card"
+    },
+    {
+      "label": "oos",
+      "text": "If you ever need to contact me, here's my number"
+    },
+    {
+      "label": "oos",
+      "text": "Here's how to contact me"
+    },
+    {
+      "label": "oos",
+      "text": "contact me"
+    },
+    {
+      "label": "oos",
+      "text": "call me"
+    },
+    {
+      "label": "oos",
+      "text": "Can you sign the contract as soon as possible?"
+    },
+    {
+      "label": "oos",
+      "text": "Could you sign those papers for me?"
+    },
+    {
+      "label": "oos",
+      "text": "I really need you to sign those documents I gave you."
+    },
+    {
+      "label": "oos",
+      "text": "Let's schedule an appointment for you to sign the contract."
+    },
+    {
+      "label": "oos",
+      "text": "Have you read the contract? Will you sign it?"
+    },
+    {
+      "label": "oos",
+      "text": "contract"
+    },
+    {
+      "label": "oos",
+      "text": "sign contract"
+    },
+    {
+      "label": "oos",
+      "text": "Do we have a deal?"
+    },
+    {
+      "label": "oos",
+      "text": "Do we have an arrangement?"
+    },
+    {
+      "label": "oos",
+      "text": "agree on arrangement"
+    },
+    {
+      "label": "oos",
+      "text": "How can I start my contract?"
+    },
+    {
+      "label": "oos",
+      "text": "I want to begin my contract"
+    },
+    {
+      "label": "oos",
+      "text": "How can I start my subscription?"
+    },
+    {
+      "label": "oos",
+      "text": "I need to start my agreement with you"
+    },
+    {
+      "label": "oos",
+      "text": "Is it possible to begin my contract now?"
+    },
+    {
+      "label": "oos",
+      "text": "Can I start my contract?"
+    },
+    {
+      "label": "oos",
+      "text": "Begin contract"
+    },
+    {
+      "label": "oos",
+      "text": "How can I initiate my contract?"
+    },
+    {
+      "label": "oos",
+      "text": "I want my contract to start"
+    },
+    {
+      "label": "oos",
+      "text": "I need to start my contract"
+    },
+    {
+      "label": "oos",
+      "text": "no problem!"
+    },
+    {
+      "label": "oos",
+      "text": "Everything is working right with my computer lately"
+    },
+    {
+      "label": "oos",
+      "text": "I've got a technical background"
+    },
+    {
+      "label": "oos",
+      "text": "I have an IT diploma"
+    },
+    {
+      "label": "oos",
+      "text": "There is a technician that can help you"
+    },
+    {
+      "label": "oos",
+      "text": "My computer is a powerhouse"
+    },
+    {
+      "label": "oos",
+      "text": "I got one mistake on my javascript exam"
+    },
+    {
+      "label": "oos",
+      "text": "Something does not smell right in the kitchen"
+    },
+    {
+      "label": "oos",
+      "text": "I got a technical exam tomorrow"
+    },
+    {
+      "label": "oos",
+      "text": "I can't continue, I have stomach ache"
+    }
+  ]
+}

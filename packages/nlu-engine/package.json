@@ -4,7 +4,8 @@
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js"
   },
   "dependencies": {
     "@botpress/node-crfsuite": "*",
@@ -13,6 +14,7 @@
     "@botpress/node-svm": "*",
     "@botpress/worker": "*",
     "@microsoft/recognizers-text-suite": "^1.3.0",
+    "@types/nanoid": "^3.0.0",
     "axios": "^0.21.1",
     "bluebird": "^3.7.2",
     "bluebird-retry": "^0.11.0",

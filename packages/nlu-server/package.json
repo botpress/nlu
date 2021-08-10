@@ -13,6 +13,7 @@
     "@botpress/nlu-engine": "*",
     "@sentry/node": "^6.9.0",
     "@sentry/tracing": "^6.9.0",
+    "@types/nanoid": "^3.0.0",
     "axios": "^0.21.1",
     "bluebird": "^3.7.2",
     "body-parser": "^1.18.3",

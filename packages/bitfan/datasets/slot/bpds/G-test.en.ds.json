@@ -1,0 +1,138 @@
+{
+  "name": "G-test",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "from_city",
+      "types": [
+        "city"
+      ]
+    },
+    {
+      "name": "to_city",
+      "types": [
+        "city"
+      ]
+    }
+  ],
+  "enums": [],
+  "patterns": [],
+  "samples": [
+    {
+      "text": "I want a flight which leaves Prague and land in Tataouine",
+      "label": [
+        {
+          "name": "from_city",
+          "start": 29,
+          "end": 35
+        },
+        {
+          "name": "to_city",
+          "start": 48,
+          "end": 57
+        }
+      ]
+    },
+    {
+      "text": "Sofia to Tokyo",
+      "label": [
+        {
+          "name": "from_city",
+          "start": 0,
+          "end": 5
+        },
+        {
+          "name": "to_city",
+          "start": 9,
+          "end": 14
+        }
+      ]
+    },
+    {
+      "text": "flight to Tokyo",
+      "label": [
+        {
+          "name": "to_city",
+          "start": 10,
+          "end": 15
+        }
+      ]
+    },
+    {
+      "text": "flight from Vaduz",
+      "label": [
+        {
+          "name": "from_city",
+          "start": 12,
+          "end": 17
+        }
+      ]
+    },
+    {
+      "text": "register a flight to Stockholm leaving Tripolis",
+      "label": [
+        {
+          "name": "to_city",
+          "start": 21,
+          "end": 30
+        },
+        {
+          "name": "from_city",
+          "start": 39,
+          "end": 47
+        }
+      ]
+    },
+    {
+      "text": "I want to fly high and reach Teheran by leaving Tallinn",
+      "label": [
+        {
+          "name": "to_city",
+          "start": 29,
+          "end": 36
+        },
+        {
+          "name": "from_city",
+          "start": 48,
+          "end": 55
+        }
+      ]
+    },
+    {
+      "text": "I want to reach Teheran by leaving Tallinn",
+      "label": [
+        {
+          "name": "to_city",
+          "start": 16,
+          "end": 23
+        },
+        {
+          "name": "from_city",
+          "start": 35,
+          "end": 42
+        }
+      ]
+    },
+    {
+      "text": "fly from montrael to quebec",
+      "label": [
+        {
+          "name": "from_city",
+          "start": 9,
+          "end": 17
+        }
+      ]
+    },
+    {
+      "text": "fly from montreal to quebc",
+      "label": [
+        {
+          "name": "from_city",
+          "start": 9,
+          "end": 17
+        }
+      ]
+    }
+  ]
+}

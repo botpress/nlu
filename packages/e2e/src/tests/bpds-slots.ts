@@ -40,8 +40,7 @@ export default function (bitfan) {
         'F',
         'G',
         'H',
-        // "I", /* skip I as it involves duckling which slows down regression check */
-        'J'
+        'I'
       ]
 
       const makeProblem = problemMaker(bitfan)

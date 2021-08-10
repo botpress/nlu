@@ -5,7 +5,8 @@
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "echo \"no tests\""
   },
   "dependencies": {
     "axios": "^0.21.1",

@@ -1,0 +1,85 @@
+{
+  "name": "A-train",
+  "type": "slot",
+  "lang": "en",
+  "variables": [
+    {
+      "name": "hockey_stick_to_buy",
+      "types": ["hockey_stick"]
+    }
+  ],
+  "enums": [],
+  "patterns": [
+    {
+      "name": "hockey_stick",
+      "regex": "\\w{1,2}-?\\d{2,4}",
+      "case_sensitive": false
+    }
+  ],
+  "samples": [
+    {
+      "text": "I want to buy a hockey stick",
+      "label": []
+    },
+    {
+      "text": "I want to buy an AK27",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 17,
+          "end": 21
+        }
+      ]
+    },
+    {
+      "text": "I'm about to get myself a sweet ON90",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 32,
+          "end": 35
+        }
+      ]
+    },
+    {
+      "text": "How to get an T90?",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 14,
+          "end": 17
+        }
+      ]
+    },
+    {
+      "text": "Can you get me an MP3?",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 18,
+          "end": 21
+        }
+      ]
+    },
+    {
+      "text": "How can I get an bZ-12?",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 17,
+          "end": 22
+        }
+      ]
+    },
+    {
+      "text": "An Mp13, I would like to buy",
+      "label": [
+        {
+          "name": "hockey_stick_to_buy",
+          "start": 3,
+          "end": 7
+        }
+      ]
+    }
+  ]
+}
