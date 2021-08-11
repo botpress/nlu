@@ -135,7 +135,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _trainStateToRow = (state: TrainingState): Omit<TableRow, keyof TableId> => {
-    const { progress, status, error, updatedOn } = state
+    const { progress, status, error } = state
     const { type: error_type, message: error_message, stackTrace: error_stack } = error || {}
     return {
       status,
@@ -144,7 +144,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       error_message,
       error_stack,
       cluster: this._clusterId,
-      updatedOn: updatedOn ? this._toISO(updatedOn) : this._now()
+      updatedOn: this._now()
     }
   }
 

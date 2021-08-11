@@ -7,9 +7,10 @@ import ms from 'ms'
 
 import { ModelRepository } from '../infrastructure/model-repo'
 import { TrainingSetRepository } from '../infrastructure/train-set-repo'
-import { TrainingRepository } from '../infrastructure/training-repo/typings'
+import { TrainingId, TrainingRepository } from '../infrastructure/training-repo/typings'
 import { serializeError } from '../utils/error-utils'
 import { watchDog, WatchDog } from '../utils/watch-dog'
+import { TrainingNotFoundError } from './errors'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
 const MAX_TRAINING_PER_INSTANCE = 2
@@ -52,6 +53,33 @@ export default class TrainingQueue {
     // to return asap
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.task.run()
+  }
+
+  public cancelTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials) => {
+    return this.trainingRepo.inTransaction(async (repo) => {
+      const trainId: TrainingId = { ...modelId, ...credentials }
+      const currentTraining = await repo.get(trainId)
+      if (!currentTraining) {
+        throw new TrainingNotFoundError(modelId)
+      }
+
+      if (currentTraining.status === 'training-pending') {
+        return repo.set(trainId, {
+          ...currentTraining,
+          status: 'canceled'
+        })
+      }
+
+      if (currentTraining.cluster !== this._clusterId) {
+        this.logger.debug(`Training ${modelId} was not launched on this instance`)
+        return
+      }
+
+      if (currentTraining.status === 'training') {
+        const trainingKey = NLUEngine.modelIdService.toString(modelId)
+        return this.engine.cancelTraining(trainingKey)
+      }
+    })
   }
 
   private _runTask = async () => {

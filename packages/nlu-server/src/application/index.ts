@@ -4,7 +4,7 @@ import { Engine, ModelId, modelIdService } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { TrainingRepository } from '../infrastructure/training-repo/typings'
+import { ReadonlyTrainingRepository } from '../infrastructure/training-repo/typings'
 import { ModelDoesNotExistError, TrainingNotFoundError } from './errors'
 import TrainingQueue from './training-queue'
 
@@ -13,7 +13,7 @@ export class Application {
 
   constructor(
     private _modelRepo: ModelRepository,
-    private _trainingRepo: TrainingRepository,
+    private _trainingRepo: ReadonlyTrainingRepository,
     private _trainingQueue: TrainingQueue,
     private _engine: Engine,
     private _serverVersion: string,
@@ -84,14 +84,7 @@ export class Application {
   }
 
   public async cancelTraining(modelId: ModelId, credentials: http.Credentials): Promise<void> {
-    const session = await this._trainingRepo.get({ ...modelId, ...credentials })
-
-    if (session?.status === 'training') {
-      const trainingKey = modelIdService.toString(modelId)
-      return this._engine.cancelTraining(trainingKey)
-    }
-
-    throw new TrainingNotFoundError(modelId)
+    return this._trainingQueue.cancelTraining(modelId, credentials)
   }
 
   public async predict(
