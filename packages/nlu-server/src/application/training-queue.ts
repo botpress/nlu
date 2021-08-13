@@ -1,19 +1,25 @@
 import { Logger } from '@botpress/logger'
-import { TrainingState, TrainingErrorType, TrainInput, http, TrainingStatus } from '@botpress/nlu-client'
+import { TrainingErrorType, TrainInput, http, TrainingStatus } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
+import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
 
 import { ModelRepository } from '../infrastructure/model-repo'
-import { TrainingId, TrainingRepository } from '../infrastructure/training-repo/typings'
+import {
+  TrainingId,
+  TrainingRepository,
+  TrainingState,
+  WrittableTrainingRepository
+} from '../infrastructure/training-repo/typings'
 import { serializeError } from '../utils/error-utils'
 import { watchDog, WatchDog } from '../utils/watch-dog'
 import { TrainingNotFoundError } from './errors'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
 const MAX_TRAINING_PER_INSTANCE = 2
-const MAX_TRAINING_HEARTBEAT = ms('5m')
+const MAX_TRAINING_HEARTBEAT = ms('1m')
 
 export default class TrainingQueue {
   private logger: Logger
@@ -35,22 +41,31 @@ export default class TrainingQueue {
   }
 
   public queueTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials, trainInput: TrainInput) => {
-    const stringId = NLUEngine.modelIdService.toString(modelId)
-
-    const ts: TrainingState = {
-      status: 'training-pending',
-      progress: 0
-    }
+    const trainId: TrainingId = { ...modelId, ...credentials }
+    const trainKey = this._toKey(trainId)
 
     await this.trainingRepo.inTransaction(async (repo) => {
       const id = { ...modelId, ...credentials }
+      const currentTraining = await repo.get(id)
+      if (currentTraining && currentTraining.state.status === 'training') {
+        this.logger.debug(`Not queuing because training "${trainKey}" already started...`)
+        return // TODO: log something for trianing already started...
+      }
+
+      const state: TrainingState = {
+        status: 'training-pending',
+        progress: 0,
+        cluster: this._clusterId
+      }
+
+      this.logger.debug(`Queuing "${trainKey}"`)
       return repo.set({
         id,
-        state: ts,
+        state,
         set: trainInput
       })
-    })
-    this.logger.info(`[${stringId}] Training Queued.`)
+    }, 'queueTraining')
+    this.logger.info(`[${trainKey}] Training Queued.`)
 
     // to return asap
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -58,8 +73,10 @@ export default class TrainingQueue {
   }
 
   public cancelTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials) => {
+    const trainId: TrainingId = { ...modelId, ...credentials }
+    const trainKey = this._toKey(trainId)
+
     return this.trainingRepo.inTransaction(async (repo) => {
-      const trainId: TrainingId = { ...modelId, ...credentials }
       const currentTraining = await repo.get(trainId)
       if (!currentTraining) {
         throw new TrainingNotFoundError(modelId)
@@ -67,7 +84,10 @@ export default class TrainingQueue {
 
       const { state: currentState, set } = currentTraining
 
-      if (currentState.status === 'training-pending') {
+      const zombieTrainings = await this._getZombies(repo)
+      const isZombie = !!zombieTrainings.find((t) => this._areSame(t.id, trainId))
+
+      if (currentState.status === 'training-pending' || isZombie) {
         const newState: TrainingState = {
           ...currentState,
           status: <TrainingStatus>'canceled'
@@ -81,15 +101,14 @@ export default class TrainingQueue {
       }
 
       if (currentState.cluster !== this._clusterId) {
-        this.logger.debug(`Training ${modelId} was not launched on this instance`)
+        this.logger.debug(`Training "${trainKey}" was not launched on this instance`)
         return
       }
 
       if (currentState.status === 'training') {
-        const trainingKey = NLUEngine.modelIdService.toString(modelId)
-        return this.engine.cancelTraining(trainingKey)
+        return this.engine.cancelTraining(trainKey)
       }
-    })
+    }, 'cancelTraining')
   }
 
   private _runTask = async () => {
@@ -99,11 +118,10 @@ export default class TrainingQueue {
         return
       }
 
-      const zombieThreshold = moment().subtract(MAX_TRAINING_HEARTBEAT, 'ms').toDate()
-      const zombieTrainings = await repo.queryOlderThan({ status: 'training' }, zombieThreshold)
+      const zombieTrainings = await this._getZombies(repo)
       if (zombieTrainings.length) {
         this.logger.debug(`Queuing back ${zombieTrainings.length} trainings because they seem to be zombies.`)
-        const newState: TrainingState = { status: 'training-pending', progress: 0 }
+        const newState: TrainingState = { status: 'training-pending', progress: 0, cluster: this._clusterId }
         await Bluebird.each(zombieTrainings, (z) => repo.set({ ...z, state: newState }))
       }
 
@@ -117,52 +135,66 @@ export default class TrainingQueue {
       state.status = 'training'
 
       await repo.set({ id, state, set })
-      this.logger.debug(`training ${NLUEngine.modelIdService.toString(id)} is about to start.`)
 
       // floating promise to return fast from task
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this._train(modelId, { appId, appSecret })
-    })
+    }, '_runTask')
+  }
+
+  private _areSame(t1: TrainingId, t2: TrainingId) {
+    return t1.appId === t2.appId && t1.appSecret === t2.appSecret && NLUEngine.modelIdService.areSame(t1, t2)
+  }
+
+  private _getZombies = (repo: WrittableTrainingRepository) => {
+    const zombieThreshold = moment().subtract(MAX_TRAINING_HEARTBEAT, 'ms').toDate()
+    return repo.queryOlderThan({ status: 'training' }, zombieThreshold)
   }
 
   private _train = async (modelId: NLUEngine.ModelId, credentials: http.Credentials) => {
-    const stringId = NLUEngine.modelIdService.toString(modelId)
+    const trainId = { ...modelId, ...credentials }
+    const trainKey = this._toKey(trainId)
 
-    const training = await this.trainingRepo.get({ ...modelId, ...credentials })
+    this.logger.debug(`training "${trainKey}" is about to start.`)
+
+    const training = await this.trainingRepo.get(trainId)
     if (!training) {
       throw new Error("Invalid state: training state can't be found")
     }
 
     const { state: ts, set: trainInput } = training
 
-    const progressCallback = async (progress: number) => {
+    const progressCb = async (progress: number) => {
+      ts.status = 'training' // TODO: shouldnt be needed but there is a bug somewhere
       ts.progress = progress
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set({ ...training, state: ts })
-      })
+      }, 'progressCallback')
     }
+    const throttledCb = _.throttle(progressCb, 5000)
 
     try {
-      const model = await this.engine.train(stringId, trainInput, { progressCallback })
+      const trainKey = this._toKey({ ...modelId, ...credentials })
+      const model = await this.engine.train(trainKey, trainInput, { progressCallback: throttledCb })
 
       const { language: languageCode } = trainInput
       await this.modelRepo.pruneModels({ ...credentials, keep: MAX_MODEL_PER_USER_PER_LANG }, { languageCode }) // TODO: make the max amount of models on FS (by appId + lang) configurable
       await this.modelRepo.saveModel(model, credentials)
 
-      this.logger.info(`[${stringId}] Training Done.`)
+      this.logger.info(`[${trainKey}] Training Done.`)
 
       ts.status = 'done'
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set({ ...training, state: ts })
-      })
+      }, 'done')
     } catch (err) {
       if (NLUEngine.errors.isTrainingCanceled(err)) {
-        this.logger.info(`[${stringId}] Training Canceled.`)
+        this.logger.info(`[${trainKey}] Training Canceled.`)
 
         ts.status = 'canceled'
         await this.trainingRepo.inTransaction(async (repo) => {
           return repo.set({ ...training, state: ts })
-        })
+        }, 'canceled')
         return
       }
 
@@ -172,12 +204,20 @@ export default class TrainingQueue {
 
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set({ ...training, state: ts })
-      })
-      this.logger.attachError(err).error('an error occured during training')
+      }, 'errored')
+
+      if (type === 'unknown') {
+        this.logger.attachError(err).error('an error occured during training')
+      }
     } finally {
       // to return asap
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.task.run()
     }
+  }
+
+  private _toKey(id: TrainingId) {
+    const stringId = NLUEngine.modelIdService.toString(id)
+    return `${id.appId}/${stringId}`
   }
 }

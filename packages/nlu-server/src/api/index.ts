@@ -181,6 +181,9 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const modelId = NLUEngine.modelIdService.fromString(stringId)
 
       await app.cancelTraining(modelId, { appId, appSecret })
+
+      const resp: http.SuccessReponse = { success: true }
+      return res.send(resp)
     } catch (err) {
       return handleError(err, req, res, next)
     }

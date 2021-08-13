@@ -39,7 +39,7 @@ interface TableRow extends TableId {
   error_type?: TrainingErrorType
   error_message?: string
   error_stack?: string
-  cluster?: string
+  cluster: string
   set: string
   updatedOn: Knex.Raw | string
 }
@@ -148,7 +148,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _partialTrainStateToQuery = (state: Partial<TrainingState>): Partial<Omit<TableRow, keyof TableId>> => {
-    const { progress, status, error, updatedOn } = state
+    const { progress, status, error, updatedOn, cluster } = state
     const { type: error_type, message: error_message, stackTrace: error_stack } = error || {}
     const rowFilters = {
       status,
@@ -156,7 +156,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       error_type,
       error_message,
       error_stack,
-      cluster: this._clusterId,
+      cluster,
       updatedOn: updatedOn && this._toISO(updatedOn)
     }
 
@@ -270,7 +270,8 @@ export class DbTrainingRepository implements TrainingRepository {
     return
   }
 
-  public inTransaction = async (action: TrainingTrx): Promise<void> => {
+  public inTransaction = async (action: TrainingTrx, name: string): Promise<void> => {
+    this._logger.debug(`Trx "${name}" started.`)
     await this._database.transaction(async (trx) => {
       const operation = async () => {
         try {
@@ -280,6 +281,8 @@ export class DbTrainingRepository implements TrainingRepository {
           return res
         } catch (err) {
           await trx.rollback(err)
+        } finally {
+          this._logger.debug(`Trx "${name}" done.`)
         }
       }
       return Promise.race([operation(), timeout(TRANSACTION_TIMEOUT_MS)])

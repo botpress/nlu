@@ -104,12 +104,22 @@ const briefId = (factors: Partial<ModelIdArgs>): Partial<ModelId> => {
   return briefedId
 }
 
+const areSame = (mid1: ModelId, mid2: ModelId) => {
+  return (
+    mid1.contentHash === mid2.contentHash &&
+    mid1.languageCode === mid2.languageCode &&
+    mid1.seed === mid2.seed &&
+    mid1.specificationHash === mid2.specificationHash
+  )
+}
+
 const modelIdService: ModelIdService = {
   toString,
   fromString,
   isId,
   makeId,
   briefId,
-  halfmd5
+  halfmd5,
+  areSame
 }
 export default modelIdService

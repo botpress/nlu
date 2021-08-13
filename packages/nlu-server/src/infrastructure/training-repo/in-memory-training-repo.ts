@@ -143,7 +143,7 @@ export default class InMemoryTrainingRepo implements TrainingRepository {
     return this._writtableRepo.teardown()
   }
 
-  public async inTransaction(trx: TrainingTrx): Promise<void> {
+  public async inTransaction(trx: TrainingTrx, name: string): Promise<void> {
     return this._taskQueue.runInQueue(() => trx(this._writtableRepo))
   }
 }
