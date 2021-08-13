@@ -1,4 +1,5 @@
 import { Logger } from '@botpress/logger'
+import { TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
@@ -22,7 +23,7 @@ const MS_BEFORE_PRUNE = ms('1h')
 
 class WrittableTrainingRepo implements WrittableTrainingRepository {
   private _trainSessions: {
-    [key: string]: TrainingState
+    [key: string]: { state: TrainingState; set: TrainInput }
   } = {}
 
   private _logger: Logger
@@ -50,14 +51,17 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
     return Bluebird.each(trainingsToPrune, (t) => this.delete(t.id))
   }
 
-  public async get(id: TrainingId): Promise<TrainingState | undefined> {
+  public async get(id: TrainingId): Promise<Training | undefined> {
     const key = this._makeTrainingKey(id)
-    return this._trainSessions[key]
+    const { set, state } = this._trainSessions[key]
+    return { id, state, set }
   }
 
-  public async set(id: TrainingId, state: TrainingState): Promise<void> {
+  public async set(training: Training): Promise<void> {
+    const { id, state, set } = training
     const key = this._makeTrainingKey(id)
-    this._trainSessions[key] = { ...state, updatedOn: new Date() }
+    const newState = { ...state, updatedOn: new Date() }
+    this._trainSessions[key] = { state: newState, set }
   }
 
   public async query(query: Partial<TrainingState>): Promise<Training[]> {
@@ -84,7 +88,7 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   private _getAllTrainings = (): Training[] => {
     return _(this._trainSessions)
       .toPairs()
-      .map(([key, state]) => ({ id: this._parseTrainingKey(key), state }))
+      .map(([key, value]) => ({ id: this._parseTrainingKey(key), state: value.state, set: value.set }))
       .value()
   }
 
@@ -119,7 +123,7 @@ export default class InMemoryTrainingRepo implements TrainingRepository {
     return this._writtableRepo.initialize()
   }
 
-  public async get(id: TrainingId): Promise<TrainingState | undefined> {
+  public async get(id: TrainingId): Promise<Training | undefined> {
     return this._writtableRepo.get(id)
   }
 

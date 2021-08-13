@@ -1,6 +1,7 @@
 import { Logger } from '@botpress/logger'
-import { http, TrainingError, TrainingErrorType, TrainingStatus } from '@botpress/nlu-client'
+import { http, TrainingError, TrainingErrorType, TrainingStatus, TrainInput } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
+import jsonpack from 'jsonpack'
 import Knex, { Transaction } from 'knex'
 import _ from 'lodash'
 import moment from 'moment'
@@ -26,6 +27,7 @@ const timeout = (ms: number) => {
 const KEY_JOIN_CHAR = '\u2581'
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
 const MS_BEFORE_PRUNE = ms('1h')
+const MAX_TRAIN_SET_SZ = 10 * 1024 * 1024 // 10Mb
 
 interface TableId {
   userId: string
@@ -38,13 +40,38 @@ interface TableRow extends TableId {
   error_message?: string
   error_stack?: string
   cluster?: string
+  set: string
   updatedOn: Knex.Raw | string
 }
 
 class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   constructor(protected _database: Knex, private _clusterId: string, public transaction: Transaction | null = null) {}
 
-  public async initialize(): Promise<void> {}
+  public async initialize(): Promise<void> {
+    await this._createTableIfNotExists(this._database, TABLE_NAME, (table) => {
+      table.string('userId').notNullable()
+      table.string('modelId').notNullable()
+      table.string('status').notNullable()
+      table.float('progress').notNullable()
+      table.string('set', MAX_TRAIN_SET_SZ).notNullable()
+      table.string('error_type').nullable()
+      table.string('error_message').nullable()
+      table.string('error_stack').nullable()
+      table.string('cluster').nullable()
+      table.timestamp('updatedOn').notNullable()
+      table.primary(['userId', 'modelId'])
+    })
+  }
+
+  private _createTableIfNotExists = async (knex: Knex, tableName: string, cb: Knex.KnexCallback): Promise<boolean> => {
+    return knex.schema.hasTable(tableName).then((exists) => {
+      if (exists) {
+        return false
+      }
+      return knex.schema.createTable(tableName, cb).then(() => true)
+    })
+  }
+
   public async teardown(): Promise<void> {}
 
   private get table() {
@@ -54,11 +81,11 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
     return this._database.table(TABLE_NAME)
   }
 
-  public set = async (trainId: TrainingId, trainState: TrainingState): Promise<void> => {
-    const row = this._trainingToRow({ id: trainId, state: trainState })
+  public set = async (training: Training): Promise<void> => {
+    const row = this._trainingToRow(training)
     const { userId, modelId } = row
 
-    if (await this.has(trainId)) {
+    if (await this.has(training.id)) {
       return this.table.where({ userId, modelId }).update(row)
     }
     return this.table.insert(row)
@@ -69,10 +96,10 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
     return result
   }
 
-  public get = async (trainId: TrainingId): Promise<TrainingState | undefined> => {
+  public get = async (trainId: TrainingId): Promise<Training | undefined> => {
     const tableId = this._trainIdToRow(trainId)
     const row: TableRow | undefined = await this.table.where(tableId).select('*').first()
-    return row && this._rowToTraining(row).state
+    return row && this._rowToTraining(row)
   }
 
   public query = async (query: Partial<TrainingState>): Promise<Training[]> => {
@@ -103,9 +130,11 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   private _trainingToRow(train: Training): TableRow {
     const id = this._trainIdToRow(train.id)
     const state = this._trainStateToRow(train.state)
+    const set = this.packTrainSet(train.set)
     return {
       ...id,
-      ...state
+      ...state,
+      set
     }
   }
 
@@ -134,7 +163,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
     return _.pickBy(rowFilters, _.identity)
   }
 
-  private _trainStateToRow = (state: TrainingState): Omit<TableRow, keyof TableId> => {
+  private _trainStateToRow = (state: TrainingState): Omit<TableRow, keyof TableId | 'set'> => {
     const { progress, status, error } = state
     const { type: error_type, message: error_message, stackTrace: error_stack } = error || {}
     return {
@@ -162,7 +191,8 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       error_message,
       error_stack,
       cluster,
-      updatedOn
+      updatedOn,
+      set
     } = row
     const { appId, appSecret } = this._parseUserId(userId)
 
@@ -179,7 +209,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
         : undefined
 
     const state: TrainingState = { status, progress, error, cluster, updatedOn: new Date(updatedOn as any) }
-    return { id, state }
+    return { id, state, set: this.unpackTrainSet(set) }
   }
 
   private _now() {
@@ -195,6 +225,20 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
     const [appId, appSecret] = userId.split(KEY_JOIN_CHAR)
     return { appId, appSecret }
   }
+
+  private packTrainSet(ts: TrainInput): string {
+    const packed = jsonpack.pack(ts)
+    if (packed.length > MAX_TRAIN_SET_SZ) {
+      throw new Error(
+        `Train input can\'t be compressed smaller than the max allowed size which is ${MAX_TRAIN_SET_SZ} characters.`
+      )
+    }
+    return packed
+  }
+
+  private unpackTrainSet(compressed: string): TrainInput {
+    return jsonpack.unpack<TrainInput>(compressed)
+  }
 }
 
 export class DbTrainingRepository implements TrainingRepository {
@@ -209,18 +253,7 @@ export class DbTrainingRepository implements TrainingRepository {
   }
 
   public initialize = async (): Promise<void> => {
-    await this._createTableIfNotExists(this._database, TABLE_NAME, (table) => {
-      table.string('userId').notNullable()
-      table.string('modelId').notNullable()
-      table.string('status').notNullable()
-      table.float('progress').notNullable()
-      table.string('error_type').nullable()
-      table.string('error_message').nullable()
-      table.string('error_stack').nullable()
-      table.string('cluster').nullable()
-      table.timestamp('updatedOn').notNullable()
-      table.primary(['userId', 'modelId'])
-    })
+    return this._writtableTrainingRepo.initialize()
   }
 
   public async teardown(): Promise<void> {
@@ -235,15 +268,6 @@ export class DbTrainingRepository implements TrainingRepository {
       this._logger.debug(`Pruning ${nDeletions} training state from database`)
     }
     return
-  }
-
-  private _createTableIfNotExists = async (knex: Knex, tableName: string, cb: Knex.KnexCallback): Promise<boolean> => {
-    return knex.schema.hasTable(tableName).then((exists) => {
-      if (exists) {
-        return false
-      }
-      return knex.schema.createTable(tableName, cb).then(() => true)
-    })
   }
 
   public inTransaction = async (action: TrainingTrx): Promise<void> => {
@@ -262,7 +286,7 @@ export class DbTrainingRepository implements TrainingRepository {
     })
   }
 
-  public get = async (trainId: TrainingId): Promise<TrainingState | undefined> => {
+  public get = async (trainId: TrainingId): Promise<Training | undefined> => {
     return this._writtableTrainingRepo.get(trainId)
   }
 
