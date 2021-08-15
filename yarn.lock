@@ -1443,6 +1443,11 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
 
+"@types/jsonpack@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@types/jsonpack/-/jsonpack-1.1.1.tgz#d5d3e057c409db0d411dfa65183e0785806fd14b"
+  integrity sha512-phk55nFPFXddwxExpnshV2a40Gre+YbhDtAMBc0twoYVDqOOems5cZk1sOdWam+SAUuLbhBP39wuG0PkrAJjPg==
+
 "@types/lodash@^4.14.116":
   version "4.14.123"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.123.tgz#39be5d211478c8dd3bdae98ee75bb7efe4abfe4d"
@@ -5871,6 +5876,11 @@ jsonlint-mod@^1.7.5:
     JSV "^4.0.2"
     chalk "^2.4.2"
     underscore "^1.9.1"
+
+jsonpack@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/jsonpack/-/jsonpack-1.1.5.tgz#d42b0dcfd91ac58ef3110f96d2c599404c3dc27c"
+  integrity sha1-1CsNz9kaxY7zEQ+W0sWZQEw9wnw=
 
 jsonparse@^1.2.0:
   version "1.3.1"

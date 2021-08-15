@@ -68,19 +68,21 @@ export class Application {
   }
 
   public async getTrainingState(modelId: ModelId, credentials: http.Credentials): Promise<TrainingState> {
-    let session = await this._trainingRepo.get({ ...modelId, ...credentials })
-    if (!session) {
-      const model = await this._modelRepo.getModel(modelId, credentials)
-      if (!model) {
-        throw new TrainingNotFoundError(modelId)
-      }
-
-      session = {
-        status: 'done',
-        progress: 1
-      }
+    const session = await this._trainingRepo.get({ ...modelId, ...credentials })
+    if (session) {
+      const { state } = session
+      return state
     }
-    return session
+
+    const model = await this._modelRepo.getModel(modelId, credentials)
+    if (!model) {
+      throw new TrainingNotFoundError(modelId)
+    }
+
+    return {
+      status: 'done',
+      progress: 1
+    }
   }
 
   public async cancelTraining(modelId: ModelId, credentials: http.Credentials): Promise<void> {

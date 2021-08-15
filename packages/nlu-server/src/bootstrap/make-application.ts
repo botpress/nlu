@@ -4,11 +4,9 @@ import knex from 'knex'
 import { nanoid } from 'nanoid'
 import PGPubsub from 'pg-pubsub'
 import { Application } from '../application'
-import { DistributedApp } from '../application/distributed'
-import TrainingQueue from '../application/training-queue'
+import { DistributedTrainingQueue } from '../application/distributed-training-queue'
 import { makeGhost } from '../infrastructure/make-ghost'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { TrainingSetRepository } from '../infrastructure/train-set-repo'
 import { DbTrainingRepository } from '../infrastructure/training-repo/db-training-repo'
 import InMemoryTrainingRepo from '../infrastructure/training-repo/in-memory-training-repo'
 import { DBBroadcaster, InMemoryBroadcaster } from '../utils/broadcast'
@@ -46,24 +44,23 @@ export const makeApplication = async (
   await ghost.initialize(!!databaseURL)
 
   const modelRepo = new ModelRepository(ghost, baseLogger)
-  const trainSetRepo = new TrainingSetRepository(ghost, baseLogger)
 
   const trainSessionService = databaseURL
     ? new DbTrainingRepository(makeKnexDb(databaseURL), baseLogger, CLUSTER_ID)
     : new InMemoryTrainingRepo(baseLogger)
 
-  const trainService = new TrainingQueue(baseLogger, engine, modelRepo, trainSessionService, trainSetRepo, CLUSTER_ID)
-
   const broadcaster = databaseURL ? makeBroadcaster(databaseURL) : new InMemoryBroadcaster()
-  const application = new DistributedApp(
+  const trainingQueue = new DistributedTrainingQueue(
+    baseLogger,
+    engine,
     modelRepo,
     trainSessionService,
-    trainService,
-    engine,
-    serverVersion,
-    baseLogger,
+    CLUSTER_ID,
     broadcaster
   )
+  await trainingQueue.initialize()
+
+  const application = new Application(modelRepo, trainSessionService, trainingQueue, engine, serverVersion, baseLogger)
   await application.initialize()
 
   return application

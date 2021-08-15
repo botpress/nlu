@@ -75,7 +75,7 @@ export type EntityDefinition = ListEntityDefinition | PatternEntityDefinition
  */
 export type TrainingStatus = 'done' | 'training-pending' | 'training' | 'canceled' | 'errored'
 
-export type TrainingErrorType = 'already-started' | 'unknown'
+export type TrainingErrorType = 'already-started' | 'zombie-training' | 'unknown'
 
 export interface TrainingError {
   type: TrainingErrorType

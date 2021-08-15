@@ -19,6 +19,7 @@ export const run: typeof sdk.run = async (cliOptions: CommandLineOptions) => {
 
   const baseLogger = makeLogger({
     level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
+    minLevel: LoggerLevel.Error,
     filters: options.logFilter
   })
 

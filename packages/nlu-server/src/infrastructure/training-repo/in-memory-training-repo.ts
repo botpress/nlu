@@ -1,4 +1,5 @@
 import { Logger } from '@botpress/logger'
+import { TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
@@ -20,9 +21,14 @@ const KEY_JOIN_CHAR = '\u2581'
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
 const MS_BEFORE_PRUNE = ms('1h')
 
+interface TrainEntry {
+  state: TrainingState & { updatedOn: Date }
+  set: TrainInput
+}
+
 class WrittableTrainingRepo implements WrittableTrainingRepository {
   private _trainSessions: {
-    [key: string]: TrainingState
+    [key: string]: TrainEntry
   } = {}
 
   private _logger: Logger
@@ -50,14 +56,21 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
     return Bluebird.each(trainingsToPrune, (t) => this.delete(t.id))
   }
 
-  public async get(id: TrainingId): Promise<TrainingState | undefined> {
+  public async get(id: TrainingId): Promise<Training | undefined> {
     const key = this._makeTrainingKey(id)
-    return this._trainSessions[key]
+    const currentTraining = this._trainSessions[key]
+    if (!currentTraining) {
+      return
+    }
+    const { set, state } = currentTraining
+    return { id, state, set }
   }
 
-  public async set(id: TrainingId, state: TrainingState): Promise<void> {
+  public async set(training: Training): Promise<void> {
+    const { id, state, set } = training
     const key = this._makeTrainingKey(id)
-    this._trainSessions[key] = { ...state, updatedOn: new Date() }
+    const newState = { ...state, updatedOn: new Date() }
+    this._trainSessions[key] = { state: newState, set }
   }
 
   public async query(query: Partial<TrainingState>): Promise<Training[]> {
@@ -81,10 +94,10 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
     return queryResult
   }
 
-  private _getAllTrainings = (): Training[] => {
+  private _getAllTrainings = (): ({ id: TrainingId } & TrainEntry)[] => {
     return _(this._trainSessions)
       .toPairs()
-      .map(([key, state]) => ({ id: this._parseTrainingKey(key), state }))
+      .map(([key, value]) => ({ id: this._parseTrainingKey(key), state: value.state, set: value.set }))
       .value()
   }
 
@@ -119,7 +132,7 @@ export default class InMemoryTrainingRepo implements TrainingRepository {
     return this._writtableRepo.initialize()
   }
 
-  public async get(id: TrainingId): Promise<TrainingState | undefined> {
+  public async get(id: TrainingId): Promise<Training | undefined> {
     return this._writtableRepo.get(id)
   }
 
@@ -139,7 +152,7 @@ export default class InMemoryTrainingRepo implements TrainingRepository {
     return this._writtableRepo.teardown()
   }
 
-  public async inTransaction(trx: TrainingTrx): Promise<void> {
+  public async inTransaction(trx: TrainingTrx, name: string): Promise<void> {
     return this._taskQueue.runInQueue(() => trx(this._writtableRepo))
   }
 }

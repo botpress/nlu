@@ -4,7 +4,15 @@
  * ############
  */
 
-import { TrainingState, PredictOutput, IntentDefinition, EntityDefinition, Specifications, Health } from './sdk'
+import {
+  TrainingState,
+  PredictOutput,
+  IntentDefinition,
+  EntityDefinition,
+  Specifications,
+  Health,
+  ServerInfo
+} from './sdk'
 
 export interface Credentials {
   appId: string
