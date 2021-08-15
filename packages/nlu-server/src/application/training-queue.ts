@@ -1,5 +1,5 @@
 import { Logger } from '@botpress/logger'
-import { TrainingErrorType, TrainInput, http, TrainingStatus } from '@botpress/nlu-client'
+import { TrainingErrorType, TrainInput, http, TrainingStatus, TrainingError } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
@@ -23,7 +23,7 @@ const MAX_TRAINING_HEARTBEAT = ms('1m')
 
 export default class TrainingQueue {
   private logger: Logger
-  private task: WatchDog<[]>
+  private task!: WatchDog<[]>
 
   constructor(
     logger: Logger,
@@ -33,6 +33,9 @@ export default class TrainingQueue {
     private _clusterId: string
   ) {
     this.logger = logger.sub('training-queue')
+  }
+
+  public async initialize() {
     this.task = watchDog(this._runTask.bind(this), MAX_TRAINING_HEARTBEAT / 2)
   }
 
@@ -69,10 +72,10 @@ export default class TrainingQueue {
 
     // to return asap
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.task.run()
+    this.runTask()
   }
 
-  public cancelTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials) => {
+  public async cancelTraining(modelId: NLUEngine.ModelId, credentials: http.Credentials): Promise<void> {
     const trainId: TrainingId = { ...modelId, ...credentials }
     const trainKey = this._toKey(trainId)
 
@@ -111,6 +114,10 @@ export default class TrainingQueue {
     }, 'cancelTraining')
   }
 
+  protected async runTask() {
+    return this.task.run()
+  }
+
   private _runTask = async () => {
     return this.trainingRepo.inTransaction(async (repo) => {
       const localTrainings = await repo.query({ cluster: this._clusterId, status: 'training' })
@@ -121,7 +128,11 @@ export default class TrainingQueue {
       const zombieTrainings = await this._getZombies(repo)
       if (zombieTrainings.length) {
         this.logger.debug(`Queuing back ${zombieTrainings.length} trainings because they seem to be zombies.`)
-        const newState: TrainingState = { status: 'training-pending', progress: 0, cluster: this._clusterId }
+        const error: TrainingError = {
+          type: 'zombie-training',
+          message: `Zombie Training: Training had not been updated in more than ${MAX_TRAINING_HEARTBEAT} ms.`
+        }
+        const newState: TrainingState = { status: 'errored', progress: 0, cluster: this._clusterId, error }
         await Bluebird.each(zombieTrainings, (z) => repo.set({ ...z, state: newState }))
       }
 
@@ -171,11 +182,12 @@ export default class TrainingQueue {
         return repo.set({ ...training, state: ts })
       }, 'progressCallback')
     }
-    const throttledCb = _.throttle(progressCb, 5000)
+    const throttledCb = _.throttle(progressCb, ms('5s'))
 
     try {
       const trainKey = this._toKey({ ...modelId, ...credentials })
       const model = await this.engine.train(trainKey, trainInput, { progressCallback: throttledCb })
+      throttledCb.flush()
 
       const { language: languageCode } = trainInput
       await this.modelRepo.pruneModels({ ...credentials, keep: MAX_MODEL_PER_USER_PER_LANG }, { languageCode }) // TODO: make the max amount of models on FS (by appId + lang) configurable
@@ -186,15 +198,17 @@ export default class TrainingQueue {
       ts.status = 'done'
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set({ ...training, state: ts })
-      }, 'done')
+      }, '_train_done')
     } catch (err) {
+      throttledCb.cancel()
+
       if (NLUEngine.errors.isTrainingCanceled(err)) {
         this.logger.info(`[${trainKey}] Training Canceled.`)
 
         ts.status = 'canceled'
         await this.trainingRepo.inTransaction(async (repo) => {
           return repo.set({ ...training, state: ts })
-        }, 'canceled')
+        }, '_train_canceled')
         return
       }
 
@@ -204,7 +218,7 @@ export default class TrainingQueue {
 
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set({ ...training, state: ts })
-      }, 'errored')
+      }, '_train_errored')
 
       if (type === 'unknown') {
         this.logger.attachError(err).error('an error occured during training')
@@ -212,7 +226,7 @@ export default class TrainingQueue {
     } finally {
       // to return asap
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.task.run()
+      this.runTask()
     }
   }
 

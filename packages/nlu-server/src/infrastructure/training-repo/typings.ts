@@ -23,7 +23,6 @@ export interface TrainingRepository extends ReadonlyTrainingRepository {
 export type TrainingId = ModelId & http.Credentials
 export type TrainingState = TrainingStateDto & {
   cluster: string
-  updatedOn?: Date
 }
 
 export interface Training {

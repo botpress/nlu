@@ -41,7 +41,7 @@ interface TableRow extends TableId {
   error_stack?: string
   cluster: string
   set: string
-  updatedOn: Knex.Raw | string
+  updatedOn: string
 }
 
 class DbWrittableTrainingRepo implements WrittableTrainingRepository {
@@ -148,7 +148,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _partialTrainStateToQuery = (state: Partial<TrainingState>): Partial<Omit<TableRow, keyof TableId>> => {
-    const { progress, status, error, updatedOn, cluster } = state
+    const { progress, status, error, cluster } = state
     const { type: error_type, message: error_message, stackTrace: error_stack } = error || {}
     const rowFilters = {
       status,
@@ -156,11 +156,9 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       error_type,
       error_message,
       error_stack,
-      cluster,
-      updatedOn: updatedOn && this._toISO(updatedOn)
+      cluster
     }
-
-    return _.pickBy(rowFilters, _.identity)
+    return _.pickBy(rowFilters, _.negate(_.isUndefined))
   }
 
   private _trainStateToRow = (state: TrainingState): Omit<TableRow, keyof TableId | 'set'> => {
@@ -173,7 +171,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       error_message,
       error_stack,
       cluster: this._clusterId,
-      updatedOn: this._now()
+      updatedOn: this._toISO(new Date())
     }
   }
 
@@ -208,12 +206,8 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
           }
         : undefined
 
-    const state: TrainingState = { status, progress, error, cluster, updatedOn: new Date(updatedOn as any) }
+    const state: TrainingState = { status, progress, error, cluster }
     return { id, state, set: this.unpackTrainSet(set) }
-  }
-
-  private _now() {
-    return this._database.raw('now()')
   }
 
   private _makeUserId(creds: http.Credentials) {

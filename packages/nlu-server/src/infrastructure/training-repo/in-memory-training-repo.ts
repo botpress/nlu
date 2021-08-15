@@ -21,9 +21,14 @@ const KEY_JOIN_CHAR = '\u2581'
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
 const MS_BEFORE_PRUNE = ms('1h')
 
+interface TrainEntry {
+  state: TrainingState & { updatedOn: Date }
+  set: TrainInput
+}
+
 class WrittableTrainingRepo implements WrittableTrainingRepository {
   private _trainSessions: {
-    [key: string]: { state: TrainingState; set: TrainInput }
+    [key: string]: TrainEntry
   } = {}
 
   private _logger: Logger
@@ -85,7 +90,7 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
     return queryResult
   }
 
-  private _getAllTrainings = (): Training[] => {
+  private _getAllTrainings = (): ({ id: TrainingId } & TrainEntry)[] => {
     return _(this._trainSessions)
       .toPairs()
       .map(([key, value]) => ({ id: this._parseTrainingKey(key), state: value.state, set: value.set }))
