@@ -58,7 +58,11 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
 
   public async get(id: TrainingId): Promise<Training | undefined> {
     const key = this._makeTrainingKey(id)
-    const { set, state } = this._trainSessions[key]
+    const currentTraining = this._trainSessions[key]
+    if (!currentTraining) {
+      return
+    }
+    const { set, state } = currentTraining
     return { id, state, set }
   }
 
