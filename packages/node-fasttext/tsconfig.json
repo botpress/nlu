@@ -7,5 +7,6 @@
     "types": ["jest", "node"],
     "composite": true
   },
-  "exclude": ["**/dist/", "**/node_modules/**/*.(ts|js)"]
+  "exclude": ["**/dist/", "**/node_modules/**/*.(ts|js)"],
+  "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
 }
