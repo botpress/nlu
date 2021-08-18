@@ -20,5 +20,6 @@
     "composite": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
 }

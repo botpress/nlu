@@ -7,6 +7,7 @@
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
     "types": ["node"],
     "baseUrl": ".",
-    "composite": true
+    "composite": true,
+    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
   }
 }
