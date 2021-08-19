@@ -15,7 +15,8 @@
   "devDependencies": {
     "@types/lodash": "^4.14.116",
     "@types/fs-extra": "^5.0.4",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "@types/node": "^12.13.0"
   },
   "scripts": {
     "start": "node ./dist/index.js",
