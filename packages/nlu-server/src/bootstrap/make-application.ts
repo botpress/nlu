@@ -5,11 +5,12 @@ import { nanoid } from 'nanoid'
 import PGPubsub from 'pg-pubsub'
 import { Application } from '../application'
 import { DistributedTrainingQueue } from '../application/distributed-training-queue'
+import TrainingQueue from '../application/training-queue'
 import { makeGhost } from '../infrastructure/make-ghost'
 import { ModelRepository } from '../infrastructure/model-repo'
 import { DbTrainingRepository } from '../infrastructure/training-repo/db-training-repo'
 import InMemoryTrainingRepo from '../infrastructure/training-repo/in-memory-training-repo'
-import { DBBroadcaster, InMemoryBroadcaster } from '../utils/broadcast'
+import { Broadcaster } from '../utils/broadcast'
 import { NLUServerOptions } from './config'
 import { makeEngine } from './make-engine'
 
@@ -27,7 +28,7 @@ const makeBroadcaster = (dbURL: string) => {
   const pubsub = new PGPubsub(dbURL, {
     log: dummyLogger
   })
-  return new DBBroadcaster(pubsub)
+  return new Broadcaster(pubsub)
 }
 
 export const makeApplication = async (
@@ -38,29 +39,23 @@ export const makeApplication = async (
 ): Promise<Application> => {
   const engine = await makeEngine(options, baseLogger.sub('Engine'))
 
-  const { dbURL: databaseURL, modelDir } = options
+  const { dbURL, modelDir } = options
 
-  const ghost = makeGhost(baseLogger, modelDir!, watcher, databaseURL)
-  await ghost.initialize(!!databaseURL)
+  const ghost = makeGhost(baseLogger, modelDir!, watcher, dbURL)
+  await ghost.initialize(!!dbURL)
 
   const modelRepo = new ModelRepository(ghost, baseLogger)
 
-  const trainSessionService = databaseURL
-    ? new DbTrainingRepository(makeKnexDb(databaseURL), baseLogger, CLUSTER_ID)
+  const trainRepo = dbURL
+    ? new DbTrainingRepository(makeKnexDb(dbURL), baseLogger, CLUSTER_ID)
     : new InMemoryTrainingRepo(baseLogger)
 
-  const broadcaster = databaseURL ? makeBroadcaster(databaseURL) : new InMemoryBroadcaster()
-  const trainingQueue = new DistributedTrainingQueue(
-    baseLogger,
-    engine,
-    modelRepo,
-    trainSessionService,
-    CLUSTER_ID,
-    broadcaster
-  )
+  const trainingQueue = dbURL
+    ? new DistributedTrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, baseLogger, makeBroadcaster(dbURL))
+    : new TrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, baseLogger)
   await trainingQueue.initialize()
 
-  const application = new Application(modelRepo, trainSessionService, trainingQueue, engine, serverVersion, baseLogger)
+  const application = new Application(modelRepo, trainRepo, trainingQueue, engine, serverVersion, baseLogger)
   await application.initialize()
 
   return application

@@ -7,11 +7,7 @@ interface Task<X extends any[]> {
   run: Func<X, Promise<void>>
 }
 
-export interface Broadcaster {
-  broadcast<X extends any[]>(t: Task<X>): Promise<Func<X, Promise<void>>>
-}
-
-export class DBBroadcaster implements Broadcaster {
+export class Broadcaster {
   public constructor(private _pubsub: PGPubSub) {}
 
   public async broadcast<X extends any[]>(t: Task<X>): Promise<Func<X, Promise<void>>> {
@@ -20,11 +16,5 @@ export class DBBroadcaster implements Broadcaster {
     return (...x: X) => {
       return this._pubsub.publish(t.name, x)
     }
-  }
-}
-
-export class InMemoryBroadcaster implements Broadcaster {
-  public async broadcast<X extends any[]>(t: Task<X>): Promise<Func<X, Promise<void>>> {
-    return t.run
   }
 }

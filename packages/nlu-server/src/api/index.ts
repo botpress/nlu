@@ -21,7 +21,7 @@ import {
   validateDetectLangInput
 } from './validation/validate'
 
-export interface APIOptions {
+interface APIOptions {
   host: string
   port: number
   authToken?: string
@@ -29,12 +29,6 @@ export interface APIOptions {
   limit: number
   bodySize: string
   batchSize: number
-  modelCacheSize: string
-  dbURL?: string
-  modelDir?: string
-  verbose: number
-  doc: boolean
-  logFilter?: string[]
   apmEnabled?: boolean
   apmSampleRate?: number
 }

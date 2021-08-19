@@ -4,21 +4,22 @@ import { Engine, ModelId } from '@botpress/nlu-engine'
 import { ModelRepository } from '../infrastructure/model-repo'
 import { TrainingRepository } from '../infrastructure/training-repo/typings'
 import { Broadcaster } from '../utils/broadcast'
-import TrainingQueue from './training-queue'
+import TrainingQueue, { QueueOptions } from './training-queue'
 
 export class DistributedTrainingQueue extends TrainingQueue {
   private _broadcastCancelTraining!: (modelId: ModelId, credentials: http.Credentials) => Promise<void>
   private _broadcastRunTask!: () => Promise<void>
 
   constructor(
-    logger: Logger,
     engine: Engine,
     modelRepo: ModelRepository,
     trainingRepo: TrainingRepository,
     clusterId: string,
-    private _broadcaster: Broadcaster
+    logger: Logger,
+    private _broadcaster: Broadcaster,
+    opt?: Partial<QueueOptions>
   ) {
-    super(logger, engine, modelRepo, trainingRepo, clusterId)
+    super(engine, modelRepo, trainingRepo, clusterId, logger, opt)
   }
 
   public async initialize() {

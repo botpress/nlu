@@ -1,6 +1,5 @@
 import bytes from 'bytes'
 import fse from 'fs-extra'
-import { APIOptions } from '../api'
 import { getAppDataPath } from '../app-data'
 
 interface LanguageSource {
@@ -8,7 +7,26 @@ interface LanguageSource {
   authToken?: string
 }
 
-export type CommandLineOptions = APIOptions & {
+interface BaseOptions {
+  host: string
+  port: number
+  authToken?: string
+  limitWindow: string
+  limit: number
+  bodySize: string
+  batchSize: number
+  modelCacheSize: string
+  dbURL?: string
+  modelDir?: string
+  verbose: number
+  doc: boolean
+  logFilter?: string[]
+  apmEnabled?: boolean
+  apmSampleRate?: number
+  maxTraining: number
+}
+
+export type CommandLineOptions = BaseOptions & {
   languageURL: string
   languageAuthToken?: string
   ducklingURL: string
@@ -16,7 +34,7 @@ export type CommandLineOptions = APIOptions & {
   config?: string
 }
 
-export type NLUServerOptions = APIOptions & {
+export type NLUServerOptions = BaseOptions & {
   languageSources: LanguageSource[] // when passed by env variable, there can be more than one lang server
   ducklingURL: string
   ducklingEnabled: boolean
@@ -38,7 +56,8 @@ const DEFAULT_OPTIONS: NLUServerOptions = {
   doc: false,
   logFilter: undefined,
   legacyElection: false,
-  modelDir: getAppDataPath()
+  modelDir: getAppDataPath(),
+  maxTraining: 2
 }
 
 export type ConfigSource = 'environment' | 'cli' | 'file'

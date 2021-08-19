@@ -18,21 +18,30 @@ import { watchDog, WatchDog } from '../utils/watch-dog'
 import { TrainingNotFoundError } from './errors'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
-const MAX_TRAINING_PER_INSTANCE = 2
 const MAX_TRAINING_HEARTBEAT = ms('1m')
+
+export interface QueueOptions {
+  maxTraining: number
+}
+const DEFAULT_OPTIONS: QueueOptions = {
+  maxTraining: 2
+}
 
 export default class TrainingQueue {
   private logger: Logger
+  private options: QueueOptions
   private task!: WatchDog<[]>
 
   constructor(
-    logger: Logger,
     private engine: NLUEngine.Engine,
     private modelRepo: ModelRepository,
     private trainingRepo: TrainingRepository,
-    private _clusterId: string
+    private _clusterId: string,
+    logger: Logger,
+    opt: Partial<QueueOptions> = {}
   ) {
     this.logger = logger.sub('training-queue')
+    this.options = { ...DEFAULT_OPTIONS, ..._.pickBy(opt) }
   }
 
   public async initialize() {
@@ -52,7 +61,7 @@ export default class TrainingQueue {
       const currentTraining = await repo.get(id)
       if (currentTraining && currentTraining.state.status === 'training') {
         this.logger.debug(`Not queuing because training "${trainKey}" already started...`)
-        return // TODO: log something for trianing already started...
+        return // TODO: log something for training already started...
       }
 
       const state: TrainingState = {
@@ -121,7 +130,7 @@ export default class TrainingQueue {
   private _runTask = async () => {
     return this.trainingRepo.inTransaction(async (repo) => {
       const localTrainings = await repo.query({ cluster: this._clusterId, status: 'training' })
-      if (localTrainings.length >= MAX_TRAINING_PER_INSTANCE) {
+      if (localTrainings.length >= this.options.maxTraining) {
         return
       }
 

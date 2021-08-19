@@ -26,7 +26,8 @@ const options: NLUServerOptions = {
   ducklingURL: 'https://duckling.botpress.io',
   ducklingEnabled: true,
   legacyElection: false,
-  modelDir: 'testdir'
+  modelDir: 'testdir',
+  maxTraining: 2
 }
 
 const baseLogger = makeLogger()
