@@ -11,6 +11,7 @@
     "@botpress/logger": "*",
     "@botpress/nlu-client": "*",
     "@botpress/nlu-engine": "*",
+    "@botpress/locks": "*",
     "@sentry/node": "^6.9.0",
     "@sentry/tracing": "^6.9.0",
     "@types/nanoid": "^3.0.0",

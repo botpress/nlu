@@ -1,3 +1,4 @@
+import { makePostgresTrxQueue } from '@botpress/locks'
 import { Logger } from '@botpress/logger'
 import chokidar from 'chokidar'
 import knex from 'knex'
@@ -46,12 +47,22 @@ export const makeApplication = async (
 
   const modelRepo = new ModelRepository(ghost, baseLogger)
 
+  const loggingCb = (msg: string) => baseLogger.sub('trx-queue').debug(msg)
+
   const trainRepo = dbURL
-    ? new DbTrainingRepository(makeKnexDb(dbURL), baseLogger, CLUSTER_ID)
+    ? new DbTrainingRepository(makeKnexDb(dbURL), makePostgresTrxQueue(dbURL, loggingCb), baseLogger, CLUSTER_ID)
     : new InMemoryTrainingRepo(baseLogger)
 
   const trainingQueue = dbURL
-    ? new DistributedTrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, baseLogger, makeBroadcaster(dbURL))
+    ? new DistributedTrainingQueue(
+        engine,
+        modelRepo,
+        trainRepo,
+        CLUSTER_ID,
+        baseLogger,
+        makeBroadcaster(dbURL),
+        options
+      )
     : new TrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, baseLogger)
   await trainingQueue.initialize()
 

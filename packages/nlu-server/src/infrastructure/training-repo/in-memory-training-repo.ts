@@ -1,3 +1,4 @@
+import { makeInMemoryTrxQueue, LockedTransactionQueue } from '@botpress/locks'
 import { Logger } from '@botpress/logger'
 import { TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
@@ -5,7 +6,6 @@ import Bluebird from 'bluebird'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
-import { AsynchronousTaskQueue } from './async-task-queue'
 
 import {
   Training,
@@ -120,11 +120,12 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
 }
 
 export default class InMemoryTrainingRepo implements TrainingRepository {
-  private _taskQueue: AsynchronousTaskQueue<void>
+  private _trxQueue: LockedTransactionQueue<void>
   private _writtableRepo: WrittableTrainingRepo
 
   constructor(logger: Logger) {
-    this._taskQueue = new AsynchronousTaskQueue()
+    const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)
+    this._trxQueue = makeInMemoryTrxQueue(logCb)
     this._writtableRepo = new WrittableTrainingRepo(logger)
   }
 
@@ -153,6 +154,9 @@ export default class InMemoryTrainingRepo implements TrainingRepository {
   }
 
   public async inTransaction(trx: TrainingTrx, name: string): Promise<void> {
-    return this._taskQueue.runInQueue(() => trx(this._writtableRepo))
+    return this._trxQueue.runInLock({
+      name,
+      cb: () => trx(this._writtableRepo)
+    })
   }
 }

@@ -1,3 +1,4 @@
+import { LockedTransactionQueue } from '@botpress/locks'
 import { Logger } from '@botpress/logger'
 import { http, TrainingError, TrainingErrorType, TrainingStatus, TrainInput } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
@@ -18,8 +19,8 @@ import {
 const TABLE_NAME = 'nlu_trainings'
 const TRANSACTION_TIMEOUT_MS = ms('5s')
 
-const timeout = (ms: number) => {
-  return new Promise((_, reject) => {
+const timeout = <T>(ms: number) => {
+  return new Promise<T>((_, reject) => {
     setTimeout(() => reject(new Error("Transaction exceeded it's time limit")), ms)
   })
 }
@@ -45,7 +46,7 @@ interface TableRow extends TableId {
 }
 
 class DbWrittableTrainingRepo implements WrittableTrainingRepository {
-  constructor(protected _database: Knex, private _clusterId: string, public transaction: Transaction | null = null) {}
+  constructor(protected _database: Knex, private _clusterId: string) {}
 
   public async initialize(): Promise<void> {
     await this._createTableIfNotExists(this._database, TABLE_NAME, (table) => {
@@ -75,9 +76,6 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   public async teardown(): Promise<void> {}
 
   private get table() {
-    if (this.transaction) {
-      return this._database.table(TABLE_NAME).transacting(this.transaction)
-    }
     return this._database.table(TABLE_NAME)
   }
 
@@ -240,18 +238,25 @@ export class DbTrainingRepository implements TrainingRepository {
   private _janitorIntervalId: NodeJS.Timeout | undefined
   private _logger: Logger
 
-  constructor(private _database: Knex, logger: Logger, private _clusterId: string) {
+  constructor(
+    private _database: Knex,
+    private _trxQueue: LockedTransactionQueue<void>,
+    logger: Logger,
+    private _clusterId: string
+  ) {
     this._writtableTrainingRepo = new DbWrittableTrainingRepo(_database, this._clusterId)
     this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
     this._logger = logger.sub('training-repo')
   }
 
   public initialize = async (): Promise<void> => {
-    return this._writtableTrainingRepo.initialize()
+    await this._writtableTrainingRepo.initialize()
+    await this._trxQueue.initialize()
   }
 
   public async teardown(): Promise<void> {
     this._janitorIntervalId && clearInterval(this._janitorIntervalId)
+    await this._trxQueue.teardown()
   }
 
   private async _janitor() {
@@ -265,21 +270,17 @@ export class DbTrainingRepository implements TrainingRepository {
   }
 
   public inTransaction = async (action: TrainingTrx, name: string): Promise<void> => {
-    this._logger.debug(`Trx "${name}" started.`)
-    await this._database.transaction(async (trx) => {
+    const cb = async () => {
       const operation = async () => {
-        try {
-          const ctx = new DbWrittableTrainingRepo(this._database, this._clusterId, trx)
-          const res = await action(ctx)
-          await trx.commit(res)
-          return res
-        } catch (err) {
-          await trx.rollback(err)
-        } finally {
-          this._logger.debug(`Trx "${name}" done.`)
-        }
+        const ctx = new DbWrittableTrainingRepo(this._database, this._clusterId)
+        return action(ctx)
       }
-      return Promise.race([operation(), timeout(TRANSACTION_TIMEOUT_MS)])
+      return Promise.race([operation(), timeout<void>(TRANSACTION_TIMEOUT_MS)])
+    }
+
+    return this._trxQueue.runInLock({
+      name,
+      cb
     })
   }
 
