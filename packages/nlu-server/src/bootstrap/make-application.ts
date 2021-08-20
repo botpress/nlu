@@ -13,7 +13,7 @@ export const makeApplication = async (
   baseLogger: Logger,
   watcher: chokidar.FSWatcher
 ): Promise<Application> => {
-  const engine = await makeEngine(options, baseLogger.sub('Launcher'))
+  const engine = await makeEngine(options, baseLogger.sub('Engine'))
 
   const { dbURL: databaseURL, modelDir } = options
   const modelRepoOptions: Partial<ModelRepoOptions> = databaseURL

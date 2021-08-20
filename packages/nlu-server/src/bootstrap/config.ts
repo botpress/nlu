@@ -36,7 +36,7 @@ const DEFAULT_OPTIONS: NLUServerOptions = {
   modelCacheSize: '2.5gb',
   verbose: 3,
   doc: false,
-  logFilter: [],
+  logFilter: undefined,
   legacyElection: false,
   modelDir: getAppDataPath()
 }
