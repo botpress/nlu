@@ -63,7 +63,7 @@
     /* Advanced Options */
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
-    "typeRoots": ["../../node_modules/@types", "./node_modules/@types"],
+    "typeRoots": ["./node_modules/@types"],
     "types": ["jest", "node"]
   },
   "exclude": ["**/dist/", "**/node_modules/**/*.(ts|js)"]

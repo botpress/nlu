@@ -1,10 +1,11 @@
 {
   "extends": "../../tsconfig.packages.json",
   "compilerOptions": {
-    "outDir": "./dist",                        /* Redirect output structure to the directory. */
-    "rootDir": ".",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
-    "forceConsistentCasingInFileNames": true,  /* Disallow inconsistently-cased references to the same file. */
+    "outDir": "./dist" /* Redirect output structure to the directory. */,
+    "rootDir": "." /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */,
+    "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
     "types": ["jest", "node"],
-    "composite": true
+    "composite": true,
+    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
   }
 }

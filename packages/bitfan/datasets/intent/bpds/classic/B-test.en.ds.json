@@ -1,0 +1,223 @@
+{
+  "name": "B-test",
+  "lang": "en",
+  "type": "intent",
+  "samples": [
+    {
+      "text": "hello",
+      "label": "oos"
+    },
+    {
+      "text": "hello how are you going",
+      "label": "oos"
+    },
+    {
+      "text": "what is your name",
+      "label": "oos"
+    },
+    {
+      "text": "how have you been",
+      "label": "oos"
+    },
+    {
+      "text": "what are your hobbies",
+      "label": "oos"
+    },
+    {
+      "text": "Tell me a joke",
+      "label": "oos"
+    },
+    {
+      "text": "I need help getting motivated",
+      "label": "oos"
+    },
+    {
+      "text": "how",
+      "label": "oos"
+    },
+    {
+      "text": "who built you",
+      "label": "oos"
+    },
+    {
+      "text": "what",
+      "label": "oos"
+    },
+    {
+      "text": "yes",
+      "label": "oos"
+    },
+    {
+      "text": "no",
+      "label": "oos"
+    },
+    {
+      "text": "please",
+      "label": "oos"
+    },
+    {
+      "text": "where",
+      "label": "oos"
+    },
+    {
+      "text": "menu",
+      "label": "oos"
+    },
+    {
+      "text": "options",
+      "label": "oos"
+    },
+    {
+      "text": "start",
+      "label": "oos"
+    },
+    {
+      "text": "what can you do",
+      "label": "oos"
+    },
+    {
+      "text": "what can you do for me",
+      "label": "oos"
+    },
+    {
+      "text": "what are your functionalities",
+      "label": "oos"
+    },
+    {
+      "text": "list of options",
+      "label": "oos"
+    },
+    {
+      "text": "choices",
+      "label": "oos"
+    },
+    {
+      "text": "I want",
+      "label": "oos"
+    },
+    {
+      "text": "I have",
+      "label": "oos"
+    },
+    {
+      "text": "I need",
+      "label": "oos"
+    },
+    {
+      "text": "I can't",
+      "label": "oos"
+    },
+    {
+      "text": "stop",
+      "label": "oos"
+    },
+    {
+      "text": "I can't continue",
+      "label": "oos"
+    },
+    {
+      "text": "I believe",
+      "label": "oos"
+    },
+    {
+      "text": "please give me",
+      "label": "oos"
+    },
+    {
+      "text": "tell me",
+      "label": "oos"
+    },
+    {
+      "text": "say something funny",
+      "label": "oos"
+    },
+    {
+      "text": "I want to buy a car",
+      "label": "oos"
+    },
+    {
+      "text": "I want to find your website",
+      "label": "oos"
+    },
+    {
+      "text": "I want to find your headquarter",
+      "label": "oos"
+    },
+    {
+      "text": "I want to locate you CEO",
+      "label": "oos"
+    },
+    {
+      "text": "How many employees work for your company",
+      "label": "oos"
+    },
+    {
+      "text": "how many locations do you have",
+      "label": "oos"
+    },
+    {
+      "text": "in what countries do you  operate",
+      "label": "oos"
+    },
+    {
+      "text": "are you available near me",
+      "label": "oos"
+    },
+    {
+      "text": "is there a location near me",
+      "label": "oos"
+    },
+    {
+      "text": "what is the street number of your HQ",
+      "label": "oos"
+    },
+    {
+      "text": "what is your postal code",
+      "label": "oos"
+    },
+    {
+      "text": "I want to mail you something",
+      "label": "oos"
+    },
+    {
+      "text": "i want to make a complaint",
+      "label": "oos"
+    },
+    {
+      "text": "are you human",
+      "label": "oos"
+    },
+    {
+      "text": "i have a complaint",
+      "label": "oos"
+    },
+    {
+      "text": "complaint",
+      "label": "oos"
+    },
+    {
+      "text": "wow",
+      "label": "oos"
+    },
+    {
+      "text": "that's bad",
+      "label": "oos"
+    },
+    {
+      "text": "that's sad",
+      "label": "oos"
+    },
+    {
+      "text": "I am really unhappy",
+      "label": "oos"
+    },
+    {
+      "text": "I am mad",
+      "label": "oos"
+    },
+    {
+      "text": "I'm mad",
+      "label": "oos"
+    }
+  ]
+}

@@ -37,11 +37,7 @@ export interface SuccessReponse {
 }
 
 export interface InfoResponseBody extends SuccessReponse {
-  info: {
-    specs: Specifications
-    health: Health
-    languages: string[]
-  }
+  info: ServerInfo
 }
 
 export interface TrainResponseBody extends SuccessReponse {

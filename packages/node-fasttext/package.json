@@ -10,7 +10,8 @@
   "scripts": {
     "install": ":",
     "build-native": "node-gyp install && node-gyp rebuild",
-    "build": "./node_modules/.bin/tsc"
+    "build": "./node_modules/.bin/tsc",
+    "test": "echo \"no tests\""
   },
   "repository": {
     "type": "git",
@@ -27,7 +28,7 @@
   },
   "homepage": "https://github.com/botpress/nlu/packages/node-fasttext#readme",
   "devDependencies": {
-    "@types/node": "^10.12.18",
+    "@types/node": "^12.13.0",
     "node-addon-api": "^3.0.0",
     "node-gyp": "^7.0.0",
     "typescript": "^3.9.7"

@@ -1,3 +1,27 @@
+## [0.1.4](https://github.com/botpress/nlu/compare/v0.1.3...v0.1.4) (2021-08-20)
+
+
+### Bug Fixes
+
+* **apm:** renamed sentry references to apm ([b07f312](https://github.com/botpress/nlu/commit/b07f3122a212a306a855c0099caffa7c54bc57c0))
+* **bitfan:** bring back e2e tests and datasets ([7f12f2f](https://github.com/botpress/nlu/commit/7f12f2fd5e201757c7692706b2307e0b5d0ed68b))
+* **lint:** applied linting to code ([774d32c](https://github.com/botpress/nlu/commit/774d32c4f5b414ebd4d22cbd8b4de027feee5f62))
+* **sentry:** use sentry enabled instead of DSN for the configuration ([e89301c](https://github.com/botpress/nlu/commit/e89301cb5d633b6ba9649bb0d9164235885e9308))
+* **style:** fix codestyle for tests, lint & formatting ([c9c572a](https://github.com/botpress/nlu/commit/c9c572a76110c6c54ef8a60bd727ae33e65eb018))
+* **worker:** fix node typings to pass environement variables correctly when spawning new thread ([#76](https://github.com/botpress/nlu/issues/76)) ([853a3f3](https://github.com/botpress/nlu/commit/853a3f3d7de38471cf4539dc395c6bf7b8ee9a27))
+* run unit tests of all yarn packages from the root ([26670d3](https://github.com/botpress/nlu/commit/26670d30de797f3fa8c95b55330270157a79f1d1))
+* **style:** fix codestyle for tests, lint & formatting ([cacbf94](https://github.com/botpress/nlu/commit/cacbf948a5f8589ce5bfd6402d3578b48c816497))
+* undefined logger in slot tagger ([b2c688d](https://github.com/botpress/nlu/commit/b2c688dbef69fbda677adc701a23843f47504499))
+
+
+### Features
+
+* **apm:** added Sentry to the NLU server ([bf23d66](https://github.com/botpress/nlu/commit/bf23d665f146dc9d3582d6e8f2bbb275664951c1))
+* **apm:** added Sentry to the NLU server ([72b458a](https://github.com/botpress/nlu/commit/72b458ab89ac014b871625035b43121e12a8f795))
+* **nlu-client:** allow nlu client extension by setting attributes to protected ([ee36ae7](https://github.com/botpress/nlu/commit/ee36ae7d4eb6b3ede0c7588595c139719f48ce21))
+
+
+
 ## [0.1.3](https://github.com/botpress/nlu/compare/v0.1.2...v0.1.3) (2021-07-07)
 
 

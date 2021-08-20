@@ -10,7 +10,7 @@ export class ThreadPool<I, O> extends WorkerPool<I, O> {
   }
 
   createWorker = async (entryPoint: string, env: NodeJS.ProcessEnv) => {
-    const worker = new Thread(entryPoint, { ...env })
+    const worker = new Thread(entryPoint, { env })
     return Worker.fromThread(worker)
   }
 

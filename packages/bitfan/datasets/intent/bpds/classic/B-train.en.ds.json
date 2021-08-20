@@ -1,0 +1,183 @@
+{
+  "name": "B-train",
+  "lang": "en",
+  "type": "intent",
+  "samples": [
+    {
+      "text": "Why is my app gone?",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "There is a problem with the app",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "The icon for the application has disappeared",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "The application no longer exists",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "The application doesn't exist for some reason",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "Something is not working right with app",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "My app is not working",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "I've got a problem with my app",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "I have a problem, the application doesn't exist anymore",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "I have an app problem",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "I can not see the application",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "I can no longer see the application on my computer",
+      "label": "b-application-gone"
+    },
+    {
+      "text": "I've got a problem with my screen",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "I have a problem with a locked screen",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "There is a problem with my screen",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "My screen is locked for some reason",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "My screen is not working",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "I can not unlock my screen",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "Why is my screen locked?",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "The application is not responding",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "Nothing is moving on my screen",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "My screen is locked",
+      "label": "b-locked-screen"
+    },
+    {
+      "text": "I have a login problem",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "I've got a problem with login",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "There is a problem with my login",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "I can't login in for some reason",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "My login is not working",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "I can not login",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "Why can't I login?",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "I've got an error when trying to loging",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "My username and password is not working",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "The logging in process is broken",
+      "label": "b-login-problem"
+    },
+    {
+      "text": "Why is my results different?",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": "There is an error in the result",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": "There is a problem with the result",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": "Something unknown is not working right",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": "My results are not what it is supposed to be",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": "I've got a problem with my results",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": "I'm not getting the results I expected",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": " I have a problem, I expected something different ",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": "I have an unknown problem",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": "I got the wrong results for some reason",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": "I expected a different result",
+      "label": "b-unexpected-result"
+    },
+    {
+      "text": " I can not get the right results ",
+      "label": "b-unexpected-result"
+    }
+  ]
+}

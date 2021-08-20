@@ -10,6 +10,7 @@
     "paths": {
       "bitfan/sdk": ["src/bitfan.d.ts"]
     },
-    "composite": true
+    "composite": true,
+    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
   }
 }

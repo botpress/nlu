@@ -1,7 +1,7 @@
 {
   "references": [
     {
-      "path": "./packages/nlu"
+      "path": "./packages/nlu-cli"
     },
     {
       "path": "./packages/e2e"

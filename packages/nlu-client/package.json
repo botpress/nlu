@@ -5,14 +5,16 @@
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "echo \"no tests\""
   },
   "dependencies": {
     "axios": "^0.21.1",
     "lodash": "^4.17.19"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.116"
+    "@types/lodash": "^4.14.116",
+    "@types/node": "^12.13.0"
   },
   "types": "./src/typings/index.d.ts",
   "main": "./dist/index.js"

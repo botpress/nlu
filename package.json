@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Botpress NLU; Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
@@ -8,10 +8,10 @@
     "type": "git",
     "url": "https://github.com/botpress/nlu.git"
   },
-  "bin": "./packages/nlu/dist/index.js",
+  "bin": "./packages/nlu-cli/dist/index.js",
   "pkg": {
     "scripts": [
-      "./packages/nlu/dist/**/*.js",
+      "./packages/nlu-cli/dist/**/*.js",
       "node_modules/@botpress/*/dist/**/*.js"
     ],
     "assets": [
@@ -22,12 +22,12 @@
   "scripts": {
     "postinstall": "yarn cmd config",
     "cmd": "yarn run gulp",
-    "dev": "yarn workspace @botpress/nlu-server dev",
-    "start": "cross-env node ./packages/nlu/dist/index.js",
-    "build": "cross-env tsc --build",
+    "dev": "yarn workspace @botpress/nlu-cli dev",
+    "start": "cross-env node ./packages/nlu-cli/dist/index.js",
+    "build": "tsc --build",
     "package": "yarn cmd package",
     "e2e": "yarn workspace e2e start",
-    "test": "yarn workspace @botpress/nlu-server test",
+    "test": "yarn workspaces run test",
     "prettier": "cross-env prettier --check './packages/**/*.ts' '!**/*.d.ts'",
     "prettier-fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "cross-env eslint packages/ --ext .ts",
