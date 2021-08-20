@@ -72,6 +72,10 @@ export class GhostService {
     this.useDbDriver = useDbDriver
     this._scopedGhosts.clear()
 
+    if (useDbDriver) {
+      await this.dbDriver.initialize()
+    }
+
     const global = await this.global().directoryListing('/')
 
     if (useDbDriver && !ignoreSync && _.isEmpty(global)) {

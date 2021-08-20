@@ -1,11 +1,36 @@
+import { makePostgresTrxQueue } from '@botpress/locks'
 import { Logger } from '@botpress/logger'
 import chokidar from 'chokidar'
+import knex from 'knex'
+import { nanoid } from 'nanoid'
+import PGPubsub from 'pg-pubsub'
 import { Application } from '../application'
-import TrainService from '../application/train-service'
-import { ModelRepoOptions, ModelRepository } from '../infrastructure/model-repo'
-import TrainSessionService from '../infrastructure/train-session-service'
+import { DistributedTrainingQueue } from '../application/distributed-training-queue'
+import TrainingQueue from '../application/training-queue'
+import { makeGhost } from '../infrastructure/make-ghost'
+import { ModelRepository } from '../infrastructure/model-repo'
+import { DbTrainingRepository } from '../infrastructure/training-repo/db-training-repo'
+import InMemoryTrainingRepo from '../infrastructure/training-repo/in-memory-training-repo'
+import { Broadcaster } from '../utils/broadcast'
 import { NLUServerOptions } from './config'
 import { makeEngine } from './make-engine'
+
+const CLUSTER_ID = nanoid()
+
+const makeKnexDb = (dbURL: string) => {
+  return knex({
+    connection: dbURL,
+    client: 'pg'
+  })
+}
+
+const makeBroadcaster = (dbURL: string) => {
+  const dummyLogger = () => {}
+  const pubsub = new PGPubsub(dbURL, {
+    log: dummyLogger
+  })
+  return new Broadcaster(pubsub)
+}
 
 export const makeApplication = async (
   options: NLUServerOptions,
@@ -15,22 +40,34 @@ export const makeApplication = async (
 ): Promise<Application> => {
   const engine = await makeEngine(options, baseLogger.sub('Engine'))
 
-  const { dbURL: databaseURL, modelDir } = options
-  const modelRepoOptions: Partial<ModelRepoOptions> = databaseURL
-    ? {
-        driver: 'db',
-        dbURL: databaseURL,
-        modelDir
-      }
-    : {
-        driver: 'fs',
-        modelDir
-      }
+  const { dbURL, modelDir } = options
 
-  const modelRepo = new ModelRepository(baseLogger, modelRepoOptions, watcher)
-  const trainSessionService = new TrainSessionService()
-  const trainService = new TrainService(baseLogger, engine, modelRepo, trainSessionService)
-  const application = new Application(modelRepo, trainSessionService, trainService, engine, serverVersion, baseLogger)
+  const ghost = makeGhost(baseLogger, modelDir!, watcher, dbURL)
+  await ghost.initialize(!!dbURL)
+
+  const modelRepo = new ModelRepository(ghost, baseLogger)
+
+  const loggingCb = (msg: string) => baseLogger.sub('trx-queue').debug(msg)
+
+  const trainRepo = dbURL
+    ? new DbTrainingRepository(makeKnexDb(dbURL), makePostgresTrxQueue(dbURL, loggingCb), baseLogger, CLUSTER_ID)
+    : new InMemoryTrainingRepo(baseLogger)
+
+  const trainingQueue = dbURL
+    ? new DistributedTrainingQueue(
+        engine,
+        modelRepo,
+        trainRepo,
+        CLUSTER_ID,
+        baseLogger,
+        makeBroadcaster(dbURL),
+        options
+      )
+    : new TrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, baseLogger)
+  await trainingQueue.initialize()
+
+  const application = new Application(modelRepo, trainRepo, trainingQueue, engine, serverVersion, baseLogger)
+  await application.initialize()
 
   return application
 }

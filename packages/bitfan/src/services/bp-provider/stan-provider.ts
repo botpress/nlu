@@ -1,4 +1,4 @@
-import { PredictOutput, TrainingProgress, TrainInput, http, Client } from '@botpress/nlu-client'
+import { PredictOutput, TrainingState, TrainInput, http, Client } from '@botpress/nlu-client'
 import _ from 'lodash'
 
 import { sleep } from '../../utils'
@@ -14,7 +14,7 @@ export class StanProvider {
     this._client = new Client(nluServerEndpoint, password)
   }
 
-  private async _getTrainingStatus(modelId: string): Promise<TrainingProgress> {
+  private async _getTrainingStatus(modelId: string): Promise<TrainingState> {
     const data = await this._client.getTrainingStatus(modelId, CREDS)
     if (data.success) {
       return data.session

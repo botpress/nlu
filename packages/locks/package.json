@@ -1,7 +1,6 @@
 {
-  "name": "@botpress/nlu-client",
-  "version": "0.1.5",
-  "description": "Client and typings for NLU Server's API",
+  "name": "@botpress/locks",
+  "version": "0.0.1",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "scripts": {
@@ -9,13 +8,14 @@
     "test": "echo \"no tests\""
   },
   "dependencies": {
-    "axios": "^0.21.1",
-    "lodash": "^4.17.19"
+    "lodash": "^4.17.19",
+    "pg": "^8.7.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.116",
-    "@types/node": "^12.13.0"
+    "@types/node": "^12.13.0",
+    "@types/pg": "^8.6.1"
   },
-  "types": "./src/typings/index.d.ts",
+  "types": "./src/typings.d.ts",
   "main": "./dist/index.js"
 }

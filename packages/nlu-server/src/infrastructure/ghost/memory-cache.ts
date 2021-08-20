@@ -16,31 +16,6 @@ export interface ObjectCache {
   sync(message: string): Promise<void>
 }
 
-// namespace CacheInvalidators {
-//   enum ChangeEventAction {
-//     CREATED = 0,
-//     DELETED = 1,
-//     MODIFIED = 2,
-//     RENAMED = 3
-//   }
-
-//   /**
-//    * See https://github.com/Axosoft/nsfw/tree/master/docs
-//    */
-//   interface ChangeEventType {
-//     /** the type of event that occurred */
-//     action: ChangeEventAction
-//     /** the location the event took place */
-//     directory: string
-//     /** the name of the file that was changed (Not available for rename events) */
-//     file: string
-//     /** the name of the file before a rename (Only available for rename events) */
-//     oldFile: string
-//     /** the name of the file after a rename (Only available for rename events) */
-//     newFile: string
-//   }
-// }
-
 class FileChangedInvalidator {
   constructor(private watcher: chokidar.FSWatcher) {}
 
@@ -55,7 +30,7 @@ class FileChangedInvalidator {
     // watcher.on('error', err => this.logger.attachError(err).error('Watcher error'))
   }
 
-  handle = async (file) => {
+  handle = async (file: string) => {
     if (!this.cache) {
       return
     }

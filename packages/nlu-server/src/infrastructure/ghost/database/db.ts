@@ -17,7 +17,7 @@ export class Database {
 
   private tables: Table[] = []
 
-  public constructor(private logger: Logger) {}
+  public constructor(private logger: Logger, private dbURL?: string) {}
 
   async bootstrap() {
     await Bluebird.mapSeries(AllTables, async (Tbl) => {
@@ -47,7 +47,7 @@ export class Database {
     })
   }
 
-  async initialize(databaseType?: DatabaseType, databaseUrl?: string) {
+  async initialize(databaseType: DatabaseType = 'postgres') {
     const logger = this.logger
     const { DATABASE_URL, DATABASE_POOL } = process.env
 
@@ -66,8 +66,8 @@ export class Database {
       if (!databaseType) {
         databaseType = DATABASE_URL.toLowerCase().startsWith('postgres') ? 'postgres' : 'sqlite'
       }
-      if (!databaseUrl) {
-        databaseUrl = DATABASE_URL
+      if (!this.dbURL) {
+        this.dbURL = DATABASE_URL
       }
     }
 
@@ -83,12 +83,12 @@ export class Database {
     if (databaseType === 'postgres') {
       Object.assign(config, {
         client: 'pg',
-        connection: databaseUrl,
+        connection: this.dbURL,
         pool: poolOptions
       })
     } else {
       const projectLocation = getProjectLocation()
-      const dbLocation = databaseUrl ? databaseUrl : `${projectLocation}/data/storage/core.sqlite`
+      const dbLocation = this.dbURL ? this.dbURL : `${projectLocation}/data/storage/core.sqlite`
       mkdirpSync(path.dirname(dbLocation))
 
       Object.assign(config, {
