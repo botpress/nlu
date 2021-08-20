@@ -72,7 +72,7 @@ export class NLUClient implements IClient {
   public async pruneModels(credentials: Credentials): Promise<PruneModelsResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
       const endpoint = 'models/prune'
-      const { data } = await this._client.get(endpoint, { params: credentials })
+      const { data } = await this._client.post(endpoint, { ...credentials })
       return data
     })
   }

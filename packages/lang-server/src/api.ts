@@ -42,7 +42,7 @@ const createExpressApp = (options: APIOptions, baseLogger: Logger): Application 
 
   app.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress')
-    requestLogger.debug(`incoming ${req.path}`, { ip: req.ip })
+    requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
     next()
   })
 

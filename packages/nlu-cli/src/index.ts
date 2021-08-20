@@ -101,6 +101,11 @@ yargs
           'Filter logs by namespace, ex: "--log-filter training:svm api". Namespaces are space separated. Does not apply to "Launcher" logger.',
         array: true,
         type: 'string'
+      },
+      maxTraining: {
+        description: 'The max allowed amount of simultaneous trainings on a single instance',
+        default: 2,
+        type: 'number'
       }
     },
     (argv) => {

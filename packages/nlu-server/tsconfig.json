@@ -3,7 +3,12 @@
     "files": true
   },
   "extends": "../../tsconfig.packages.json",
-  "references": [{ "path": "../nlu-client" }, { "path": "../nlu-engine" }, { "path": "../logger" }],
+  "references": [
+    { "path": "../nlu-client" },
+    { "path": "../nlu-engine" },
+    { "path": "../logger" },
+    { "path": "../locks" }
+  ],
   "compilerOptions": {
     "outDir": "./dist" /* Redirect output structure to the directory. */,
     "rootDir": "./src" /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */,

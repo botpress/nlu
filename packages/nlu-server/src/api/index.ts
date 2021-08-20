@@ -21,7 +21,7 @@ import {
   validateDetectLangInput
 } from './validation/validate'
 
-export interface APIOptions {
+interface APIOptions {
   host: string
   port: number
   authToken?: string
@@ -29,12 +29,6 @@ export interface APIOptions {
   limit: number
   bodySize: string
   batchSize: number
-  modelCacheSize: string
-  dbURL?: string
-  modelDir?: string
-  verbose: number
-  doc: boolean
-  logFilter?: string[]
   apmEnabled?: boolean
   apmSampleRate?: number
 }
@@ -65,7 +59,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   expressApp.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress NLU')
-    requestLogger.debug(`incoming ${req.path}`, { ip: req.ip })
+    requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
     next()
   })
 
@@ -145,7 +139,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         seed: pickedSeed
       }
 
-      const modelId = app.startTraining(trainInput, { appId, appSecret })
+      const modelId = await app.startTraining(trainInput, { appId, appSecret })
 
       const resp: http.TrainResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
       return res.send(resp)
@@ -181,6 +175,9 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const modelId = NLUEngine.modelIdService.fromString(stringId)
 
       await app.cancelTraining(modelId, { appId, appSecret })
+
+      const resp: http.SuccessReponse = { success: true }
+      return res.send(resp)
     } catch (err) {
       return handleError(err, req, res, next)
     }

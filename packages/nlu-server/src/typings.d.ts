@@ -17,6 +17,7 @@ interface Options {
   ducklingURL: string
   ducklingEnabled: boolean
   config?: string
+  maxTraining: number
 }
 
 export const run: (argv: Options) => Promise<void>
