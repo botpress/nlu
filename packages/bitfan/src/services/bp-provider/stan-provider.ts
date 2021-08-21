@@ -1,9 +1,9 @@
-import { PredictOutput, TrainingState, TrainInput, http, Client } from '@botpress/nlu-client'
+import { PredictOutput, TrainingState, TrainInput, Client } from '@botpress/nlu-client'
 import _ from 'lodash'
 
 import { sleep } from '../../utils'
 
-const CREDS: http.Credentials = { appId: '', appSecret: '' }
+const APP_ID = 'bitfan'
 const POLLING_INTERVAL = 500
 
 export class StanProvider {
@@ -11,11 +11,11 @@ export class StanProvider {
   private _client: Client
 
   constructor(nluServerEndpoint: string = 'http://localhost:3200', password = '') {
-    this._client = new Client(nluServerEndpoint, password)
+    this._client = new Client(nluServerEndpoint, APP_ID, password)
   }
 
   private async _getTrainingStatus(modelId: string): Promise<TrainingState> {
-    const data = await this._client.getTrainingStatus(modelId, CREDS)
+    const data = await this._client.getTrainingStatus(modelId)
     if (data.success) {
       return data.session
     }
@@ -47,7 +47,6 @@ export class StanProvider {
       .value()
 
     const data = await this._client.startTraining({
-      ...CREDS,
       language: trainInput.language,
       contexts,
       intents: trainInput.intents,
@@ -63,8 +62,8 @@ export class StanProvider {
     throw new Error(data.error)
   }
 
-  public async predict(texts: string[]): Promise<PredictOutput[]> {
-    const predOutput = await this._client.predict(this._modelId ?? '', { utterances: texts, ...CREDS })
+  public async predict(utterances: string[]): Promise<PredictOutput[]> {
+    const predOutput = await this._client.predict(this._modelId ?? '', { utterances })
     if (!predOutput.success) {
       throw new Error(`An error occured at prediction: ${predOutput.error}.`)
     }

@@ -9,7 +9,7 @@ import * as NLUEngine from '@botpress/nlu-engine'
 import { validate } from 'joi'
 
 import { isListEntity, isPatternEntity } from '../../utils/guards'
-import { PredictInputSchema, TrainInputSchema, CredentialsSchema, DetectLangInputSchema } from './schemas'
+import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema } from './schemas'
 
 const SLOT_ANY = 'any'
 
@@ -60,11 +60,6 @@ export async function validateTrainInput(rawInput: any): Promise<http.TrainReque
   }
 
   return validatedInput
-}
-
-export async function validateCredentialsFormat(rawInput: any): Promise<http.Credentials> {
-  const validated: http.Credentials = await validate(rawInput, CredentialsSchema, {})
-  return validated
 }
 
 export async function validatePredictInput(rawInput: any): Promise<http.PredictRequestBody> {

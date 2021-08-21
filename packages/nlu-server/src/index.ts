@@ -31,7 +31,7 @@ export const run: typeof sdk.run = async (cliOptions: CommandLineOptions) => {
   const watcher = buildWatcher()
 
   const launchingMessageInfo = { ...options, version, configSource, configFile: cliOptions.config }
-  logLaunchingMessage(launchingMessageInfo, launcherLogger)
+  await logLaunchingMessage(launchingMessageInfo, launcherLogger)
 
   const application = await makeApplication(options, version, baseLogger, watcher)
   const app = await createAPI(options, application, baseLogger)

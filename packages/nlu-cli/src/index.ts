@@ -35,10 +35,6 @@ yargs
         description: 'Directory where to persist models, ignored if dbURL is set.',
         default: getAppDataPath()
       },
-      authToken: {
-        description: 'When enabled, this token is required for clients to query your nlu server',
-        type: 'string'
-      },
       limit: {
         description: 'Maximum number of requests per IP per "limitWindow" interval (0 means unlimited)',
         default: 0

@@ -1,13 +1,12 @@
 import axios, { AxiosInstance } from 'axios'
 
 import _ from 'lodash'
-import { Client as IClient } from './index'
+import { Client as IClient } from './typings'
 import {
   TrainResponseBody,
   TrainRequestBody,
   InfoResponseBody,
   TrainProgressResponseBody,
-  Credentials,
   SuccessReponse,
   DetectLangRequestBody,
   DetectLangResponseBody,
@@ -21,10 +20,10 @@ import {
 export class NLUClient implements IClient {
   protected _client: AxiosInstance
 
-  constructor(protected _endpoint: string, protected _authToken?: string) {
+  constructor(protected _endpoint: string, protected _appId: string) {
     this._client = axios.create({
       baseURL: this._endpoint,
-      headers: { Authorization: `Bearer ${this._authToken}` }
+      headers: { 'X-App-Id': _appId }
     })
   }
 
@@ -42,37 +41,34 @@ export class NLUClient implements IClient {
     })
   }
 
-  public async getTrainingStatus(
-    modelId: string,
-    credentials: Credentials
-  ): Promise<TrainProgressResponseBody | ErrorResponse> {
+  public async getTrainingStatus(modelId: string): Promise<TrainProgressResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
       const endpoint = `train/${modelId}`
-      const { data } = await this._client.get(endpoint, { params: credentials })
+      const { data } = await this._client.get(endpoint)
       return data
     })
   }
 
-  public async cancelTraining(modelId: string, credentials: Credentials): Promise<SuccessReponse | ErrorResponse> {
+  public async cancelTraining(modelId: string): Promise<SuccessReponse | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
       const endpoint = `train/${modelId}/cancel`
-      const { data } = await this._client.post(endpoint, credentials)
+      const { data } = await this._client.post(endpoint)
       return data
     })
   }
 
-  public async listModels(credentials: Credentials): Promise<ListModelsResponseBody | ErrorResponse> {
+  public async listModels(): Promise<ListModelsResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
       const endpoint = 'models/'
-      const { data } = await this._client.get(endpoint, { params: credentials })
+      const { data } = await this._client.get(endpoint)
       return data
     })
   }
 
-  public async pruneModels(credentials: Credentials): Promise<PruneModelsResponseBody | ErrorResponse> {
+  public async pruneModels(): Promise<PruneModelsResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
       const endpoint = 'models/prune'
-      const { data } = await this._client.post(endpoint, { ...credentials })
+      const { data } = await this._client.post(endpoint)
       return data
     })
   }

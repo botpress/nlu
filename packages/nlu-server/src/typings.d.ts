@@ -1,7 +1,6 @@
 interface Options {
   host: string
   port: number
-  authToken?: string
   limitWindow: string
   limit: number
   bodySize: string
