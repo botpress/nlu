@@ -85,6 +85,14 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   expressApp.use(['/v1', '/'], router)
 
+  router.get('/', async (req, res, next) => {
+    try {
+      return res.redirect('/info')
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
   router.get('/info', async (req, res, next) => {
     try {
       const info = app.getInfo()
