@@ -25,10 +25,13 @@ const timeout = <T>(ms: number) => {
   })
 }
 
-const KEY_JOIN_CHAR = '\u2581'
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
 const MS_BEFORE_PRUNE = ms('1h')
 const MAX_TRAIN_SET_SZ = 10 * 1024 * 1024 // 10Mb
+const MAX_ERR_LEN = {
+  msg: 1000,
+  stack: 10000
+}
 
 interface TableId {
   appId: string
@@ -56,8 +59,8 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       table.float('progress').notNullable()
       table.string('set', MAX_TRAIN_SET_SZ).notNullable()
       table.string('error_type').nullable()
-      table.string('error_message').nullable()
-      table.string('error_stack').nullable()
+      table.string('error_message', MAX_ERR_LEN.msg).nullable()
+      table.string('error_stack', MAX_ERR_LEN.stack).nullable()
       table.string('cluster').nullable()
       table.timestamp('updatedOn').notNullable()
       table.primary(['appId', 'modelId'])
