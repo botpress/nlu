@@ -23,12 +23,6 @@ ${_.repeat(' ', 9)}========================================`)
     launcherLogger.info(`Loading config from file "${info.configFile}"`)
   }
 
-  if (info.authToken?.length) {
-    launcherLogger.info(`authToken: ${chalk.greenBright('enabled')} (only users with this token can query your server)`)
-  } else {
-    launcherLogger.info(`authToken: ${chalk.redBright('disabled')} (anyone can query your nlu server)`)
-  }
-
   if (info.limit) {
     launcherLogger.info(
       `limit: ${chalk.greenBright('enabled')} allowing ${info.limit} requests/IP address in a ${

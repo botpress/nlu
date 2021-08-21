@@ -13,12 +13,11 @@ import ms from 'ms'
 import { Application } from '../application'
 import { InvalidRequestFormatError } from './errors'
 
-import { authMiddleware, handleError, getAppId } from './http'
+import { handleError, getAppId } from './http'
 import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
 interface APIOptions {
   host: string
   port: number
-  authToken?: string
   limitWindow: string
   limit: number
   bodySize: string
@@ -75,10 +74,6 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         message: 'Too many requests, please slow down'
       })
     )
-  }
-
-  if (options.authToken?.length) {
-    expressApp.use(authMiddleware(options.authToken, baseLogger))
   }
 
   const router = express.Router({ mergeParams: true })
