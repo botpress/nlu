@@ -12,7 +12,8 @@
   "pkg": {
     "scripts": [
       "./packages/nlu-cli/dist/**/*.js",
-      "node_modules/@botpress/*/dist/**/*.js"
+      "node_modules/@botpress/*/dist/**/*.js",
+      "node_modules/pg-format/lib/*.js"
     ],
     "assets": [
       "node_modules/@botpress/node-*/**/*.node",
