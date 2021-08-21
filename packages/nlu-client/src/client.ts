@@ -20,10 +20,10 @@ import {
 export class NLUClient implements IClient {
   protected _client: AxiosInstance
 
-  constructor(protected _endpoint: string, protected _appId: string, protected _authToken?: string) {
+  constructor(protected _endpoint: string, protected _appId: string) {
     this._client = axios.create({
       baseURL: this._endpoint,
-      headers: { Authorization: `Bearer ${this._authToken}`, 'X-App-Id': _appId }
+      headers: { 'X-App-Id': _appId }
     })
   }
 
