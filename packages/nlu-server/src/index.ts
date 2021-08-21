@@ -44,5 +44,7 @@ export const run: typeof sdk.run = async (cliOptions: CommandLineOptions) => {
     })
   })
 
-  launcherLogger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
+  const url = `http://${options.host}:${options.port}/`
+  launcherLogger.info(`NLU Server is ready at ${url}`)
+  launcherLogger.warn(`Make sure the URL ${url} is not publicly available`)
 }
