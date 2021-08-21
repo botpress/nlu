@@ -1,6 +1,7 @@
 import { centerText, Logger } from '@botpress/logger'
 import chalk from 'chalk'
 import _ from 'lodash'
+import ms from 'ms'
 import { ConfigSource, NLUServerOptions } from './config'
 import { displayDocumentation } from './documentation'
 
@@ -10,9 +11,7 @@ interface LaunchingInfo {
   configFile?: string
 }
 
-export const logLaunchingMessage = (info: NLUServerOptions & LaunchingInfo, launcherLogger: Logger) => {
-  launcherLogger.debug('NLU Server Options %o', info)
-
+export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo, launcherLogger: Logger) => {
   launcherLogger.info(chalk`========================================
       {bold ${centerText('Botpress Standalone NLU', 40, 9)}}
       {dim ${centerText(`Version ${info.version}`, 40, 9)}}
@@ -61,5 +60,9 @@ ${_.repeat(' ', 9)}========================================`)
     launcherLogger.info(`batch size: allowing up to ${info.batchSize} predictions in one call to POST /predict`)
   }
 
-  info.doc && displayDocumentation(launcherLogger, info)
+  if (info.doc) {
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+    await sleep(ms('1s'))
+    displayDocumentation(launcherLogger, info)
+  }
 }
