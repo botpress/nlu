@@ -1,5 +1,5 @@
 import { Logger } from '@botpress/logger'
-import { TrainingErrorType, TrainInput, http, TrainingStatus, TrainingError } from '@botpress/nlu-client'
+import { TrainingErrorType, TrainInput, TrainingStatus, TrainingError } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
@@ -52,13 +52,12 @@ export default class TrainingQueue {
     return this.task.stop()
   }
 
-  public queueTraining = async (modelId: NLUEngine.ModelId, credentials: http.Credentials, trainInput: TrainInput) => {
-    const trainId: TrainingId = { ...modelId, ...credentials }
+  public queueTraining = async (appId: string, modelId: NLUEngine.ModelId, trainInput: TrainInput) => {
+    const trainId: TrainingId = { ...modelId, appId }
     const trainKey = this._toKey(trainId)
 
     await this.trainingRepo.inTransaction(async (repo) => {
-      const id = { ...modelId, ...credentials }
-      const currentTraining = await repo.get(id)
+      const currentTraining = await repo.get(trainId)
       if (currentTraining && currentTraining.state.status === 'training') {
         this.logger.debug(`Not queuing because training "${trainKey}" already started...`)
         return // TODO: log something for training already started...
@@ -72,7 +71,7 @@ export default class TrainingQueue {
 
       this.logger.debug(`Queuing "${trainKey}"`)
       return repo.set({
-        id,
+        id: trainId,
         state,
         set: trainInput
       })
@@ -84,8 +83,8 @@ export default class TrainingQueue {
     this.runTask()
   }
 
-  public async cancelTraining(modelId: NLUEngine.ModelId, credentials: http.Credentials): Promise<void> {
-    const trainId: TrainingId = { ...modelId, ...credentials }
+  public async cancelTraining(appId: string, modelId: NLUEngine.ModelId): Promise<void> {
+    const trainId: TrainingId = { ...modelId, appId }
     const trainKey = this._toKey(trainId)
 
     return this.trainingRepo.inTransaction(async (repo) => {
@@ -151,19 +150,19 @@ export default class TrainingQueue {
       }
 
       const { id, state, set } = pendings[0]
-      const { appId, appSecret, ...modelId } = id
+      const { appId, ...modelId } = id
       state.status = 'training'
 
       await repo.set({ id, state, set })
 
       // floating promise to return fast from task
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._train(modelId, { appId, appSecret })
+      this._train(appId, modelId)
     }, '_runTask')
   }
 
   private _areSame(t1: TrainingId, t2: TrainingId) {
-    return t1.appId === t2.appId && t1.appSecret === t2.appSecret && NLUEngine.modelIdService.areSame(t1, t2)
+    return t1.appId === t2.appId && NLUEngine.modelIdService.areSame(t1, t2)
   }
 
   private _getZombies = (repo: WrittableTrainingRepository) => {
@@ -171,8 +170,8 @@ export default class TrainingQueue {
     return repo.queryOlderThan({ status: 'training' }, zombieThreshold)
   }
 
-  private _train = async (modelId: NLUEngine.ModelId, credentials: http.Credentials) => {
-    const trainId = { ...modelId, ...credentials }
+  private _train = async (appId: string, modelId: NLUEngine.ModelId) => {
+    const trainId = { ...modelId, appId }
     const trainKey = this._toKey(trainId)
 
     this.logger.debug(`training "${trainKey}" is about to start.`)
@@ -194,13 +193,13 @@ export default class TrainingQueue {
     const throttledCb = _.throttle(progressCb, ms('5s'))
 
     try {
-      const trainKey = this._toKey({ ...modelId, ...credentials })
+      const trainKey = this._toKey({ ...modelId, appId })
       const model = await this.engine.train(trainKey, trainInput, { progressCallback: throttledCb })
       throttledCb.flush()
 
       const { language: languageCode } = trainInput
-      await this.modelRepo.pruneModels({ ...credentials, keep: MAX_MODEL_PER_USER_PER_LANG }, { languageCode }) // TODO: make the max amount of models on FS (by appId + lang) configurable
-      await this.modelRepo.saveModel(model, credentials)
+      await this.modelRepo.pruneModels(appId, { keep: MAX_MODEL_PER_USER_PER_LANG }, { languageCode }) // TODO: make the max amount of models on FS (by appId + lang) configurable
+      await this.modelRepo.saveModel(model, appId)
 
       this.logger.info(`[${trainKey}] Training Done.`)
 

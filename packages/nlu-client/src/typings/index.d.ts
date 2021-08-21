@@ -1,5 +1,4 @@
 import {
-  Credentials,
   TrainRequestBody,
   PredictRequestBody,
   DetectLangRequestBody,
@@ -15,13 +14,13 @@ import {
 } from './http'
 
 export class Client {
-  constructor(endpoint: string, authToken?: string)
+  constructor(endpoint: string, appId: string, authToken?: string)
   getInfo(): Promise<InfoResponseBody | ErrorResponse>
   startTraining(trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse>
-  getTrainingStatus(modelId: string, credentials: Credentials): Promise<TrainProgressResponseBody | ErrorResponse>
-  cancelTraining(modelId: string, credentials: Credentials): Promise<SuccessReponse | ErrorResponse>
-  listModels(credentials: Credentials): Promise<ListModelsResponseBody | ErrorResponse>
-  pruneModels(credentials: Credentials): Promise<PruneModelsResponseBody | ErrorResponse>
+  getTrainingStatus(modelId: string): Promise<TrainProgressResponseBody | ErrorResponse>
+  cancelTraining(modelId: string): Promise<SuccessReponse | ErrorResponse>
+  listModels(): Promise<ListModelsResponseBody | ErrorResponse>
+  pruneModels(): Promise<PruneModelsResponseBody | ErrorResponse>
   detectLanguage(detectLangRequestBody: DetectLangRequestBody): Promise<DetectLangResponseBody | ErrorResponse>
   predict(modelId: string, predictRequestBody: PredictRequestBody): Promise<PredictResponseBody | ErrorResponse>
 }

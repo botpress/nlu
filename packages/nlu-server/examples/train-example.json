@@ -85,7 +85,5 @@
       ]
     }
   ],
-  "appSecret": "123456",
-  "appId": "myApp",
   "seed": 42
 }

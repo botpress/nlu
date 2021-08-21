@@ -14,12 +14,7 @@ import {
   ServerInfo
 } from './sdk'
 
-export interface Credentials {
-  appId: string
-  appSecret: string
-}
-
-export interface TrainRequestBody extends Credentials {
+export interface TrainRequestBody {
   language: string
   contexts: string[]
   intents: IntentDefinition[]
@@ -27,7 +22,7 @@ export interface TrainRequestBody extends Credentials {
   seed?: number
 }
 
-export interface PredictRequestBody extends Credentials {
+export interface PredictRequestBody {
   utterances: string[]
 }
 

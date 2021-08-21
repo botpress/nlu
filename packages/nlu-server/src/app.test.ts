@@ -56,5 +56,5 @@ test.each(['/info', '/v1/info'])('GET %s', async (path) => {
 
 test('GET /models', async () => {
   const expressApp = await createAPI(options, app, baseLogger)
-  await request(expressApp).get('/models').expect(200, { success: true, models: [] })
+  await request(expressApp).get('/models').set('X-App-Id', 'my-app').expect(200, { success: true, models: [] })
 })

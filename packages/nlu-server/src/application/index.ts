@@ -40,41 +40,41 @@ export class Application {
     return { health, specs, languages, version }
   }
 
-  public async getModels(credentials: http.Credentials): Promise<ModelId[]> {
-    return this._modelRepo.listModels(credentials)
+  public async getModels(appId: string): Promise<ModelId[]> {
+    return this._modelRepo.listModels(appId)
   }
 
-  public async pruneModels(credentials: http.Credentials): Promise<ModelId[]> {
-    const modelIds = await this._modelRepo.pruneModels({ ...credentials, keep: 0 })
+  public async pruneModels(appId: string): Promise<ModelId[]> {
+    const modelIds = await this._modelRepo.pruneModels(appId, { keep: 0 })
 
     for (const modelId of modelIds) {
       if (this._engine.hasModel(modelId)) {
         this._engine.unloadModel(modelId)
       }
-      await this._trainingRepo.delete({ ...modelId, ...credentials })
+      await this._trainingRepo.delete({ ...modelId, appId })
     }
 
     return modelIds
   }
 
-  public async startTraining(trainInput: TrainInput, credentials: http.Credentials): Promise<ModelId> {
+  public async startTraining(appId: string, trainInput: TrainInput): Promise<ModelId> {
     const modelId = modelIdService.makeId({
       ...trainInput,
       specifications: this._engine.getSpecifications()
     })
 
-    await this._trainingQueue.queueTraining(modelId, credentials, trainInput)
+    await this._trainingQueue.queueTraining(appId, modelId, trainInput)
     return modelId
   }
 
-  public async getTrainingState(modelId: ModelId, credentials: http.Credentials): Promise<TrainingState> {
-    const session = await this._trainingRepo.get({ ...modelId, ...credentials })
+  public async getTrainingState(appId: string, modelId: ModelId): Promise<TrainingState> {
+    const session = await this._trainingRepo.get({ ...modelId, appId })
     if (session) {
       const { state } = session
       return state
     }
 
-    const model = await this._modelRepo.getModel(modelId, credentials)
+    const model = await this._modelRepo.getModel(appId, modelId)
     if (!model) {
       throw new TrainingNotFoundError(modelId)
     }
@@ -85,22 +85,18 @@ export class Application {
     }
   }
 
-  public async cancelTraining(modelId: ModelId, credentials: http.Credentials): Promise<void> {
-    return this._trainingQueue.cancelTraining(modelId, credentials)
+  public async cancelTraining(appId: string, modelId: ModelId): Promise<void> {
+    return this._trainingQueue.cancelTraining(appId, modelId)
   }
 
-  public async predict(
-    utterances: string[],
-    modelId: ModelId,
-    credentials: http.Credentials
-  ): Promise<PredictOutput[]> {
-    const modelExists: boolean = await this._modelRepo.exists(modelId, credentials)
+  public async predict(appId: string, modelId: ModelId, utterances: string[]): Promise<PredictOutput[]> {
+    const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
     if (!modelExists) {
       throw new ModelDoesNotExistError(modelId)
     }
 
     if (!this._engine.hasModel(modelId)) {
-      const model = await this._modelRepo.getModel(modelId, credentials)
+      const model = await this._modelRepo.getModel(appId, modelId)
       if (!model) {
         throw new ModelDoesNotExistError(modelId)
       }
@@ -117,19 +113,15 @@ export class Application {
     return predictions
   }
 
-  public async detectLanguage(
-    utterances: string[],
-    modelIds: ModelId[],
-    credentials: http.Credentials
-  ): Promise<string[]> {
+  public async detectLanguage(appId: string, modelIds: ModelId[], utterances: string[]): Promise<string[]> {
     for (const modelId of modelIds) {
-      const modelExists: boolean = await this._modelRepo.exists(modelId, credentials)
+      const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
       if (!modelExists) {
         throw new ModelDoesNotExistError(modelId)
       }
 
       if (!this._engine.hasModel(modelId)) {
-        const model = await this._modelRepo.getModel(modelId, credentials)
+        const model = await this._modelRepo.getModel(appId, modelId)
         if (!model) {
           throw new ModelDoesNotExistError(modelId)
         }
