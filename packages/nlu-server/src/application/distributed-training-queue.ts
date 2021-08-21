@@ -7,7 +7,7 @@ import { Broadcaster } from '../utils/broadcast'
 import TrainingQueue, { QueueOptions } from './training-queue'
 
 export class DistributedTrainingQueue extends TrainingQueue {
-  private _broadcastCancelTraining!: (modelId: ModelId, appId: string) => Promise<void>
+  private _broadcastCancelTraining!: TrainingQueue['cancelTraining']
   private _broadcastRunTask!: () => Promise<void>
 
   constructor(
@@ -25,7 +25,7 @@ export class DistributedTrainingQueue extends TrainingQueue {
   public async initialize() {
     await super.initialize()
 
-    this._broadcastCancelTraining = await this._broadcaster.broadcast<[ModelId, string]>({
+    this._broadcastCancelTraining = await this._broadcaster.broadcast<[string, ModelId]>({
       name: 'cancel_training',
       run: super.cancelTraining.bind(this)
     })
@@ -37,8 +37,8 @@ export class DistributedTrainingQueue extends TrainingQueue {
   }
 
   // for if a different instance gets the cancel training http call
-  public cancelTraining(modelId: ModelId, appId: string) {
-    return this._broadcastCancelTraining(modelId, appId)
+  public cancelTraining(appId: string, modelId: ModelId) {
+    return this._broadcastCancelTraining(appId, modelId)
   }
 
   // for if an completly busy instance receives a queue training http call

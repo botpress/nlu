@@ -1,5 +1,5 @@
 import { Logger } from '@botpress/logger'
-import { TrainingErrorType, TrainInput, http, TrainingStatus, TrainingError } from '@botpress/nlu-client'
+import { TrainingErrorType, TrainInput, TrainingStatus, TrainingError } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
@@ -52,7 +52,7 @@ export default class TrainingQueue {
     return this.task.stop()
   }
 
-  public queueTraining = async (modelId: NLUEngine.ModelId, appId: string, trainInput: TrainInput) => {
+  public queueTraining = async (appId: string, modelId: NLUEngine.ModelId, trainInput: TrainInput) => {
     const trainId: TrainingId = { ...modelId, appId }
     const trainKey = this._toKey(trainId)
 
@@ -83,7 +83,7 @@ export default class TrainingQueue {
     this.runTask()
   }
 
-  public async cancelTraining(modelId: NLUEngine.ModelId, appId: string): Promise<void> {
+  public async cancelTraining(appId: string, modelId: NLUEngine.ModelId): Promise<void> {
     const trainId: TrainingId = { ...modelId, appId }
     const trainKey = this._toKey(trainId)
 
@@ -157,7 +157,7 @@ export default class TrainingQueue {
 
       // floating promise to return fast from task
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._train(modelId, appId)
+      this._train(appId, modelId)
     }, '_runTask')
   }
 
@@ -170,7 +170,7 @@ export default class TrainingQueue {
     return repo.queryOlderThan({ status: 'training' }, zombieThreshold)
   }
 
-  private _train = async (modelId: NLUEngine.ModelId, appId: string) => {
+  private _train = async (appId: string, modelId: NLUEngine.ModelId) => {
     const trainId = { ...modelId, appId }
     const trainKey = this._toKey(trainId)
 

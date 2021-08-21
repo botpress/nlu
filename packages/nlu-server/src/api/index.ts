@@ -27,7 +27,6 @@ interface APIOptions {
   apmSampleRate?: number
 }
 
-const X_APP_ID = 'X-App-Id'.toLowerCase()
 const { modelIdService } = NLUEngine
 
 export const createAPI = async (options: APIOptions, app: Application, baseLogger: Logger): Promise<ExpressApp> => {
@@ -135,7 +134,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         seed: pickedSeed
       }
 
-      const modelId = await app.startTraining(trainInput, appId)
+      const modelId = await app.startTraining(appId, trainInput)
 
       const resp: http.TrainResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
       return res.send(resp)
@@ -153,7 +152,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       }
 
       const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const session = await app.getTrainingState(modelId, appId)
+      const session = await app.getTrainingState(appId, modelId)
 
       const resp: http.TrainProgressResponseBody = { success: true, session }
       res.send(resp)
@@ -170,7 +169,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
       const modelId = NLUEngine.modelIdService.fromString(stringId)
 
-      await app.cancelTraining(modelId, appId)
+      await app.cancelTraining(appId, modelId)
 
       const resp: http.SuccessReponse = { success: true }
       return res.send(resp)
@@ -193,7 +192,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       }
 
       const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const predictions = await app.predict(utterances, modelId, appId)
+      const predictions = await app.predict(appId, modelId, utterances)
 
       const resp: http.PredictResponseBody = { success: true, predictions }
       res.send(resp)
@@ -220,7 +219,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         return res.status(400).send({ success: false, error })
       }
 
-      const detectedLanguages = await app.detectLanguage(utterances, modelIds, appId)
+      const detectedLanguages = await app.detectLanguage(appId, modelIds, utterances)
 
       const resp: http.DetectLangResponseBody = { success: true, detectedLanguages }
       res.send(resp)

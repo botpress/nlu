@@ -29,8 +29,8 @@ export class ModelRepository {
     this._logger.debug('Model service initializing...')
   }
 
-  public async hasModel(modelId: NLUEngine.ModelId, appId: string): Promise<boolean> {
-    return !!(await this.getModel(modelId, appId))
+  public async hasModel(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
+    return !!(await this.getModel(appId, modelId))
   }
 
   /**
@@ -38,7 +38,7 @@ export class ModelRepository {
    * @param modelId The desired model id
    * @returns the corresponding model
    */
-  public async getModel(modelId: NLUEngine.ModelId, appId: string): Promise<NLUEngine.Model | undefined> {
+  public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<NLUEngine.Model | undefined> {
     const scopedGhost = this._getScopedGhostForAppID(appId)
 
     const stringId = modelIdService.toString(modelId)
@@ -124,12 +124,12 @@ export class ModelRepository {
 
     const { keep } = options
     const toPrune = models.slice(keep)
-    await Bluebird.each(toPrune, (m) => this.deleteModel(m, appId))
+    await Bluebird.each(toPrune, (m) => this.deleteModel(appId, m))
 
     return toPrune
   }
 
-  public async exists(modelId: NLUEngine.ModelId, appId: string): Promise<boolean> {
+  public async exists(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
     const scopedGhost = this._getScopedGhostForAppID(appId)
 
     const stringId = modelIdService.toString(modelId)
@@ -139,7 +139,7 @@ export class ModelRepository {
     return scopedGhost.fileExists(MODELS_DIR, fname)
   }
 
-  public async deleteModel(modelId: NLUEngine.ModelId, appId: string): Promise<void> {
+  public async deleteModel(appId: string, modelId: NLUEngine.ModelId): Promise<void> {
     const scopedGhost = this._getScopedGhostForAppID(appId)
 
     const stringId = modelIdService.toString(modelId)

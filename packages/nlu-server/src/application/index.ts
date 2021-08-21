@@ -57,24 +57,24 @@ export class Application {
     return modelIds
   }
 
-  public async startTraining(trainInput: TrainInput, appId: string): Promise<ModelId> {
+  public async startTraining(appId: string, trainInput: TrainInput): Promise<ModelId> {
     const modelId = modelIdService.makeId({
       ...trainInput,
       specifications: this._engine.getSpecifications()
     })
 
-    await this._trainingQueue.queueTraining(modelId, appId, trainInput)
+    await this._trainingQueue.queueTraining(appId, modelId, trainInput)
     return modelId
   }
 
-  public async getTrainingState(modelId: ModelId, appId: string): Promise<TrainingState> {
+  public async getTrainingState(appId: string, modelId: ModelId): Promise<TrainingState> {
     const session = await this._trainingRepo.get({ ...modelId, appId })
     if (session) {
       const { state } = session
       return state
     }
 
-    const model = await this._modelRepo.getModel(modelId, appId)
+    const model = await this._modelRepo.getModel(appId, modelId)
     if (!model) {
       throw new TrainingNotFoundError(modelId)
     }
@@ -85,18 +85,18 @@ export class Application {
     }
   }
 
-  public async cancelTraining(modelId: ModelId, appId: string): Promise<void> {
-    return this._trainingQueue.cancelTraining(modelId, appId)
+  public async cancelTraining(appId: string, modelId: ModelId): Promise<void> {
+    return this._trainingQueue.cancelTraining(appId, modelId)
   }
 
-  public async predict(utterances: string[], modelId: ModelId, appId: string): Promise<PredictOutput[]> {
-    const modelExists: boolean = await this._modelRepo.exists(modelId, appId)
+  public async predict(appId: string, modelId: ModelId, utterances: string[]): Promise<PredictOutput[]> {
+    const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
     if (!modelExists) {
       throw new ModelDoesNotExistError(modelId)
     }
 
     if (!this._engine.hasModel(modelId)) {
-      const model = await this._modelRepo.getModel(modelId, appId)
+      const model = await this._modelRepo.getModel(appId, modelId)
       if (!model) {
         throw new ModelDoesNotExistError(modelId)
       }
@@ -113,15 +113,15 @@ export class Application {
     return predictions
   }
 
-  public async detectLanguage(utterances: string[], modelIds: ModelId[], appId: string): Promise<string[]> {
+  public async detectLanguage(appId: string, modelIds: ModelId[], utterances: string[]): Promise<string[]> {
     for (const modelId of modelIds) {
-      const modelExists: boolean = await this._modelRepo.exists(modelId, appId)
+      const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
       if (!modelExists) {
         throw new ModelDoesNotExistError(modelId)
       }
 
       if (!this._engine.hasModel(modelId)) {
-        const model = await this._modelRepo.getModel(modelId, appId)
+        const model = await this._modelRepo.getModel(appId, modelId)
         if (!model) {
           throw new ModelDoesNotExistError(modelId)
         }
