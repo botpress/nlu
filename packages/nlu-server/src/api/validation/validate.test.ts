@@ -3,11 +3,6 @@ import { http } from '@botpress/nlu-client'
 
 import { validateTrainInput } from './validate'
 
-/**
- * These unit tests don't cover all possible scenarios of training input, but they to more good than bad.
- * If we ever find a bug in train input validation, we'll just add some more tests.
- */
-
 const CITY_ENUM: ListEntityDefinition = {
   name: 'city',
   type: 'list',
@@ -59,8 +54,6 @@ const BOUILLON_INTENT: IntentDefinition = {
 }
 
 const LANG = 'en'
-const PW = 'Caput Draconis'
-const APP_ID = 'Spero_patronum'
 
 test('validate with correct format should pass', async () => {
   // arrange
@@ -69,8 +62,6 @@ test('validate with correct format should pass', async () => {
     entities: [CITY_ENUM],
     contexts: ['fly'],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -81,50 +72,12 @@ test('validate with correct format should pass', async () => {
   expect(validated).toStrictEqual(trainInput)
 })
 
-test('validate without pw should set pw as empty string', async () => {
-  // arrange
-  const trainInput: Partial<http.TrainRequestBody> = {
-    intents: [FLY_INTENT],
-    contexts: ['fly'],
-    entities: [CITY_ENUM],
-    language: LANG,
-    seed: 42
-  }
-
-  // act
-  const validated = await validateTrainInput(trainInput)
-
-  // assert
-  expect(validated.appSecret).toBe('')
-})
-
-test('validate with empty string pw should be allowed', async () => {
-  // arrange
-  const trainInput: http.TrainRequestBody = {
-    intents: [FLY_INTENT],
-    contexts: ['fly'],
-    entities: [CITY_ENUM],
-    language: LANG,
-    seed: 42,
-    appSecret: '',
-    appId: ''
-  }
-
-  // act
-  const validated = await validateTrainInput(trainInput)
-
-  // assert
-  expect(validated.appSecret).toBe('')
-})
-
 test('validate input without enums and patterns should pass', async () => {
   // arrange
   const trainInput: Omit<http.TrainRequestBody, 'entities'> = {
     intents: [EMPTY_INTENT],
     contexts: ['empty'],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -140,16 +93,12 @@ test('validate input without topics or language should throw', async () => {
   // arrange
   const withoutContexts: Omit<http.TrainRequestBody, 'entities' | 'contexts' | 'intents'> = {
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
   const withoutLang: Omit<http.TrainRequestBody, 'entities' | 'language'> = {
     intents: [FLY_INTENT],
     contexts: ['fly'],
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -167,8 +116,6 @@ test('validate without intent should fail', async () => {
     contexts: ['A'],
     entities: [CITY_ENUM],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -183,8 +130,6 @@ test('validate intent with unexisting context should fail', async () => {
     contexts: ['A'],
     entities: [CITY_ENUM],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -203,8 +148,6 @@ test('validate enum without values or patterns without regexes should fail', asy
     contexts: ['fly'],
     entities: [incompleteEnum],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -213,8 +156,6 @@ test('validate enum without values or patterns without regexes should fail', asy
     contexts: ['problem'],
     entities: [incompletePattern],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -230,8 +171,6 @@ test('validate with an unexisting referenced enum should throw', async () => {
     contexts: ['fly'],
     entities: [TICKET_PATTERN],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -246,8 +185,6 @@ test('validate with an unexisting referenced pattern should throw', async () => 
     contexts: ['problem'],
     entities: [CITY_ENUM],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -262,8 +199,6 @@ test('validate with an unexisting referenced complex should throw', async () => 
     contexts: ['bouillon'],
     entities: [CITY_ENUM],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     seed: 42
   }
 
@@ -278,8 +213,6 @@ test('validate with correct format but unexpected property should fail', async (
     contexts: ['fly'],
     entities: [CITY_ENUM],
     language: LANG,
-    appSecret: PW,
-    appId: APP_ID,
     enums: [],
     seed: 42
   }

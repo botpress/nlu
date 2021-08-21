@@ -1,9 +1,9 @@
 import { LockedTransactionQueue } from '@botpress/locks'
 import { Logger } from '@botpress/logger'
-import { http, TrainingError, TrainingErrorType, TrainingStatus, TrainInput } from '@botpress/nlu-client'
+import { TrainingError, TrainingErrorType, TrainingStatus, TrainInput } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
 import jsonpack from 'jsonpack'
-import Knex, { Transaction } from 'knex'
+import Knex from 'knex'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
@@ -31,7 +31,7 @@ const MS_BEFORE_PRUNE = ms('1h')
 const MAX_TRAIN_SET_SZ = 10 * 1024 * 1024 // 10Mb
 
 interface TableId {
-  userId: string
+  appId: string
   modelId: string
 }
 interface TableRow extends TableId {
@@ -50,7 +50,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
 
   public async initialize(): Promise<void> {
     await this._createTableIfNotExists(this._database, TABLE_NAME, (table) => {
-      table.string('userId').notNullable()
+      table.string('appId').notNullable()
       table.string('modelId').notNullable()
       table.string('status').notNullable()
       table.float('progress').notNullable()
@@ -60,7 +60,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       table.string('error_stack').nullable()
       table.string('cluster').nullable()
       table.timestamp('updatedOn').notNullable()
-      table.primary(['userId', 'modelId'])
+      table.primary(['appId', 'modelId'])
     })
   }
 
@@ -81,10 +81,10 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
 
   public set = async (training: Training): Promise<void> => {
     const row = this._trainingToRow(training)
-    const { userId, modelId } = row
+    const { appId, modelId } = row
 
     if (await this.has(training.id)) {
-      return this.table.where({ userId, modelId }).update(row)
+      return this.table.where({ appId, modelId }).update(row)
     }
     return this.table.insert(row)
   }
@@ -137,10 +137,9 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _trainIdToRow(trainId: TrainingId): TableId {
-    const { appId, appSecret, ...modelId } = trainId
-    const userId = this._makeUserId({ appId, appSecret })
+    const { appId, ...modelId } = trainId
     return {
-      userId,
+      appId,
       modelId: modelIdService.toString(modelId)
     }
   }
@@ -178,22 +177,10 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _rowToTraining(row: TableRow): Training {
-    const {
-      userId,
-      modelId: stringId,
-      status,
-      progress,
-      error_type,
-      error_message,
-      error_stack,
-      cluster,
-      updatedOn,
-      set
-    } = row
-    const { appId, appSecret } = this._parseUserId(userId)
+    const { appId, modelId: stringId, status, progress, error_type, error_message, error_stack, cluster, set } = row
 
     const modelId = modelIdService.fromString(stringId)
-    const id: TrainingId = { appId, appSecret, ...modelId }
+    const id: TrainingId = { appId, ...modelId }
 
     const error: TrainingError | undefined =
       status === 'errored'
@@ -206,16 +193,6 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
 
     const state: TrainingState = { status, progress, error, cluster }
     return { id, state, set: this.unpackTrainSet(set) }
-  }
-
-  private _makeUserId(creds: http.Credentials) {
-    const { appId, appSecret } = creds
-    return [appId, appSecret].join(KEY_JOIN_CHAR)
-  }
-
-  private _parseUserId(userId: string): http.Credentials {
-    const [appId, appSecret] = userId.split(KEY_JOIN_CHAR)
-    return { appId, appSecret }
   }
 
   private packTrainSet(ts: TrainInput): string {

@@ -20,7 +20,7 @@ export interface TrainingRepository extends ReadonlyTrainingRepository {
   inTransaction: (trx: TrainingTrx, name: string) => Promise<void> // Promise resolves once transaction is over
 }
 
-export type TrainingId = ModelId & http.Credentials
+export type TrainingId = ModelId & { appId: string }
 export type TrainingState = TrainingStateDto & {
   cluster: string
 }

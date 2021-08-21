@@ -48,11 +48,6 @@ export const TrainInputSchema = Joi.object().keys({
   seed: Joi.number().optional()
 })
 
-export const CredentialsSchema = Joi.object().keys({
-  appSecret: Joi.string().allow('').optional().default(''),
-  appId: Joi.string().allow('').optional().default('')
-})
-
 export const PredictInputSchema = Joi.object().keys({
   appSecret: Joi.string().allow('').optional().default(''),
   appId: Joi.string().allow('').optional().default(''),

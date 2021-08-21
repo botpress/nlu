@@ -107,15 +107,15 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _makeTrainingKey(id: TrainingId) {
-    const { appId, appSecret, ...modelId } = id
+    const { appId, ...modelId } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    return [stringId, appId, appSecret].join(KEY_JOIN_CHAR)
+    return [stringId, appId].join(KEY_JOIN_CHAR)
   }
 
   private _parseTrainingKey(key: string): TrainingId {
-    const [stringId, appId, appSecret] = key.split(KEY_JOIN_CHAR)
+    const [stringId, appId] = key.split(KEY_JOIN_CHAR)
     const modelId = NLUEngine.modelIdService.fromString(stringId)
-    return { ...modelId, appId, appSecret }
+    return { ...modelId, appId }
   }
 }
 

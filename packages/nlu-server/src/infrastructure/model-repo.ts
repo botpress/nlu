@@ -9,12 +9,7 @@ import tar from 'tar'
 import tmp from 'tmp'
 import { GhostService, ScopedGhostService } from './ghost'
 
-interface ModelOwnershipOptions {
-  appId: string
-  appSecret: string
-}
-
-interface PruneOptions extends ModelOwnershipOptions {
+interface PruneOptions {
   keep: number
 }
 
@@ -34,8 +29,8 @@ export class ModelRepository {
     this._logger.debug('Model service initializing...')
   }
 
-  public async hasModel(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<boolean> {
-    return !!(await this.getModel(modelId, options))
+  public async hasModel(modelId: NLUEngine.ModelId, appId: string): Promise<boolean> {
+    return !!(await this.getModel(modelId, appId))
   }
 
   /**
@@ -43,14 +38,11 @@ export class ModelRepository {
    * @param modelId The desired model id
    * @returns the corresponding model
    */
-  public async getModel(
-    modelId: NLUEngine.ModelId,
-    options: ModelOwnershipOptions
-  ): Promise<NLUEngine.Model | undefined> {
-    const scopedGhost = this._getScopedGhostForAppID(options.appId)
+  public async getModel(modelId: NLUEngine.ModelId, appId: string): Promise<NLUEngine.Model | undefined> {
+    const scopedGhost = this._getScopedGhostForAppID(appId)
 
     const stringId = modelIdService.toString(modelId)
-    const fExtension = this._getFileExtension(options.appSecret)
+    const fExtension = this._getFileExtension()
     const fname = `${stringId}.${fExtension}`
 
     if (!(await scopedGhost.fileExists(MODELS_DIR, fname))) {
@@ -76,14 +68,14 @@ export class ModelRepository {
     }
   }
 
-  public async saveModel(model: NLUEngine.Model, options: ModelOwnershipOptions): Promise<void | void[]> {
+  public async saveModel(model: NLUEngine.Model, appId: string): Promise<void | void[]> {
     const serialized = JSON.stringify(model)
 
     const stringId = modelIdService.toString(model.id)
-    const fExtension = this._getFileExtension(options.appSecret)
+    const fExtension = this._getFileExtension()
     const fname = `${stringId}.${fExtension}`
 
-    const scopedGhost = this._getScopedGhostForAppID(options.appId)
+    const scopedGhost = this._getScopedGhostForAppID(appId)
 
     // TODO replace that logic with in-memory streams
     const tmpDir = tmp.dirSync({ unsafeCleanup: true })
@@ -104,13 +96,10 @@ export class ModelRepository {
     tmpDir.removeCallback()
   }
 
-  public async listModels(
-    options: ModelOwnershipOptions,
-    filters: Partial<NLUEngine.ModelId> = {}
-  ): Promise<NLUEngine.ModelId[]> {
-    const scopedGhost = this._getScopedGhostForAppID(options.appId)
+  public async listModels(appId: string, filters: Partial<NLUEngine.ModelId> = {}): Promise<NLUEngine.ModelId[]> {
+    const scopedGhost = this._getScopedGhostForAppID(appId)
 
-    const fextension = this._getFileExtension(options.appSecret)
+    const fextension = this._getFileExtension()
     const files = await scopedGhost.directoryListing(MODELS_DIR, `*.${fextension}`, undefined, undefined, {
       sortOrder: {
         column: 'modifiedOn',
@@ -127,33 +116,34 @@ export class ModelRepository {
   }
 
   public async pruneModels(
+    appId: string,
     options: PruneOptions,
     filters: Partial<NLUEngine.ModelId> = {}
   ): Promise<NLUEngine.ModelId[]> {
-    const models = await this.listModels(options, filters)
+    const models = await this.listModels(appId, filters)
 
     const { keep } = options
     const toPrune = models.slice(keep)
-    await Bluebird.each(toPrune, (m) => this.deleteModel(m, options))
+    await Bluebird.each(toPrune, (m) => this.deleteModel(m, appId))
 
     return toPrune
   }
 
-  public async exists(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<boolean> {
-    const scopedGhost = this._getScopedGhostForAppID(options.appId)
+  public async exists(modelId: NLUEngine.ModelId, appId: string): Promise<boolean> {
+    const scopedGhost = this._getScopedGhostForAppID(appId)
 
     const stringId = modelIdService.toString(modelId)
-    const fExtension = this._getFileExtension(options.appSecret)
+    const fExtension = this._getFileExtension()
     const fname = `${stringId}.${fExtension}`
 
     return scopedGhost.fileExists(MODELS_DIR, fname)
   }
 
-  public async deleteModel(modelId: NLUEngine.ModelId, options: ModelOwnershipOptions): Promise<void> {
-    const scopedGhost = this._getScopedGhostForAppID(options.appId)
+  public async deleteModel(modelId: NLUEngine.ModelId, appId: string): Promise<void> {
+    const scopedGhost = this._getScopedGhostForAppID(appId)
 
     const stringId = modelIdService.toString(modelId)
-    const fExtension = this._getFileExtension(options.appSecret)
+    const fExtension = this._getFileExtension()
     const fname = `${stringId}.${fExtension}`
 
     return scopedGhost.deleteFile(MODELS_DIR, fname)
@@ -163,12 +153,7 @@ export class ModelRepository {
     return appId ? this._ghost.forBot(appId) : this._ghost.root()
   }
 
-  private _getFileExtension(appSecret: string) {
-    const secretHash = this._computeSecretHash(appSecret)
-    return `${secretHash}.${MODELS_EXT}`
-  }
-
-  private _computeSecretHash(appSecret: string): string {
-    return modelIdService.halfmd5(appSecret) // makes shorter file name than full regular md5
+  private _getFileExtension() {
+    return `.${MODELS_EXT}`
   }
 }
