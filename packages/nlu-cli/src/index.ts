@@ -48,7 +48,7 @@ yargs
         default: 'https://lang-01.botpress.io'
       },
       languageAuthToken: {
-        description: 'Authentification token for your language server',
+        description: 'Authentication token for your language server',
         type: 'string'
       },
       apmEnabled: {
