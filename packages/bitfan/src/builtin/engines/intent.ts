@@ -12,8 +12,8 @@ const BATCH_SIZE = 10
 export class BpIntentEngine implements sdk.Engine<'intent'> {
   private _stanProvider: StanProvider
 
-  constructor(bpEndpoint?: string, password?: string) {
-    this._stanProvider = new StanProvider(bpEndpoint, password)
+  constructor(bpEndpoint?: string) {
+    this._stanProvider = new StanProvider(bpEndpoint)
   }
 
   train(trainSet: sdk.DataSet<'intent'>, seed: number, progress: sdk.ProgressCb) {
