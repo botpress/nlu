@@ -97,10 +97,10 @@ const impl: typeof sdk = {
   },
 
   engines: {
-    makeBpTopicEngine: (bpEndpoint: string, password: string) => new BpTopicEngine(bpEndpoint, password),
-    makeBpIntentEngine: (bpEndpoint: string, password: string) => new BpIntentEngine(bpEndpoint, password),
-    makeBpSlotEngine: (bpEndpoint: string, password: string) => new BpSlotEngine(bpEndpoint, password),
-    makeBpSpellEngine: (bpEndpoint: string, password: string) => new BpSpellingEngine(bpEndpoint, password)
+    makeBpTopicEngine: (bpEndpoint: string) => new BpTopicEngine(bpEndpoint),
+    makeBpIntentEngine: (bpEndpoint: string) => new BpIntentEngine(bpEndpoint),
+    makeBpSlotEngine: (bpEndpoint: string) => new BpSlotEngine(bpEndpoint),
+    makeBpSpellEngine: (bpEndpoint: string) => new BpSpellingEngine(bpEndpoint)
   },
 
   tables: {

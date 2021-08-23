@@ -14,15 +14,22 @@ import {
 } from './http'
 
 export class Client {
-  constructor(endpoint: string, appId: string, authToken?: string)
+  constructor(endpoint: string)
   getInfo(): Promise<InfoResponseBody | ErrorResponse>
-  startTraining(trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse>
-  getTrainingStatus(modelId: string): Promise<TrainProgressResponseBody | ErrorResponse>
-  cancelTraining(modelId: string): Promise<SuccessReponse | ErrorResponse>
-  listModels(): Promise<ListModelsResponseBody | ErrorResponse>
-  pruneModels(): Promise<PruneModelsResponseBody | ErrorResponse>
-  detectLanguage(detectLangRequestBody: DetectLangRequestBody): Promise<DetectLangResponseBody | ErrorResponse>
-  predict(modelId: string, predictRequestBody: PredictRequestBody): Promise<PredictResponseBody | ErrorResponse>
+  startTraining(appId: string, trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse>
+  getTrainingStatus(appId: string, modelId: string): Promise<TrainProgressResponseBody | ErrorResponse>
+  cancelTraining(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse>
+  listModels(appId: string): Promise<ListModelsResponseBody | ErrorResponse>
+  pruneModels(appId: string): Promise<PruneModelsResponseBody | ErrorResponse>
+  detectLanguage(
+    appId: string,
+    detectLangRequestBody: DetectLangRequestBody
+  ): Promise<DetectLangResponseBody | ErrorResponse>
+  predict(
+    appId: string,
+    modelId: string,
+    predictRequestBody: PredictRequestBody
+  ): Promise<PredictResponseBody | ErrorResponse>
 }
 
 export * as http from './http'
