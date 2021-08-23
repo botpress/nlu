@@ -12,8 +12,8 @@ const BATCH_SIZE = 10
 export class BpSpellingEngine implements sdk.UnsupervisedEngine<'spell'> {
   private _stanProvider: StanProvider
 
-  constructor(bpEndpoint?: string, password?: string) {
-    this._stanProvider = new StanProvider(bpEndpoint, password)
+  constructor(bpEndpoint?: string) {
+    this._stanProvider = new StanProvider(bpEndpoint)
   }
 
   train(corpus: sdk.Document[], seed: number, progress: sdk.ProgressCb) {

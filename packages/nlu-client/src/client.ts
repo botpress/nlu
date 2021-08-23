@@ -20,11 +20,8 @@ import {
 export class NLUClient implements IClient {
   protected _client: AxiosInstance
 
-  constructor(protected _endpoint: string, protected _appId: string) {
-    this._client = axios.create({
-      baseURL: this._endpoint,
-      headers: { 'X-App-Id': _appId }
-    })
+  constructor(protected _endpoint: string) {
+    this._client = axios.create({ baseURL: this._endpoint })
   }
 
   public async getInfo(): Promise<InfoResponseBody | ErrorResponse> {
@@ -34,64 +31,82 @@ export class NLUClient implements IClient {
     })
   }
 
-  public async startTraining(trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse> {
+  public async startTraining(
+    appId: string,
+    trainRequestBody: TrainRequestBody
+  ): Promise<TrainResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
-      const { data } = await this._client.post('train', trainRequestBody)
+      const headers = this._appIdHeader(appId)
+      const { data } = await this._client.post('train', trainRequestBody, { headers })
       return data
     })
   }
 
-  public async getTrainingStatus(modelId: string): Promise<TrainProgressResponseBody | ErrorResponse> {
+  public async getTrainingStatus(appId: string, modelId: string): Promise<TrainProgressResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
+      const headers = this._appIdHeader(appId)
       const endpoint = `train/${modelId}`
-      const { data } = await this._client.get(endpoint)
+      const { data } = await this._client.get(endpoint, { headers })
       return data
     })
   }
 
-  public async cancelTraining(modelId: string): Promise<SuccessReponse | ErrorResponse> {
+  public async cancelTraining(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
+      const headers = this._appIdHeader(appId)
       const endpoint = `train/${modelId}/cancel`
-      const { data } = await this._client.post(endpoint)
+      const { data } = await this._client.post(endpoint, {}, { headers })
       return data
     })
   }
 
-  public async listModels(): Promise<ListModelsResponseBody | ErrorResponse> {
+  public async listModels(appId: string): Promise<ListModelsResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
-      const endpoint = 'models/'
-      const { data } = await this._client.get(endpoint)
+      const headers = this._appIdHeader(appId)
+      const endpoint = 'models'
+      const { data } = await this._client.get(endpoint, { headers })
       return data
     })
   }
 
-  public async pruneModels(): Promise<PruneModelsResponseBody | ErrorResponse> {
+  public async pruneModels(appId: string): Promise<PruneModelsResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
+      const headers = this._appIdHeader(appId)
       const endpoint = 'models/prune'
-      const { data } = await this._client.post(endpoint)
+      const { data } = await this._client.post(endpoint, {}, { headers })
       return data
     })
   }
 
   public async detectLanguage(
+    appId: string,
     detectLangRequestBody: DetectLangRequestBody
   ): Promise<DetectLangResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
+      const headers = this._appIdHeader(appId)
       const endpoint = 'detect-lang'
-      const { data } = await this._client.post(endpoint, detectLangRequestBody)
+      const { data } = await this._client.post(endpoint, detectLangRequestBody, { headers })
       return data
     })
   }
 
   public async predict(
+    appId: string,
     modelId: string,
     predictRequestBody: PredictRequestBody
   ): Promise<PredictResponseBody | ErrorResponse> {
     return this._wrapWithTryCatch(async () => {
+      const headers = this._appIdHeader(appId)
       const endpoint = `predict/${modelId}`
-      const { data } = await this._client.post(endpoint, predictRequestBody)
+      const { data } = await this._client.post(endpoint, predictRequestBody, { headers })
       return data
     })
+  }
+
+  private _appIdHeader = (appId: string) => {
+    return {
+      'X-App-Id': appId
+    }
   }
 
   private async _wrapWithTryCatch<T>(fn: () => Promise<T>) {

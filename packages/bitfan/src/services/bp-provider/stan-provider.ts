@@ -10,12 +10,12 @@ export class StanProvider {
   private _modelId: string | undefined
   private _client: Client
 
-  constructor(nluServerEndpoint: string = 'http://localhost:3200', password = '') {
-    this._client = new Client(nluServerEndpoint, APP_ID, password)
+  constructor(nluServerEndpoint: string = 'http://localhost:3200') {
+    this._client = new Client(nluServerEndpoint)
   }
 
   private async _getTrainingStatus(modelId: string): Promise<TrainingState> {
-    const data = await this._client.getTrainingStatus(modelId)
+    const data = await this._client.getTrainingStatus(APP_ID, modelId)
     if (data.success) {
       return data.session
     }
@@ -46,7 +46,7 @@ export class StanProvider {
       .uniq()
       .value()
 
-    const data = await this._client.startTraining({
+    const data = await this._client.startTraining(APP_ID, {
       language: trainInput.language,
       contexts,
       intents: trainInput.intents,
@@ -63,7 +63,7 @@ export class StanProvider {
   }
 
   public async predict(utterances: string[]): Promise<PredictOutput[]> {
-    const predOutput = await this._client.predict(this._modelId ?? '', { utterances })
+    const predOutput = await this._client.predict(APP_ID, this._modelId ?? '', { utterances })
     if (!predOutput.success) {
       throw new Error(`An error occured at prediction: ${predOutput.error}.`)
     }

@@ -84,10 +84,10 @@ export namespace visualisation {
 }
 
 export namespace engines {
-  export const makeBpIntentEngine: (bpEndpoint: string, password: string) => Engine<'intent'>
-  export const makeBpTopicEngine: (bpEndpoint: string, password: string) => Engine<'topic'>
-  export const makeBpSlotEngine: (bpEndpoint: string, password: string) => Engine<'slot'>
-  export const makeBpSpellEngine: (bpEndpoint: string, password: string) => UnsupervisedEngine<'spell'>
+  export const makeBpIntentEngine: (bpEndpoint: string) => Engine<'intent'>
+  export const makeBpTopicEngine: (bpEndpoint: string) => Engine<'topic'>
+  export const makeBpSlotEngine: (bpEndpoint: string) => Engine<'slot'>
+  export const makeBpSpellEngine: (bpEndpoint: string) => UnsupervisedEngine<'spell'>
 }
 
 export namespace sampling {
