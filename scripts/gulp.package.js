@@ -1,8 +1,10 @@
+const semverParse = require('semver/functions/parse')
 const { spawn } = require('./utils/spawn')
 const { version } = require('../package.json')
 const path = require('path')
 const chalk = require('chalk')
 const _ = require('lodash')
+const logger = require('./utils/logger')
 
 const targets = {
   win: 'node12-win32-x64',
@@ -28,7 +30,8 @@ const computeDistributions = () => {
 }
 
 const package = async (cb) => {
-  const underscores = version.split('.').join('_')
+  const { major, minor, patch, prerelease } = semverParse(version)
+  const underscores = [major, minor, patch, ...prerelease].join('_')
   try {
     const distributions = computeDistributions()
 
