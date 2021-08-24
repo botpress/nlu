@@ -30,6 +30,10 @@ jobs:
           ./nlu download --lang en --dim 25
       - name: Run Regression Test
         run: |
+
+          # Running in dimension 25 as we don't care about regressions here...
+          # We just want to make sure nothing breaks
+
           ./nlu lang --dim 25 &
           sleep 15s && ./nlu --doc false --verbose 0 --ducklingEnabled false --languageURL http://localhost:3100 &
           sleep 25s && BITFAN_LANG='en' yarn e2e -t "bpds-intent" -k
