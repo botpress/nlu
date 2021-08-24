@@ -24,6 +24,7 @@ export default async (options: Argv) => {
 
   const appDataPath = getAppDataPath()
   const languageDirectory = options.langDir || path.join(appDataPath, 'embeddings')
+  await fse.ensureDir(languageDirectory)
 
   const launcherLogger = baseLogger.sub('Launcher')
 
