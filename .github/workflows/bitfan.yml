@@ -23,9 +23,5 @@ jobs:
       - name: Run Regression Test
         run: |
           yarn start lang --dim 100 &
-          sleep 15s && yarn start nlu \
-                            --doc false \
-                            --verbose 0 \
-                            --ducklingEnabled false \
-                            --languageURL http://localhost:3100 & 
+          sleep 15s && yarn start nlu --doc false --verbose 0 --ducklingEnabled false --languageURL http://localhost:3100 &
           sleep 25s && yarn e2e --skip="clinc150"
