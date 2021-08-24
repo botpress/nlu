@@ -82,7 +82,7 @@ async function main(args: CommandLineArgs) {
   }
 
   if (!testsPass) {
-    throw new Error('There was a regression in at least one test.')
+    console.log(chalk.red('There was a regression in at least one test.'))
   }
 }
 
