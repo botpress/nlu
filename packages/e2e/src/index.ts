@@ -42,23 +42,31 @@ async function runTest(test, { update, keepGoing }) {
 interface CommandLineArgs {
   update: boolean
   keepGoing: boolean
+  tests?: string
   skip?: string
 }
 
-function getTests(skip: string | undefined) {
+function getTests(tests: string | undefined, skip: string | undefined) {
   const allTests = [bpdsIntents, bpdsSlots, bpdsSpell, clincIntents].map((t) => t(bitfan))
-  if (!skip) {
-    return allTests
+  if (skip && tests) {
+    console.log(chalk.yellow('Both --skip and --tests flags are set; Ignoring --skip flag.'))
   }
 
-  const skipRegexp = new RegExp(skip)
-  return allTests.filter(({ name }) => !skipRegexp.exec(name))
+  if (tests) {
+    const testsRegexp = new RegExp(tests)
+    return allTests.filter(({ name }) => testsRegexp.exec(name))
+  }
+  if (skip) {
+    const skipRegexp = new RegExp(skip)
+    return allTests.filter(({ name }) => !skipRegexp.exec(name))
+  }
+  return allTests
 }
 
 async function main(args: CommandLineArgs) {
-  const { update, skip, keepGoing } = args
+  const { update, skip, keepGoing, tests: testsToRun } = args
 
-  const tests = getTests(skip)
+  const tests = getTests(testsToRun, skip)
   console.log(chalk.green(`Running tests [${tests.map(({ name }) => name).join(', ')}]`))
 
   let testsPass = true
@@ -95,8 +103,13 @@ yargs
         default: false,
         type: 'boolean'
       },
+      tests: {
+        alias: 't',
+        description: 'Regexp pattern string for tests to run',
+        type: 'string'
+      },
       skip: {
-        description: 'Regexp pattern string for tests to skip',
+        description: 'Regexp pattern string for tests to skip. Ignored if tests is set.',
         type: 'string'
       }
     },
