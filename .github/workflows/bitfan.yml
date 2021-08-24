@@ -18,10 +18,10 @@ jobs:
           yarn build
       - name: Download language models
         run: |
-          yarn start download --lang fr --dim 300
-          yarn start download --lang en --dim 300
+          yarn start download --lang fr --dim 100
+          yarn start download --lang en --dim 100
       - name: Run Regression Test
         run: |
-          yarn start lang --dim 300 &
-          sleep 10s yarn start nlu --silent --ducklingEnabled false --languageURL http://localhost:3100 & 
-          sleep 10s && yarn e2e --skip="clinc150"
+          yarn start lang --dim 100 &
+          sleep 10s yarn start nlu --doc false --ducklingEnabled false --languageURL http://localhost:3100 & 
+          sleep 15s && yarn e2e --skip="clinc150"
