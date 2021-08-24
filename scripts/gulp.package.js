@@ -1,10 +1,9 @@
-const semverParse = require('semver/functions/parse')
+const { makeFileName, semverToUnderscores } = require('./utils/binary')
 const { spawn } = require('./utils/spawn')
 const { version } = require('../package.json')
 const path = require('path')
 const chalk = require('chalk')
 const _ = require('lodash')
-const logger = require('./utils/logger')
 
 const targets = {
   win: 'node12-win32-x64',
@@ -30,13 +29,12 @@ const computeDistributions = () => {
 }
 
 const package = async (cb) => {
-  const { major, minor, patch, prerelease } = semverParse(version)
-  const underscores = [major, minor, patch, ...prerelease].join('_')
   try {
+    const underscores = semverToUnderscores(version)
     const distributions = computeDistributions()
 
     for (const [dist, target] of Object.entries(distributions)) {
-      const fileName = `nlu-v${underscores}-${dist}-x64`
+      const fileName = makeFileName(underscores, dist)
 
       console.log(chalk.green(`Packaging ${fileName}`))
 
