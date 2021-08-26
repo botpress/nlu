@@ -54,6 +54,7 @@ export interface ModelIdArgs extends TrainInput {
 export interface TrainingOptions {
   progressCallback: (x: number) => void
   previousModel: ModelId | undefined
+  minProgressHeartbeat: number
 }
 
 export interface Engine {

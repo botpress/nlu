@@ -3,6 +3,8 @@ import _ from 'lodash'
 import { MLToolkit } from '../ml/typings'
 import { Logger } from '../typings'
 
+import { watchDog } from '../utils/watch-dog'
+
 import { serializeKmeans } from './clustering'
 import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/multi-thread-extractor'
 import { warmEntityCache } from './entities/entity-cache-manager'
@@ -41,6 +43,7 @@ export type TrainInput = Readonly<{
   contexts: string[]
   intents: Intent<string>[]
   ctxToTrain: string[]
+  minProgressHeartbeat: number
 }>
 
 export type TrainStep = Readonly<{
@@ -378,6 +381,11 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
   let totalProgress = 0
   let normalizedProgress = 0
 
+  const progressWatchDog = watchDog(async () => {
+    const rounded = _.round(normalizedProgress, 2)
+    progress(rounded)
+  }, input.minProgressHeartbeat)
+
   const reportProgress: progressCB = (stepProgress = 1) => {
     totalProgress = Math.max(totalProgress, Math.floor(totalProgress) + stepProgress)
     const scaledProgress = Math.min(1, totalProgress / NB_STEPS)
@@ -385,9 +393,7 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
       return
     }
     normalizedProgress = scaledProgress
-
-    const rounded = _.round(normalizedProgress, 2)
-    progress(rounded)
+    progressWatchDog.run()
   }
   const logger = makeLogger(input.trainId, tools.logger)
 
@@ -404,6 +410,7 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
     logger(TrainIntentClassifiers)(step, tools, reportProgress),
     logger(TrainSlotTaggers)(step, tools, reportProgress)
   ])
+  progressWatchDog.stop()
 
   const [ctx_model, intent_model_by_ctx, slots_model_by_intent] = models
 

@@ -18,7 +18,10 @@ import { watchDog, WatchDog } from '../utils/watch-dog'
 import { TrainingNotFoundError } from './errors'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
-const MAX_TRAINING_HEARTBEAT = ms('1m')
+
+const TRAINING_HEARTBEAT_SECURITY_FACTOR = 3
+const MIN_TRAINING_HEARTBEAT = ms('10s')
+const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * TRAINING_HEARTBEAT_SECURITY_FACTOR
 
 export interface QueueOptions {
   maxTraining: number
@@ -45,7 +48,7 @@ export default class TrainingQueue {
   }
 
   public async initialize() {
-    this.task = watchDog(this._runTask.bind(this), MAX_TRAINING_HEARTBEAT / 2)
+    this.task = watchDog(this._runTask.bind(this), MAX_TRAINING_HEARTBEAT * 2)
   }
 
   public async teardown() {
@@ -190,11 +193,14 @@ export default class TrainingQueue {
         return repo.set({ ...training, state: ts })
       }, 'progressCallback')
     }
-    const throttledCb = _.throttle(progressCb, ms('5s'))
+    const throttledCb = _.throttle(progressCb, MIN_TRAINING_HEARTBEAT / 2)
 
     try {
       const trainKey = this._toKey({ ...modelId, appId })
-      const model = await this.engine.train(trainKey, trainInput, { progressCallback: throttledCb })
+      const model = await this.engine.train(trainKey, trainInput, {
+        progressCallback: throttledCb,
+        minProgressHeartbeat: MIN_TRAINING_HEARTBEAT
+      })
       throttledCb.flush()
 
       const { language: languageCode } = trainInput
