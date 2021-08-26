@@ -95,22 +95,26 @@ export class SVM {
 
     const { params, report } = gridSearchResult
     self._baseSvm = new BaseSVM()
-    return self._baseSvm.train(dataset, seed, params).then(function (model) {
-      progressCb(1)
-      const fullModel: SvmModel = { ...model, param: { ...self._config, ...model.param } }
+    const model = await self._baseSvm.train(dataset, seed, params)
 
-      if (report) {
-        const fullReport: Report = {
-          ...report,
-          reduce: self._config.reduce,
-          retainedVariance: self._retainedVariance,
-          retainedDimension: self._retainedDimension,
-          initialDimension: self._initialDimension
-        }
-        return { model: fullModel, report: fullReport }
+    progressCb(1)
+    const fullModel: SvmModel = { ...model, param: { ...self._config, ...model.param } }
+
+    if (report) {
+      const fullReport: Report = {
+        ...report,
+        reduce: self._config.reduce,
+        retainedVariance: self._retainedVariance,
+        retainedDimension: self._retainedDimension,
+        initialDimension: self._initialDimension
       }
-      return { model: fullModel }
-    })
+      return { model: fullModel, report: fullReport }
+    }
+    return { model: fullModel }
+  }
+
+  free = () => {
+    this._baseSvm?.free()
   }
 
   isTrained = () => {
