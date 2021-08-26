@@ -1,6 +1,6 @@
-import { makeSvm } from '.'
+import { makeSvm, Parameters } from '.'
 
-import { AugmentedParameters, NSVM, ProbabilityResult } from './typings'
+import { NSVM, ProbabilityResult } from './typings'
 
 const train_params = {
   svm_type: 0,
@@ -37,30 +37,36 @@ const argmax = (arr: number[]) =>
     return acc
   }, 0)
 
-const train_async = async (svm: NSVM, params: AugmentedParameters, x: number[][], y: number[]) => {
+const train_async = async (svm: NSVM, params: Parameters & { mute: number }, x: number[][], y: number[]) => {
   return new Promise<string | void>((resolve, reject) => {
-    svm.train_async(params, x, y, (err) => {
-      if (err) {
-        reject(new Error(err))
-      }
+    try {
+      svm.train(params, x, y)
       resolve()
-    })
+    } catch (err) {
+      reject(err)
+    }
   })
 }
 
 const predict_async = async (svm: NSVM, x: number[]) => {
-  return new Promise<number>((resolve, _) => {
-    svm.predict_async(x, (p: number) => {
-      resolve(p)
-    })
+  return new Promise<number>((resolve, reject) => {
+    try {
+      const ret = svm.predict(x)
+      resolve(ret)
+    } catch (err) {
+      reject(err)
+    }
   })
 }
 
 const predict_prob_async = async (svm: NSVM, x: number[]) => {
-  return new Promise<ProbabilityResult>((resolve, _) => {
-    svm.predict_probability_async(x, (p: ProbabilityResult) => {
-      resolve(p)
-    })
+  return new Promise<ProbabilityResult>((resolve, reject) => {
+    try {
+      const ret = svm.predict_probability(x)
+      resolve(ret)
+    } catch (err) {
+      reject(err)
+    }
   })
 }
 

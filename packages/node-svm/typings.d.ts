@@ -1,12 +1,9 @@
 export const makeSvm: (args?: { random_seed: number }) => Promise<NSVM>
 
 export interface NSVM {
-  train(params: AugmentedParameters, x: number[][], y: number[]): void
-  train_async(params: AugmentedParameters, x: number[][], y: number[], cb: (e: null | string) => void): void
+  train(params: Parameters & { mute: number }, x: number[][], y: number[]): void
   predict(x: number[]): number
-  predict_async(x: number[], cb: (p: number) => void): void
   predict_probability(x: number[]): ProbabilityResult
-  predict_probability_async(x: number[], cb: (p: ProbabilityResult) => void): void
   set_model(model: Model): void
   get_model(): Model
   free_model(): void
@@ -31,10 +28,6 @@ export interface Model {
   label: number[]
   nSV: number[]
   free_sv: number
-}
-
-interface AugmentedParameters extends Parameters {
-  mute: number
 }
 
 export interface Parameters {

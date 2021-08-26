@@ -9,10 +9,7 @@
             "cppsrc/nsvm.cpp",
             "cppsrc/utils.cpp",
             "cppsrc/type_check.cpp",
-            "cppsrc/train.cpp",
-            "cppsrc/training_worker.cpp",
-            "cppsrc/predict_worker.cpp",
-            "cppsrc/predict_prob_worker.cpp"
+            "cppsrc/train.cpp"
         ],
         'include_dirs': [
             "<!@(node -p \"require('node-addon-api').include\")"

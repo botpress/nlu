@@ -97,73 +97,6 @@ Napi::Value NSVM::svmTrain(const Napi::CallbackInfo &info)
   return env.Null();
 }
 
-Napi::Value NSVM::svmTrainAsync(const Napi::CallbackInfo &info)
-{
-  Napi::Env env = info.Env();
-  Napi::HandleScope scope(env);
-
-  if (info.Length() != 4)
-  {
-    Napi::TypeError::New(env, "train_async expects at 4 arguments: train params, X, y adn the callback function").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  struct typeCheck::TypeCheckResult res = {"none"};
-  bool isParam = typeCheck::checkIfSvmParameters(info[0], res);
-  if (!isParam)
-  {
-    std::stringstream ss;
-    ss << "SVM training parameters format is not OK. Property '" << res.propertyName << "' is missing.";
-    Napi::TypeError::New(env, ss.str()).ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  bool isX = typeCheck::checkIfNumberMatrix(info[1]);
-  if (!isX)
-  {
-    Napi::TypeError::New(env, "SVM training samples should be a number matrix (number[][])").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  bool isY = typeCheck::checkIfNumberArray(info[2]);
-  if (!isY)
-  {
-    Napi::TypeError::New(env, "SVM training labels should be a number array (number[])").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  if (!info[3].IsFunction())
-  {
-    Napi::TypeError::New(env, "callback should be a function to call when training is done.").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  Napi::Object napiParams = info[0].As<Napi::Object>();
-  Napi::Array napiX = info[1].As<Napi::Array>();
-  Napi::Array napiY = info[2].As<Napi::Array>();
-  Napi::Function cb = info[3].As<Napi::Function>();
-
-  unsigned int nSamples = napiY.Length();
-  unsigned int nFeatures = napiX.Get((uint32_t)0).As<Napi::Array>().Length();
-  this->_state->nFeatures = nFeatures;
-  this->_state->nSamples = nSamples;
-
-  this->_state->problem = new svm_problem();
-  this->_state->problem->l = nSamples;
-  this->_state->problem->x = napiToNodeMatrix(napiX);
-  this->_state->problem->y = napiToDoubleArray(napiY);
-
-  struct svm_parameter params = {0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, 0, 0, 0};
-  napiToSvmParameters(napiParams, params);
-
-  this->_state->mute = napiParams.Get("mute").As<Napi::Boolean>().ToBoolean();
-
-  TrainingWorker *worker = new TrainingWorker(params, this->_state, cb);
-  worker->Queue();
-
-  return env.Null();
-}
-
 Napi::Value NSVM::svmPredict(const Napi::CallbackInfo &info)
 {
   Napi::Env env = info.Env();
@@ -190,42 +123,6 @@ Napi::Value NSVM::svmPredict(const Napi::CallbackInfo &info)
   delete[] x;
 
   return Napi::Number::New(env, prediction);
-}
-
-Napi::Value NSVM::svmPredictAsync(const Napi::CallbackInfo &info)
-{
-  Napi::Env env = info.Env();
-  Napi::HandleScope scope(env);
-
-  if (!this->_state->modelIsTrained)
-  {
-    Napi::TypeError::New(env, "model was already freed from memory, instanciate a new NSVM").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  bool isX = typeCheck::checkIfNumberArray(info[0]);
-  if (!isX)
-  {
-    Napi::TypeError::New(env, "Array of length = nFeatures expected").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  if (!info[1].IsFunction())
-  {
-    Napi::TypeError::New(env, "callback should be a function to call when training is done.").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  Napi::Array napiX = info[0].As<Napi::Array>();
-  Napi::Function cb = info[1].As<Napi::Function>();
-
-  svm_node *x = napiToNodeArray(napiX);
-
-  PredictWorker *worker = new PredictWorker(x, this->_state->model, cb);
-
-  worker->Queue();
-
-  return env.Null();
 }
 
 Napi::Value NSVM::svmPredictProbability(const Napi::CallbackInfo &info)
@@ -261,42 +158,6 @@ Napi::Value NSVM::svmPredictProbability(const Napi::CallbackInfo &info)
   delete[] x;
 
   return ret;
-}
-
-Napi::Value NSVM::svmPredictProbabilityAsync(const Napi::CallbackInfo &info)
-{
-  Napi::Env env = info.Env();
-  Napi::HandleScope scope(env);
-
-  if (!this->_state->modelIsTrained)
-  {
-    Napi::TypeError::New(env, "model was already freed from memory, instanciate a new NSVM").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  bool isX = typeCheck::checkIfNumberArray(info[0]);
-  if (!isX)
-  {
-    Napi::TypeError::New(env, "Array of length = nFeatures expected").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  if (!info[1].IsFunction())
-  {
-    Napi::TypeError::New(env, "callback should be a function to call when training is done.").ThrowAsJavaScriptException();
-    return env.Null();
-  }
-
-  Napi::Array napiX = info[0].As<Napi::Array>();
-  Napi::Function cb = info[1].As<Napi::Function>();
-
-  svm_node *x = napiToNodeArray(napiX);
-
-  PredictProbWorker *worker = new PredictProbWorker(x, this->_state->model, cb);
-
-  worker->Queue();
-
-  return env.Null();
 }
 
 Napi::Value NSVM::setModel(const Napi::CallbackInfo &info)
@@ -398,17 +259,11 @@ void NSVM::Init(Napi::Env env, Napi::Object exports)
 {
   Napi::HandleScope scope(env);
 
-  Napi::Function func = DefineClass(env, "NSVM", {InstanceMethod("train", &NSVM::svmTrain),
-
-                                                  InstanceMethod("train_async", &NSVM::svmTrainAsync),
+  Napi::Function func = DefineClass(env, "NSVM", { InstanceMethod("train", &NSVM::svmTrain),
 
                                                   InstanceMethod("predict", &NSVM::svmPredict),
 
-                                                  InstanceMethod("predict_async", &NSVM::svmPredictAsync),
-
                                                   InstanceMethod("predict_probability", &NSVM::svmPredictProbability),
-
-                                                  InstanceMethod("predict_probability_async", &NSVM::svmPredictProbabilityAsync),
 
                                                   InstanceMethod("free_model", &NSVM::freeModel),
 
@@ -416,7 +271,7 @@ void NSVM::Init(Napi::Env env, Napi::Object exports)
 
                                                   InstanceMethod("set_model", &NSVM::setModel),
 
-                                                  InstanceMethod("is_trained", &NSVM::isTrained)});
+                                                  InstanceMethod("is_trained", &NSVM::isTrained) });
 
   constructor = Napi::Persistent(func);
   constructor.SuppressDestruct();

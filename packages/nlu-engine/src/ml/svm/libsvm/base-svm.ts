@@ -29,13 +29,12 @@ export default class BaseSVM {
 
     const svm = this._clf as NSVM
     return new Promise((resolve, reject) => {
-      svm.train_async({ ...params, mute: 1 }, X, y, (msg) => {
-        if (msg) {
-          reject(new Error(msg))
-        } else {
-          resolve(svm.get_model())
-        }
-      })
+      try {
+        svm.train({ ...params, mute: 1 }, X, y)
+        resolve(svm.get_model())
+      } catch (err) {
+        reject(new Error(err))
+      }
     })
   }
 
@@ -55,7 +54,8 @@ export default class BaseSVM {
 
     return new Promise((resolve, reject) => {
       try {
-        svm.predict_async(inputs, resolve)
+        const res = svm.predict(inputs)
+        resolve(res)
       } catch (err) {
         reject(err)
       }
@@ -79,7 +79,8 @@ export default class BaseSVM {
     const svm = this._clf as NSVM
     return new Promise((resolve, reject) => {
       try {
-        svm.predict_probability_async(inputs, (p) => resolve(p.probabilities))
+        const res = svm.predict_probability(inputs)
+        resolve(res.probabilities)
       } catch (err) {
         reject(err)
       }
@@ -88,5 +89,9 @@ export default class BaseSVM {
 
   isTrained = () => {
     return !!this._clf ? this._clf.is_trained() : false
+  }
+
+  public free() {
+    return this._clf?.free_model()
   }
 }

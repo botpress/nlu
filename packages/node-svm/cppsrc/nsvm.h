@@ -8,9 +8,6 @@
 #include "type_check.h"
 #include "train.h"
 #include "nsvm_state.h"
-#include "training_worker.h"
-#include "predict_worker.h"
-#include "predict_prob_worker.h"
 
 class NSVM : public Napi::ObjectWrap<NSVM>
 {
@@ -19,11 +16,8 @@ public:
     NSVM(const Napi::CallbackInfo &info);
     ~NSVM();
     Napi::Value svmTrain(const Napi::CallbackInfo &info);
-    Napi::Value svmTrainAsync(const Napi::CallbackInfo &info);
     Napi::Value svmPredict(const Napi::CallbackInfo &info);
-    Napi::Value svmPredictAsync(const Napi::CallbackInfo &info);
     Napi::Value svmPredictProbability(const Napi::CallbackInfo &info);
-    Napi::Value svmPredictProbabilityAsync(const Napi::CallbackInfo &info);
     Napi::Value setModel(const Napi::CallbackInfo &info);
     Napi::Value getModel(const Napi::CallbackInfo &info);
     Napi::Value freeModel(const Napi::CallbackInfo &info);
