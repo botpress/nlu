@@ -172,12 +172,18 @@ async function TrainIntentClassifiers(
 ): Promise<_.Dictionary<string>> {
   const { list_entities, pattern_entities, intents, ctxToTrain, nluSeed, languageCode } = input
 
+  const progressPerCtx: _.Dictionary<number> = {}
+
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
+  const reportProgress = () => {
+    const n = ctxToTrain.length
+    const total = _(progressPerCtx).values().sum()
+    clampedProgress(total / n)
+  }
 
-  const svmPerCtx: _.Dictionary<string> = {}
-
-  for (let i = 0; i < ctxToTrain.length; i++) {
-    const ctx = ctxToTrain[i]
+  const models = await Bluebird.map(ctxToTrain, async (ctx) => {
+    const taskName = `train Clf for Ctx "${ctx}"`
+    tools.logger.debug(taskStarted(input.trainId, taskName))
 
     const allUtterances = _.flatMap(intents, (i) => i.utterances)
     const trainableIntents = intents.filter((i) => i.contexts.includes(ctx))
@@ -193,18 +199,22 @@ async function TrainIntentClassifiers(
         allUtterances
       },
       (p) => {
-        const completion = (i + p) / input.ctxToTrain.length
-        clampedProgress(completion)
+        progressPerCtx[ctx] = p
+        reportProgress()
       }
     )
 
+    tools.logger.debug(taskDone(input.trainId, taskName))
     const model = intentClf.serialize()
-    svmPerCtx[ctx] = model
-  }
+    return { ctx, model }
+  })
 
   progress(1)
 
-  return svmPerCtx
+  return _(models)
+    .map(({ ctx, model }) => [ctx, model])
+    .fromPairs()
+    .value()
 }
 
 async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: progressCB): Promise<string> {
@@ -359,14 +369,17 @@ async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progre
 const NB_STEPS = 5 // change this if the training pipeline changes
 
 type AsyncFunction<A extends any[], R extends Promise<any>> = (...args: A) => R
+const taskStarted = (id: string, taskName: string) => `[${id}] Started ${taskName}`
+const taskDone = (id: string, taskName: string) => `[${id}] Done ${taskName}`
+
 const makeLogger = (trainId: string, logger: Logger) => {
   return <A extends any[], R extends Promise<any>>(fn: AsyncFunction<A, R>) => (...args: A): R => {
-    logger.debug(`[${trainId}] Started ${fn.name}`)
+    logger.debug(taskStarted(trainId, fn.name))
     const ret = fn(...args)
 
     // awaiting if not responsibility of this logger decorator
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    ret.then(() => logger.debug(`[${trainId}] Done ${fn.name}`))
+    ret.then(() => logger.debug(taskDone(trainId, fn.name)))
 
     return ret
   }
