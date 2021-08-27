@@ -63,6 +63,8 @@ export class Trainer implements MLToolkit.SVM.Trainer {
         callback(progress)
       }
     })
+    this.svm.free()
+
     if (!trainResult) {
       return ''
     }

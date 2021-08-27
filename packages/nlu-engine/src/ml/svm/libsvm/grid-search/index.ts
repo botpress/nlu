@@ -1,4 +1,5 @@
 import assert from 'assert'
+import Bluebird from 'bluebird'
 import _ from 'lodash'
 import numeric from 'numeric'
 
@@ -53,7 +54,7 @@ export default async function (
   const total = combs.length * subsets.length
   let done = 0
 
-  const promises = combs.map((comb) => {
+  const results = await Bluebird.mapSeries(combs, async (comb) => {
     const params = defaultParameters({
       ...config,
       C: comb[0],
@@ -64,34 +65,29 @@ export default async function (
       coef0: comb[5]
     })
 
-    const cPromises = subsets.map(function (ss) {
+    const nestedPredictions = await Bluebird.mapSeries(subsets, async (ss) => {
       const clf = new BaseSVM()
 
-      return clf.train(ss.train, seed, params).then(() => {
-        done += 1
-        progressCb({ done, total })
-        return _.map(ss.test, function (test) {
-          return [clf.predictSync(test[0]), test[1]]
-        })
+      await clf.train(ss.train, seed, params)
+      done += 1
+      progressCb({ done, total })
+
+      const predictions = ss.test.map((test) => {
+        return [clf.predictSync(test[0]), test[1]]
       })
+
+      clf.free()
+      return predictions
     })
 
-    return Promise.all(cPromises).then(
-      (p) => {
-        const predictions = _.flatten(p)
-        const report = evaluator.compute(predictions)
+    const predictions = _.flatten(nestedPredictions)
+    const report = evaluator.compute(predictions)
 
-        return {
-          params,
-          report
-        } as GridSearchResult
-      },
-      (err) => {
-        throw err
-      }
-    )
+    return {
+      params,
+      report
+    } as GridSearchResult
   })
 
-  const results = await Promise.all(promises)
   return evaluator.electBest(results)
 }
