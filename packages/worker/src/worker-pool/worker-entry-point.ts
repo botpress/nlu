@@ -97,7 +97,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
       this.messageMain(response)
     },
     sub: (namespace: string) => {
-      return this.logger
+      return this.logger // TODO: allow this
     }
   }
 }
