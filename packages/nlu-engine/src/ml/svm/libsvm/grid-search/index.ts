@@ -2,22 +2,24 @@ import assert from 'assert'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import numeric from 'numeric'
+import { Logger } from 'src/typings'
 
 import BaseSVM from '../base-svm'
 import { defaultParameters } from '../config'
+import { foldsToSplits, StratifiedKFold } from '../kfold'
+import { Domain } from '../kfold/domain'
 import { Data, SvmConfig } from '../typings'
 
 import crossCombinations from './cross-combinations'
 import evaluators from './evaluators'
-import splitDataset from './split-dataset'
 import { GridSearchProgress, GridSearchResult } from './typings'
 
-export default async function (
+export default (logger?: Logger) => async (
   dataset: Data[],
   config: SvmConfig,
   seed: number,
   progressCb: (progress: GridSearchProgress) => void
-): Promise<GridSearchResult> {
+): Promise<GridSearchResult> => {
   const dims = numeric.dim(dataset)
 
   assert(dims[0] > 0 && dims[1] === 2 && dims[2] > 0, 'dataset must be a list of [X,y] tuples')
@@ -32,7 +34,23 @@ export default async function (
     arr(config.coef0)
   ])
 
-  const subsets = splitDataset([...dataset], seed, config.kFold)
+  const kfolder = new StratifiedKFold()
+  const safeRange = kfolder.krange(dataset)
+
+  let k = config.kFold
+  if (!safeRange.includes(config.kFold)) {
+    const msg = 'Make sure your dataset is not highly imbalanced.'
+
+    const closest = safeRange.difference(new Domain(1)).getClosest(k)
+    if (!closest) {
+      const notice = safeRange.includes(1) ? ' (outside of k === 1)' : ''
+      throw new Error(`There seems to be no value of k${notice} that safely kfolds the dataset. ${msg}`)
+    }
+    logger?.warning(`It is not safe to kfold your dataset with k === ${k}; falling back on ${closest}. ${msg}`)
+    k = closest
+  }
+  const folds = kfolder.kfold([...dataset], k)
+  const subsets = foldsToSplits(folds)
 
   const evaluator = evaluators(config)
 
