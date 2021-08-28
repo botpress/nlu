@@ -3,7 +3,6 @@ import { Logger } from 'src/typings'
 import { MLToolkit } from '../typings'
 
 import { SVM } from './libsvm'
-import { getMinKFold } from './libsvm/grid-search/split-dataset'
 import { Data, KernelTypes, SvmModel, SvmParameters as Parameters, SvmTypes } from './libsvm/typings'
 
 type Serialized = SvmModel & {
@@ -43,19 +42,19 @@ export class Trainer implements MLToolkit.SVM.Trainer {
       throw new Error("SVM can't train on a dataset of only one class")
     }
 
-    const minKFold = getMinKFold(dataset)
-    const kFold = Math.max(minKFold, 4)
-
     const arr = (n?: number | number[]) => (_.isNumber(n) ? [n] : n)
-    this.svm = new SVM({
-      svm_type: options && SvmTypes[options.classifier],
-      kernel_type: options && KernelTypes[options.kernel],
-      C: options && arr(options.c),
-      gamma: options && arr(options.gamma),
-      probability: options?.probability,
-      reduce: options?.reduce,
-      kFold
-    })
+    this.svm = new SVM(
+      {
+        svm_type: options && SvmTypes[options.classifier],
+        kernel_type: options && KernelTypes[options.kernel],
+        C: options && arr(options.c),
+        gamma: options && arr(options.gamma),
+        probability: options?.probability,
+        reduce: options?.reduce,
+        kFold: 4
+      },
+      this.logger
+    )
 
     const seed = this._extractSeed(options)
     const trainResult = await this.svm.train(dataset, seed, (progress) => {

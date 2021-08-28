@@ -1,6 +1,7 @@
 import assert from 'assert'
 import _ from 'lodash'
 import numeric from 'numeric'
+import { Logger } from 'src/typings'
 
 import BaseSVM from './base-svm'
 import { checkConfig, defaultConfig } from './config'
@@ -29,7 +30,7 @@ export class SVM {
   private _initialDimension: number = 0
   private _isCanceled: boolean = false
 
-  constructor(config: Partial<SvmConfig>) {
+  constructor(config: Partial<SvmConfig>, private _logger?: Logger) {
     this._config = { ...checkConfig(defaultConfig(config)) }
   }
 
@@ -80,7 +81,7 @@ export class SVM {
 
     let gridSearchResult: GridSearchResult
     try {
-      gridSearchResult = await gridSearch(dataset, this._config, seed, (progress) => {
+      gridSearchResult = await gridSearch(this._logger)(dataset, this._config, seed, (progress) => {
         if (this._isCanceled) {
           throw new TrainingCanceledError('Training was canceled')
         }
