@@ -72,7 +72,7 @@ export default (logger?: Logger) => async (
   const total = combs.length * subsets.length
   let done = 0
 
-  const results = await Bluebird.mapSeries(combs, async (comb) => {
+  const results = await Bluebird.map(combs, async (comb) => {
     const params = defaultParameters({
       ...config,
       C: comb[0],
@@ -83,7 +83,7 @@ export default (logger?: Logger) => async (
       coef0: comb[5]
     })
 
-    const nestedPredictions = await Bluebird.mapSeries(subsets, async (ss) => {
+    const nestedPredictions = await Bluebird.map(subsets, async (ss) => {
       const clf = new BaseSVM()
 
       await clf.train(ss.train, seed, params)
