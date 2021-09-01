@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu-engine",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "scripts": {

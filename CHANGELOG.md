@@ -1,3 +1,14 @@
+## [0.1.5](https://github.com/botpress/nlu/compare/1.0.0-rc.1...0.1.5) (2021-09-01)
+
+
+### Bug Fixes
+
+* **nlu-engine:** launch intent trainings in parallel and log each ctx ([d9b8152](https://github.com/botpress/nlu/commit/d9b81528bd3580634736ef9628db61a8f1121573))
+* **nlu-engine:** launch svm trainings one after the other ([a7dcad0](https://github.com/botpress/nlu/commit/a7dcad00562ac737af81514abb3911b1c855200e))
+* **nlu-engine:** use a stratified kfold to limit the amount of grid search iterations ([4197e78](https://github.com/botpress/nlu/commit/4197e7834a1e95ea5aeb7ed757fea18b05df3065))
+
+
+
 ## [0.1.4](https://github.com/botpress/nlu/compare/v0.1.3...v0.1.4) (2021-08-20)
 
 
