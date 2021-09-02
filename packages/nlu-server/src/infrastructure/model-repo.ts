@@ -42,8 +42,7 @@ export class ModelRepository {
     const scopedGhost = this._getScopedGhostForAppID(appId)
 
     const stringId = modelIdService.toString(modelId)
-    const fExtension = this._getFileExtension()
-    const fname = `${stringId}.${fExtension}`
+    const fname = `${stringId}.${MODELS_EXT}`
 
     if (!(await scopedGhost.fileExists(MODELS_DIR, fname))) {
       return
@@ -72,8 +71,7 @@ export class ModelRepository {
     const serialized = JSON.stringify(model)
 
     const stringId = modelIdService.toString(model.id)
-    const fExtension = this._getFileExtension()
-    const fname = `${stringId}.${fExtension}`
+    const fname = `${stringId}.${MODELS_EXT}`
 
     const scopedGhost = this._getScopedGhostForAppID(appId)
 
@@ -98,9 +96,7 @@ export class ModelRepository {
 
   public async listModels(appId: string, filters: Partial<NLUEngine.ModelId> = {}): Promise<NLUEngine.ModelId[]> {
     const scopedGhost = this._getScopedGhostForAppID(appId)
-
-    const fextension = this._getFileExtension()
-    const files = await scopedGhost.directoryListing(MODELS_DIR, `*.${fextension}`, undefined, undefined, {
+    const files = await scopedGhost.directoryListing(MODELS_DIR, `*.${MODELS_EXT}`, undefined, undefined, {
       sortOrder: {
         column: 'modifiedOn',
         desc: true
@@ -108,7 +104,7 @@ export class ModelRepository {
     })
 
     const modelIds = files
-      .map((f) => f.substring(0, f.lastIndexOf(`.${fextension}`)))
+      .map((f) => f.substring(0, f.lastIndexOf(`.${MODELS_EXT}`)))
       .filter((stringId) => modelIdService.isId(stringId))
       .map((stringId) => modelIdService.fromString(stringId))
 
@@ -133,8 +129,7 @@ export class ModelRepository {
     const scopedGhost = this._getScopedGhostForAppID(appId)
 
     const stringId = modelIdService.toString(modelId)
-    const fExtension = this._getFileExtension()
-    const fname = `${stringId}.${fExtension}`
+    const fname = `${stringId}.${MODELS_EXT}`
 
     return scopedGhost.fileExists(MODELS_DIR, fname)
   }
@@ -143,17 +138,12 @@ export class ModelRepository {
     const scopedGhost = this._getScopedGhostForAppID(appId)
 
     const stringId = modelIdService.toString(modelId)
-    const fExtension = this._getFileExtension()
-    const fname = `${stringId}.${fExtension}`
+    const fname = `${stringId}.${MODELS_EXT}`
 
     return scopedGhost.deleteFile(MODELS_DIR, fname)
   }
 
   private _getScopedGhostForAppID(appId: string): ScopedGhostService {
     return appId ? this._ghost.forBot(appId) : this._ghost.root()
-  }
-
-  private _getFileExtension() {
-    return `.${MODELS_EXT}`
   }
 }
