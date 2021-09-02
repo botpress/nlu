@@ -67,7 +67,7 @@ export class ModelRepository {
     }
   }
 
-  public async saveModel(model: NLUEngine.Model, appId: string): Promise<void | void[]> {
+  public async saveModel(appId: string, model: NLUEngine.Model): Promise<void | void[]> {
     const serialized = JSON.stringify(model)
 
     const stringId = modelIdService.toString(model.id)

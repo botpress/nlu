@@ -1,5 +1,4 @@
 import { Logger } from '@botpress/logger'
-import { http } from '@botpress/nlu-client'
 import { Engine, ModelId } from '@botpress/nlu-engine'
 import { ModelRepository } from '../infrastructure/model-repo'
 import { TrainingRepository } from '../infrastructure/training-repo/typings'

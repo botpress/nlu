@@ -8,6 +8,7 @@ import ms from 'ms'
 
 import { ModelRepository } from '../infrastructure/model-repo'
 import {
+  Training,
   TrainingId,
   TrainingRepository,
   TrainingState,
@@ -56,12 +57,12 @@ export default class TrainingQueue {
   }
 
   public queueTraining = async (appId: string, modelId: NLUEngine.ModelId, trainInput: TrainInput) => {
-    const trainId: TrainingId = { ...modelId, appId }
+    const trainId: TrainingId = { modelId, appId }
     const trainKey = this._toKey(trainId)
 
     await this.trainingRepo.inTransaction(async (repo) => {
       const currentTraining = await repo.get(trainId)
-      if (currentTraining && currentTraining.state.status === 'training') {
+      if (currentTraining && currentTraining.status === 'training') {
         this.logger.debug(`Not queuing because training "${trainKey}" already started...`)
         return // TODO: log something for training already started...
       }
@@ -74,9 +75,9 @@ export default class TrainingQueue {
 
       this.logger.debug(`Queuing "${trainKey}"`)
       return repo.set({
-        id: trainId,
-        state,
-        set: trainInput
+        ...trainId,
+        ...state,
+        dataset: trainInput
       })
     }, 'queueTraining')
     this.logger.info(`[${trainKey}] Training Queued.`)
@@ -87,7 +88,7 @@ export default class TrainingQueue {
   }
 
   public async cancelTraining(appId: string, modelId: NLUEngine.ModelId): Promise<void> {
-    const trainId: TrainingId = { ...modelId, appId }
+    const trainId: TrainingId = { modelId, appId }
     const trainKey = this._toKey(trainId)
 
     return this.trainingRepo.inTransaction(async (repo) => {
@@ -96,30 +97,21 @@ export default class TrainingQueue {
         throw new TrainingNotFoundError(modelId)
       }
 
-      const { state: currentState, set } = currentTraining
-
       const zombieTrainings = await this._getZombies(repo)
-      const isZombie = !!zombieTrainings.find((t) => this._areSame(t.id, trainId))
+      const isZombie = !!zombieTrainings.find((t) => this._areSame(t, trainId))
 
-      if (currentState.status === 'training-pending' || isZombie) {
-        const newState: TrainingState = {
-          ...currentState,
-          status: <TrainingStatus>'canceled'
-        }
+      if (currentTraining.status === 'training-pending' || isZombie) {
+        const newTraining = { ...currentTraining, status: <TrainingStatus>'canceled' }
 
-        return repo.set({
-          id: trainId,
-          state: newState,
-          set
-        })
+        return repo.set(newTraining)
       }
 
-      if (currentState.cluster !== this._clusterId) {
+      if (currentTraining.cluster !== this._clusterId) {
         this.logger.debug(`Training "${trainKey}" was not launched on this instance`)
         return
       }
 
-      if (currentState.status === 'training') {
+      if (currentTraining.status === 'training') {
         return this.engine.cancelTraining(trainKey)
       }
     }, 'cancelTraining')
@@ -144,7 +136,7 @@ export default class TrainingQueue {
           message: `Zombie Training: Training had not been updated in more than ${MAX_TRAINING_HEARTBEAT} ms.`
         }
         const newState: TrainingState = { status: 'errored', progress: 0, cluster: this._clusterId, error }
-        await Bluebird.each(zombieTrainings, (z) => repo.set({ ...z, state: newState }))
+        await Bluebird.each(zombieTrainings, (z) => repo.set({ ...z, ...newState }))
       }
 
       const pendings = await repo.query({ status: 'training-pending' })
@@ -152,20 +144,19 @@ export default class TrainingQueue {
         return
       }
 
-      const { id, state, set } = pendings[0]
-      const { appId, ...modelId } = id
-      state.status = 'training'
+      const training = pendings[0]
+      training.status = 'training'
 
-      await repo.set({ id, state, set })
+      await repo.set(training)
 
       // floating promise to return fast from task
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._train(appId, modelId)
+      this._train(training)
     }, '_runTask')
   }
 
   private _areSame(t1: TrainingId, t2: TrainingId) {
-    return t1.appId === t2.appId && NLUEngine.modelIdService.areSame(t1, t2)
+    return t1.appId === t2.appId && NLUEngine.modelIdService.areSame(t1.modelId, t2.modelId)
   }
 
   private _getZombies = (repo: WrittableTrainingRepository) => {
@@ -173,45 +164,44 @@ export default class TrainingQueue {
     return repo.queryOlderThan({ status: 'training' }, zombieThreshold)
   }
 
-  private _train = async (appId: string, modelId: NLUEngine.ModelId) => {
-    const trainId = { ...modelId, appId }
-    const trainKey = this._toKey(trainId)
+  private _train = async (training: Training) => {
+    const trainKey = this._toKey(training)
 
     this.logger.debug(`training "${trainKey}" is about to start.`)
 
-    const training = await this.trainingRepo.get(trainId)
     if (!training) {
       throw new Error("Invalid state: training state can't be found")
     }
 
-    const { state: ts, set: trainInput } = training
-
     const progressCb = async (progress: number) => {
-      ts.status = 'training' // TODO: shouldnt be needed but there is a bug somewhere
-      ts.progress = progress
+      training.status = 'training'
+      training.progress = progress
       await this.trainingRepo.inTransaction(async (repo) => {
-        return repo.set({ ...training, state: ts })
+        return repo.set(training)
       }, 'progressCallback')
     }
     const throttledCb = _.throttle(progressCb, MIN_TRAINING_HEARTBEAT / 2)
 
+    const { dataset } = training
     try {
-      const trainKey = this._toKey({ ...modelId, appId })
-      const model = await this.engine.train(trainKey, trainInput, {
+      const model = await this.engine.train(trainKey, dataset, {
         progressCallback: throttledCb,
         minProgressHeartbeat: MIN_TRAINING_HEARTBEAT
       })
       throttledCb.flush()
 
-      const { language: languageCode } = trainInput
-      await this.modelRepo.pruneModels(appId, { keep: MAX_MODEL_PER_USER_PER_LANG }, { languageCode }) // TODO: make the max amount of models on FS (by appId + lang) configurable
-      await this.modelRepo.saveModel(model, appId)
+      const { language: languageCode } = dataset
+      const { appId } = training
+
+      const keep = MAX_MODEL_PER_USER_PER_LANG - 1 // TODO: make the max amount of models on FS (by appId + lang) configurable
+      await this.modelRepo.pruneModels(appId, { keep }, { languageCode })
+      await this.modelRepo.saveModel(appId, model)
 
       this.logger.info(`[${trainKey}] Training Done.`)
 
-      ts.status = 'done'
+      training.status = 'done'
       await this.trainingRepo.inTransaction(async (repo) => {
-        return repo.set({ ...training, state: ts })
+        return repo.set(training)
       }, '_train_done')
     } catch (err) {
       throttledCb.cancel()
@@ -219,19 +209,19 @@ export default class TrainingQueue {
       if (NLUEngine.errors.isTrainingCanceled(err)) {
         this.logger.info(`[${trainKey}] Training Canceled.`)
 
-        ts.status = 'canceled'
+        training.status = 'canceled'
         await this.trainingRepo.inTransaction(async (repo) => {
-          return repo.set({ ...training, state: ts })
+          return repo.set(training)
         }, '_train_canceled')
         return
       }
 
       const type: TrainingErrorType = NLUEngine.errors.isTrainingAlreadyStarted(err) ? 'already-started' : 'unknown'
-      ts.status = 'errored'
-      ts.error = { ...serializeError(err), type }
+      training.status = 'errored'
+      training.error = { ...serializeError(err), type }
 
       await this.trainingRepo.inTransaction(async (repo) => {
-        return repo.set({ ...training, state: ts })
+        return repo.set(training)
       }, '_train_errored')
 
       if (type === 'unknown') {
@@ -245,7 +235,7 @@ export default class TrainingQueue {
   }
 
   private _toKey(id: TrainingId) {
-    const stringId = NLUEngine.modelIdService.toString(id)
+    const stringId = NLUEngine.modelIdService.toString(id.modelId)
     return `${id.appId}/${stringId}`
   }
 }

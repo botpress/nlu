@@ -146,6 +146,27 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     }
   })
 
+  router.get('/train', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+      const { lang } = req.query
+      if (lang && !_.isString(lang)) {
+        throw new InvalidRequestFormatError(`query parameter lang: "${lang}" has invalid format`)
+      }
+
+      const trainings = await app.getAllTrainings(appId, lang)
+      const serialized = trainings.map(({ modelId, ...state }) => ({
+        modelId: modelIdService.toString(modelId),
+        ...state
+      }))
+
+      const resp: http.ListTrainingsResponseBody = { success: true, trainings: serialized }
+      res.send(resp)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
   router.get('/train/:modelId', async (req, res, next) => {
     try {
       const appId = getAppId(req)
