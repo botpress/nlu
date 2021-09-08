@@ -1,7 +1,7 @@
 import { http } from '@botpress/nlu-client'
 import { Request, Response, NextFunction } from 'express'
 import _ from 'lodash'
-import { InvalidRequestFormatError, ResponseError, UnauthorizedError } from './errors'
+import { InvalidRequestFormatError, ResponseError } from './errors'
 
 export const handleError = (err: Error, _req: Request, res: Response, _next: NextFunction) => {
   const httpStatusCode = err instanceof ResponseError ? err.statusCode : 500

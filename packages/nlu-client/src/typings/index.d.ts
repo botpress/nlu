@@ -10,7 +10,8 @@ import {
   ListModelsResponseBody,
   PruneModelsResponseBody,
   PredictResponseBody,
-  DetectLangResponseBody
+  DetectLangResponseBody,
+  ListTrainingsResponseBody
 } from './http'
 
 export class Client {

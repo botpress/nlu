@@ -84,7 +84,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     try {
       return res.redirect('/info')
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
@@ -94,7 +94,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.InfoResponseBody = { success: true, info }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
@@ -106,7 +106,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.ListModelsResponseBody = { success: true, models: stringIds }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
@@ -118,7 +118,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.PruneModelsResponseBody = { success: true, models: stringIds }
       return res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
@@ -142,7 +142,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.TrainResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
       return res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
@@ -163,7 +163,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.ListTrainingsResponseBody = { success: true, trainings: serialized }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
@@ -181,7 +181,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.TrainProgressResponseBody = { success: true, session }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
@@ -198,7 +198,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.SuccessReponse = { success: true }
       return res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
@@ -221,7 +221,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.PredictResponseBody = { success: true, predictions }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
@@ -248,7 +248,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.DetectLangResponseBody = { success: true, detectedLanguages }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
