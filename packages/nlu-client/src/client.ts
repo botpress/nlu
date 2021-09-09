@@ -14,7 +14,8 @@ import {
   PruneModelsResponseBody,
   PredictRequestBody,
   PredictResponseBody,
-  ErrorResponse
+  ErrorResponse,
+  ListTrainingsResponseBody
 } from './typings/http'
 
 export class NLUClient implements IClient {
@@ -38,6 +39,16 @@ export class NLUClient implements IClient {
     return this._wrapWithTryCatch(async () => {
       const headers = this._appIdHeader(appId)
       const { data } = await this._client.post('train', trainRequestBody, { headers })
+      return data
+    })
+  }
+
+  public async listTrainings(appId: string, lang?: string): Promise<ListTrainingsResponseBody | ErrorResponse> {
+    return this._wrapWithTryCatch(async () => {
+      const headers = this._appIdHeader(appId)
+      const endpoint = 'train'
+      const params = lang && { lang }
+      const { data } = await this._client.get(endpoint, { headers, params })
       return data
     })
   }
@@ -114,7 +125,7 @@ export class NLUClient implements IClient {
       const ret = await fn()
       return ret
     } catch (err) {
-      const { response } = err ?? {}
+      const { response } = (err as any) ?? {}
       if (_.isBoolean(response?.data?.success)) {
         return response.data // in this case the response body contains details about error
       }

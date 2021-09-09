@@ -1,10 +1,10 @@
 import { Logger } from '@botpress/logger'
-import { TrainingState, http, PredictOutput, TrainInput, ServerInfo } from '@botpress/nlu-client'
+import { TrainingState, PredictOutput, TrainInput, ServerInfo, TrainingStatus } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { ReadonlyTrainingRepository } from '../infrastructure/training-repo/typings'
+import { ReadonlyTrainingRepository, Training } from '../infrastructure/training-repo/typings'
 import { ModelDoesNotExistError, TrainingNotFoundError } from './errors'
 import TrainingQueue from './training-queue'
 
@@ -51,7 +51,7 @@ export class Application {
       if (this._engine.hasModel(modelId)) {
         this._engine.unloadModel(modelId)
       }
-      await this._trainingRepo.delete({ ...modelId, appId })
+      await this._trainingRepo.delete({ modelId, appId })
     }
 
     return modelIds
@@ -67,11 +67,36 @@ export class Application {
     return modelId
   }
 
+  public async getAllTrainings(
+    appId: string,
+    languageCode?: string
+  ): Promise<(TrainingState & { modelId: ModelId })[]> {
+    const allTrainings = await this._trainingRepo.query({ appId })
+    const trainingsOfLang = !languageCode
+      ? allTrainings
+      : allTrainings.filter((t) => t.modelId.languageCode === languageCode)
+
+    const sessions = _.map(trainingsOfLang, (training) => {
+      const { status, error, progress, modelId } = training
+      return { modelId, status, error, progress }
+    })
+
+    const hasACorrespondingTraining = (m: ModelId) => sessions.some(({ modelId }) => modelIdService.areSame(modelId, m))
+
+    const filters = _.pickBy({ languageCode }, _.negate(_.isUndefined))
+    const models = await this._modelRepo.listModels(appId, filters)
+    const doneSessions = models
+      .filter(_.negate(hasACorrespondingTraining))
+      .map((modelId) => ({ modelId, status: <TrainingStatus>'done', progress: 1 }))
+
+    return [...sessions, ...doneSessions]
+  }
+
   public async getTrainingState(appId: string, modelId: ModelId): Promise<TrainingState> {
-    const session = await this._trainingRepo.get({ ...modelId, appId })
-    if (session) {
-      const { state } = session
-      return state
+    const training = await this._trainingRepo.get({ modelId, appId })
+    if (training) {
+      const { status, error, progress } = training
+      return { status, error, progress }
     }
 
     const model = await this._modelRepo.getModel(appId, modelId)

@@ -44,7 +44,7 @@ interface TableRow extends TableId {
   error_message?: string
   error_stack?: string
   cluster: string
-  set: string
+  dataset: string
   updatedOn: string
 }
 
@@ -57,7 +57,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       table.string('modelId').notNullable()
       table.string('status').notNullable()
       table.float('progress').notNullable()
-      table.string('set', MAX_TRAIN_SET_SZ).notNullable()
+      table.string('dataset', MAX_TRAIN_SET_SZ).notNullable()
       table.string('error_type').nullable()
       table.string('error_message', MAX_ERR_LEN.msg).nullable()
       table.string('error_stack', MAX_ERR_LEN.stack).nullable()
@@ -86,7 +86,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
     const row = this._trainingToRow(training)
     const { appId, modelId } = row
 
-    if (await this.has(training.id)) {
+    if (await this.has(training)) {
       return this.table.where({ appId, modelId }).update(row)
     }
     return this.table.insert(row)
@@ -129,18 +129,18 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _trainingToRow(train: Training): TableRow {
-    const id = this._trainIdToRow(train.id)
-    const state = this._trainStateToRow(train.state)
-    const set = this.packTrainSet(train.set)
+    const id = this._trainIdToRow(train)
+    const state = this._trainStateToRow(train)
+    const dataset = this.packTrainSet(train.dataset)
     return {
       ...id,
       ...state,
-      set
+      dataset
     }
   }
 
   private _trainIdToRow(trainId: TrainingId): TableId {
-    const { appId, ...modelId } = trainId
+    const { appId, modelId } = trainId
     return {
       appId,
       modelId: modelIdService.toString(modelId)
@@ -161,7 +161,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
     return _.pickBy(rowFilters, _.negate(_.isUndefined))
   }
 
-  private _trainStateToRow = (state: TrainingState): Omit<TableRow, keyof TableId | 'set'> => {
+  private _trainStateToRow = (state: TrainingState): Omit<TableRow, keyof TableId | 'dataset'> => {
     const { progress, status, error } = state
     const { type: error_type, message: error_message, stackTrace: error_stack } = error || {}
     return {
@@ -180,10 +180,9 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _rowToTraining(row: TableRow): Training {
-    const { appId, modelId: stringId, status, progress, error_type, error_message, error_stack, cluster, set } = row
+    const { appId, modelId: stringId, status, progress, error_type, error_message, error_stack, cluster, dataset } = row
 
     const modelId = modelIdService.fromString(stringId)
-    const id: TrainingId = { appId, ...modelId }
 
     const error: TrainingError | undefined =
       status === 'errored'
@@ -194,8 +193,15 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
           }
         : undefined
 
-    const state: TrainingState = { status, progress, error, cluster }
-    return { id, state, set: this.unpackTrainSet(set) }
+    return {
+      appId,
+      modelId,
+      status,
+      progress,
+      error,
+      cluster,
+      dataset: this.unpackTrainSet(dataset)
+    }
   }
 
   private packTrainSet(ts: TrainInput): string {

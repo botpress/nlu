@@ -11,7 +11,8 @@ import {
   EntityDefinition,
   Specifications,
   Health,
-  ServerInfo
+  ServerInfo,
+  Training
 } from './sdk'
 
 export interface TrainRequestBody {
@@ -49,6 +50,10 @@ export interface TrainResponseBody extends SuccessReponse {
 
 export interface TrainProgressResponseBody extends SuccessReponse {
   session: TrainingState
+}
+
+export interface ListTrainingsResponseBody extends SuccessReponse {
+  trainings: Training[]
 }
 
 export interface ListModelsResponseBody extends SuccessReponse {

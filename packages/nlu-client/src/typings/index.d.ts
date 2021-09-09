@@ -10,13 +10,15 @@ import {
   ListModelsResponseBody,
   PruneModelsResponseBody,
   PredictResponseBody,
-  DetectLangResponseBody
+  DetectLangResponseBody,
+  ListTrainingsResponseBody
 } from './http'
 
 export class Client {
   constructor(endpoint: string)
   getInfo(): Promise<InfoResponseBody | ErrorResponse>
   startTraining(appId: string, trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse>
+  listTrainings(appId: string, lang?: string): Promise<ListTrainingsResponseBody | ErrorResponse>
   getTrainingStatus(appId: string, modelId: string): Promise<TrainProgressResponseBody | ErrorResponse>
   cancelTraining(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse>
   listModels(appId: string): Promise<ListModelsResponseBody | ErrorResponse>

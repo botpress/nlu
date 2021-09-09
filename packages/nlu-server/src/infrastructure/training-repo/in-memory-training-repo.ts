@@ -21,9 +21,8 @@ const KEY_JOIN_CHAR = '\u2581'
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
 const MS_BEFORE_PRUNE = ms('1h')
 
-interface TrainEntry {
-  state: TrainingState & { updatedOn: Date }
-  set: TrainInput
+type TrainEntry = TrainingState & { updatedOn: Date } & {
+  dataset: TrainInput
 }
 
 class WrittableTrainingRepo implements WrittableTrainingRepository {
@@ -53,7 +52,7 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
     if (trainingsToPrune.length) {
       this._logger.debug(`Pruning ${trainingsToPrune.length} training state from memory`)
     }
-    return Bluebird.each(trainingsToPrune, (t) => this.delete(t.id))
+    return Bluebird.each(trainingsToPrune, (t) => this.delete(t))
   }
 
   public async get(id: TrainingId): Promise<Training | undefined> {
@@ -62,25 +61,22 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
     if (!currentTraining) {
       return
     }
-    const { set, state } = currentTraining
-    return { id, state, set }
+    return { ...id, ...currentTraining }
   }
 
   public async set(training: Training): Promise<void> {
-    const { id, state, set } = training
-    const key = this._makeTrainingKey(id)
-    const newState = { ...state, updatedOn: new Date() }
-    this._trainSessions[key] = { state: newState, set }
+    const key = this._makeTrainingKey(training)
+    this._trainSessions[key] = { ...training, updatedOn: new Date() }
   }
 
-  public async query(query: Partial<TrainingState>): Promise<Training[]> {
+  public async query(query: Partial<Training>): Promise<Training[]> {
     const allTrainings = this._getAllTrainings()
     return this._filter(allTrainings, query)
   }
 
-  public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
+  public queryOlderThan = async (query: Partial<Training>, threshold: Date): Promise<Training[]> => {
     const allTrainings = this._getAllTrainings()
-    const olderThan = allTrainings.filter((t) => moment(t.state.updatedOn).isBefore(threshold))
+    const olderThan = allTrainings.filter((t) => moment(t.updatedOn).isBefore(threshold))
     return this._filter(olderThan, query)
   }
 
@@ -88,16 +84,16 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
     let queryResult: Training[] = trainings
 
     for (const field in filters) {
-      queryResult = queryResult.filter((t) => t.state[field] === filters[field])
+      queryResult = queryResult.filter((t) => t[field] === filters[field])
     }
 
     return queryResult
   }
 
-  private _getAllTrainings = (): ({ id: TrainingId } & TrainEntry)[] => {
+  private _getAllTrainings = (): (Training & { updatedOn: Date })[] => {
     return _(this._trainSessions)
       .toPairs()
-      .map(([key, value]) => ({ id: this._parseTrainingKey(key), state: value.state, set: value.set }))
+      .map(([key, value]) => ({ ...this._parseTrainingKey(key), ...value }))
       .value()
   }
 
@@ -107,7 +103,7 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _makeTrainingKey(id: TrainingId) {
-    const { appId, ...modelId } = id
+    const { appId, modelId } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
     return [stringId, appId].join(KEY_JOIN_CHAR)
   }
@@ -115,7 +111,7 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   private _parseTrainingKey(key: string): TrainingId {
     const [stringId, appId] = key.split(KEY_JOIN_CHAR)
     const modelId = NLUEngine.modelIdService.fromString(stringId)
-    return { ...modelId, appId }
+    return { modelId, appId }
   }
 }
 

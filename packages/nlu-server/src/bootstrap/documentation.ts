@@ -34,6 +34,14 @@ export const displayDocumentation = (logger: Logger, options: NLUServerOptions) 
 {bold POST ${baseUrl}/train}
 
 {green /**
+  * List all trainings.
+  * @header {bold x-app-id} Application ID to make sure there's no collision between models of different applications.
+  * @query_parameter {bold lang} Language code to filter trainings. {yellow ** Optionnal **}
+  * @returns {bold trainings} List of all trainings for your app id.
+ */}
+{bold GET ${baseUrl}/train}
+
+{green /**
   * Gets a training progress status.
   * @header {bold x-app-id} Application ID to make sure there's no collision between models of different applications.
   * @path_parameter {bold modelId} The model id for which you seek the training progress.

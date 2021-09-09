@@ -89,6 +89,10 @@ export interface TrainingState {
   error?: TrainingError
 }
 
+export interface Training extends TrainingState {
+  modelId: string
+}
+
 /**
  * ####################################
  * ############ PREDICTION ############

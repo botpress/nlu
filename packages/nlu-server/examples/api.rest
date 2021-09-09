@@ -147,6 +147,12 @@ X-App-Id: {{appId}}
   ]
 }
 
+### list trainings
+# @name list-trainings
+GET {{api}}/train
+Content-Type: application/json
+X-App-Id: {{appId}}
+
 ### list models
 # @name list-models
 GET {{api}}/models
