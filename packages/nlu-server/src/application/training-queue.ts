@@ -16,7 +16,7 @@ import {
 } from '../infrastructure/training-repo/typings'
 import { serializeError } from '../utils/error-utils'
 import { watchDog, WatchDog } from '../utils/watch-dog'
-import { TrainingNotFoundError } from './errors'
+import { TrainingAlreadyStartedError, TrainingNotFoundError } from './errors'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
 
@@ -62,9 +62,8 @@ export default class TrainingQueue {
 
     await this.trainingRepo.inTransaction(async (repo) => {
       const currentTraining = await repo.get(trainId)
-      if (currentTraining && currentTraining.status === 'training') {
-        this.logger.debug(`Not queuing because training "${trainKey}" already started...`)
-        return // TODO: log something for training already started...
+      if (currentTraining && (currentTraining.status === 'training' || currentTraining.status === 'training-pending')) {
+        throw new TrainingAlreadyStartedError(appId, modelId)
       }
 
       const state: TrainingState = {
@@ -206,7 +205,7 @@ export default class TrainingQueue {
     } catch (err) {
       throttledCb.cancel()
 
-      if (NLUEngine.errors.isTrainingCanceled(err)) {
+      if (NLUEngine.errors.isTrainingCanceled(err as Error)) {
         this.logger.info(`[${trainKey}] Training Canceled.`)
 
         training.status = 'canceled'
@@ -216,7 +215,12 @@ export default class TrainingQueue {
         return
       }
 
-      const type: TrainingErrorType = NLUEngine.errors.isTrainingAlreadyStarted(err) ? 'already-started' : 'unknown'
+      if (NLUEngine.errors.isTrainingAlreadyStarted(err as Error)) {
+        this.logger.warn(`[${trainKey}] Training Already Started.`) // This should never occur.
+        return
+      }
+
+      const type: TrainingErrorType = 'unknown'
       training.status = 'errored'
       training.error = { ...serializeError(err), type }
 
@@ -225,7 +229,7 @@ export default class TrainingQueue {
       }, '_train_errored')
 
       if (type === 'unknown') {
-        this.logger.attachError(err).error('an error occured during training')
+        this.logger.attachError(err as Error).error('an error occured during training')
       }
     } finally {
       // to return asap
