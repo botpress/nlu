@@ -14,3 +14,11 @@ export class TrainingNotFoundError extends ResponseError {
     super(`no current training for model: ${stringId}`, 404)
   }
 }
+
+export class TrainingAlreadyStartedError extends ResponseError {
+  constructor(appId: string, modelId: ModelId) {
+    const stringId = modelIdService.toString(modelId)
+    const trainKey = `${appId}/${stringId}`
+    super(`Training "${trainKey}" already started...`, 409)
+  }
+}
