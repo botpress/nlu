@@ -17,8 +17,8 @@ export const logLaunchingMessage = (info: NLUServerOptions & LaunchingInfo, laun
   showBanner({
     title: 'Botpress Standalone NLU',
     version: info.version,
-    labelLength: 9,
-    lineWidth: 75,
+    logScopeLength: 9,
+    bannerWidth: 75,
     logger: launcherLogger
   })
 

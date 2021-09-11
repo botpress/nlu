@@ -7,10 +7,8 @@ import moment from 'moment'
 interface BannerConfig {
   title: string
   version: string
-  /** Length of the logger label */
-  labelLength: number
-  /** Length of the complete line */
-  lineWidth: number
+  bannerWidth: number
+  logScopeLength: number
   logger: Logger
 }
 
@@ -21,7 +19,7 @@ interface BuildMetadata {
 }
 
 export const showBanner = (config: BannerConfig) => {
-  const { title, version, labelLength, lineWidth, logger } = config
+  const { title, version, logScopeLength, bannerWidth, logger } = config
   let buildMetadata
 
   try {
@@ -33,10 +31,10 @@ export const showBanner = (config: BannerConfig) => {
   } catch (err) {}
 
   const infos = [`Version ${version}`, buildMetadata].filter((x) => x !== undefined)
-  const border = _.repeat('=', lineWidth)
+  const border = _.repeat('=', bannerWidth)
 
   logger.info(`${border}
-${chalk.bold(centerText(title, lineWidth, labelLength))}
-${chalk.gray(centerText(infos.join(' - '), lineWidth, labelLength))}
-${_.repeat(' ', labelLength)}${border}`)
+${chalk.bold(centerText(title, bannerWidth, logScopeLength))}
+${chalk.gray(centerText(infos.join(' - '), bannerWidth, logScopeLength))}
+${_.repeat(' ', logScopeLength)}${border}`)
 }
