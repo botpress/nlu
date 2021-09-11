@@ -80,7 +80,7 @@
   },
   "scripts": {
     "dev": "cross-env ts-node-dev ./src/index.ts",
-    "build": "tsc",
+    "build": "tsc && cross-env node ./dist/utils/write_metadata.js",
     "start": "cross-env node ./dist/index.js",
     "test": "cross-env jest -i --detectOpenHandles -c jest.config.js"
   }
