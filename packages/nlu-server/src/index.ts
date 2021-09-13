@@ -2,18 +2,27 @@ import { LoggerLevel, makeLogger } from '@botpress/logger'
 import Bluebird from 'bluebird'
 import { createServer } from 'http'
 import _ from 'lodash'
-
-// @ts-ignore
-import { version } from '../package.json'
+import path from 'path'
 
 import { createAPI } from './api'
 import { CommandLineOptions, getConfig, validateConfig } from './bootstrap/config'
 import { logLaunchingMessage } from './bootstrap/launcher'
 import { makeApplication } from './bootstrap/make-application'
 import { buildWatcher } from './bootstrap/watcher'
-import * as sdk from './typings'
+import { requireJSON } from './require-json'
+import * as types from './typings'
 
-export const run: typeof sdk.run = async (cliOptions: CommandLineOptions) => {
+const packageJsonPath = path.resolve(__dirname, '../package.json')
+const buildInfoPath = path.resolve(__dirname, '../.buildinfo.json')
+const packageJson = requireJSON<{ version: string }>(packageJsonPath)
+const buildInfo = requireJSON<types.BuildInfo>(buildInfoPath)
+if (!packageJson) {
+  throw new Error('Could not find package.json at the root of nlu-server.')
+}
+
+const { version } = packageJson
+
+export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
   const { options, source: configSource } = await getConfig(cliOptions)
   validateConfig(options)
 
@@ -29,7 +38,7 @@ export const run: typeof sdk.run = async (cliOptions: CommandLineOptions) => {
 
   const watcher = buildWatcher()
 
-  const launchingMessageInfo = { ...options, version, configSource, configFile: cliOptions.config }
+  const launchingMessageInfo = { ...options, version, buildInfo, configSource, configFile: cliOptions.config }
   logLaunchingMessage(launchingMessageInfo, launcherLogger)
 
   const application = await makeApplication(options, version, baseLogger, watcher)

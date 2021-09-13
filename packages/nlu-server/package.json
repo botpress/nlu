@@ -81,6 +81,7 @@
   "scripts": {
     "dev": "cross-env ts-node-dev ./src/index.ts",
     "build": "tsc --build",
+    "postbuild": "cross-env node ./scripts/buildinfo.js ./.buildinfo.json",
     "start": "cross-env node ./dist/index.js",
     "test": "cross-env jest -i --detectOpenHandles -c jest.config.js"
   }
