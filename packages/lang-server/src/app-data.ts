@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import path from 'path'
 
 export function getAppDataPath() {
-  const homeDir = process.env.HOME || process.env.APPDATA
+  const homeDir = process.env.APP_DATA_PATH || process.env.HOME || process.env.APPDATA
   if (homeDir) {
     if (process.platform === 'darwin') {
       return path.join(homeDir, 'Library', 'Application Support', 'botpress')

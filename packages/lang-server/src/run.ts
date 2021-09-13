@@ -5,8 +5,8 @@ import _ from 'lodash'
 import path from 'path'
 
 import API, { APIOptions } from './api'
+import { getAppDataPath } from './app-data'
 import DownloadManager from './service/download-manager'
-import { getAppDataPath } from './utils/app-data'
 
 export interface ArgV {
   port: number

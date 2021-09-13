@@ -1,12 +1,12 @@
+import { LoggerLevel, makeLogger } from '@botpress/logger'
 import { LanguageService } from '@botpress/nlu-engine'
-import { Logger, LoggerLevel, makeLogger } from '@botpress/logger'
 import cliProgress from 'cli-progress'
 import fse from 'fs-extra'
 import _ from 'lodash'
 import path from 'path'
 
+import { getAppDataPath } from './app-data'
 import DownloadManager from './service/download-manager'
-import { getAppDataPath } from './utils/app-data'
 
 interface Argv {
   langDir?: string
