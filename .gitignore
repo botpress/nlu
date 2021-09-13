@@ -1,5 +1,6 @@
 ### Builds ###
 dist
+.buildinfo.json
 
 ### OS ###
 .DS_Store

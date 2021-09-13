@@ -1,21 +1,30 @@
-import { centerText, Logger } from '@botpress/logger'
+import { Logger } from '@botpress/logger'
 import chalk from 'chalk'
 import _ from 'lodash'
 import ms from 'ms'
+import { BuildInfo } from '../typings'
+import { showBanner } from './banner'
 import { ConfigSource, NLUServerOptions } from './config'
 import { displayDocumentation } from './documentation'
 
 interface LaunchingInfo {
   version: string
+  buildInfo?: BuildInfo
   configSource: ConfigSource
   configFile?: string
 }
 
 export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo, launcherLogger: Logger) => {
-  launcherLogger.info(chalk`========================================
-      {bold ${centerText('Botpress Standalone NLU', 40, 9)}}
-      {dim ${centerText(`Version ${info.version}`, 40, 9)}}
-${_.repeat(' ', 9)}========================================`)
+  launcherLogger.debug('NLU Server Options %o', info)
+
+  showBanner({
+    title: 'Botpress Standalone NLU',
+    version: info.version,
+    buildInfo: info.buildInfo,
+    logScopeLength: 9,
+    bannerWidth: 75,
+    logger: launcherLogger
+  })
 
   if (info.configSource === 'environment') {
     launcherLogger.info('Loading config from environment variables')

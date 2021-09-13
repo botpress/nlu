@@ -17,7 +17,8 @@
     ],
     "assets": [
       "node_modules/@botpress/node-*/**/*.node",
-      "node_modules/@botpress/*/assets/**"
+      "node_modules/@botpress/*/assets/**",
+      "node_modules/@botpress/*/*.json"
     ]
   },
   "scripts": {
@@ -26,6 +27,7 @@
     "dev": "yarn workspace @botpress/nlu-cli dev",
     "start": "cross-env node ./packages/nlu-cli/dist/index.js",
     "build": "tsc --build",
+    "postbuild": "yarn workspace @botpress/nlu-server postbuild",
     "package": "yarn cmd package",
     "e2e": "yarn workspace e2e start",
     "test": "yarn workspaces run test",

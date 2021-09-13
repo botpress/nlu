@@ -5,8 +5,8 @@ import fse from 'fs-extra'
 import _ from 'lodash'
 import path from 'path'
 
+import { getAppDataPath } from './app-data'
 import DownloadManager from './service/download-manager'
-import { getAppDataPath } from './utils/app-data'
 
 interface Argv {
   langDir?: string

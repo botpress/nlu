@@ -1,3 +1,12 @@
+## [0.1.6](https://github.com/botpress/nlu/compare/v0.1.5...v0.1.6) (2021-09-13)
+
+
+### Features
+
+* **nlu-server:** display build information on startup ([022d498](https://github.com/botpress/nlu/commit/022d4989d2be1247cdd000240a15bc56797f4217))
+
+
+
 ## [0.1.5](https://github.com/botpress/nlu/compare/1.0.0-rc.1...0.1.5) (2021-09-01)
 
 
