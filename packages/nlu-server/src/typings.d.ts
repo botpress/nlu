@@ -1,3 +1,8 @@
+interface BuildInfo {
+  date: number
+  branch: string
+}
+
 interface Options {
   host: string
   port: number
