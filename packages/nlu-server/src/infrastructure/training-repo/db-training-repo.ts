@@ -27,11 +27,6 @@ const timeout = <T>(ms: number) => {
 
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
 const MS_BEFORE_PRUNE = ms('1h')
-const MAX_TRAIN_SET_SZ = 10 * 1024 * 1024 // 10Mb
-const MAX_ERR_LEN = {
-  msg: 1000,
-  stack: 10000
-}
 
 interface TableId {
   appId: string
@@ -57,10 +52,10 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       table.string('modelId').notNullable()
       table.string('status').notNullable()
       table.float('progress').notNullable()
-      table.string('dataset', MAX_TRAIN_SET_SZ).notNullable()
+      table.text('dataset').notNullable()
       table.string('error_type').nullable()
-      table.string('error_message', MAX_ERR_LEN.msg).nullable()
-      table.string('error_stack', MAX_ERR_LEN.stack).nullable()
+      table.text('error_message').nullable()
+      table.text('error_stack').nullable()
       table.string('cluster').nullable()
       table.timestamp('updatedOn').notNullable()
       table.primary(['appId', 'modelId'])
@@ -205,13 +200,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private packTrainSet(ts: TrainInput): string {
-    const packed = jsonpack.pack(ts)
-    if (packed.length > MAX_TRAIN_SET_SZ) {
-      throw new Error(
-        `Train input can\'t be compressed smaller than the max allowed size which is ${MAX_TRAIN_SET_SZ} characters.`
-      )
-    }
-    return packed
+    return jsonpack.pack(ts)
   }
 
   private unpackTrainSet(compressed: string): TrainInput {
