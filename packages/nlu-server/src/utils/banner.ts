@@ -20,7 +20,7 @@ interface BuildMetadata {
 
 export const showBanner = (config: BannerConfig) => {
   const { title, version, logScopeLength, bannerWidth, logger } = config
-  let buildMetadata
+  let buildMetadata: string | undefined
 
   try {
     const metadata: BuildMetadata = require('../metadata.json')
