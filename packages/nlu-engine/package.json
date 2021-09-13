@@ -4,7 +4,7 @@
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build",
     "test": "cross-env jest -i --detectOpenHandles -c jest.config.js"
   },
   "dependencies": {
@@ -62,7 +62,7 @@
     "prettier": "^2.2.1",
     "ts-jest": "^26.5.5",
     "ts-node-dev": "^1.1.6",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.10"
   },
   "types": "./src/typings.d.ts",
   "main": "./dist/index.js"
