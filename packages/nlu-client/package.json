@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.116",
-    "@types/joi": "^17.4.2",
+    "@types/joi": "^17.2.3",
     "@types/node": "^12.13.0",
     "@types/jest": "^24.9.0",
     "jest": "^24.9.0",
