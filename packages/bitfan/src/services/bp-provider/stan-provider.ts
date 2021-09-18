@@ -11,7 +11,7 @@ export class StanProvider {
   private _client: Client
 
   constructor(nluServerEndpoint: string = 'http://localhost:3200') {
-    this._client = new Client(nluServerEndpoint)
+    this._client = new Client({ baseURL: nluServerEndpoint })
   }
 
   private async _getTrainingStatus(modelId: string): Promise<TrainingState> {

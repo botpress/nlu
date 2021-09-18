@@ -13,9 +13,13 @@ import {
   DetectLangResponseBody,
   ListTrainingsResponseBody
 } from './http'
+import { AxiosRequestConfig, AxiosInstance } from 'axios'
 
 export class Client {
-  constructor(endpoint: string)
+  readonly axios: AxiosInstance
+
+  constructor(config: AxiosRequestConfig)
+
   getInfo(): Promise<InfoResponseBody | ErrorResponse>
   startTraining(appId: string, trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse>
   listTrainings(appId: string, lang?: string): Promise<ListTrainingsResponseBody | ErrorResponse>
