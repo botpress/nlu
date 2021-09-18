@@ -2,7 +2,7 @@ import Joi from 'joi'
 import { SuccessReponse, ErrorResponse } from './typings/http'
 
 const allowUnknownKeys = (obj: Joi.ObjectSchema): Joi.ObjectSchema => {
-  return obj.pattern(/./, Joi.string())
+  return obj.pattern(/./, Joi.any())
 }
 
 const ERROR_RESPONSE_SCHEMA = allowUnknownKeys(
