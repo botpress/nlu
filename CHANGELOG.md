@@ -1,3 +1,13 @@
+## [0.1.7](https://github.com/botpress/nlu/compare/v0.1.6...v0.1.7) (2021-10-06)
+
+
+### Bug Fixes
+
+* **nlu-server:** models were never stored on database even when dburl was defined ([#107](https://github.com/botpress/nlu/issues/107)) ([c017884](https://github.com/botpress/nlu/commit/c01788445e30f2e194bbda2c589fd7e8b8f7fadd))
+* check for APP_DATA_PATH environment variable ([#101](https://github.com/botpress/nlu/issues/101)) ([2bd043a](https://github.com/botpress/nlu/commit/2bd043a4463b10d43e894a9fa770cf4150d3c23a))
+
+
+
 ## [0.1.6](https://github.com/botpress/nlu/compare/v0.1.5...v0.1.6) (2021-09-13)
 
 
