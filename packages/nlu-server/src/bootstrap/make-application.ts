@@ -32,5 +32,6 @@ export const makeApplication = async (
   const trainService = new TrainService(baseLogger, engine, modelRepo, trainSessionService)
   const application = new Application(modelRepo, trainSessionService, trainService, engine, serverVersion, baseLogger)
 
+  await application.initialize()
   return application
 }
