@@ -69,5 +69,6 @@ export const makeApplication = async (
   const application = new Application(modelRepo, trainRepo, trainingQueue, engine, serverVersion, baseLogger)
   await application.initialize()
 
+  await application.initialize()
   return application
 }
