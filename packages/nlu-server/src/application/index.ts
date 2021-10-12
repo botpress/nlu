@@ -25,9 +25,11 @@ export class Application {
   public async initialize() {
     await this._modelRepo.initialize()
     await this._trainingRepo.initialize()
+    await this._trainingQueue.initialize()
   }
 
   public async teardown() {
+    await this._modelRepo.teardown()
     await this._trainingRepo.teardown()
     await this._trainingQueue.teardown()
   }

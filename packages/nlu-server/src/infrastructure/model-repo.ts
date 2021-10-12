@@ -26,7 +26,11 @@ export class ModelRepository {
   }
 
   async initialize() {
-    this._logger.debug('Model service initializing...')
+    this._logger.debug('Model repo initializing...')
+  }
+
+  async teardown() {
+    this._logger.debug('Model repo teardown...')
   }
 
   public async hasModel(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {

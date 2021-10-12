@@ -64,11 +64,8 @@ export const makeApplication = async (
         options
       )
     : new TrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, baseLogger)
-  await trainingQueue.initialize()
 
   const application = new Application(modelRepo, trainRepo, trainingQueue, engine, serverVersion, baseLogger)
-  await application.initialize()
-
   await application.initialize()
   return application
 }
