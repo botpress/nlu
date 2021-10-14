@@ -15,8 +15,6 @@ interface LaunchingInfo {
 }
 
 export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo, launcherLogger: Logger) => {
-  launcherLogger.debug('NLU Server Options %o', info)
-
   showBanner({
     title: 'Botpress Standalone NLU',
     version: info.version,
