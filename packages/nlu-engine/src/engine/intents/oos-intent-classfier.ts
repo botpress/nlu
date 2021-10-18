@@ -223,6 +223,12 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     progress: (p: number) => void
   ): Promise<string> {
     const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
+
+    let { utterances: noneUtts } = noneIntent
+    if (this.tools.isSpaceSeparated(trainInput.languageCode)) {
+      noneUtts = noneUtts.filter((u) => u.tokens.filter((t) => t.isWord).length >= 3)
+    }
+
     const trainableIntents = trainInput.intents.filter(
       (i) => i.name !== NONE_INTENT && i.utterances.length >= MIN_NB_UTTERANCES
     )
@@ -235,7 +241,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       {
         name: NONE_INTENT,
         utterances: lo
-          .chain(noneIntent.utterances)
+          .chain(noneUtts)
           .shuffle()
           .take(nAvgUtts * 2.5) // undescriptible magic n, no sens to extract constant
           .value(),
