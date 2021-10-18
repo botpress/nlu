@@ -5,7 +5,7 @@ import { MLToolkit } from '../../ml/typings'
 import { Logger } from '../../typings'
 import { isPOSAvailable } from '../language/pos-tagger'
 import { SMALL_TFIDF } from '../tools/tfidf'
-import { isSpace, SPACE } from '../tools/token-utils'
+import { SPACE } from '../tools/token-utils'
 import { Intent, Tools } from '../typings'
 import Utterance, { buildUtteranceBatch } from '../utterance/utterance'
 
