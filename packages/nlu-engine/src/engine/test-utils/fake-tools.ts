@@ -6,6 +6,7 @@ import { SystemEntityExtractor, Tools } from '../typings'
 
 import { fakeKmeans } from './fake-kmeans'
 import { FakeSvmPredictor, FakeSvmTrainer } from './fake-svm'
+import { nonSpaceSeparatedLanguages } from '../language/space-separated'
 
 /**
  * Basically mimics the language server tokenizer. Use this function for testing purposes
@@ -74,6 +75,10 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
     }
   }
 
+  const isSpaceSeparated = (lang: string) => {
+    return !nonSpaceSeparatedLanguages.includes(lang)
+  }
+
   const fakeSeededLodash = {
     setSeed: (seed: number) => {},
     getSeededLodash: () => _,
@@ -103,6 +108,7 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
     getHealth,
     getLanguages,
     getSpecifications,
+    isSpaceSeparated,
     seededLodashProvider: fakeSeededLodash,
     systemEntityExtractor: fakeSystemEntityExtractor,
     mlToolkit: fakeMlToolkit as typeof MLToolkit
