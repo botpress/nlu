@@ -16,6 +16,7 @@ import { getPOSTagger, tagSentence } from './language/pos-tagger'
 import { getStopWordsForLang } from './language/stopWords'
 import SeededLodashProvider from './tools/seeded-lodash'
 import { LanguageProvider, SystemEntityExtractor, Tools } from './typings'
+import { nonSpaceSeparatedLanguages } from './language/space-separated'
 
 const PRE_TRAINED_DIR = 'pre-trained'
 const STOP_WORDS_DIR = 'stop-words'
@@ -89,6 +90,10 @@ const makeSystemEntityExtractor = async (config: LanguageConfig, logger: Logger)
   return extractor
 }
 
+const isSpaceSeparated = (lang: string) => {
+  return !nonSpaceSeparatedLanguages.includes(lang)
+}
+
 export async function initializeTools(config: LanguageConfig & { assetsPath: string }, logger: Logger): Promise<Tools> {
   const seededLodashProvider = new SeededLodashProvider()
   const { languageProvider } = await initializeLanguageProvider(config, logger, seededLodashProvider)
@@ -112,6 +117,7 @@ export async function initializeTools(config: LanguageConfig & { assetsPath: str
     },
     generateSimilarJunkWords: (vocab: string[], lang: string) => languageProvider.generateSimilarJunkWords(vocab, lang),
     getStopWordsForLang: getStopWordsForLang(path.resolve(config.assetsPath, STOP_WORDS_DIR)),
+    isSpaceSeparated,
 
     getHealth: healthGetter(languageProvider),
     getLanguages: () => languageProvider.languages,

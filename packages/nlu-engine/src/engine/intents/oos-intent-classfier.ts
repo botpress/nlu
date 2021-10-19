@@ -5,7 +5,7 @@ import { MLToolkit } from '../../ml/typings'
 import { Logger } from '../../typings'
 import { isPOSAvailable } from '../language/pos-tagger'
 import { SMALL_TFIDF } from '../tools/tfidf'
-import { isSpace, SPACE } from '../tools/token-utils'
+import { SPACE } from '../tools/token-utils'
 import { Intent, Tools } from '../typings'
 import Utterance, { buildUtteranceBatch } from '../utterance/utterance'
 
@@ -152,8 +152,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       .orderBy((t) => t)
       .value()
 
-    // If 30% in utterances is a space, language is probably space-separated so we'll join tokens using spaces
-    const joinChar = vocabWithDupes.filter((x) => isSpace(x)).length >= vocabWithDupes.length * 0.3 ? SPACE : ''
+    const joinChar = this.tools.isSpaceSeparated(languageCode) ? SPACE : ''
 
     const vocabUtts = lo.range(0, nbOfNoneUtterances).map(() => {
       const nbWords = Math.round(lo.random(1, avgTokens * 2, false))
@@ -225,6 +224,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   ): Promise<string> {
     const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
     const noneUtts = noneIntent.utterances.filter((u) => u.tokens.filter((t) => t.isWord).length >= 3)
+
     const trainableIntents = trainInput.intents.filter(
       (i) => i.name !== NONE_INTENT && i.utterances.length >= MIN_NB_UTTERANCES
     )
