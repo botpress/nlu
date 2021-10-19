@@ -7,6 +7,7 @@ const prependFile = require('prepend-file')
 const { spawn } = require('./utils/spawn')
 const logger = require('./utils/logger')
 const { getChangeLog } = require('./utils/changelog')
+const os = require('os')
 
 const rootDir = path.join(__dirname, '..')
 const packageJsonPath = path.join(rootDir, 'package.json')
@@ -42,6 +43,10 @@ const getNextVersion = (currentVersion, jump) => {
   return newVersion.join('.')
 }
 
+const getYarnCmd = () => {
+  return os.platform() === 'win32' ? 'yarn.cmd' : 'yarn'
+}
+
 /**
  * 1 - Updates project version to desired version (in package.json)
  * 2 - Updates CHANGELOG.md with conventional changelog
@@ -69,7 +74,14 @@ const bumpVersion = (cb) => {
           const currentVersion = await getCurrentversion()
           const newVersion = getNextVersion(currentVersion, jump)
 
-          await spawn('yarn', ['version', '--new-version', newVersion, '--no-git-tag-version'], { stdio: 'inherit' })
+          const yarnCmd = getYarnCmd()
+          await spawn(yarnCmd, ['version', '--new-version', newVersion, '--no-git-tag-version'], {
+            stdio: 'inherit'
+          })
+          await spawn(yarnCmd, ['version', '--new-version', newVersion, '--no-git-tag-version'], {
+            stdio: 'inherit',
+            cwd: path.join(rootDir, 'packages', 'nlu-cli')
+          })
 
           const changeLog = await getChangeLog()
           if (changeLog) {
