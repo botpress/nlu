@@ -1,23 +1,12 @@
-// eslint-disable-next-line import/order
 import { run as runLanguageServer, download as downloadLang, version as langServerVersion } from '@botpress/lang-server'
 import { makeLogger, LoggerLevel } from '@botpress/logger'
 import { run as runNLUServer, version as nluServerVersion } from '@botpress/nlu-server'
-import path from 'path'
 import yargs from 'yargs'
 import yn from 'yn'
 
 import { getAppDataPath } from './app-data'
-import { requireJSON } from './require-json'
 
-const packageJsonPath = path.resolve(__dirname, '../package.json')
-const packageJson = requireJSON<{ version: string }>(packageJsonPath)
-if (!packageJson) {
-  throw new Error('Could not find package.json at the root of nlu-cli.')
-}
-
-const { version: nluCliVersion } = packageJson
-
-yargs
+void yargs
   .version(false)
   .command(
     ['nlu', '$0'],
@@ -229,8 +218,7 @@ yargs
       }
     },
     async (argv) => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      downloadLang(argv)
+      void downloadLang(argv)
         .then(() => {
           process.exit(0)
         })
