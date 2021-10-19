@@ -10,6 +10,7 @@ const { getChangeLog } = require('./utils/changelog')
 const os = require('os')
 
 const rootDir = path.join(__dirname, '..')
+const packagesDir = path.join(rootDir, 'packages')
 const packageJsonPath = path.join(rootDir, 'package.json')
 const changeLogPath = path.join(rootDir, 'CHANGELOG.md')
 
@@ -80,7 +81,7 @@ const bumpVersion = (cb) => {
           })
           await spawn(yarnCmd, ['version', '--new-version', newVersion, '--no-git-tag-version'], {
             stdio: 'inherit',
-            cwd: path.join(rootDir, 'packages', 'nlu-cli')
+            cwd: path.join(packagesDir, 'nlu-cli')
           })
 
           const changeLog = await getChangeLog()
@@ -92,6 +93,11 @@ const bumpVersion = (cb) => {
           }
 
           await prependFile(changeLogPath, changeLog)
+
+          const allPackages = await fse.readdir(packagesDir)
+          logger.warning(`Don't forget to increment the version of : [\n${allPackages.join('\n')}\n].`)
+          logger.warning('If you bump a version, it must be because you modified one of those.')
+
           cb()
         } catch (err) {
           cb(err)
