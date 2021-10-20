@@ -7,8 +7,10 @@ const prependFile = require('prepend-file')
 const { spawn } = require('./utils/spawn')
 const logger = require('./utils/logger')
 const { getChangeLog } = require('./utils/changelog')
+const os = require('os')
 
 const rootDir = path.join(__dirname, '..')
+const packagesDir = path.join(rootDir, 'packages')
 const packageJsonPath = path.join(rootDir, 'package.json')
 const changeLogPath = path.join(rootDir, 'CHANGELOG.md')
 
@@ -42,6 +44,10 @@ const getNextVersion = (currentVersion, jump) => {
   return newVersion.join('.')
 }
 
+const getYarnCmd = () => {
+  return os.platform() === 'win32' ? 'yarn.cmd' : 'yarn'
+}
+
 /**
  * 1 - Updates project version to desired version (in package.json)
  * 2 - Updates CHANGELOG.md with conventional changelog
@@ -69,7 +75,14 @@ const bumpVersion = (cb) => {
           const currentVersion = await getCurrentversion()
           const newVersion = getNextVersion(currentVersion, jump)
 
-          await spawn('yarn', ['version', '--new-version', newVersion, '--no-git-tag-version'], { stdio: 'inherit' })
+          const yarnCmd = getYarnCmd()
+          await spawn(yarnCmd, ['version', '--new-version', newVersion, '--no-git-tag-version'], {
+            stdio: 'inherit'
+          })
+          await spawn(yarnCmd, ['version', '--new-version', newVersion, '--no-git-tag-version'], {
+            stdio: 'inherit',
+            cwd: path.join(packagesDir, 'nlu-cli')
+          })
 
           const changeLog = await getChangeLog()
           if (changeLog) {
@@ -80,6 +93,12 @@ const bumpVersion = (cb) => {
           }
 
           await prependFile(changeLogPath, changeLog)
+
+          const allPackages = await fse.readdir(packagesDir)
+
+          logger.warning(`Don't forget to increment the version of : [\n  ${allPackages.join('\n  ')}\n].`)
+          logger.warning('If you bump a version, it must be because you modified one of those.')
+
           cb()
         } catch (err) {
           cb(err)

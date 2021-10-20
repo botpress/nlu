@@ -24,4 +24,5 @@ interface Options {
   maxTraining: number
 }
 
+export const version: string
 export const run: (argv: Options) => Promise<void>

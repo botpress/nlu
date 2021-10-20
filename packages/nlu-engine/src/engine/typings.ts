@@ -134,6 +134,7 @@ export interface Tools {
   partOfSpeechUtterances(utterances: string[][], languageCode: string): Promise<string[][]>
   generateSimilarJunkWords(vocabulary: string[], languageCode: string): Promise<string[]>
   getStopWordsForLang(lang: string): Promise<string[]>
+  isSpaceSeparated(lang: string): boolean
 
   // system info
   getHealth(): Health

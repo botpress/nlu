@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu-server",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Botpress Standalone NLU Server",
   "main": "./dist/index.js",
   "author": "Botpress, Inc.",
@@ -47,7 +47,6 @@
     "tmp": "^0.0.33",
     "unzipper": "^0.10.3",
     "verror": "^1.10.0",
-    "yargs": "^16.0.3",
     "yn": "^2.0.0"
   },
   "devDependencies": {

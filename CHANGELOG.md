@@ -1,3 +1,13 @@
+## [0.1.8](https://github.com/botpress/nlu/compare/v0.1.7...v0.1.8) (2021-10-20)
+
+
+### Bug Fixes
+
+* **nlu-cli:** upgrade version of nlu-cli to match root version ([#112](https://github.com/botpress/nlu/issues/112)) ([d08ac79](https://github.com/botpress/nlu/commit/d08ac79714aa39ccaa8df4cabbaa40f0012811bd))
+* **nlu-engine:** only few languages are space separated ([#114](https://github.com/botpress/nlu/issues/114)) ([98c84ef](https://github.com/botpress/nlu/commit/98c84ef7a944e53fb507af225a6f65687538601a))
+
+
+
 ## [0.1.7](https://github.com/botpress/nlu/compare/v0.1.6...v0.1.7) (2021-10-06)
 
 
