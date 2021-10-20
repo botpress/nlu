@@ -42,6 +42,7 @@ export interface LoggerConfig {
   colors: { [level: number]: string }
   indent: boolean
   filters: string[] | undefined // if undefined, all logs are displayed
+  prefix?: string
 }
 
 export const centerText: (text: string, width: number, indent: number = 0) => string

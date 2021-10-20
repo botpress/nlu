@@ -1,19 +1,22 @@
-// eslint-disable-next-line import/order
-import { run as runLanguageServer, download as downloadLang } from '@botpress/lang-server'
+import { run as runLanguageServer, download as downloadLang, version as langServerVersion } from '@botpress/lang-server'
 import { makeLogger, LoggerLevel } from '@botpress/logger'
-import { run as runNLUServer } from '@botpress/nlu-server'
+import { run as runNLUServer, version as nluServerVersion } from '@botpress/nlu-server'
 import yargs from 'yargs'
 import yn from 'yn'
 
 import { getAppDataPath } from './app-data'
 
-const exitLogger = makeLogger().sub('exit')
-
-yargs
+void yargs
+  .version(false)
   .command(
     ['nlu', '$0'],
-    'Launch a local stand-alone nlu server',
+    'Launch a local standalone nlu server',
     {
+      version: {
+        description: "Prints the NLU Server's version",
+        type: 'boolean',
+        default: false
+      },
       config: {
         description: 'Path to your config file. If defined, rest of the CLI arguments are ignored.',
         type: 'string',
@@ -104,9 +107,14 @@ yargs
       }
     },
     (argv) => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      runNLUServer(argv).catch((err) => {
-        exitLogger.attachError(err).critical('NLU Server exits after an error occured.')
+      const baseLogger = makeLogger()
+      if (argv.version) {
+        baseLogger.sub('Version').info(nluServerVersion)
+        return
+      }
+
+      void runNLUServer(argv).catch((err) => {
+        baseLogger.sub('Exit').attachError(err).critical('NLU Server exits after an error occured.')
       })
     }
   )
@@ -171,9 +179,14 @@ yargs
       }
     },
     async (argv) => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      runLanguageServer(argv).catch((err) => {
-        exitLogger.attachError(err).critical('Language Server exits after an error occured.')
+      const baseLogger = makeLogger({ prefix: 'LANG' })
+      if (argv.version) {
+        baseLogger.sub('Version').info(langServerVersion)
+        return
+      }
+
+      void runLanguageServer(argv).catch((err) => {
+        baseLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occured.')
       })
     }
   )
@@ -205,13 +218,13 @@ yargs
       }
     },
     async (argv) => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      downloadLang(argv)
+      void downloadLang(argv)
         .then(() => {
           process.exit(0)
         })
         .catch((err) => {
-          exitLogger.attachError(err).critical('Language Server exits after an error occured.')
+          const baseLogger = makeLogger({ prefix: 'LANG' })
+          baseLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occured.')
         })
     }
   )

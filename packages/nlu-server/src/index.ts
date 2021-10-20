@@ -20,7 +20,9 @@ if (!packageJson) {
   throw new Error('Could not find package.json at the root of nlu-server.')
 }
 
-const { version } = packageJson
+const { version: pkgVersion } = packageJson
+
+export const version = pkgVersion
 
 export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
   const { options, source: configSource } = await getConfig(cliOptions)

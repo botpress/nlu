@@ -2,6 +2,8 @@ import { ConsoleFormatter } from './formatters/console'
 import { ConsoleTransport } from './transports/console'
 import { LoggerConfig } from './typings'
 
+const LOG_PREFIX = 'NLU'
+
 export enum LoggerLevel {
   Critical = 0,
   Error = 1,
@@ -25,5 +27,6 @@ export const defaultConfig: LoggerConfig = {
   formatter: new ConsoleFormatter({ indent: !!process.env.INDENT_LOGS }),
   transports: [new ConsoleTransport()],
   indent: false,
-  filters: undefined // show all logs
+  filters: undefined, // show all logs
+  prefix: LOG_PREFIX
 }

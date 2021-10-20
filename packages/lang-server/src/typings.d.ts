@@ -21,3 +21,5 @@ export const download: (argv: {
   domain: string
   metadataLocation: string
 }) => Promise<void>
+
+export const version: string

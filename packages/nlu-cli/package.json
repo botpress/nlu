@@ -16,11 +16,14 @@
     "outputPath": "../dist"
   },
   "dependencies": {
+    "@botpress/lang-server": "*",
     "@botpress/logger": "*",
     "@botpress/nlu-server": "*",
-    "@botpress/lang-server": "*"
+    "yargs": "^17.2.1"
   },
   "devDependencies": {
+    "@types/node": "^12.13.0",
+    "@types/yargs": "^17.0.4",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
     "cross-env": "^5.2.0",
@@ -33,7 +36,6 @@
     "prettier": "^2.2.1",
     "ts-jest": "^26.5.5",
     "ts-node-dev": "^1.1.6",
-    "@types/node": "^12.13.0",
     "typescript": "^3.9.10"
   },
   "scripts": {
