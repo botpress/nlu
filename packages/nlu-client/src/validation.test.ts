@@ -1,5 +1,5 @@
 import { validateResponse } from './validation'
-import { SuccessReponse, ErrorResponse } from './typings/http'
+import { SuccessReponse, ErrorResponse, NLUError } from './typings/http'
 
 const augmentWithExtraKey = (res: Object) => {
   return [
@@ -12,6 +12,8 @@ const augmentWithExtraKey = (res: Object) => {
     { ...res, someExtraKey: [{ key1: 69, key2: '42' }, 666] }
   ]
 }
+
+const error: NLUError = { code: 500, type: 'unknown', message: 'An error' }
 
 test('validating with absent success key should fail', async () => {
   // arrange && act && assert
@@ -29,18 +31,28 @@ test('validating a successfull response should pass', async () => {
 
 test('validating an unsuccessfull response with unempty error should pass', async () => {
   // arrange
-  const res: ErrorResponse = { success: false, error: 'an error' }
+  const res: ErrorResponse = { success: false, error }
 
   // act && assert
   expect(() => validateResponse(res)).not.toThrow()
 })
 
-test('validating an unsuccessfull response with empty error should still pass', async () => {
+test('validating an unsuccessfull response with empty error message should pass', async () => {
+  const error: NLUError = { message: '', code: 500, type: 'unknown' }
+
   // arrange
-  const res: ErrorResponse = { success: false, error: '' }
+  const res: ErrorResponse = { success: false, error }
 
   // act && assert
   expect(() => validateResponse(res)).not.toThrow()
+})
+
+test('validating an unsuccessfull response with empty error should fail', async () => {
+  // arrange
+  const res: ErrorResponse = { success: false, error: {} as NLUError }
+
+  // act && assert
+  expect(() => validateResponse(res)).toThrow()
 })
 
 test('validating an unsuccessfull response with undefined error should fail', async () => {
@@ -64,7 +76,7 @@ test('validating a successfull response with unknown keys should pass', async ()
 
 test('validating an unsuccessfull response with unknown keys should pass', async () => {
   // arrange
-  const res = <ErrorResponse>{ success: false, error: 'some error' }
+  const res = <ErrorResponse>{ success: false, error }
 
   // act && assert
   const responses = augmentWithExtraKey(res)

@@ -22,12 +22,6 @@ export class ResponseError extends Error {
   }
 }
 
-export class UnauthorizedError extends ResponseError {
-  constructor(message: string) {
-    super(`Unauthorized: ${message}`, 401)
-  }
-}
-
 export class InvalidRequestFormatError extends ResponseError {
   constructor(message: string) {
     super(`Invalid Request Format: ${message}`, 400)
