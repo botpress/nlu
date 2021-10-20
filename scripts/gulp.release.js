@@ -95,7 +95,8 @@ const bumpVersion = (cb) => {
           await prependFile(changeLogPath, changeLog)
 
           const allPackages = await fse.readdir(packagesDir)
-          logger.warning(`Don't forget to increment the version of : [\n${allPackages.join('\n')}\n].`)
+
+          logger.warning(`Don't forget to increment the version of : [\n  ${allPackages.join('\n  ')}\n].`)
           logger.warning('If you bump a version, it must be because you modified one of those.')
 
           cb()
