@@ -8,8 +8,7 @@ import { getAppDataPath } from '../app-data'
 import ModelDownload from './model-download'
 
 type ModelType = 'bpe' | 'embeddings'
-
-export interface DownloadableModel {
+interface DownloadableModel {
   type: ModelType
   remoteUrl: string
   language: string
@@ -53,7 +52,7 @@ export default class DownloadManager {
     this._logger = baseLogger.sub('lang').sub('download')
   }
 
-  async initialize() {
+  async initialize(): Promise<void> {
     fse.ensureDirSync(this.destDir)
     if (this._refreshTimer) {
       clearInterval(this._refreshTimer)

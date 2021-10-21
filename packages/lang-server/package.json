@@ -10,6 +10,7 @@
   "dependencies": {
     "@botpress/nlu-engine": "*",
     "@botpress/logger": "*",
+    "@botpress/lang-client": "*",
     "axios": "^0.21.1",
     "bluebird": "^3.7.2",
     "body-parser": "^1.18.3",

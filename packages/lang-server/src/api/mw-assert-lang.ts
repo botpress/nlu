@@ -1,16 +1,10 @@
 import { LanguageService } from '@botpress/nlu-engine'
+import { NextFunction, Request, Response } from 'express'
 import _ from 'lodash'
-import { BadRequestError, NotReadyError } from './utils/http/errors'
+import { BadRequestError } from './errors'
+import { RequestWithLang } from './http'
 
-export const serviceLoadingMiddleware = (service: LanguageService) => (_req, _res, next) => {
-  if (!service.isReady) {
-    return next(new NotReadyError('Language Server is still loading'))
-  }
-
-  next()
-}
-
-export const assertValidLanguage = (service: LanguageService) => (req, _res, next) => {
+export const assertValidLanguage = (service: LanguageService) => (req: Request, _res: Response, next: NextFunction) => {
   const language = req.body.lang || req.params.lang
 
   if (!language) {
@@ -26,6 +20,6 @@ export const assertValidLanguage = (service: LanguageService) => (req, _res, nex
     return next(new BadRequestError(`Param 'lang': ${language} is not element of the available languages`))
   }
 
-  req.language = language
+  ;(req as RequestWithLang).language = language
   next()
 }

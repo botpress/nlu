@@ -1,4 +1,5 @@
 import { Logger } from '@botpress/logger'
+import { Request, Response, NextFunction } from 'express'
 import _ from 'lodash'
 import ms from 'ms'
 import onHeaders from 'on-headers'
@@ -51,7 +52,7 @@ export const logMetric = (language: string = 'n/a', timeInMs: number) => {
   }
 }
 
-export const monitoringMiddleware = (req, res, next) => {
+export const monitoringMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const startAt = Date.now()
 
   onHeaders(res, () => {

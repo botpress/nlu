@@ -1,7 +1,8 @@
+import { LangError, ErrorResponse } from '@botpress/lang-client'
 import { Logger } from '@botpress/logger'
-import { Request } from 'express'
+import { Request, NextFunction, Response } from 'express'
 import _ from 'lodash'
-import { UnauthorizedError } from './errors'
+import { UnauthorizedError, BadRequestError, NotReadyError, ResponseError, OfflineError } from './errors'
 
 // This method is only used for basic escaping of error messages, do not use for page display
 export const escapeHtmlSimple = (str: string) => {
@@ -13,7 +14,7 @@ export const escapeHtmlSimple = (str: string) => {
     .replace(/`/g, '&#96;')
 }
 
-export const isAdminToken = (req, adminToken: string) => {
+export const isAdminToken = (req: Request, adminToken: string) => {
   if (!adminToken || !adminToken.length) {
     return true
   }
@@ -30,7 +31,11 @@ const makeUnauthorizedError = (msg: string) => {
   return err
 }
 
-export const authMiddleware = (secureToken: string, baseLogger: Logger, secondToken?: string) => (req, _res, next) => {
+export const authMiddleware = (secureToken: string, baseLogger: Logger, secondToken?: string) => (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) => {
   if (!secureToken || !secureToken.length) {
     return next()
   }
@@ -69,25 +74,40 @@ export const disabledReadonlyMiddleware = (readonly: boolean) => (_req, _res, ne
   next()
 }
 
-export const handleUnexpectedError = (err, req, res, next) => {
-  const statusCode = err.statusCode || 500
-  const errorCode = err.errorCode || 'BP_000'
-  const message = (err.errorCode && err.message) || 'Unexpected error'
-
-  res.status(statusCode).json({
-    statusCode,
-    errorCode,
-    type: err.type || Object.getPrototypeOf(err).name || 'Exception',
-    message
-  })
+const serializeError = (err: Error): LangError => {
+  const { message, stack } = err
+  if (err instanceof BadRequestError) {
+    const { statusCode } = err
+    return { message, stack, type: 'bad_request', code: statusCode }
+  }
+  if (err instanceof NotReadyError) {
+    const { statusCode } = err
+    return { message, stack, type: 'not_ready', code: statusCode }
+  }
+  if (err instanceof UnauthorizedError) {
+    const { statusCode } = err
+    return { message, stack, type: 'unauthorized', code: statusCode }
+  }
+  if (err instanceof OfflineError) {
+    const { statusCode } = err
+    return { message, stack, type: 'offline', code: statusCode }
+  }
+  if (err instanceof ResponseError) {
+    const { statusCode } = err
+    return { message, stack, type: 'unknown', code: statusCode }
+  }
+  return { message, stack, type: 'unknown', code: 500 }
 }
 
-export const handleErrorLogging = (err, req, res, next) => {
-  if (err && (err.skipLogging || process.env.SKIP_LOGGING)) {
-    return res.status(err.statusCode).send(err.message)
+export const handleUnexpectedError = (thrownObject: any, _req: Request, res: Response, _next: NextFunction) => {
+  const err: Error = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
+  const langError = serializeError(err)
+  const { code } = langError
+  const response: ErrorResponse = {
+    success: false,
+    error: langError
   }
-
-  next(err)
+  res.status(code).json(response)
 }
 
 export type RequestWithLang = Request & {
