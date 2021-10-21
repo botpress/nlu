@@ -1,12 +1,12 @@
 import _ from 'lodash'
 import { MLToolkit } from '../../ml/typings'
 import { POSClass, POS_CLASSES } from '../language/pos-tagger'
+import { nonSpaceSeparatedLanguages } from '../language/space-separated'
 import { SPACE, splitSpaceToken } from '../tools/token-utils'
 import { SystemEntityExtractor, Tools } from '../typings'
 
 import { fakeKmeans } from './fake-kmeans'
 import { FakeSvmPredictor, FakeSvmTrainer } from './fake-svm'
-import { nonSpaceSeparatedLanguages } from '../language/space-separated'
 
 /**
  * Basically mimics the language server tokenizer. Use this function for testing purposes
@@ -64,14 +64,11 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
 
   const getLanguages = () => [...languages]
 
-  const getSpecifications = () => {
+  const getLangServerSpecs = () => {
     return {
-      nluVersion: '1.0.0',
-      languageServer: {
-        dimensions: dim,
-        domain: 'domain',
-        version: '1.0.0'
-      }
+      dimensions: dim,
+      domain: 'domain',
+      version: '1.0.0'
     }
   }
 
@@ -107,7 +104,7 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
     getStopWordsForLang,
     getHealth,
     getLanguages,
-    getSpecifications,
+    getLangServerSpecs,
     isSpaceSeparated,
     seededLodashProvider: fakeSeededLodash,
     systemEntityExtractor: fakeSystemEntityExtractor,

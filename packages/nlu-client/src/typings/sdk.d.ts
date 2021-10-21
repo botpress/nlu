@@ -6,7 +6,7 @@ export interface ServerInfo {
 }
 
 export interface Specifications {
-  nluVersion: string // semver string
+  engineVersion: string // semver string
   languageServer: {
     dimensions: number
     domain: string

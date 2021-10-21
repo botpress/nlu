@@ -1,7 +1,7 @@
 import { AxiosInstance } from 'axios'
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
-import { Health, Specifications } from 'src/typings'
+import { Health, LangServerSpecs } from 'src/typings'
 import { MLToolkit } from '../ml/typings'
 
 import { LanguageSource } from '../typings'
@@ -139,7 +139,7 @@ export interface Tools {
   // system info
   getHealth(): Health
   getLanguages(): string[]
-  getSpecifications(): Specifications
+  getLangServerSpecs(): LangServerSpecs
 
   seededLodashProvider: SeededLodashProvider
   mlToolkit: typeof MLToolkit

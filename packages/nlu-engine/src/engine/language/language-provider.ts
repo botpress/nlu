@@ -40,7 +40,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
   private _validProvidersCount!: number
   private _languageDims!: number
 
-  private _nluVersion!: string
+  private _cacheFormatVersion: string = '1.0.0' // increment when changing cache file format to invalidate old cache files
   private _langServerInfo!: LangServerInfo
 
   private _seededLodashProvider!: SeededLodashProvider
@@ -68,11 +68,9 @@ export class RemoteLanguageProvider implements LanguageProvider {
   async initialize(
     sources: LanguageSource[],
     logger: ILogger,
-    nluVersion: string,
     cacheDir: string,
     seededLodashProvider: SeededLodashProvider
   ): Promise<LanguageProvider> {
-    this._nluVersion = nluVersion
     this._validProvidersCount = 0
     this._logger = logger
     this._cacheDir = cacheDir
@@ -544,11 +542,9 @@ export class RemoteLanguageProvider implements LanguageProvider {
   }
 
   private computeVersionHash = () => {
-    const { _nluVersion, _langServerInfo } = this
+    const { _cacheFormatVersion, _langServerInfo } = this
     const { dim, domain, version: langServerVersion } = _langServerInfo
-
-    const omitPatchNumber = (v: string) => `${semver.major(v)}.${semver.minor(v)}.0`
-    const hashContent = `${omitPatchNumber(_nluVersion)}:${omitPatchNumber(langServerVersion)}:${dim}:${domain}`
+    const hashContent = `${_cacheFormatVersion}:${langServerVersion}:${dim}:${domain}`
     return crypto.createHash('md5').update(hashContent).digest('hex')
   }
 }

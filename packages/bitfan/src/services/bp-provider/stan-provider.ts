@@ -1,4 +1,5 @@
 import { PredictOutput, TrainingState, TrainInput, Client } from '@botpress/nlu-client'
+import { NLUError } from '@botpress/nlu-client/src/typings/http'
 import _ from 'lodash'
 
 import { sleep } from '../../utils'
@@ -19,7 +20,7 @@ export class StanProvider {
     if (data.success) {
       return data.session
     }
-    throw new Error(data.error)
+    throw this._deserializeError(data.error)
   }
 
   private async _waitForTraining(modelId: string, loggingCb?: (time: number, progress: number) => void) {
@@ -59,7 +60,7 @@ export class StanProvider {
       this._modelId = modelId
       return this._waitForTraining(modelId, loggingCb)
     }
-    throw new Error(data.error)
+    throw this._deserializeError(data.error)
   }
 
   public async predict(utterances: string[]): Promise<PredictOutput[]> {
@@ -68,5 +69,12 @@ export class StanProvider {
       throw new Error(`An error occured at prediction: ${predOutput.error}.`)
     }
     return predOutput.predictions
+  }
+
+  private _deserializeError = (error: NLUError): Error => {
+    const { message, stack } = error
+    const err = new Error(message)
+    err.stack = stack
+    return err
   }
 }

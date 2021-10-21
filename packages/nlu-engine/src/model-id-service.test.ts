@@ -21,7 +21,7 @@ const entities: EntityDefinition[] = [
 ]
 
 const specifications: Specifications = {
-  nluVersion: '2.0.0',
+  engineVersion: '2.0.0',
   languageServer: {
     dimensions: 300,
     domain: 'bp',

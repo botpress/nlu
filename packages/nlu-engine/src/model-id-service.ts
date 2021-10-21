@@ -6,7 +6,7 @@ import { ModelId, ModelIdArgs, ModelIdService } from './typings'
 export const HALF_MD5_REG = /^[a-fA-F0-9]{16}$/
 
 const MD5_NIBBLES_SIZE = 32 // (128 bits/hash / 8 bits/byte) * 2 nibbles/byte === 32 nibbles/hash
-export const halfmd5 = (text: string) => {
+const halfmd5 = (text: string) => {
   return crypto
     .createHash('md5')
     .update(text)

@@ -100,13 +100,15 @@ export interface Model {
   }
 }
 
+export interface LangServerSpecs {
+  dimensions: number
+  domain: string
+  version: string
+}
+
 export interface Specifications {
-  nluVersion: string // semver string
-  languageServer: {
-    dimensions: number
-    domain: string
-    version: string // semver string
-  }
+  engineVersion: string
+  languageServer: LangServerSpecs
 }
 
 export interface Health {

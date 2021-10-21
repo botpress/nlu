@@ -1,9 +1,6 @@
 import path from 'path'
-import { Health, Specifications } from 'src/typings'
+import { Health, Specifications, LangServerSpecs } from 'src/typings'
 import yn from 'yn'
-
-// eslint-disable-next-line import/order
-const { version: nluVersion } = require('../../package.json')
 
 import MLToolkit from '../ml/toolkit'
 import { LanguageConfig, Logger } from '../typings'
@@ -13,10 +10,10 @@ import { MicrosoftEntityExtractor } from './entities/microsoft-extractor'
 import languageIdentifier, { FastTextLanguageId } from './language/language-identifier'
 import LangProvider from './language/language-provider'
 import { getPOSTagger, tagSentence } from './language/pos-tagger'
+import { nonSpaceSeparatedLanguages } from './language/space-separated'
 import { getStopWordsForLang } from './language/stopWords'
 import SeededLodashProvider from './tools/seeded-lodash'
 import { LanguageProvider, SystemEntityExtractor, Tools } from './typings'
-import { nonSpaceSeparatedLanguages } from './language/space-separated'
 
 const PRE_TRAINED_DIR = 'pre-trained'
 const STOP_WORDS_DIR = 'stop-words'
@@ -31,17 +28,13 @@ const healthGetter = (languageProvider: LanguageProvider) => (): Health => {
   }
 }
 
-const versionGetter = (languageProvider: LanguageProvider) => (): Specifications => {
+const versionGetter = (languageProvider: LanguageProvider) => (): LangServerSpecs => {
   const { langServerInfo } = languageProvider
   const { dim, domain, version } = langServerInfo
-
   return {
-    nluVersion,
-    languageServer: {
-      dimensions: dim,
-      domain,
-      version
-    }
+    dimensions: dim,
+    domain,
+    version
   }
 }
 
@@ -54,7 +47,6 @@ const initializeLanguageProvider = async (
     const languageProvider = await LangProvider.initialize(
       config.languageSources,
       logger,
-      nluVersion,
       path.join(config.cachePath, 'cache'),
       seededLodashProvider
     )
@@ -121,7 +113,7 @@ export async function initializeTools(config: LanguageConfig & { assetsPath: str
 
     getHealth: healthGetter(languageProvider),
     getLanguages: () => languageProvider.languages,
-    getSpecifications: versionGetter(languageProvider),
+    getLangServerSpecs: versionGetter(languageProvider),
     seededLodashProvider,
     mlToolkit: MLToolkit,
     systemEntityExtractor: await makeSystemEntityExtractor(config, logger)
