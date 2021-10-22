@@ -23,7 +23,7 @@ import { BadRequestError } from './errors'
 import { monitoringMiddleware, startMonitoring } from './monitoring'
 import { assertValidLanguage, RequestWithLang } from './mw-assert-lang'
 import { authMiddleware } from './mw-authentification'
-import { handleUnexpectedError } from './mw-handle-error'
+import { handleUnexpectedError, handleErrorLogging } from './mw-handle-error'
 import { serviceLoadingMiddleware } from './mw-service-loading'
 
 export interface APIOptions {
@@ -195,6 +195,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
   })
 
   app.use('/languages', waitForServiceMw, router)
+  app.use(handleErrorLogging(logger))
 
   const httpServer = createServer(app)
 

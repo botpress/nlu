@@ -1,4 +1,5 @@
 import { LangError, ErrorResponse } from '@botpress/lang-client'
+import { Logger } from '@botpress/logger'
 import { NextFunction, Request, Response } from 'express'
 import { BadRequestError, NotReadyError, UnauthorizedError, OfflineError, ResponseError } from './errors'
 
@@ -36,4 +37,17 @@ export const handleUnexpectedError = (thrownObject: any, _req: Request, res: Res
     error: langError
   }
   res.status(code).json(response)
+}
+
+export const handleErrorLogging = (logger: Logger) => (
+  thrownObject: any,
+  _req: Request,
+  _res: Response,
+  next: NextFunction
+) => {
+  const err: Error = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
+  if ((err instanceof ResponseError && err.skipLogging) || process.env.SKIP_LOGGING) {
+    return
+  }
+  logger.attachError(err).error('Error')
 }

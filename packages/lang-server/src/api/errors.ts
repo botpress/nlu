@@ -8,11 +8,10 @@ const escapeHtmlSimple = (str: string) => {
 }
 
 export abstract class ResponseError extends Error {
-  public statusCode: number
-  constructor(message: string, statusCode: number) {
+  public skipLogging = true
+  constructor(public message: string, public statusCode: number) {
     super(escapeHtmlSimple(message))
     Error.captureStackTrace(this, this.constructor)
-    this.statusCode = statusCode
   }
 }
 
