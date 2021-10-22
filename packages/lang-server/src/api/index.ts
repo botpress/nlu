@@ -20,9 +20,10 @@ import yn from 'yn'
 import { LangApplication } from '../application'
 
 import { BadRequestError } from './errors'
-import { authMiddleware, handleUnexpectedError, isAdminToken, RequestWithLang } from './http'
 import { monitoringMiddleware, startMonitoring } from './monitoring'
-import { assertValidLanguage } from './mw-assert-lang'
+import { assertValidLanguage, RequestWithLang } from './mw-assert-lang'
+import { authMiddleware } from './mw-authentification'
+import { handleUnexpectedError } from './mw-handle-error'
 import { serviceLoadingMiddleware } from './mw-service-loading'
 
 export interface APIOptions {
@@ -88,8 +89,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
 
   app.get('/info', (req, res, next) => {
     try {
-      const isAdmin = isAdminToken(req, options.adminToken)
-      const info = application.getInfo(isAdmin)
+      const info = application.getInfo(req.headers.authorization)
       const response: InfoResponseBody = {
         success: true,
         ...info
@@ -122,7 +122,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       const tokens = req.body.tokens
       const lang = req.language!
       if (!tokens || !tokens.length || !_.isArray(tokens)) {
-        throw new BadRequestError('Param `tokens` is mandatory (must be an array of strings)')
+        throw new BadRequestError('Param "tokens" is mandatory (must be an array of strings)')
       }
 
       const result = await application.vectorize(tokens, lang)
@@ -208,6 +208,6 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
   logger.info(`Language Server is ready at http://${options.host}:${options.port}/`)
 
   if (process.env.MONITORING_INTERVAL) {
-    startMonitoring(baseLogger)
+    startMonitoring(baseLogger, process.env.MONITORING_INTERVAL)
   }
 }

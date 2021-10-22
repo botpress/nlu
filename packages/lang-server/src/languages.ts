@@ -737,4 +737,4 @@ export const LANGUAGES = {
   }
 }
 
-export const getLanguageByCode = (code) => LANGUAGES[code]
+export const getLanguageByCode = (code: string) => LANGUAGES[code]

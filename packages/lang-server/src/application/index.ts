@@ -11,24 +11,30 @@ import { OfflineError } from '../api/errors'
 import { getLanguageByCode } from '../languages'
 import DownloadManager from './download-manager'
 
+interface AppOptions {
+  version: string
+  adminToken?: string
+  offline: boolean
+}
+
 export class LangApplication {
   constructor(
-    private version: string,
     public languageService: LanguageService,
-    public downloadManager?: DownloadManager
+    public downloadManager: DownloadManager,
+    private options: AppOptions
   ) {}
 
   public initialize(): Promise<void> {
-    return Bluebird.all([this.languageService.initialize(), this.downloadManager?.initialize()]) as Promise<void>
+    return Bluebird.all([this.languageService.initialize(), this.downloadManager.initialize()]) as Promise<void>
   }
 
-  public getInfo(isAdminToken: boolean): LanguageInfo {
+  public getInfo(authHeader?: string): LanguageInfo {
     return {
-      version: this.version,
+      version: this.options.version,
       ready: this.languageService.isReady,
       dimentions: this.languageService.dim,
       domain: this.languageService.domain,
-      readOnly: !isAdminToken
+      readOnly: !this._isAdminToken(authHeader)
     }
   }
 
@@ -43,7 +49,7 @@ export class LangApplication {
   }
 
   public getLanguages(): LanguageState {
-    if (!this.downloadManager) {
+    if (this.options.offline) {
       const localLanguages = this.languageService.getModels().map((m) => {
         const { name } = getLanguageByCode(m.lang)
         return { ...m, code: m.lang, name }
@@ -73,7 +79,7 @@ export class LangApplication {
   }
 
   public async startDownloadLang(lang: string): Promise<DownloadStartResult> {
-    if (!this.downloadManager) {
+    if (this.options.offline) {
       throw new OfflineError()
     }
 
@@ -90,9 +96,20 @@ export class LangApplication {
   }
 
   public cancelDownloadLang(downloadId: string): void {
-    if (!this.downloadManager) {
+    if (this.options.offline) {
       throw new OfflineError()
     }
     return this.downloadManager.cancelAndRemove(downloadId)
+  }
+
+  private _isAdminToken = (authHeader?: string) => {
+    if (!this.options.adminToken || !this.options.adminToken.length) {
+      return true
+    }
+    if (!authHeader) {
+      return false
+    }
+    const [, token] = authHeader.split(' ')
+    return token === this.options.adminToken
   }
 }

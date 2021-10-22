@@ -7,10 +7,10 @@ import onHeaders from 'on-headers'
 let collectionEnabled = false
 let metrics = {}
 
-export const startMonitoring = (baseLogger: Logger) => {
+export const startMonitoring = (baseLogger: Logger, interval: string) => {
   const monitoringLogger = baseLogger.sub('lang').sub('api').sub('monitoring')
 
-  monitoringLogger.debug('Metrics collection enabled. Interval: ', process.env.MONITORING_INTERVAL)
+  monitoringLogger.debug('Metrics collection enabled. Interval: ', interval)
 
   setInterval(() => {
     if (!metrics || !Object.keys(metrics).length) {
@@ -31,7 +31,7 @@ export const startMonitoring = (baseLogger: Logger) => {
       console.error('Could not prepare stats:', err)
     }
     metrics = {}
-  }, ms(process.env.MONITORING_INTERVAL!))
+  }, ms(interval))
 
   collectionEnabled = true
 }

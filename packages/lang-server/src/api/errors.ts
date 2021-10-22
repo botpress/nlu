@@ -1,50 +1,36 @@
-import { escapeHtmlSimple } from './http'
+const escapeHtmlSimple = (str: string) => {
+  return str
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\//g, '&#x2F;')
+    .replace(/\\/g, '&#x5C;')
+    .replace(/`/g, '&#96;')
+}
 
-/**
- * The object that wraps HTTP errors.
- *
- * @constructor
- * @param message - The error message that will be sent to the end-user
- * @param statusCode - The HTTP status code
- * @param errorCode - Botpress error codes e.g. BP_0001, BP_0002, etc.
- */
 export abstract class ResponseError extends Error {
-  errorCode: string | undefined
-  statusCode: number
-
-  skipLogging = false
-
-  constructor(message: string, statusCode: number, errorCode?: string) {
+  public statusCode: number
+  constructor(message: string, statusCode: number) {
     super(escapeHtmlSimple(message))
     Error.captureStackTrace(this, this.constructor)
     this.statusCode = statusCode
-    this.errorCode = errorCode
   }
 }
 
 export class BadRequestError extends ResponseError {
-  type = 'BadRequestError'
-
   constructor(message: string) {
-    super(`Bad Request: ${message}`, 400, 'BP_0040')
-    this.skipLogging = true
+    super(`Bad Request: ${message}`, 400)
   }
 }
 
 export class NotReadyError extends ResponseError {
-  type = 'NotReadyError'
-
   constructor(service: string) {
-    super(`Service Not Ready: ${service}`, 400, 'BP_0140')
-    this.skipLogging = true
+    super(`Service Not Ready: ${service}`, 400)
   }
 }
 
 export class UnauthorizedError extends ResponseError {
-  type = 'UnauthorizedError'
-
   constructor(message: string) {
-    super(`Unauthorized: ${message}`, 401, 'BP_0041')
+    super(`Unauthorized: ${message}`, 401)
   }
 }
 

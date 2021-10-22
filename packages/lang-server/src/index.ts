@@ -135,8 +135,11 @@ ${_.repeat(' ', 9)}========================================`)
 
   launcherLogger.info(`Serving ${options.dim} language dimensions from ${options.langDir}`)
 
-  const langApplication = options.offline
-    ? new LangApplication(version, langService)
-    : new LangApplication(version, langService, downloadManager)
+  const { offline, adminToken } = options
+  const langApplication = new LangApplication(langService, downloadManager, {
+    offline,
+    version,
+    adminToken
+  })
   await Promise.all([API(apiOptions, baseLogger, langApplication), langApplication.initialize()])
 }
