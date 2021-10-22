@@ -3,9 +3,10 @@ import {
   TokenizeResult,
   VectorizeResult,
   LanguageState,
-  DownloadStartResult
+  DownloadStartResult,
+  InstalledModel as LangServerInstalledModel
 } from '@botpress/lang-client'
-import { LanguageService } from '@botpress/nlu-engine'
+import { LanguageService, InstalledModel as EngineInstalledModel } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import { OfflineError } from '../api/errors'
 import { getLanguageByCode } from '../languages'
@@ -50,13 +51,10 @@ export class LangApplication {
 
   public getLanguages(): LanguageState {
     if (this.options.offline) {
-      const localLanguages = this.languageService.getModels().map((m) => {
-        const { name } = getLanguageByCode(m.lang)
-        return { ...m, code: m.lang, name }
-      })
+      const localLanguages = this.languageService.getModels().map(this._mapInstalledModel)
 
       return {
-        available: localLanguages,
+        available: [],
         installed: localLanguages,
         downloading: []
       }
@@ -73,9 +71,15 @@ export class LangApplication {
 
     return {
       available: this.downloadManager.downloadableLanguages,
-      installed: this.languageService.getModels(),
+      installed: this.languageService.getModels().map(this._mapInstalledModel),
       downloading
     }
+  }
+
+  private _mapInstalledModel = (m: EngineInstalledModel): LangServerInstalledModel => {
+    const { lang, loaded } = m
+    const { name } = getLanguageByCode(m.lang)
+    return { code: lang, name, loaded }
   }
 
   public async startDownloadLang(lang: string): Promise<DownloadStartResult> {

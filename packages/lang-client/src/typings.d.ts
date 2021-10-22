@@ -31,7 +31,8 @@ export interface AvailableModel {
 }
 
 export interface InstalledModel {
-  lang: string
+  code: string
+  name: string
   loaded: boolean
 }
 
@@ -41,7 +42,7 @@ export interface DownloadStatus {
   message: string
 }
 
-export interface DownloadProgres {
+export interface DownloadProgress {
   status: DownloadStatus
   downloadId: string
   size: number
@@ -49,11 +50,11 @@ export interface DownloadProgres {
 
 export interface DownloadingModel {
   lang: string
-  progress: DownloadProgres
+  progress: DownloadProgress
 }
 
 export interface LanguageState {
-  available: DownloadableModel[]
+  available: AvailableModel[]
   installed: InstalledModel[]
   downloading: DownloadingModel[]
 }
