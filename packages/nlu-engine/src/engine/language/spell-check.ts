@@ -11,18 +11,19 @@ function isClosestTokenValid(originalToken: UtteranceToken, closestToken: string
 /**
  * @description Returns slightly different version of the given utterance, replacing OOV tokens with their closest spelling neighbour
  * @param utterance the original utterance
- * @param predictors Bot wide vocabulary
+ * @param vocab Bot wide vocabulary
  */
-export function spellCheck(utterance: Utterance, predictors: Predictors): string {
-  const { vocab } = predictors
+export function spellCheck(utterance: Utterance, vocab: string[]): string {
   const spellchecked = _.chain(utterance.tokens)
     .map((token: UtteranceToken) => {
-      const strTok = token.toString()
-      if (!token.isWord || vocab.includes(strTok) || !_.isEmpty(token.entities)) {
+      const strTok = token.toString({ lowerCase: false })
+
+      const lowerCasedToken = strTok.toLowerCase()
+      if (!token.isWord || vocab.includes(lowerCasedToken) || !_.isEmpty(token.entities)) {
         return strTok
       }
 
-      const closestToken: string = getClosestSpellingToken(strTok.toLowerCase(), vocab)
+      const closestToken: string = getClosestSpellingToken(lowerCasedToken, vocab)
       if (isClosestTokenValid(token, closestToken)) {
         return closestToken
       }

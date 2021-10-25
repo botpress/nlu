@@ -159,7 +159,7 @@ async function extractSlots(input: IntentStep, predictors: Predictors): Promise<
 }
 
 function spellCheck(input: SlotStep, predictors: Predictors): SpellStep {
-  const spellChecked = spellCheckUtterance(input.utterance, predictors)
+  const spellChecked = spellCheckUtterance(input.utterance, predictors.vocab)
   return {
     ...input,
     spellChecked
