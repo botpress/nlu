@@ -1,5 +1,5 @@
 import path from 'path'
-import { Health, Specifications, LangServerSpecs } from 'src/typings'
+import { Health, LangServerSpecs } from 'src/typings'
 import yn from 'yn'
 
 import MLToolkit from '../ml/toolkit'

@@ -128,24 +128,27 @@ export class RemoteLanguageProvider implements LanguageProvider {
       })
       try {
         await retry(async () => {
-          const { data } = await client.get('/info')
-
-          if (!data.ready) {
+          const { data: info } = await client.get('/info')
+          if (!info.ready) {
             throw new Error('Language source is not ready')
           }
 
           if (!this._languageDims) {
-            this._languageDims = data.dimentions // note typo in language server
+            this._languageDims = info.dimentions // note typo in language server
           }
 
           // TODO: also check that the domain and version is consistent across all sources
-          if (this._languageDims !== data.dimentions) {
+          if (this._languageDims !== info.dimentions) {
             throw new Error('Language sources have different dimensions')
           }
           this._validProvidersCount++
-          data.languages.forEach((x) => this.addProvider(x.lang, source, client))
 
-          this.extractLangServerInfo(data)
+          const { data: languageState } = await client.get('/languages')
+
+          const { installed } = languageState
+          installed.forEach((x) => this.addProvider(x.code, source, client))
+
+          this.extractLangServerInfo(info)
         }, this.discoveryRetryPolicy)
       } catch (err) {
         this.handleLanguageServerError(err, source.endpoint)

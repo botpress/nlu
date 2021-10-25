@@ -7,13 +7,13 @@ import ms from 'ms'
 import os from 'os'
 import path from 'path'
 import process from 'process'
-import { Logger, LanguageService as ILanguageService } from 'src/typings'
+import { Logger, LanguageService as ILanguageService, InstalledModel } from 'src/typings'
 import { VError } from 'verror'
 
 import toolkit from '../ml/toolkit'
 import { MLToolkit } from '../ml/typings'
 
-import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet } from './typings'
+import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet, AvailableModel } from './typings'
 
 interface RamInfos {
   free: number
@@ -178,14 +178,14 @@ export default class LanguageService implements ILanguageService {
       throw new VError(`Could not find model '${lang}' in '${this.langDir}'`, err)
     }
 
-    const fastTextModel = {
+    const fastTextModel: AvailableModel = {
       name: lang,
       path: fastTextModelPath,
       sizeInMb: 0,
       loaded: false
     }
 
-    const bpeModel = {
+    const bpeModel: AvailableModel = {
       name: lang,
       path: bpeModelPath,
       sizeInMb: 0,
@@ -287,7 +287,7 @@ export default class LanguageService implements ILanguageService {
     return Promise.all(tokens.map(await this._getQueryVectors(fastTextModel as LoadedFastTextModel)))
   }
 
-  public getModels() {
+  public getModels(): InstalledModel[] {
     const models = this._getModels()
     return Object.keys(models).map((lang) => {
       const loaded = this._models[lang] && this._models[lang].bpeModel.loaded && this._models[lang].fastTextModel.loaded

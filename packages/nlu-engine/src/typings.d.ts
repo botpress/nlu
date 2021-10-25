@@ -9,6 +9,11 @@ export const makeEngine: (config: Config, logger: Logger) => Promise<Engine>
 
 export const modelIdService: ModelIdService
 
+export interface InstalledModel {
+  lang: string
+  loaded: boolean
+}
+
 export class LanguageService {
   constructor(dim: number, domain: string, langDir: string, logger?: Logger)
   isReady: boolean
@@ -18,8 +23,8 @@ export class LanguageService {
   loadModel(lang: string): Promise<void>
   tokenize(utterances: string[], lang: string): Promise<string[][]>
   vectorize(tokens: string[], lang: string): Promise<number[][]>
-  getModels()
-  remove(lang: string)
+  getModels(): InstalledModel[]
+  remove(lang: string): void
 }
 
 export interface Config extends LanguageConfig {

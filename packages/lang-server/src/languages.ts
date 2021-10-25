@@ -1,4 +1,9 @@
-export const LANGUAGES = {
+interface Lang {
+  name: string
+  nativeName: string
+}
+
+export const LANGUAGES: _.Dictionary<Lang> = {
   aa: {
     name: 'Afar',
     nativeName: 'Afaraf'
@@ -737,4 +742,4 @@ export const LANGUAGES = {
   }
 }
 
-export const getLanguageByCode = (code) => LANGUAGES[code]
+export const getLanguageByCode = (code: string): Lang => LANGUAGES[code]
