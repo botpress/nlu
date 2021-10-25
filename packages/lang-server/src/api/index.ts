@@ -104,7 +104,9 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
     try {
       const utterances = req.body.utterances
       const language = req.language!
-      // TODO: validate request
+      if (!utterances || !utterances.length || !_.isArray(utterances) || utterances.some((u) => !_.isString(u))) {
+        throw new BadRequestError('Param "utterances" is mandatory (must be an array of strings)')
+      }
 
       const result = await application.tokenize(utterances, language)
       const response: TokenizeResponseBody = {
@@ -121,7 +123,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
     try {
       const tokens = req.body.tokens
       const lang = req.language!
-      if (!tokens || !tokens.length || !_.isArray(tokens)) {
+      if (!tokens || !tokens.length || !_.isArray(tokens) || tokens.some((t) => !_.isString(t))) {
         throw new BadRequestError('Param "tokens" is mandatory (must be an array of strings)')
       }
 
