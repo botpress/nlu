@@ -23,7 +23,7 @@ import { BadRequestError } from './errors'
 import { monitoringMiddleware, startMonitoring } from './monitoring'
 import { assertValidLanguage, RequestWithLang } from './mw-assert-lang'
 import { authMiddleware } from './mw-authentification'
-import { handleUnexpectedError, handleErrorLogging } from './mw-handle-error'
+import { handleUnexpectedError } from './mw-handle-error'
 import { serviceLoadingMiddleware } from './mw-service-loading'
 
 export interface APIOptions {
@@ -54,7 +54,6 @@ const createExpressApp = (options: APIOptions, baseLogger: Logger): Application 
   })
 
   app.use(monitoringMiddleware)
-  app.use(handleUnexpectedError)
 
   if (process.env.REVERSE_PROXY) {
     const boolVal = yn(process.env.REVERSE_PROXY)
@@ -197,7 +196,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
   })
 
   app.use('/languages', waitForServiceMw, router)
-  app.use(handleErrorLogging(logger))
+  app.use(handleUnexpectedError(logger))
 
   const httpServer = createServer(app)
 

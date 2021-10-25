@@ -28,7 +28,19 @@ const serializeError = (err: Error): LangError => {
   return { message, stack, type: 'unknown', code: 500 }
 }
 
-export const handleUnexpectedError = (thrownObject: any, _req: Request, res: Response, _next: NextFunction) => {
+const _handleErrorLogging = (err: Error, logger: Logger) => {
+  if ((err instanceof ResponseError && err.skipLogging) || process.env.SKIP_LOGGING) {
+    return
+  }
+  logger.attachError(err).error('Error')
+}
+
+export const handleUnexpectedError = (logger: Logger) => (
+  thrownObject: any,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+) => {
   const err: Error = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
   const langError = serializeError(err)
   const { code } = langError
@@ -37,17 +49,5 @@ export const handleUnexpectedError = (thrownObject: any, _req: Request, res: Res
     error: langError
   }
   res.status(code).json(response)
-}
-
-export const handleErrorLogging = (logger: Logger) => (
-  thrownObject: any,
-  _req: Request,
-  _res: Response,
-  next: NextFunction
-) => {
-  const err: Error = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
-  if ((err instanceof ResponseError && err.skipLogging) || process.env.SKIP_LOGGING) {
-    return
-  }
-  logger.attachError(err).error('Error')
+  _handleErrorLogging(err, logger)
 }
