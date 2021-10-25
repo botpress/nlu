@@ -1,5 +1,5 @@
 {
-  "generatedOn": "2021-10-25T20:12:37.632Z",
+  "generatedOn": "2021-10-25T20:48:44.770Z",
   "scores": [
     {
       "metric": "avgScore:slotsAre",
@@ -95,19 +95,19 @@
       "metric": "avgScore:slotsAre",
       "problem": "bpds slot G",
       "seed": 42,
-      "score": 0.5555555555555556
+      "score": 0.4444444444444444
     },
     {
       "metric": "avgScore:slotIncludes",
       "problem": "bpds slot G",
       "seed": 42,
-      "score": 0.5555555555555556
+      "score": 0.5
     },
     {
       "metric": "avgScore:slotCountIs",
       "problem": "bpds slot G",
       "seed": 42,
-      "score": 0.7777777777777778
+      "score": 0.6666666666666666
     },
     {
       "metric": "avgScore:slotsAre",

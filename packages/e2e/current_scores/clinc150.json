@@ -1,35 +1,35 @@
 {
-  "generatedOn": "2021-10-25T20:16:05.653Z",
+  "generatedOn": "2021-10-25T20:56:35.526Z",
   "scores": [
     {
       "metric": "accuracy",
       "problem": "clinc150, 20 utt/intent, seed 42",
       "seed": 42,
-      "score": 0.6711627906976744
+      "score": 0.7245348837209302
     },
     {
       "metric": "oosAccuracy",
       "problem": "clinc150, 20 utt/intent, seed 42",
       "seed": 42,
-      "score": 0.8530232558139534
+      "score": 0.855
     },
     {
       "metric": "oosPrecision",
       "problem": "clinc150, 20 utt/intent, seed 42",
       "seed": 42,
-      "score": 0.24375
+      "score": 0.2857142857142857
     },
     {
       "metric": "oosRecall",
       "problem": "clinc150, 20 utt/intent, seed 42",
       "seed": 42,
-      "score": 0.07090909090909091
+      "score": 0.0890909090909091
     },
     {
       "metric": "oosF1",
       "problem": "clinc150, 20 utt/intent, seed 42",
       "seed": 42,
-      "score": 0.10985915492957747
+      "score": 0.13582813582813583
     }
   ]
 }

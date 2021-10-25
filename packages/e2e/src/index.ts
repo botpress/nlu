@@ -46,12 +46,7 @@ interface CommandLineArgs {
 }
 
 function getTests(skip: string | undefined) {
-  const allTests = [
-    bpdsIntents,
-    bpdsSlots,
-    bpdsSpell,
-    clincIntents
-  ].map((t) => t(bitfan))
+  const allTests = [bpdsIntents, bpdsSlots, bpdsSpell, clincIntents].map((t) => t(bitfan))
   if (!skip) {
     return allTests
   }
