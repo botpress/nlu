@@ -5,10 +5,13 @@ import yn from 'yn'
 const orange = chalk.rgb(255, 150, 50)
 
 const debugResults = (results: Result<'spell'>[]) => {
+  let i = 0
   for (const r of results) {
     const { elected } = r.candidates[0]
     const success = elected === r.label ? chalk.green('PASS') : chalk.red('FAIL')
-    const formatted = `[${success}] ${orange(r.text)} -> ${chalk.yellowBright(elected)} | ${chalk.blueBright(r.label)}`
+    const formatted = `${i++}. [${success}] ${orange(r.text)} -> ${chalk.yellowBright(elected)} | ${chalk.blueBright(
+      r.label
+    )}`
     console.log(formatted)
   }
 }
