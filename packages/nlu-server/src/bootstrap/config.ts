@@ -2,11 +2,6 @@ import bytes from 'bytes'
 import fse from 'fs-extra'
 import { getAppDataPath } from '../app-data'
 
-interface LanguageSource {
-  endpoint: string
-  authToken?: string
-}
-
 interface BaseOptions {
   host: string
   port: number
@@ -23,20 +18,17 @@ interface BaseOptions {
   apmEnabled?: boolean
   apmSampleRate?: number
   maxTraining: number
-}
-
-export type CommandLineOptions = BaseOptions & {
   languageURL: string
   languageAuthToken?: string
   ducklingURL: string
   ducklingEnabled: boolean
+}
+
+export type CommandLineOptions = BaseOptions & {
   config?: string
 }
 
 export type NLUServerOptions = BaseOptions & {
-  languageSources: LanguageSource[] // when passed by env variable, there can be more than one lang server
-  ducklingURL: string
-  ducklingEnabled: boolean
   legacyElection: boolean // not available from CLI
 }
 
@@ -47,7 +39,7 @@ const DEFAULT_OPTIONS: NLUServerOptions = {
   limitWindow: '1h',
   bodySize: '2mb',
   batchSize: 1,
-  languageSources: [{ endpoint: 'https://lang-01.botpress.io' }],
+  languageURL: 'https://lang-01.botpress.io',
   ducklingURL: 'https://duckling.botpress.io',
   ducklingEnabled: true,
   modelCacheSize: '2.5gb',
@@ -65,12 +57,8 @@ const _mapCli = (c: CommandLineOptions): NLUServerOptions => {
   const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken } = c
   return {
     ...c,
-    languageSources: [
-      {
-        endpoint: languageURL,
-        authToken: languageAuthToken
-      }
-    ],
+    languageURL,
+    languageAuthToken,
     ducklingEnabled,
     ducklingURL,
     modelCacheSize,

@@ -35,11 +35,10 @@ export class Application {
   }
 
   public getInfo(): ServerInfo {
-    const health = this._engine.getHealth()
     const specs = this._engine.getSpecifications()
     const languages = this._engine.getLanguages()
     const version = this._serverVersion
-    return { health, specs, languages, version }
+    return { specs, languages, version }
   }
 
   public async getModels(appId: string): Promise<ModelId[]> {

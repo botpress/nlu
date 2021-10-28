@@ -18,11 +18,7 @@ const options: NLUServerOptions = {
   verbose: 1,
   doc: false,
   logFilter: [''],
-  languageSources: [
-    {
-      endpoint: 'https://lang-01.botpress.io'
-    }
-  ],
+  languageURL: 'https://lang-01.botpress.io',
   ducklingURL: 'https://duckling.botpress.io',
   ducklingEnabled: true,
   legacyElection: false,

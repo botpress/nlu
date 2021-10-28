@@ -6,7 +6,7 @@ import { isTrainingAlreadyStarted, isTrainingCanceled } from './errors'
 import LanguageService from './language-service'
 import _modelIdService from './model-id-service'
 import { requireJSON } from './require-json'
-import { Config, Logger } from './typings'
+import { Config, Logger, LanguageConfig } from './typings'
 
 const rootPkgDirectory = path.resolve(__dirname, '..')
 const packageJsonPath = path.resolve(rootPkgDirectory, 'package.json')
@@ -26,8 +26,23 @@ export const errors: _.Dictionary<(err: Error) => boolean> = {
 }
 
 export const makeEngine = async (config: Config, logger: Logger) => {
-  const { ducklingEnabled, ducklingURL, languageSources, modelCacheSize, legacyElection, cachePath } = config
-  const langConfig = { ducklingEnabled, ducklingURL, languageSources, assetsPath, cachePath }
+  const {
+    ducklingEnabled,
+    ducklingURL,
+    languageURL,
+    languageAuthToken,
+    modelCacheSize,
+    legacyElection,
+    cachePath
+  } = config
+  const langConfig: LanguageConfig & { assetsPath: string } = {
+    ducklingEnabled,
+    ducklingURL,
+    languageURL,
+    languageAuthToken,
+    assetsPath,
+    cachePath
+  }
   const engine = new Engine(pkgVersion, logger, { cacheSize: modelCacheSize, legacyElection })
   await engine.initialize(langConfig)
   return engine

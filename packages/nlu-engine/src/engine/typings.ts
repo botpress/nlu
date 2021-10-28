@@ -1,10 +1,8 @@
-import { AxiosInstance } from 'axios'
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
-import { Health, LangServerSpecs } from 'src/typings'
+import { LangServerSpecs } from 'src/typings'
 import { MLToolkit } from '../ml/typings'
 
-import { LanguageSource } from '../typings'
 import { Predictors } from './predict-pipeline'
 
 export const BIO = {
@@ -23,26 +21,6 @@ export interface LangServerInfo {
   version: string
   domain: string
   dim: number
-}
-
-export interface Gateway {
-  source: LanguageSource
-  client: AxiosInstance
-  errors: number
-  disabledUntil?: Date
-}
-
-export interface LangsGateway {
-  [lang: string]: Gateway[]
-}
-
-export interface LanguageProvider {
-  languages: string[]
-  langServerInfo: LangServerInfo
-  vectorize(tokens: string[], lang: string): Promise<Float32Array[]>
-  tokenize(utterances: string[], lang: string, vocab?: string[]): Promise<string[][]>
-  generateSimilarJunkWords(subsetVocab: string[], lang: string): Promise<string[]>
-  getHealth(): Partial<Health>
 }
 
 export type TFIDF = _.Dictionary<number>
@@ -126,20 +104,17 @@ export interface SeededLodashProvider {
 }
 
 export interface Tools {
-  identify_language(utterance: string, predictorsByLang: _.Dictionary<Predictors>): Promise<string>
-
-  // pre-trained language focused tools
-  tokenize_utterances(utterances: string[], languageCode: string, vocab?: string[]): Promise<string[][]>
-  vectorize_tokens(tokens: string[], languageCode: string): Promise<number[][]>
-  partOfSpeechUtterances(utterances: string[][], languageCode: string): Promise<string[][]>
-  generateSimilarJunkWords(vocabulary: string[], languageCode: string): Promise<string[]>
-  getStopWordsForLang(lang: string): Promise<string[]>
-  isSpaceSeparated(lang: string): boolean
-
-  // system info
-  getHealth(): Health
   getLanguages(): string[]
   getLangServerSpecs(): LangServerSpecs
+
+  identify_language(utterance: string, predictorsByLang: _.Dictionary<Predictors>): Promise<string>
+
+  tokenize_utterances(utterances: string[], languageCode: string, vocab?: string[]): Promise<string[][]>
+  vectorize_tokens(tokens: string[], languageCode: string): Promise<number[][]>
+  pos_utterances(utterances: string[][], languageCode: string): Promise<string[][]>
+
+  getStopWordsForLang(lang: string): Promise<string[]>
+  isSpaceSeparated(lang: string): boolean
 
   seededLodashProvider: SeededLodashProvider
   mlToolkit: typeof MLToolkit

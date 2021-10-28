@@ -42,24 +42,12 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
     return tokens.map((t) => randomlyVectorize(t, dim))
   }
 
-  const partOfSpeechUtterances = async (utterances: string[][], languageCode: string) => {
+  const pos_utterances = async (utterances: string[][], languageCode: string) => {
     return utterances.map(randomlyPOSTag)
-  }
-
-  const generateSimilarJunkWords = async (vocabulary: string[], languageCode: string) => {
-    return vocabulary
   }
 
   const getStopWordsForLang = async (languageCode: string) => {
     return ['the', 'this']
-  }
-
-  const getHealth = () => {
-    return {
-      isEnabled: true,
-      validProvidersCount: 1,
-      validLanguages: [...languages]
-    }
   }
 
   const getLanguages = () => [...languages]
@@ -99,10 +87,8 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
     identify_language: async (utt: string) => 'en',
     tokenize_utterances,
     vectorize_tokens,
-    partOfSpeechUtterances,
-    generateSimilarJunkWords,
+    pos_utterances,
     getStopWordsForLang,
-    getHealth,
     getLanguages,
     getLangServerSpecs,
     isSpaceSeparated,
