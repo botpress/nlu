@@ -8,7 +8,7 @@ import { DucklingEntityExtractor } from './entities/duckling-extractor'
 import { SystemEntityCacheManager } from './entities/entity-cache-manager'
 import { MicrosoftEntityExtractor } from './entities/microsoft-extractor'
 import languageIdentifier, { FastTextLanguageId } from './language/language-identifier'
-import LangProvider, { LanguageProvider } from './language/language-provider'
+import { LanguageProvider } from './language/language-provider'
 import { getPOSTagger, tagSentence } from './language/pos-tagger'
 import { nonSpaceSeparatedLanguages } from './language/space-separated'
 import { getStopWordsForLang } from './language/stopWords'
@@ -32,23 +32,11 @@ const versionGetter = (languageProvider: LanguageProvider) => (): LangServerSpec
 const initializeLanguageProvider = async (config: LanguageConfig, logger: Logger): Promise<LanguageProvider> => {
   const { languageURL, languageAuthToken, cachePath } = config
   const langProviderCachePath = path.join(cachePath, 'cache')
-
-  try {
-    const languageProvider = await LangProvider.initialize({
-      languageURL,
-      languageAuthToken,
-      logger,
-      cacheDir: langProviderCachePath
-    })
-    return languageProvider
-  } catch (e) {
-    if (e.failure && e.failure.code === 'ECONNREFUSED') {
-      const errMsg = `Language server can't be reached at address ${e.failure.address}:${e.failure.port}`
-      logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-    throw e
-  }
+  return LanguageProvider.create(logger, {
+    languageURL,
+    languageAuthToken,
+    cacheDir: langProviderCachePath
+  })
 }
 
 const makeSystemEntityExtractor = async (config: LanguageConfig, logger: Logger): Promise<SystemEntityExtractor> => {
