@@ -108,9 +108,6 @@ export default class Engine implements IEngine {
 
   public async initialize(config: LanguageConfig & { assetsPath: string }): Promise<void> {
     this._tools = await initializeTools(config, this._logger)
-
-    // TODO: fail if lang-server or duckling statuses are not healthy
-
     this._trainingWorkerQueue = new TrainingProcessPool(this._trainLogger, config)
   }
 

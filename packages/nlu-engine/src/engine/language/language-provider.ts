@@ -1,5 +1,4 @@
 import { Client as LangClient } from '@botpress/lang-client'
-import axios from 'axios'
 import retry from 'bluebird-retry'
 import crypto from 'crypto'
 import fse from 'fs-extra'
@@ -8,7 +7,6 @@ import _, { debounce, sumBy } from 'lodash'
 import lru from 'lru-cache'
 import ms from 'ms'
 import path from 'path'
-import semver from 'semver'
 import { Logger as ILogger } from '../../typings'
 
 import { isSpace, processUtteranceTokens, restoreOriginalUtteranceCasing } from '../tools/token-utils'
@@ -19,258 +17,101 @@ const MAX_PAYLOAD_SIZE = 150 * 1024 // 150kb
 const VECTOR_FILE_PREFIX = 'lang_vectors'
 const TOKEN_FILE_PREFIX = 'utterance_tokens'
 
-export interface LangProviderDependencies {
+const DISCOVERY_RETRY_POLICY: retry.Options = {
+  interval: 1000,
+  max_interval: 5000,
+  timeout: 2000,
+  max_tries: 5
+}
+
+export interface LangProviderArgs {
   languageURL: string
   languageAuthToken?: string
-  logger: ILogger
   cacheDir: string
 }
 
 export class LanguageProvider {
-  private _client!: LangClient
-  private _cacheDir!: string
-
-  private _vectorsCache!: lru<string, Float32Array>
-  private _tokensCache!: lru<string, string[]>
-
+  private _vectorsCache: lru<string, Float32Array>
+  private _tokensCache: lru<string, string[]>
   private _cacheDumpDisabled: boolean = false
-  private _languageDims!: number
-
   private _cacheFormatVersion: string = '1.0.0' // increment when changing cache file format to invalidate old cache files
-  private _langServerInfo!: LangServerInfo
 
-  private _logger!: ILogger
-
-  private discoveryRetryPolicy: retry.Options = {
-    interval: 1000,
-    max_interval: 5000,
-    timeout: 2000,
-    max_tries: 5
-  }
-
-  private _installedLanguages: string[] = []
-
-  get languages(): string[] {
-    return [...this._installedLanguages]
-  }
-
-  async initialize(args: LangProviderDependencies): Promise<LanguageProvider> {
-    const { languageURL, languageAuthToken, logger, cacheDir } = args
-
-    this._logger = logger
-    this._cacheDir = cacheDir
-
-    this._vectorsCache = new lru<string, Float32Array>({
-      length: (arr: Float32Array) => {
-        if (arr && arr.BYTES_PER_ELEMENT) {
-          return arr.length * arr.BYTES_PER_ELEMENT
-        } else {
-          return 300 /* dim */ * Float32Array.BYTES_PER_ELEMENT
-        }
-      },
-      max: 300 /* dim */ * Float32Array.BYTES_PER_ELEMENT /* bytes */ * 500000 /* tokens */
-    })
-
-    this._tokensCache = new lru<string, string[]>({
-      length: (val: string[], key: string) => key.length * 4 + sumBy(val, (x) => x.length * 4),
-      max:
-        4 * // bytes in strings
-        5 * // average size of token
-        10 * // nb of tokens per utterance
-        10 * // nb of utterances per intent
-        200 * // nb of intents per model
-        10 * // nb of models per bot
-        50 // nb of bots
-      // total is ~ 200 mb
-    })
-
+  public static async create(logger: ILogger, args: LangProviderArgs): Promise<LanguageProvider> {
+    const { languageURL, languageAuthToken, cacheDir } = args
     const headers: _.Dictionary<string> = {}
-
     if (languageAuthToken) {
       headers['authorization'] = `bearer ${languageAuthToken}`
     }
 
     const proxyConfig = process.env.PROXY ? { httpsAgent: new httpsProxyAgent(process.env.PROXY) } : {}
 
-    this._client = new LangClient({
+    const langClient = new LangClient({
       baseURL: languageURL,
       headers,
       ...proxyConfig
     })
 
-    try {
-      await retry<void>(async () => {
-        const infoRes = await this._client.getInfo()
-        if (!infoRes.success) {
-          const { error } = infoRes
-          throw new LangServerError(error)
-        }
+    let installedLanguages: string[] | undefined
+    let langServerInfo: LangServerInfo | undefined
 
-        const { success, ...info } = infoRes
-        if (!info.ready) {
-          throw new Error('Language source is not ready')
-        }
+    await retry<void>(async () => {
+      const infoRes = await langClient.getInfo()
+      if (!infoRes.success) {
+        const { error } = infoRes
+        throw new LangServerError(error)
+      }
 
-        if (!this._languageDims) {
-          this._languageDims = info.dimentions
-        }
+      const { success, ...info } = infoRes
+      if (!info.ready) {
+        throw new Error('Language server is not ready.')
+      }
 
-        if (this._languageDims !== info.dimentions) {
-          throw new Error('Language sources have different dimensions')
-        }
+      const langRes = await langClient.getLanguages()
+      if (!langRes.success) {
+        const { error } = langRes
+        throw new LangServerError(error)
+      }
 
-        const langRes = await this._client.getLanguages()
-        if (!langRes.success) {
-          const { error } = langRes
-          throw new LangServerError(error)
-        }
+      const { installed } = langRes
+      installedLanguages = installed.map((x) => x.code)
+      langServerInfo = {
+        version: info.version,
+        dim: info.dimentions,
+        domain: info.domain
+      }
+    }, DISCOVERY_RETRY_POLICY)
 
-        const { installed } = langRes
-        this._installedLanguages = installed.map((x) => x.code)
-
-        const version = semver.valid(semver.coerce(info.version))
-        if (!version) {
-          throw new Error('Lang server has an invalid version')
-        }
-        this._langServerInfo = {
-          version: semver.clean(version),
-          dim: info.dimentions,
-          domain: info.domain
-        }
-      }, this.discoveryRetryPolicy)
-    } catch (err) {
-      this.handleLanguageServerError(err, languageURL)
+    if (!installedLanguages || !langServerInfo) {
+      throw new Error('Language Server initialization failed')
     }
 
-    await this.clearOldCacheFiles()
-    await this.restoreVectorsCache()
-    await this.restoreTokensCache()
+    const provider = new LanguageProvider(langClient, logger, langServerInfo, installedLanguages, cacheDir)
+    await provider._clearOldCacheFiles()
+    await provider._restoreVectorsCache()
+    await provider._restoreTokensCache()
+    return provider
+  }
 
-    return this as LanguageProvider
+  private constructor(
+    private _langClient: LangClient,
+    private _logger: ILogger,
+    private _langServerInfo: LangServerInfo,
+    private _installedLanguages: string[],
+    private _cacheDir: string
+  ) {
+    this._vectorsCache = this._makeVectorCache()
+    this._tokensCache = this._makeTokenCache()
+  }
+
+  public get languages(): string[] {
+    return [...this._installedLanguages]
   }
 
   public get langServerInfo(): LangServerInfo {
     return this._langServerInfo
   }
 
-  private computeCacheFilesPaths = () => {
-    const versionHash = this.computeVersionHash()
-    const vectorsCachePath = path.join(this._cacheDir, `${VECTOR_FILE_PREFIX}_${versionHash}.json`)
-    const tokensCachePath = path.join(this._cacheDir, `${TOKEN_FILE_PREFIX}_${versionHash}.json`)
-    return { vectorsCachePath, tokensCachePath }
-  }
-
-  private clearOldCacheFiles = async () => {
-    const cacheExists = await fse.pathExists(this._cacheDir)
-    if (!cacheExists) {
-      return
-    }
-
-    const allCacheFiles = await fse.readdir(this._cacheDir)
-
-    const currentHash = this.computeVersionHash()
-
-    const fileStartWithPrefix = (fileName: string) => {
-      return fileName.startsWith(VECTOR_FILE_PREFIX) || fileName.startsWith(TOKEN_FILE_PREFIX)
-    }
-
-    const fileEndsWithIncorrectHash = (fileName: string) => !fileName.includes(currentHash)
-
-    const filesToDelete = allCacheFiles
-      .filter(fileStartWithPrefix)
-      .filter(fileEndsWithIncorrectHash)
-      .map((f) => path.join(this._cacheDir, f))
-
-    for (const f of filesToDelete) {
-      await fse.unlink(f)
-    }
-  }
-
-  private handleLanguageServerError = (thrownObject: any, endpoint: string): void => {
-    const err: Error = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
-
-    if (!axios.isAxiosError(err)) {
-      return this._logger.error(`Could not load Language Provider at ${endpoint}`, err)
-    }
-
-    const status = err.response?.status
-    const details = err.message
-
-    if (status === 429) {
-      this._logger.error(
-        `Could not load Language Server: ${details}. You may be over the limit for the number of requests allowed for the endpoint ${endpoint}`
-      )
-    } else if (status === 401) {
-      this._logger.error(`You must provide a valid authentication token for the endpoint ${endpoint}`)
-    } else {
-      this._logger.error(`Could not load Language Provider at ${endpoint}: ${err.code}`, err)
-    }
-  }
-
-  private onTokensCacheChanged = debounce(async () => {
-    if (!this._cacheDumpDisabled) {
-      await this.dumpTokensCache()
-    }
-  }, ms('5s'))
-
-  private onVectorsCacheChanged = debounce(async () => {
-    if (!this._cacheDumpDisabled) {
-      await this.dumpVectorsCache()
-    }
-  }, ms('5s'))
-
-  private async dumpTokensCache() {
-    try {
-      const { tokensCachePath } = this.computeCacheFilesPaths()
-      await fse.ensureFile(tokensCachePath)
-      await fse.writeJson(tokensCachePath, this._tokensCache.dump())
-      this._logger.debug(`tokens cache updated at: ${tokensCachePath}`)
-    } catch (err) {
-      this._logger.debug(`could not persist tokens cache, error: ${err.message}`)
-      this._cacheDumpDisabled = true
-    }
-  }
-
-  private async restoreTokensCache() {
-    try {
-      const { tokensCachePath } = this.computeCacheFilesPaths()
-      if (await fse.pathExists(tokensCachePath)) {
-        const dump = await fse.readJSON(tokensCachePath)
-        this._tokensCache.load(dump)
-      }
-    } catch (err) {
-      this._logger.debug(`could not restore tokens cache, error: ${err.message}`)
-    }
-  }
-
-  private async dumpVectorsCache() {
-    try {
-      const { vectorsCachePath } = this.computeCacheFilesPaths()
-      await fse.ensureFile(vectorsCachePath)
-      await fse.writeJSON(vectorsCachePath, this._vectorsCache.dump())
-      this._logger.debug(`vectors cache updated at: ${vectorsCachePath}`)
-    } catch (err) {
-      this._logger.debug(`could not persist vectors cache, error: ${err.message}`)
-      this._cacheDumpDisabled = true
-    }
-  }
-
-  private async restoreVectorsCache() {
-    try {
-      const { vectorsCachePath } = this.computeCacheFilesPaths()
-      if (await fse.pathExists(vectorsCachePath)) {
-        const dump = await fse.readJSON(vectorsCachePath)
-        if (dump) {
-          const kve = dump.map((x) => ({ e: x.e, k: x.k, v: Float32Array.from(Object.values(x.v)) }))
-          this._vectorsCache.load(kve)
-        }
-      }
-    } catch (err) {
-      this._logger.debug(`could not restore vectors cache, error: ${err.message}`)
-    }
-  }
-
-  async vectorize(tokens: string[], lang: string): Promise<Float32Array[]> {
+  public async vectorize(tokens: string[], lang: string): Promise<Float32Array[]> {
     if (!tokens.length) {
       return []
     }
@@ -281,7 +122,7 @@ export class LanguageProvider {
 
     tokens.forEach((token, i) => {
       if (isSpace(token)) {
-        vectors[i] = new Float32Array(this._languageDims) // float 32 Arrays are initialized with 0s
+        vectors[i] = new Float32Array(this._langServerInfo.dim) // float 32 Arrays are initialized with 0s
       } else if (this._vectorsCache.has(getCacheKey(token))) {
         vectors[i] = this._vectorsCache.get(getCacheKey(token))!
       } else {
@@ -300,7 +141,7 @@ export class LanguageProvider {
         break
       }
 
-      const vectorRes = await this._client.vectorize(query, lang)
+      const vectorRes = await this._langClient.vectorize(query, lang)
       if (!vectorRes.success) {
         const { error } = vectorRes
         throw new LangServerError(error)
@@ -319,17 +160,13 @@ export class LanguageProvider {
         this._vectorsCache.set(getCacheKey(tokens[tokenIdx]), vectors[tokenIdx])
       })
 
-      await this.onVectorsCacheChanged()
+      await this._onVectorsCacheChanged()
     }
 
     return vectors
   }
 
-  private _hash(str: string): string {
-    return crypto.createHash('md5').update(str).digest('hex')
-  }
-
-  async tokenize(utterances: string[], lang: string, vocab: string[] = []): Promise<string[][]> {
+  public async tokenize(utterances: string[], lang: string, vocab: string[] = []): Promise<string[][]> {
     if (!utterances.length) {
       return []
     }
@@ -353,13 +190,10 @@ export class LanguageProvider {
       // While there's utterances we haven't tokenized yet
       // We're going to batch requests by maximum 150KB worth's of utterances
       let totalSize = 0
-      const sliceUntil = idxToFetch.reduce((topIdx, idx, i) => {
-        if ((totalSize += utterances[idx].length * 4) < MAX_PAYLOAD_SIZE) {
-          return i
-        } else {
-          return topIdx
-        }
-      }, 0)
+      const sliceUntil = idxToFetch.reduce(
+        (topIdx, idx, i) => ((totalSize += utterances[idx].length * 4) < MAX_PAYLOAD_SIZE ? i : topIdx),
+        0
+      )
       const batch = idxToFetch.splice(0, sliceUntil + 1)
       const query = batch.map((idx) => utterances[idx].toLowerCase())
 
@@ -367,7 +201,7 @@ export class LanguageProvider {
         break
       }
 
-      const tokendRes = await this._client.tokenize(query, lang)
+      const tokendRes = await this._langClient.tokenize(query, lang)
       if (!tokendRes.success) {
         const { error } = tokendRes
         throw new LangServerError(error)
@@ -388,19 +222,145 @@ export class LanguageProvider {
         this._tokensCache.set(getCacheKey(utterances[utteranceIdx]), tokenUtterances[utteranceIdx])
       })
 
-      await this.onTokensCacheChanged()
+      await this._onTokensCacheChanged()
     }
 
     // we restore original chars and casing
     return tokenUtterances.map((tokens, i) => restoreOriginalUtteranceCasing(tokens, utterances[i]))
   }
 
-  private computeVersionHash = () => {
+  private _makeVectorCache = (): lru<string, Float32Array> => {
+    return new lru<string, Float32Array>({
+      length: (arr: Float32Array) => {
+        if (arr && arr.BYTES_PER_ELEMENT) {
+          return arr.length * arr.BYTES_PER_ELEMENT
+        } else {
+          return 300 /* dim */ * Float32Array.BYTES_PER_ELEMENT
+        }
+      },
+      max: 300 /* dim */ * Float32Array.BYTES_PER_ELEMENT /* bytes */ * 500000 /* tokens */
+    })
+  }
+
+  private _makeTokenCache = (): lru<string, string[]> => {
+    return new lru<string, string[]>({
+      length: (val: string[], key: string) => key.length * 4 + sumBy(val, (x) => x.length * 4),
+      max:
+        4 * // bytes in strings
+        5 * // average size of token
+        10 * // nb of tokens per utterance
+        10 * // nb of utterances per intent
+        200 * // nb of intents per model
+        10 * // nb of models per bot
+        50 // nb of bots
+      // total is ~ 200 mb
+    })
+  }
+
+  private _computeCacheFilesPaths = () => {
+    const versionHash = this._computeVersionHash()
+    const vectorsCachePath = path.join(this._cacheDir, `${VECTOR_FILE_PREFIX}_${versionHash}.json`)
+    const tokensCachePath = path.join(this._cacheDir, `${TOKEN_FILE_PREFIX}_${versionHash}.json`)
+    return { vectorsCachePath, tokensCachePath }
+  }
+
+  private _clearOldCacheFiles = async () => {
+    const cacheExists = await fse.pathExists(this._cacheDir)
+    if (!cacheExists) {
+      return
+    }
+
+    const allCacheFiles = await fse.readdir(this._cacheDir)
+
+    const currentHash = this._computeVersionHash()
+
+    const fileStartWithPrefix = (fileName: string) => {
+      return fileName.startsWith(VECTOR_FILE_PREFIX) || fileName.startsWith(TOKEN_FILE_PREFIX)
+    }
+
+    const fileEndsWithIncorrectHash = (fileName: string) => !fileName.includes(currentHash)
+
+    const filesToDelete = allCacheFiles
+      .filter(fileStartWithPrefix)
+      .filter(fileEndsWithIncorrectHash)
+      .map((f) => path.join(this._cacheDir, f))
+
+    for (const f of filesToDelete) {
+      await fse.unlink(f)
+    }
+  }
+
+  private _onTokensCacheChanged = debounce(async () => {
+    if (!this._cacheDumpDisabled) {
+      await this._dumpTokensCache()
+    }
+  }, ms('5s'))
+
+  private _onVectorsCacheChanged = debounce(async () => {
+    if (!this._cacheDumpDisabled) {
+      await this._dumpVectorsCache()
+    }
+  }, ms('5s'))
+
+  private async _dumpTokensCache() {
+    try {
+      const { tokensCachePath } = this._computeCacheFilesPaths()
+      await fse.ensureFile(tokensCachePath)
+      await fse.writeJson(tokensCachePath, this._tokensCache.dump())
+      this._logger.debug(`tokens cache updated at: ${tokensCachePath}`)
+    } catch (err) {
+      this._logger.debug(`could not persist tokens cache, error: ${err.message}`)
+      this._cacheDumpDisabled = true
+    }
+  }
+
+  private async _restoreTokensCache() {
+    try {
+      const { tokensCachePath } = this._computeCacheFilesPaths()
+      if (await fse.pathExists(tokensCachePath)) {
+        const dump = await fse.readJSON(tokensCachePath)
+        this._tokensCache.load(dump)
+      }
+    } catch (err) {
+      this._logger.debug(`could not restore tokens cache, error: ${err.message}`)
+    }
+  }
+
+  private async _dumpVectorsCache() {
+    try {
+      const { vectorsCachePath } = this._computeCacheFilesPaths()
+      await fse.ensureFile(vectorsCachePath)
+      await fse.writeJSON(vectorsCachePath, this._vectorsCache.dump())
+      this._logger.debug(`vectors cache updated at: ${vectorsCachePath}`)
+    } catch (err) {
+      this._logger.debug(`could not persist vectors cache, error: ${err.message}`)
+      this._cacheDumpDisabled = true
+    }
+  }
+
+  private async _restoreVectorsCache() {
+    try {
+      const { vectorsCachePath } = this._computeCacheFilesPaths()
+      if (await fse.pathExists(vectorsCachePath)) {
+        const dump = await fse.readJSON(vectorsCachePath)
+        if (dump) {
+          const kve = dump.map((x) => ({ e: x.e, k: x.k, v: Float32Array.from(Object.values(x.v)) }))
+          this._vectorsCache.load(kve)
+        }
+      }
+    } catch (err) {
+      this._logger.debug(`could not restore vectors cache, error: ${err.message}`)
+    }
+  }
+
+  private _computeVersionHash = () => {
     const { _cacheFormatVersion, _langServerInfo } = this
     const { dim, domain, version: langServerVersion } = _langServerInfo
     const hashContent = `${_cacheFormatVersion}:${langServerVersion}:${dim}:${domain}`
     return crypto.createHash('md5').update(hashContent).digest('hex')
   }
-}
 
-export default new LanguageProvider()
+  private _hash(str: string): string {
+    return crypto.createHash('md5').update(str).digest('hex')
+  }
+}
