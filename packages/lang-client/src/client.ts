@@ -3,7 +3,7 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import _ from 'lodash'
 import {
   Client as IClient,
-  ClientConfig,
+  LangClientConfig as ClientConfig,
   InfoResponseBody,
   TokenizeResponseBody,
   VectorizeResponseBody,

@@ -35,13 +35,9 @@ export interface Config extends LanguageConfig {
 export interface LanguageConfig {
   ducklingURL: string
   ducklingEnabled: boolean
-  languageSources: LanguageSource[]
+  languageURL: string
+  languageAuthToken?: string
   cachePath: string
-}
-
-export interface LanguageSource {
-  endpoint: string
-  authToken?: string
 }
 
 export interface Logger {
@@ -63,7 +59,6 @@ export interface TrainingOptions {
 }
 
 export interface Engine {
-  getHealth: () => Health
   getLanguages: () => string[]
   getSpecifications: () => Specifications
 
@@ -114,12 +109,6 @@ export interface LangServerSpecs {
 export interface Specifications {
   engineVersion: string
   languageServer: LangServerSpecs
-}
-
-export interface Health {
-  isEnabled: boolean
-  validProvidersCount: number
-  validLanguages: string[]
 }
 
 /**

@@ -45,9 +45,7 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
   } else {
     launcherLogger.info(`duckling: ${chalk.redBright('disabled')}`)
   }
-  for (const langSource of info.languageSources) {
-    launcherLogger.info(`lang server: url=${langSource.endpoint}`)
-  }
+  launcherLogger.info(`lang server: url=${info.languageURL}`)
 
   launcherLogger.info(`body size: allowing HTTP requests body of size ${info.bodySize}`)
 

@@ -18,9 +18,10 @@ export const makeEngine = async (options: NLUServerOptions, logger: Logger) => {
   const loggerWrapper: NLUEngine.Logger = wrapLogger(logger)
 
   try {
-    const { ducklingEnabled, ducklingURL, modelCacheSize, languageSources, legacyElection } = options
+    const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken, legacyElection } = options
     const config: NLUEngine.Config = {
-      languageSources,
+      languageURL,
+      languageAuthToken,
       ducklingEnabled,
       ducklingURL,
       modelCacheSize,

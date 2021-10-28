@@ -4,6 +4,7 @@ import { ModelLoadingError } from '../../errors'
 import { MLToolkit } from '../../ml/typings'
 import { Logger } from '../../typings'
 import { isPOSAvailable } from '../language/pos-tagger'
+import { vocabNGram } from '../tools/strings'
 import { SMALL_TFIDF } from '../tools/tfidf'
 import { SPACE } from '../tools/token-utils'
 import { Intent, Tools } from '../typings'
@@ -31,6 +32,10 @@ interface Options {
 const DEFAULT_OPTIONS: Options = {
   legacyElection: false
 }
+
+const JUNK_VOCAB_SIZE = 500
+const JUNK_TOKEN_MIN = 1
+const JUNK_TOKEN_MAX = 20
 
 export interface Model {
   trainingVocab: string[]
@@ -132,12 +137,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
 
     const lo = this.tools.seededLodashProvider.getSeededLodash()
 
-    const vocabWithDupes = lo(allTokens)
-      .map((t) => t.value)
-      .flattenDeep()
-      .value()
-
-    const junkWords = await this.tools.generateSimilarJunkWords(vocab, languageCode)
+    const junkWords = this.generateSimilarJunkWords(vocab)
     const avgTokens = lo.meanBy(allUtterances, (x) => x.tokens.length)
     const nbOfNoneUtterances = lo.clamp(
       (allUtterances.length * 2) / 3,
@@ -179,6 +179,27 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       ),
       contexts: []
     }
+  }
+
+  private generateSimilarJunkWords(subsetVocab: string[]) {
+    const gramset = vocabNGram(subsetVocab)
+
+    const realWords = _.uniq(subsetVocab)
+    const meanWordSize = _.meanBy(realWords, (w) => w.length)
+    const minJunkSize = Math.max(JUNK_TOKEN_MIN, meanWordSize / 2) // Twice as short
+    const maxJunkSize = Math.min(JUNK_TOKEN_MAX, meanWordSize * 1.5) // A bit longer.  Those numbers are discretionary and are not expected to make a big impact on the models.
+    const lo = this.tools.seededLodashProvider.getSeededLodash()
+
+    const junks = _.range(0, JUNK_VOCAB_SIZE).map(() => {
+      const finalSize = lo.random(minJunkSize, maxJunkSize, false)
+      let word = ''
+      while (word.length < finalSize) {
+        word += lo.sample(gramset)
+      }
+      return word
+    }) // randomly generated words
+
+    return junks
   }
 
   private async _trainOOScopeSvm(

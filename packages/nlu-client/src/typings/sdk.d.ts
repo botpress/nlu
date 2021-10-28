@@ -1,6 +1,5 @@
 export interface ServerInfo {
   specs: Specifications
-  health: Health
   languages: string[]
   version: string
 }
@@ -12,12 +11,6 @@ export interface Specifications {
     domain: string
     version: string // semver string
   }
-}
-
-export interface Health {
-  isEnabled: boolean
-  validProvidersCount: number
-  validLanguages: string[]
 }
 
 /**

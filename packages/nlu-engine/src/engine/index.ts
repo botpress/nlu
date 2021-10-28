@@ -94,10 +94,6 @@ export default class Engine implements IEngine {
     return Math.abs(parsedCacheSize)
   }
 
-  public getHealth() {
-    return this._tools.getHealth()
-  }
-
   public getLanguages() {
     return this._tools.getLanguages()
   }

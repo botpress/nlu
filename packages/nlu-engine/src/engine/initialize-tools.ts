@@ -1,5 +1,5 @@
 import path from 'path'
-import { Health, LangServerSpecs } from 'src/typings'
+import { LangServerSpecs } from 'src/typings'
 import yn from 'yn'
 
 import MLToolkit from '../ml/toolkit'
@@ -8,25 +8,16 @@ import { DucklingEntityExtractor } from './entities/duckling-extractor'
 import { SystemEntityCacheManager } from './entities/entity-cache-manager'
 import { MicrosoftEntityExtractor } from './entities/microsoft-extractor'
 import languageIdentifier, { FastTextLanguageId } from './language/language-identifier'
-import LangProvider from './language/language-provider'
+import LangProvider, { LanguageProvider } from './language/language-provider'
 import { getPOSTagger, tagSentence } from './language/pos-tagger'
 import { nonSpaceSeparatedLanguages } from './language/space-separated'
 import { getStopWordsForLang } from './language/stopWords'
 import SeededLodashProvider from './tools/seeded-lodash'
-import { LanguageProvider, SystemEntityExtractor, Tools } from './typings'
+import { SystemEntityExtractor, Tools } from './typings'
 
 const PRE_TRAINED_DIR = 'pre-trained'
 const STOP_WORDS_DIR = 'stop-words'
 const LANG_ID_MODEL = 'lid.176.ftz'
-
-const healthGetter = (languageProvider: LanguageProvider) => (): Health => {
-  const { validProvidersCount, validLanguages } = languageProvider.getHealth()
-  return {
-    isEnabled: validProvidersCount! > 0 && validLanguages!.length > 0,
-    validProvidersCount: validProvidersCount!,
-    validLanguages: validLanguages!
-  }
-}
 
 const versionGetter = (languageProvider: LanguageProvider) => (): LangServerSpecs => {
   const { langServerInfo } = languageProvider
@@ -38,20 +29,18 @@ const versionGetter = (languageProvider: LanguageProvider) => (): LangServerSpec
   }
 }
 
-const initializeLanguageProvider = async (
-  config: LanguageConfig,
-  logger: Logger,
-  seededLodashProvider: SeededLodashProvider
-) => {
+const initializeLanguageProvider = async (config: LanguageConfig, logger: Logger): Promise<LanguageProvider> => {
+  const { languageURL, languageAuthToken, cachePath } = config
+  const langProviderCachePath = path.join(cachePath, 'cache')
+
   try {
-    const languageProvider = await LangProvider.initialize(
-      config.languageSources,
+    const languageProvider = await LangProvider.initialize({
+      languageURL,
+      languageAuthToken,
       logger,
-      path.join(config.cachePath, 'cache'),
-      seededLodashProvider
-    )
-    const getHealth = healthGetter(languageProvider)
-    return { languageProvider, health: getHealth() }
+      cacheDir: langProviderCachePath
+    })
+    return languageProvider
   } catch (e) {
     if (e.failure && e.failure.code === 'ECONNREFUSED') {
       const errMsg = `Language server can't be reached at address ${e.failure.address}:${e.failure.port}`
@@ -87,18 +76,21 @@ const isSpaceSeparated = (lang: string) => {
 }
 
 export async function initializeTools(config: LanguageConfig & { assetsPath: string }, logger: Logger): Promise<Tools> {
-  const seededLodashProvider = new SeededLodashProvider()
-  const { languageProvider } = await initializeLanguageProvider(config, logger, seededLodashProvider)
+  const languageProvider = await initializeLanguageProvider(config, logger)
 
+  const fastTextLanguageIdModelPath = path.resolve(config.assetsPath, PRE_TRAINED_DIR, LANG_ID_MODEL)
   const fastTextLanguageId = new FastTextLanguageId(MLToolkit)
-  await fastTextLanguageId.initializeModel(path.resolve(config.assetsPath, PRE_TRAINED_DIR, LANG_ID_MODEL))
-  const languageId = languageIdentifier(fastTextLanguageId)
+  await fastTextLanguageId.initializeModel(fastTextLanguageIdModelPath)
+
+  const stopWordsDirPath = path.resolve(config.assetsPath, STOP_WORDS_DIR)
+
+  const posModelDirPath = path.resolve(config.assetsPath, PRE_TRAINED_DIR)
 
   return {
-    identify_language: languageId,
+    identify_language: languageIdentifier(fastTextLanguageId),
 
-    partOfSpeechUtterances: async (tokenUtterances: string[][], lang: string) => {
-      const tagger = await getPOSTagger(path.resolve(config.assetsPath, PRE_TRAINED_DIR), lang, MLToolkit)
+    pos_utterances: async (tokenUtterances: string[][], lang: string) => {
+      const tagger = await getPOSTagger(posModelDirPath, lang, MLToolkit)
       return tokenUtterances.map((u) => tagSentence(tagger, u))
     },
     tokenize_utterances: (utterances: string[], lang: string, vocab?: string[]) =>
@@ -107,14 +99,12 @@ export async function initializeTools(config: LanguageConfig & { assetsPath: str
       const a = await languageProvider.vectorize(tokens, lang)
       return a.map((x) => Array.from(x.values()))
     },
-    generateSimilarJunkWords: (vocab: string[], lang: string) => languageProvider.generateSimilarJunkWords(vocab, lang),
-    getStopWordsForLang: getStopWordsForLang(path.resolve(config.assetsPath, STOP_WORDS_DIR)),
+    getStopWordsForLang: getStopWordsForLang(stopWordsDirPath),
     isSpaceSeparated,
 
-    getHealth: healthGetter(languageProvider),
     getLanguages: () => languageProvider.languages,
     getLangServerSpecs: versionGetter(languageProvider),
-    seededLodashProvider,
+    seededLodashProvider: new SeededLodashProvider(),
     mlToolkit: MLToolkit,
     systemEntityExtractor: await makeSystemEntityExtractor(config, logger)
   }

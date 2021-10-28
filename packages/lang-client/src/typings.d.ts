@@ -96,8 +96,8 @@ export interface DownloadResponseBody extends SuccessReponse, DownloadStartResul
  * ### Client Class ###
  * ####################
  */
-export type ClientConfig = AxiosRequestConfig & {
-  authToken: string
+export type LangClientConfig = AxiosRequestConfig & {
+  authToken?: string
 }
 
 export class Client {

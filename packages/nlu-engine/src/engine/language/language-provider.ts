@@ -1,81 +1,64 @@
-import axios, { AxiosInstance } from 'axios'
-import Bluebird from 'bluebird'
+import { Client as LangClient } from '@botpress/lang-client'
+import axios from 'axios'
 import retry from 'bluebird-retry'
 import crypto from 'crypto'
 import fse from 'fs-extra'
 import httpsProxyAgent from 'https-proxy-agent'
 import _, { debounce, sumBy } from 'lodash'
 import lru from 'lru-cache'
-import moment from 'moment'
 import ms from 'ms'
 import path from 'path'
 import semver from 'semver'
-import { Health } from 'src/typings'
-import { LanguageSource, Logger as ILogger } from '../../typings'
+import { Logger as ILogger } from '../../typings'
 
-import { setSimilarity, vocabNGram } from '../tools/strings'
 import { isSpace, processUtteranceTokens, restoreOriginalUtteranceCasing } from '../tools/token-utils'
-import { Gateway, LangServerInfo, LangsGateway, LanguageProvider, SeededLodashProvider } from '../typings'
+import { LangServerInfo } from '../typings'
+import { LangServerError } from './lang-server-error'
 
 const MAX_PAYLOAD_SIZE = 150 * 1024 // 150kb
-const JUNK_VOCAB_SIZE = 500
-const JUNK_TOKEN_MIN = 1
-const JUNK_TOKEN_MAX = 20
-
 const VECTOR_FILE_PREFIX = 'lang_vectors'
 const TOKEN_FILE_PREFIX = 'utterance_tokens'
-const JUNK_FILE_PREFIX = 'junk_words'
 
-export class RemoteLanguageProvider implements LanguageProvider {
+export interface LangProviderDependencies {
+  languageURL: string
+  languageAuthToken?: string
+  logger: ILogger
+  cacheDir: string
+}
+
+export class LanguageProvider {
+  private _client!: LangClient
   private _cacheDir!: string
-  private _vectorsCachePath!: string
-  private _junkwordsCachePath!: string
-  private _tokensCachePath!: string
 
   private _vectorsCache!: lru<string, Float32Array>
   private _tokensCache!: lru<string, string[]>
-  private _junkwordsCache!: lru<string[], string[]>
 
   private _cacheDumpDisabled: boolean = false
-  private _validProvidersCount!: number
   private _languageDims!: number
 
   private _cacheFormatVersion: string = '1.0.0' // increment when changing cache file format to invalidate old cache files
   private _langServerInfo!: LangServerInfo
 
-  private _seededLodashProvider!: SeededLodashProvider
-
   private _logger!: ILogger
 
-  private discoveryRetryPolicy = {
+  private discoveryRetryPolicy: retry.Options = {
     interval: 1000,
     max_interval: 5000,
     timeout: 2000,
     max_tries: 5
   }
 
-  private langs: LangsGateway = {}
+  private _installedLanguages: string[] = []
 
   get languages(): string[] {
-    return Object.keys(this.langs)
+    return [...this._installedLanguages]
   }
 
-  private addProvider(lang: string, source: LanguageSource, client: AxiosInstance) {
-    this.langs[lang] = [...(this.langs[lang] || []), { source, client, errors: 0, disabledUntil: undefined }]
-    this._logger.debug(`[${lang.toUpperCase()}] Language Provider added ${source}`)
-  }
+  async initialize(args: LangProviderDependencies): Promise<LanguageProvider> {
+    const { languageURL, languageAuthToken, logger, cacheDir } = args
 
-  async initialize(
-    sources: LanguageSource[],
-    logger: ILogger,
-    cacheDir: string,
-    seededLodashProvider: SeededLodashProvider
-  ): Promise<LanguageProvider> {
-    this._validProvidersCount = 0
     this._logger = logger
     this._cacheDir = cacheDir
-
-    this._seededLodashProvider = seededLodashProvider
 
     this._vectorsCache = new lru<string, Float32Array>({
       length: (arr: Float32Array) => {
@@ -101,67 +84,66 @@ export class RemoteLanguageProvider implements LanguageProvider {
       // total is ~ 200 mb
     })
 
-    this._junkwordsCache = new lru<string[], string[]>({
-      length: (val: string[], key: string[]) => sumBy(key, (x) => x.length * 4) + sumBy(val, (x) => x.length * 4),
-      max:
-        4 * // bytes in strings
-        10 * // token size
-        500 * // vocab size
-        1000 * // junk words
-        10 // models
-      // total is ~ 200 mb
+    const headers: _.Dictionary<string> = {}
+
+    if (languageAuthToken) {
+      headers['authorization'] = `bearer ${languageAuthToken}`
+    }
+
+    const proxyConfig = process.env.PROXY ? { httpsAgent: new httpsProxyAgent(process.env.PROXY) } : {}
+
+    this._client = new LangClient({
+      baseURL: languageURL,
+      headers,
+      ...proxyConfig
     })
 
-    await Bluebird.mapSeries(sources, async (source) => {
-      const headers: _.Dictionary<string> = {}
+    try {
+      await retry<void>(async () => {
+        const infoRes = await this._client.getInfo()
+        if (!infoRes.success) {
+          const { error } = infoRes
+          throw new LangServerError(error)
+        }
 
-      if (source.authToken) {
-        headers['authorization'] = `bearer ${source.authToken}`
-      }
+        const { success, ...info } = infoRes
+        if (!info.ready) {
+          throw new Error('Language source is not ready')
+        }
 
-      const proxyConfig = process.env.PROXY ? { httpsAgent: new httpsProxyAgent(process.env.PROXY) } : {}
+        if (!this._languageDims) {
+          this._languageDims = info.dimentions
+        }
 
-      const client = axios.create({
-        baseURL: source.endpoint,
-        headers,
-        ...proxyConfig
-      })
-      try {
-        await retry(async () => {
-          const { data: info } = await client.get('/info')
-          if (!info.ready) {
-            throw new Error('Language source is not ready')
-          }
+        if (this._languageDims !== info.dimentions) {
+          throw new Error('Language sources have different dimensions')
+        }
 
-          if (!this._languageDims) {
-            this._languageDims = info.dimentions // note typo in language server
-          }
+        const langRes = await this._client.getLanguages()
+        if (!langRes.success) {
+          const { error } = langRes
+          throw new LangServerError(error)
+        }
 
-          // TODO: also check that the domain and version is consistent across all sources
-          if (this._languageDims !== info.dimentions) {
-            throw new Error('Language sources have different dimensions')
-          }
-          this._validProvidersCount++
+        const { installed } = langRes
+        this._installedLanguages = installed.map((x) => x.code)
 
-          const { data: languageState } = await client.get('/languages')
+        const version = semver.valid(semver.coerce(info.version))
+        if (!version) {
+          throw new Error('Lang server has an invalid version')
+        }
+        this._langServerInfo = {
+          version: semver.clean(version),
+          dim: info.dimentions,
+          domain: info.domain
+        }
+      }, this.discoveryRetryPolicy)
+    } catch (err) {
+      this.handleLanguageServerError(err, languageURL)
+    }
 
-          const { installed } = languageState
-          installed.forEach((x) => this.addProvider(x.code, source, client))
-
-          this.extractLangServerInfo(info)
-        }, this.discoveryRetryPolicy)
-      } catch (err) {
-        this.handleLanguageServerError(err, source.endpoint)
-      }
-    })
-
-    this.computeCacheFilesPaths()
     await this.clearOldCacheFiles()
-
-    this._logger.debug(`loaded ${Object.keys(this.langs).length} languages from ${sources.length} sources`)
-
     await this.restoreVectorsCache()
-    await this.restoreJunkWordsCache()
     await this.restoreTokensCache()
 
     return this as LanguageProvider
@@ -171,25 +153,11 @@ export class RemoteLanguageProvider implements LanguageProvider {
     return this._langServerInfo
   }
 
-  private extractLangServerInfo(data) {
-    const version = semver.valid(semver.coerce(data.version))
-
-    if (!version) {
-      throw new Error('Lang server has an invalid version')
-    }
-    const langServerInfo = {
-      version: semver.clean(version),
-      dim: data.dimentions,
-      domain: data.domain
-    }
-    this._langServerInfo = langServerInfo
-  }
-
   private computeCacheFilesPaths = () => {
     const versionHash = this.computeVersionHash()
-    this._vectorsCachePath = path.join(this._cacheDir, `${VECTOR_FILE_PREFIX}_${versionHash}.json`)
-    this._junkwordsCachePath = path.join(this._cacheDir, `${JUNK_FILE_PREFIX}_${versionHash}.json`)
-    this._tokensCachePath = path.join(this._cacheDir, `${TOKEN_FILE_PREFIX}_${versionHash}.json`)
+    const vectorsCachePath = path.join(this._cacheDir, `${VECTOR_FILE_PREFIX}_${versionHash}.json`)
+    const tokensCachePath = path.join(this._cacheDir, `${TOKEN_FILE_PREFIX}_${versionHash}.json`)
+    return { vectorsCachePath, tokensCachePath }
   }
 
   private clearOldCacheFiles = async () => {
@@ -203,11 +171,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
     const currentHash = this.computeVersionHash()
 
     const fileStartWithPrefix = (fileName: string) => {
-      return (
-        fileName.startsWith(VECTOR_FILE_PREFIX) ||
-        fileName.startsWith(TOKEN_FILE_PREFIX) ||
-        fileName.startsWith(JUNK_FILE_PREFIX)
-      )
+      return fileName.startsWith(VECTOR_FILE_PREFIX) || fileName.startsWith(TOKEN_FILE_PREFIX)
     }
 
     const fileEndsWithIncorrectHash = (fileName: string) => !fileName.includes(currentHash)
@@ -222,9 +186,15 @@ export class RemoteLanguageProvider implements LanguageProvider {
     }
   }
 
-  private handleLanguageServerError = (err, endpoint: string) => {
-    const status = _.get(err, 'failure.response.status')
-    const details = _.get(err, 'failure.response.message')
+  private handleLanguageServerError = (thrownObject: any, endpoint: string): void => {
+    const err: Error = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
+
+    if (!axios.isAxiosError(err)) {
+      return this._logger.error(`Could not load Language Provider at ${endpoint}`, err)
+    }
+
+    const status = err.response?.status
+    const details = err.message
 
     if (status === 429) {
       this._logger.error(
@@ -249,17 +219,12 @@ export class RemoteLanguageProvider implements LanguageProvider {
     }
   }, ms('5s'))
 
-  private onJunkWordsCacheChanged = debounce(async () => {
-    if (!this._cacheDumpDisabled) {
-      await this.dumpJunkWordsCache()
-    }
-  }, ms('5s'))
-
   private async dumpTokensCache() {
     try {
-      await fse.ensureFile(this._tokensCachePath)
-      await fse.writeJson(this._tokensCachePath, this._tokensCache.dump())
-      this._logger.debug(`tokens cache updated at: ${this._tokensCachePath}`)
+      const { tokensCachePath } = this.computeCacheFilesPaths()
+      await fse.ensureFile(tokensCachePath)
+      await fse.writeJson(tokensCachePath, this._tokensCache.dump())
+      this._logger.debug(`tokens cache updated at: ${tokensCachePath}`)
     } catch (err) {
       this._logger.debug(`could not persist tokens cache, error: ${err.message}`)
       this._cacheDumpDisabled = true
@@ -268,8 +233,9 @@ export class RemoteLanguageProvider implements LanguageProvider {
 
   private async restoreTokensCache() {
     try {
-      if (await fse.pathExists(this._tokensCachePath)) {
-        const dump = await fse.readJSON(this._tokensCachePath)
+      const { tokensCachePath } = this.computeCacheFilesPaths()
+      if (await fse.pathExists(tokensCachePath)) {
+        const dump = await fse.readJSON(tokensCachePath)
         this._tokensCache.load(dump)
       }
     } catch (err) {
@@ -279,9 +245,10 @@ export class RemoteLanguageProvider implements LanguageProvider {
 
   private async dumpVectorsCache() {
     try {
-      await fse.ensureFile(this._vectorsCachePath)
-      await fse.writeJSON(this._vectorsCachePath, this._vectorsCache.dump())
-      this._logger.debug(`vectors cache updated at: ${this._vectorsCachePath}`)
+      const { vectorsCachePath } = this.computeCacheFilesPaths()
+      await fse.ensureFile(vectorsCachePath)
+      await fse.writeJSON(vectorsCachePath, this._vectorsCache.dump())
+      this._logger.debug(`vectors cache updated at: ${vectorsCachePath}`)
     } catch (err) {
       this._logger.debug(`could not persist vectors cache, error: ${err.message}`)
       this._cacheDumpDisabled = true
@@ -290,8 +257,9 @@ export class RemoteLanguageProvider implements LanguageProvider {
 
   private async restoreVectorsCache() {
     try {
-      if (await fse.pathExists(this._vectorsCachePath)) {
-        const dump = await fse.readJSON(this._vectorsCachePath)
+      const { vectorsCachePath } = this.computeCacheFilesPaths()
+      if (await fse.pathExists(vectorsCachePath)) {
+        const dump = await fse.readJSON(vectorsCachePath)
         if (dump) {
           const kve = dump.map((x) => ({ e: x.e, k: x.k, v: Float32Array.from(Object.values(x.v)) }))
           this._vectorsCache.load(kve)
@@ -300,134 +268,6 @@ export class RemoteLanguageProvider implements LanguageProvider {
     } catch (err) {
       this._logger.debug(`could not restore vectors cache, error: ${err.message}`)
     }
-  }
-
-  private async dumpJunkWordsCache() {
-    try {
-      await fse.ensureFile(this._junkwordsCachePath)
-      await fse.writeJSON(this._junkwordsCachePath, this._junkwordsCache.dump())
-      this._logger.debug(`junk words cache updated at: ${this._junkwordsCache}`)
-    } catch (err) {
-      this._logger.debug(`could not persist junk cache, error: ${err.message}`)
-      this._cacheDumpDisabled = true
-    }
-  }
-
-  private async restoreJunkWordsCache() {
-    try {
-      if (await fse.pathExists(this._junkwordsCachePath)) {
-        const dump = await fse.readJSON(this._junkwordsCachePath)
-        this._vectorsCache.load(dump)
-      }
-    } catch (err) {
-      this._logger.debug(`could not restore junk cache, error: ${err.message}`)
-    }
-  }
-
-  getHealth(): Partial<Health> {
-    return { validProvidersCount: this._validProvidersCount, validLanguages: Object.keys(this.langs) }
-  }
-
-  private getAvailableProviders(lang: string): Gateway[] {
-    if (!this.langs[lang]) {
-      throw new Error(`Language "${lang}" is not supported by the configured language sources`)
-    }
-
-    return this.langs[lang].filter((x) => !x.disabledUntil || x.disabledUntil <= new Date())
-  }
-
-  private async queryProvider<T>(lang: string, path: string, body: any, returnProperty: string): Promise<T> {
-    const providers = this.getAvailableProviders(lang)
-
-    for (const provider of providers) {
-      try {
-        const { data } = await provider.client.post(path, { ...body, lang })
-
-        if (data && data[returnProperty]) {
-          return data[returnProperty] as T
-        }
-
-        return data
-      } catch (err) {
-        this._logger.debug(
-          `error from language server ${JSON.stringify({
-            message: err.message,
-            code: err.code,
-            status: err.status,
-            payload: body
-          })}`
-        )
-
-        if (this.getAvailableProviders(lang).length > 1) {
-          // we don't disable providers when there's no backup
-          provider.disabledUntil = moment()
-            .add(provider.errors++, 'seconds')
-            .toDate()
-
-          this._logger.debug(
-            `disabled temporarily source ${JSON.stringify({
-              source: provider.source,
-              err: err.message,
-              errors: provider.errors,
-              until: provider.disabledUntil
-            })}`
-          )
-        }
-      }
-    }
-
-    throw new Error(`No provider could successfully fullfil request "${path}" for lang "${lang}"`)
-  }
-
-  /**
-   * Generates words that don't exist in the vocabulary, but that are built from ngrams of existing vocabulary
-   * @param subsetVocab The tokens to which you want similar tokens to
-   */
-  async generateSimilarJunkWords(subsetVocab: string[], lang: string): Promise<string[]> {
-    // TODO: we can remove await + lang
-    // from totalVocab compute the cachedKey the closest to what we have
-    // if 75% of the vocabulary is the same, we keep the cache we have instead of rebuilding one
-    const gramset = vocabNGram(subsetVocab)
-    let result: string[] | undefined
-
-    this._junkwordsCache.forEach((junk, vocab) => {
-      if (!result) {
-        const sim = setSimilarity(vocab, gramset)
-        if (sim >= 0.75) {
-          result = junk
-        }
-      }
-    })
-
-    if (!result) {
-      // didn't find any close gramset, let's create a new one
-      result = this.generateJunkWords(subsetVocab, gramset) // randomly generated words
-      await this.vectorize(result, lang) // vectorize them all in one request to cache the tokens // TODO: remove this
-      this._junkwordsCache.set(gramset, result)
-      await this.onJunkWordsCacheChanged()
-    }
-
-    return result
-  }
-
-  private generateJunkWords(subsetVocab: string[], gramset: string[]) {
-    const realWords = _.uniq(subsetVocab)
-    const meanWordSize = _.meanBy(realWords, (w) => w.length)
-    const minJunkSize = Math.max(JUNK_TOKEN_MIN, meanWordSize / 2) // Twice as short
-    const maxJunkSize = Math.min(JUNK_TOKEN_MAX, meanWordSize * 1.5) // A bit longer.  Those numbers are discretionary and are not expected to make a big impact on the models.
-
-    const lo = this._seededLodashProvider.getSeededLodash()
-
-    const junks = _.range(0, JUNK_VOCAB_SIZE).map(() => {
-      const finalSize = lo.random(minJunkSize, maxJunkSize, false)
-      let word = ''
-      while (word.length < finalSize) {
-        word += lo.sample(gramset)
-      }
-      return word
-    }) // randomly generated words
-
-    return junks
   }
 
   async vectorize(tokens: string[], lang: string): Promise<Float32Array[]> {
@@ -460,7 +300,12 @@ export class RemoteLanguageProvider implements LanguageProvider {
         break
       }
 
-      const fetched = await this.queryProvider<number[][]>(lang, '/vectorize', { tokens: query }, 'vectors')
+      const vectorRes = await this._client.vectorize(query, lang)
+      if (!vectorRes.success) {
+        const { error } = vectorRes
+        throw new LangServerError(error)
+      }
+      const { vectors: fetched } = vectorRes
 
       if (fetched.length !== query.length) {
         throw new Error(
@@ -480,7 +325,7 @@ export class RemoteLanguageProvider implements LanguageProvider {
     return vectors
   }
 
-  _hash(str: string): string {
+  private _hash(str: string): string {
     return crypto.createHash('md5').update(str).digest('hex')
   }
 
@@ -522,7 +367,13 @@ export class RemoteLanguageProvider implements LanguageProvider {
         break
       }
 
-      let fetched = await this.queryProvider<string[][]>(lang, '/tokenize', { utterances: query }, 'tokens')
+      const tokendRes = await this._client.tokenize(query, lang)
+      if (!tokendRes.success) {
+        const { error } = tokendRes
+        throw new LangServerError(error)
+      }
+
+      let { tokens: fetched } = tokendRes
       fetched = fetched.map((toks) => processUtteranceTokens(toks, vocab))
 
       if (fetched.length !== query.length) {
@@ -552,4 +403,4 @@ export class RemoteLanguageProvider implements LanguageProvider {
   }
 }
 
-export default new RemoteLanguageProvider()
+export default new LanguageProvider()
