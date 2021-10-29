@@ -9,13 +9,24 @@ const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
   type: Joi.string().required()
 })
 
-export const validateResponse = <S extends SuccessReponse>(res: any): S | ErrorResponse => {
+type HTTPVerb = 'GET' | 'POST' | 'PUT' | 'DELETE'
+interface HTTPCall {
+  verb: HTTPVerb
+  ressource: string
+}
+class ClientResponseError extends Error {
+  constructor(call: HTTPCall, message: string) {
+    super(`(${call.verb} ${call.ressource}) ${message}`)
+  }
+}
+
+export const responseValidator = (call: HTTPCall) => <S extends SuccessReponse>(res: any): S | ErrorResponse => {
   if (_.isNil(res)) {
-    throw new Error('Received empty HTTP response.')
+    throw new ClientResponseError(call, 'Received empty HTTP response.')
   }
   if (typeof res !== 'object') {
     const responseType = typeof res
-    throw new Error(`Received ${responseType} HTTP response. Expected response to be an object.`)
+    throw new ClientResponseError(call, `Received ${responseType} HTTP response. Expected response to be an object.`)
   }
   if (res.success === true) {
     return res
@@ -23,9 +34,15 @@ export const validateResponse = <S extends SuccessReponse>(res: any): S | ErrorR
   if (res.success === false) {
     const { error } = res
     if (_.isNil(error) || typeof error !== 'object') {
-      throw new Error('Received unsuccessfull HTTP response with no error. Expected response.error to be an object.')
+      throw new ClientResponseError(
+        call,
+        'Received unsuccessfull HTTP response with no error. Expected response.error to be an object.'
+      )
     }
     return Joi.attempt(error, ERROR_RESPONSE_SCHEMA)
   }
-  throw new Error('Received HTTP response body has no attribute "success". Expected response.success to be a boolean.')
+  throw new ClientResponseError(
+    call,
+    'Received HTTP response body has no attribute "success". Expected response.success to be a boolean.'
+  )
 }

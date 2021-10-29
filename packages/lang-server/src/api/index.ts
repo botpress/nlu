@@ -3,7 +3,7 @@ import {
   TokenizeResponseBody,
   VectorizeResponseBody,
   LanguagesResponseBody,
-  DownloadResponseBody,
+  DownloadLangResponseBody,
   SuccessReponse
 } from '@botpress/lang-client'
 import { Logger } from '@botpress/logger'
@@ -19,12 +19,12 @@ import yn from 'yn'
 
 import { LangApplication } from '../application'
 
-import { BadRequestError } from './errors'
 import { monitoringMiddleware, startMonitoring } from './monitoring'
-import { assertValidLanguage, RequestWithLang } from './mw-assert-lang'
 import { authMiddleware } from './mw-authentification'
 import { handleUnexpectedError } from './mw-handle-error'
 import { serviceLoadingMiddleware } from './mw-service-loading'
+import { validateTokenizeRequestBody, validateVectorizeRequestBody } from './validation/body'
+import { extractPathLanguageMiddleware, RequestWithLang } from './validation/lang-path'
 
 export interface APIOptions {
   version: string
@@ -83,8 +83,13 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
   const logger = baseLogger.sub('lang').sub('api')
 
   const waitForServiceMw = serviceLoadingMiddleware(application.languageService)
-  const validateLanguageMw = assertValidLanguage(application.languageService)
+  const validateLanguageMw = extractPathLanguageMiddleware(application.languageService)
   const adminTokenMw = authMiddleware(options.adminToken, baseLogger)
+
+  const validateVectorize = validateVectorizeRequestBody(application.languageService)
+  const validateTokenize = validateTokenizeRequestBody(application.languageService)
+
+  const handleErr = handleUnexpectedError(logger)
 
   app.get('/info', (req, res, next) => {
     try {
@@ -93,20 +98,15 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
         success: true,
         ...info
       }
-      return res.send(response)
+      return res.json(response)
     } catch (err) {
-      next(err)
+      return handleErr(err, req, res, next)
     }
   })
 
-  app.post('/tokenize', waitForServiceMw, validateLanguageMw, async (req: RequestWithLang, res, next) => {
+  app.post('/tokenize', waitForServiceMw, async (req, res, next) => {
     try {
-      const utterances = req.body.utterances
-      const language = req.language!
-      if (!utterances || !utterances.length || !_.isArray(utterances) || utterances.some((u) => !_.isString(u))) {
-        throw new BadRequestError('Param "utterances" is mandatory (must be an array of strings)')
-      }
-
+      const { utterances, language } = validateTokenize(req.body)
       const result = await application.tokenize(utterances, language)
       const response: TokenizeResponseBody = {
         success: true,
@@ -114,26 +114,21 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       }
       return res.set(cachePolicy).json(response)
     } catch (err) {
-      next(err)
+      return handleErr(err, req, res, next)
     }
   })
 
-  app.post('/vectorize', waitForServiceMw, validateLanguageMw, async (req: RequestWithLang, res, next) => {
+  app.post('/vectorize', waitForServiceMw, async (req, res, next) => {
     try {
-      const tokens = req.body.tokens
-      const lang = req.language!
-      if (!tokens || !tokens.length || !_.isArray(tokens) || tokens.some((t) => !_.isString(t))) {
-        throw new BadRequestError('Param "tokens" is mandatory (must be an array of strings)')
-      }
-
-      const result = await application.vectorize(tokens, lang)
+      const { tokens, language } = validateVectorize(req.body)
+      const result = await application.vectorize(tokens, language)
       const response: VectorizeResponseBody = {
         success: true,
         ...result
       }
       return res.set(cachePolicy).json(response)
     } catch (err) {
-      next(err)
+      return handleErr(err, req, res, next)
     }
   })
 
@@ -148,19 +143,18 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       }
       return res.json(response)
     } catch (err) {
-      next(err)
+      return handleErr(err, req, res, next)
     }
   })
 
-  router.post('/:lang', adminTokenMw, async (req, res, next) => {
+  router.post('/:lang', adminTokenMw, validateLanguageMw, async (req: RequestWithLang, res, next) => {
     const { lang } = req.params
-
     try {
       const { downloadId } = await application.startDownloadLang(lang)
-      const response: DownloadResponseBody = { success: true, downloadId }
+      const response: DownloadLangResponseBody = { success: true, downloadId }
       return res.json(response)
     } catch (err) {
-      next(err)
+      return handleErr(err, req, res, next)
     }
   })
 
@@ -170,7 +164,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       const response: SuccessReponse = { success: true }
       return res.json(response)
     } catch (err) {
-      next(err)
+      return handleErr(err, req, res, next)
     }
   })
 
@@ -180,7 +174,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       const response: SuccessReponse = { success: true }
       return res.json(response)
     } catch (err) {
-      next(err)
+      return handleErr(err, req, res, next)
     }
   })
 
@@ -191,12 +185,11 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       const response: SuccessReponse = { success: true }
       return res.json(response)
     } catch (err) {
-      next(err)
+      return handleErr(err, req, res, next)
     }
   })
 
   app.use('/languages', waitForServiceMw, router)
-  app.use(handleUnexpectedError(logger))
 
   const httpServer = createServer(app)
 

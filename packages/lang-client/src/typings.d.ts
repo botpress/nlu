@@ -89,7 +89,17 @@ export interface InfoResponseBody extends SuccessReponse, LanguageInfo {}
 export interface TokenizeResponseBody extends SuccessReponse, TokenizeResult {}
 export interface VectorizeResponseBody extends SuccessReponse, VectorizeResult {}
 export interface LanguagesResponseBody extends SuccessReponse, LanguageState {}
-export interface DownloadResponseBody extends SuccessReponse, DownloadStartResult {}
+export interface DownloadLangResponseBody extends SuccessReponse, DownloadStartResult {}
+
+export interface TokenizeRequestBody {
+  utterances: string[]
+  language: string
+}
+
+export interface VectorizeRequestBody {
+  tokens: string[]
+  language: string
+}
 
 /**
  * ####################
@@ -109,7 +119,7 @@ export class Client {
   tokenize(utterances: string[], language: string): Promise<TokenizeResponseBody | ErrorResponse>
   vectorize(tokens: string[], language: string): Promise<VectorizeResponseBody | ErrorResponse>
   getLanguages(): Promise<LanguagesResponseBody | ErrorResponse>
-  startDownload(lang: string): Promise<DownloadResponseBody | ErrorResponse>
+  startDownload(lang: string): Promise<DownloadLangResponseBody | ErrorResponse>
   deleteLang(lang: string): Promise<SuccessReponse | ErrorResponse>
   loadLang(lang: string): Promise<SuccessReponse | ErrorResponse>
   cancelDownload(downloadId: string): Promise<SuccessReponse | ErrorResponse>
