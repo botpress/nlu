@@ -13,7 +13,7 @@ import { CustomEntityExtractor } from './entities/custom-extractor'
 import { IntentPrediction, IntentPredictions, NoneableIntentPredictions } from './intents/intent-classifier'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
-import makeSpellChecker from './language/spell-checker'
+import { spellCheck as spellCheckUtterance } from './language/spell-check'
 import SlotTagger from './slots/slot-tagger'
 import {
   EntityExtractionResult,
@@ -158,9 +158,8 @@ async function extractSlots(input: IntentStep, predictors: Predictors): Promise<
   return { ...input, slot_predictions_per_intent: slots_per_intent }
 }
 
-async function spellCheck(input: SlotStep, predictors: Predictors, tools: Tools): Promise<SpellStep> {
-  const spellChecker = makeSpellChecker(predictors.vocab, input.languageCode, tools)
-  const spellChecked = await spellChecker(input.utterance.toString({ strategy: 'keep-token' }))
+function spellCheck(input: SlotStep, predictors: Predictors): SpellStep {
+  const spellChecked = spellCheckUtterance(input.utterance, predictors.vocab)
   return {
     ...input,
     spellChecked
@@ -257,7 +256,7 @@ export const Predict = async (input: PredictInput, tools: Tools, predictors: Pre
   const ctxStep = await predictContext(entitesStep, predictors)
   const intentStep = await predictIntent(ctxStep, predictors)
   const slotStep = await extractSlots(intentStep, predictors)
-  const spellStep = await spellCheck(slotStep, predictors, tools)
+  const spellStep = spellCheck(slotStep, predictors)
   const output = MapStepToOutput(spellStep)
   return output
 }
