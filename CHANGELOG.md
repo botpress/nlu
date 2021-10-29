@@ -1,3 +1,12 @@
+## [0.1.9](https://github.com/botpress/nlu/compare/v0.1.8...v0.1.9) (2021-10-29)
+
+
+### Bug Fixes
+
+* **nlu-engine:** do not modify a token if its an entity ([#119](https://github.com/botpress/nlu/issues/119)) ([3298d35](https://github.com/botpress/nlu/commit/3298d354538cccf682aeca87e793b2fa90a18f7f))
+
+
+
 ## [0.1.8](https://github.com/botpress/nlu/compare/v0.1.7...v0.1.8) (2021-10-20)
 
 

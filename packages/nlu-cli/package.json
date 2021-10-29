@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu-cli",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "CLI/entry-point to both nlu server or language-server",
   "main": "./dist/index.js",
   "author": "Botpress, Inc.",

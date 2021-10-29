@@ -15,6 +15,6 @@ RUN yarn package
 
 FROM ubuntu:18.04
 
-COPY --from=build /nlu/dist/nlu-v0_1_8-linux-x64 /nlu
+COPY --from=build /nlu/dist/nlu-v0_1_9-linux-x64 /nlu
 
 CMD ["/nlu"]
