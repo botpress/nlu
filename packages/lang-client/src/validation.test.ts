@@ -1,4 +1,4 @@
-import { validateResponse } from './validation'
+import { responseValidator } from './validation'
 import { SuccessReponse, ErrorResponse, LangError } from './typings'
 
 const augmentWithExtraKey = (res: Object) => {
@@ -14,6 +14,7 @@ const augmentWithExtraKey = (res: Object) => {
 }
 
 const error: LangError = { code: 500, type: 'unknown', message: 'An error' }
+const validateResponse = responseValidator({ verb: 'GET', ressource: 'info' })
 
 test('validating with absent success key should fail', async () => {
   // arrange && act && assert
