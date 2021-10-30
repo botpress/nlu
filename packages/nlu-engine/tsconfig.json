@@ -9,7 +9,7 @@
     { "path": "../node-fasttext" },
     { "path": "../node-sentencepiece" },
     { "path": "../worker" },
-    { "path": "../nlu-client" }
+    { "path": "../lang-client" }
   ],
   "compilerOptions": {
     "outDir": "./dist" /* Redirect output structure to the directory. */,
