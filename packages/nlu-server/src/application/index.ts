@@ -4,7 +4,7 @@ import { Engine, ModelId, modelIdService } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { ReadonlyTrainingRepository, Training } from '../infrastructure/training-repo/typings'
+import { ReadonlyTrainingRepository } from '../infrastructure/training-repo/typings'
 import { ModelDoesNotExistError, TrainingNotFoundError } from './errors'
 import TrainingQueue from './training-queue'
 

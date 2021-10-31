@@ -19,10 +19,12 @@
     "@botpress/lang-server": "*",
     "@botpress/logger": "*",
     "@botpress/nlu-server": "*",
+    "wtfnode": "^0.9.1",
     "yargs": "^17.2.1"
   },
   "devDependencies": {
     "@types/node": "^12.13.0",
+    "@types/wtfnode": "^0.7.0",
     "@types/yargs": "^17.0.4",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
