@@ -1,3 +1,4 @@
+import { AxiosResponse } from 'axios'
 import Joi from 'joi'
 import _ from 'lodash'
 import { SuccessReponse, ErrorResponse } from './typings'
@@ -15,34 +16,52 @@ interface HTTPCall {
   ressource: string
 }
 class ClientResponseError extends Error {
-  constructor(call: HTTPCall, message: string) {
+  constructor(call: HTTPCall, status: number, message: string) {
+    if (status >= 300) {
+      super(`(${call.verb} ${call.ressource}) Received HTTP Status ${status}`)
+      return
+    }
     super(`(${call.verb} ${call.ressource}) ${message}`)
   }
 }
 
-export const responseValidator = (call: HTTPCall) => <S extends SuccessReponse>(res: any): S | ErrorResponse => {
-  if (_.isNil(res)) {
-    throw new ClientResponseError(call, 'Received empty HTTP response.')
+export const responseValidator = (call: HTTPCall) => <S extends SuccessReponse>(
+  res: AxiosResponse<S | ErrorResponse>
+): S | ErrorResponse => {
+  const { status, data } = res
+
+  if (_.isNil(data)) {
+    throw new ClientResponseError(call, status, 'Received empty HTTP response.')
   }
-  if (typeof res !== 'object') {
-    const responseType = typeof res
-    throw new ClientResponseError(call, `Received ${responseType} HTTP response. Expected response to be an object.`)
+
+  if (typeof data !== 'object') {
+    const responseType = typeof data
+    throw new ClientResponseError(
+      call,
+      status,
+      `Received ${responseType} HTTP response. Expected response to be an object.`
+    )
   }
-  if (res.success === true) {
-    return res
+
+  if (data.success === true) {
+    return data
   }
-  if (res.success === false) {
-    const { error } = res
+
+  if (data.success === false) {
+    const { error } = data
     if (_.isNil(error) || typeof error !== 'object') {
       throw new ClientResponseError(
         call,
+        status,
         'Received unsuccessfull HTTP response with no error. Expected response.error to be an object.'
       )
     }
     return Joi.attempt(error, ERROR_RESPONSE_SCHEMA)
   }
+
   throw new ClientResponseError(
     call,
+    status,
     'Received HTTP response body has no attribute "success". Expected response.success to be a boolean.'
   )
 }

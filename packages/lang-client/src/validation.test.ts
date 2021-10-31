@@ -1,5 +1,6 @@
 import { responseValidator } from './validation'
 import { SuccessReponse, ErrorResponse, LangError } from './typings'
+import { AxiosResponse } from 'axios'
 
 const augmentWithExtraKey = (res: Object) => {
   return [
@@ -16,10 +17,15 @@ const augmentWithExtraKey = (res: Object) => {
 const error: LangError = { code: 500, type: 'unknown', message: 'An error' }
 const validateResponse = responseValidator({ verb: 'GET', ressource: 'info' })
 
+const axiosRes = (data: any): AxiosResponse<any> => {
+  const x: Partial<AxiosResponse<any>> = { data, status: 200 }
+  return x as AxiosResponse<any>
+}
+
 test('validating with absent success key should fail', async () => {
   // arrange && act && assert
-  expect(() => validateResponse({})).toThrow()
-  expect(() => validateResponse({ someKey: 'some text' })).toThrow()
+  expect(() => validateResponse(axiosRes({}))).toThrow()
+  expect(() => validateResponse(axiosRes({ someKey: 'some text' }))).toThrow()
 })
 
 test('validating a successfull response should pass', async () => {
@@ -27,7 +33,7 @@ test('validating a successfull response should pass', async () => {
   const res: SuccessReponse = { success: true }
 
   // act && assert
-  expect(() => validateResponse(res)).not.toThrow()
+  expect(() => validateResponse(axiosRes(res))).not.toThrow()
 })
 
 test('validating an unsuccessfull response with unempty error should pass', async () => {
@@ -35,7 +41,7 @@ test('validating an unsuccessfull response with unempty error should pass', asyn
   const res: ErrorResponse = { success: false, error }
 
   // act && assert
-  expect(() => validateResponse(res)).not.toThrow()
+  expect(() => validateResponse(axiosRes(res))).not.toThrow()
 })
 
 test('validating an unsuccessfull response with empty error message should pass', async () => {
@@ -45,7 +51,7 @@ test('validating an unsuccessfull response with empty error message should pass'
   const res: ErrorResponse = { success: false, error }
 
   // act && assert
-  expect(() => validateResponse(res)).not.toThrow()
+  expect(() => validateResponse(axiosRes(res))).not.toThrow()
 })
 
 test('validating an unsuccessfull response with empty error should fail', async () => {
@@ -53,7 +59,7 @@ test('validating an unsuccessfull response with empty error should fail', async 
   const res: ErrorResponse = { success: false, error: {} as LangError }
 
   // act && assert
-  expect(() => validateResponse(res)).toThrow()
+  expect(() => validateResponse(axiosRes(res))).toThrow()
 })
 
 test('validating an unsuccessfull response with undefined error should fail', async () => {
@@ -61,7 +67,7 @@ test('validating an unsuccessfull response with undefined error should fail', as
   const res: Partial<ErrorResponse> = { success: false }
 
   // act && assert
-  expect(() => validateResponse(res)).toThrow()
+  expect(() => validateResponse(axiosRes(res))).toThrow()
 })
 
 test('validating a successfull response with unknown keys should pass', async () => {
@@ -71,7 +77,7 @@ test('validating a successfull response with unknown keys should pass', async ()
   // act && assert
   const responses = augmentWithExtraKey(res)
   responses.forEach((r) => {
-    expect(() => validateResponse(r)).not.toThrow()
+    expect(() => validateResponse(axiosRes(r))).not.toThrow()
   })
 })
 
@@ -82,6 +88,6 @@ test('validating an unsuccessfull response with unknown keys should pass', async
   // act && assert
   const responses = augmentWithExtraKey(res)
   responses.forEach((r) => {
-    expect(() => validateResponse(r)).not.toThrow()
+    expect(() => validateResponse(axiosRes(r))).not.toThrow()
   })
 })

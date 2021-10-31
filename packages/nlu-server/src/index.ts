@@ -1,11 +1,10 @@
 import { LoggerLevel, makeLogger } from '@botpress/logger'
-import Bluebird from 'bluebird'
-import { createServer } from 'http'
+import { createServer, Server } from 'http'
 import _ from 'lodash'
 import path from 'path'
 
 import { createAPI } from './api'
-import { CommandLineOptions, getConfig, validateConfig } from './bootstrap/config'
+import { CommandLineOptions, getConfig, validateConfig, NLUServerOptions } from './bootstrap/config'
 import { logLaunchingMessage } from './bootstrap/launcher'
 import { makeApplication } from './bootstrap/make-application'
 import { buildWatcher } from './bootstrap/watcher'
@@ -23,6 +22,19 @@ if (!packageJson) {
 const { version: pkgVersion } = packageJson
 
 export const version = pkgVersion
+
+const serverListen = (httpServer: Server, options: NLUServerOptions): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const hostname = options.host === 'localhost' ? undefined : options.host
+      httpServer.listen(options.port, hostname, undefined, () => {
+        resolve()
+      })
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
 
 export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
   const { options, source: configSource } = await getConfig(cliOptions)
@@ -47,13 +59,7 @@ export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
   const application = await makeApplication(options, version, baseLogger, watcher)
   const app = await createAPI(options, application, baseLogger)
   const httpServer = createServer(app)
-
-  await Bluebird.fromCallback((callback) => {
-    const hostname = options.host === 'localhost' ? undefined : options.host
-    httpServer.listen(options.port, hostname, undefined, () => {
-      callback(null)
-    })
-  })
+  await serverListen(httpServer, options)
 
   const url = `http://${options.host}:${options.port}/`
   launcherLogger.info(`NLU Server is ready at ${url}. Make sure this URL is not publicly available.`)
