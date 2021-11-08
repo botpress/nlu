@@ -2,11 +2,11 @@ import _ from 'lodash'
 import path from 'path'
 import Engine from './engine'
 import { DUCKLING_ENTITIES } from './engine/entities/duckling-extractor/enums'
-import { isTrainingAlreadyStarted, isTrainingCanceled } from './errors'
+import { isTrainingAlreadyStarted, isTrainingCanceled, isLangServerError } from './errors'
 import LanguageService from './language-service'
 import _modelIdService from './model-id-service'
 import { requireJSON } from './require-json'
-import { Config, Logger, LanguageConfig } from './typings'
+import * as types from './typings'
 
 const rootPkgDirectory = path.resolve(__dirname, '..')
 const packageJsonPath = path.resolve(rootPkgDirectory, 'package.json')
@@ -18,14 +18,15 @@ if (!packageJson) {
 
 const { version: pkgVersion } = packageJson
 
-export const SYSTEM_ENTITIES = DUCKLING_ENTITIES
+export const SYSTEM_ENTITIES: typeof types.SYSTEM_ENTITIES = DUCKLING_ENTITIES
 
-export const errors: _.Dictionary<(err: Error) => boolean> = {
+export const errors: typeof types.errors = {
   isTrainingAlreadyStarted,
-  isTrainingCanceled
+  isTrainingCanceled,
+  isLangServerError
 }
 
-export const makeEngine = async (config: Config, logger: Logger) => {
+export const makeEngine: typeof types.makeEngine = async (config: types.Config, logger: types.Logger) => {
   const {
     ducklingEnabled,
     ducklingURL,
@@ -35,7 +36,7 @@ export const makeEngine = async (config: Config, logger: Logger) => {
     legacyElection,
     cachePath
   } = config
-  const langConfig: LanguageConfig & { assetsPath: string } = {
+  const langConfig: types.LanguageConfig & { assetsPath: string } = {
     ducklingEnabled,
     ducklingURL,
     languageURL,
@@ -48,6 +49,6 @@ export const makeEngine = async (config: Config, logger: Logger) => {
   return engine
 }
 
-export const modelIdService = _modelIdService
+export const modelIdService: typeof types.modelIdService = _modelIdService
 
 export { LanguageService }

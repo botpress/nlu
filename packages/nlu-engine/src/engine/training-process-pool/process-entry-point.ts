@@ -1,12 +1,13 @@
 import { makeProcessEntryPoint, TaskDefinition } from '@botpress/worker'
 import { initializeTools } from '../initialize-tools'
 import { Trainer, TrainInput, TrainOutput } from '../training-pipeline'
+import { ErrorHandler } from './error-handler'
 
 const main = async () => {
   const config = JSON.parse(process.env.NLU_CONFIG!)
   const processId = process.pid
 
-  const taskEntry = makeProcessEntryPoint<TrainInput, TrainOutput>()
+  const taskEntry = makeProcessEntryPoint<TrainInput, TrainOutput>({ errorHandler: new ErrorHandler() })
   taskEntry.logger.info(`Training worker successfully started on process with pid ${processId}.`)
 
   const tools = await initializeTools(config, taskEntry.logger)

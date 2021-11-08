@@ -14,7 +14,6 @@ import {
   TrainingState,
   WrittableTrainingRepository
 } from '../infrastructure/training-repo/typings'
-import { serializeError } from '../utils/error-utils'
 import { watchDog, WatchDog } from '../utils/watch-dog'
 import { TrainingAlreadyStartedError, TrainingNotFoundError } from './errors'
 
@@ -202,10 +201,12 @@ export default class TrainingQueue {
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set(training)
       }, '_train_done')
-    } catch (err) {
+    } catch (thrownObject) {
       throttledCb.cancel()
 
-      if (NLUEngine.errors.isTrainingCanceled(err as Error)) {
+      const err = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
+
+      if (NLUEngine.errors.isTrainingCanceled(err)) {
         this.logger.info(`[${trainKey}] Training Canceled.`)
 
         training.status = 'canceled'
@@ -215,14 +216,20 @@ export default class TrainingQueue {
         return
       }
 
-      if (NLUEngine.errors.isTrainingAlreadyStarted(err as Error)) {
+      if (NLUEngine.errors.isTrainingAlreadyStarted(err)) {
         this.logger.warn(`[${trainKey}] Training Already Started.`) // This should never occur.
         return
       }
 
-      const type: TrainingErrorType = 'unknown'
+      const isLangServerError = NLUEngine.errors.isLangServerError(err)
+      if (isLangServerError) {
+        this.logger.attachError(err).error(`[${trainKey}] Error occured with Language Server.`)
+      }
+
+      const type: TrainingErrorType = isLangServerError ? 'lang-server' : 'unknown'
       training.status = 'errored'
-      training.error = { ...serializeError(err), type }
+      const { message, stack } = err
+      training.error = { message, stack, type }
 
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set(training)

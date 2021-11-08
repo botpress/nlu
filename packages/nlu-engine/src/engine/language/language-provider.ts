@@ -7,11 +7,11 @@ import _, { debounce, sumBy } from 'lodash'
 import lru from 'lru-cache'
 import ms from 'ms'
 import path from 'path'
+import { LangServerError } from '../../errors'
 import { Logger as ILogger } from '../../typings'
 
 import { isSpace, processUtteranceTokens, restoreOriginalUtteranceCasing } from '../tools/token-utils'
 import { LangServerInfo } from '../typings'
-import { LangServerError } from './lang-server-error'
 
 const MAX_PAYLOAD_SIZE = 150 * 1024 // 150kb
 const VECTOR_FILE_PREFIX = 'lang_vectors'

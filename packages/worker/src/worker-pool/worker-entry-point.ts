@@ -1,9 +1,21 @@
-import { serializeError } from '../error-utils'
-import { Logger, TaskHandler, WorkerEntryPoint as IWorkerEntryPoint } from '../typings'
+import { ErrorHandler } from '../error-handler'
+import {
+  Logger,
+  TaskHandler,
+  WorkerEntryPoint as IWorkerEntryPoint,
+  ErrorSerializer,
+  EntryPointOptions
+} from '../typings'
 import { AllOutgoingMessages, IncomingMessage, isStartTask } from './communication'
 
 export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> {
   private _handlers: TaskHandler<I, O>[] = []
+
+  private errorHandler: ErrorSerializer
+
+  constructor(config?: EntryPointOptions) {
+    this.errorHandler = config?.errorHandler ?? new ErrorHandler()
+  }
 
   abstract isMainWorker: () => boolean
   abstract messageMain: (msg: any) => void
@@ -61,7 +73,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
       const errorResponse: IncomingMessage<'task_error', O> = {
         type: 'task_error',
         payload: {
-          error: serializeError(err)
+          error: this.errorHandler.serializeError(err)
         }
       }
       this.messageMain(errorResponse)
@@ -84,7 +96,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
       this.messageMain(response)
     },
     warning: (msg: string, err?: Error) => {
-      const warning = `${msg} ${serializeError(err).message}`
+      const warning = `${msg} ${err?.message}`
       const response: IncomingMessage<'log', O> = {
         type: 'log',
         payload: { log: { warning } }
@@ -92,7 +104,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
       this.messageMain(response)
     },
     error: (msg: string, err?: Error) => {
-      const error = `${msg} ${serializeError(err).message}`
+      const error = `${msg} ${err?.message}`
       const response: IncomingMessage<'log', O> = { type: 'log', payload: { log: { error } } }
       this.messageMain(response)
     },
