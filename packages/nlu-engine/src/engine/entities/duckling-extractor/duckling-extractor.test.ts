@@ -4,6 +4,11 @@ import { unlinkSync } from 'fs'
 import { DucklingEntityExtractor } from '.'
 import { JOIN_CHAR } from '../../tools/token-utils'
 import { SystemEntityCacheManager } from '../entity-cache-manager'
+import { DucklingClient } from './duckling-client'
+
+class FakeDucklingClient extends DucklingClient {
+  public async init() {}
+}
 
 describe('Duckling Extract Multiple', () => {
   let duck: DucklingEntityExtractor
@@ -11,7 +16,7 @@ describe('Duckling Extract Multiple', () => {
   let testCachePath = path.join(' ', 'cache', 'testCache.json')
   beforeAll(() => {
     const duckCache = new SystemEntityCacheManager(testCachePath, false)
-    duck = new DucklingEntityExtractor(duckCache, '')
+    duck = new DucklingEntityExtractor(duckCache, new FakeDucklingClient(''))
     // @ts-ignore
     mockedFetch = jest.spyOn(duck, '_fetchDuckling')
   })

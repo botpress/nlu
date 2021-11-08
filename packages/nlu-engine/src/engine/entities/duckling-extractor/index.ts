@@ -15,11 +15,7 @@ const BATCH_SIZE = 10
 // 1- in _extractBatch, shift results ==> don't walk whole array n times (nlog(n) vs n2)
 
 export class DucklingEntityExtractor implements SystemEntityExtractor {
-  private _ducklingClient: DucklingClient
-
-  constructor(private _cache: SystemEntityCacheManager, ducklingURL: string) {
-    this._ducklingClient = new DucklingClient(ducklingURL)
-  }
+  constructor(private _cache: SystemEntityCacheManager, private _ducklingClient: DucklingClient) {}
 
   public resetCache() {
     this._cache.reset()

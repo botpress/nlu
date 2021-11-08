@@ -5,6 +5,7 @@ import yn from 'yn'
 import MLToolkit from '../ml/toolkit'
 import { LanguageConfig, Logger } from '../typings'
 import { DucklingEntityExtractor } from './entities/duckling-extractor'
+import { DucklingClient } from './entities/duckling-extractor/duckling-client'
 import { DummySystemEntityExtractor } from './entities/dummy-system-extractor'
 import { SystemEntityCacheManager } from './entities/entity-cache-manager'
 import { MicrosoftEntityExtractor } from './entities/microsoft-extractor'
@@ -59,7 +60,8 @@ const makeSystemEntityExtractor = async (config: LanguageConfig, logger: Logger)
 
   if (config.ducklingEnabled) {
     const duckCache = makeCacheManager(DUCKLING_CACHE_FILE)
-    const extractor = new DucklingEntityExtractor(duckCache, config.ducklingURL)
+    const ducklingClient = new DucklingClient(config.ducklingURL)
+    const extractor = new DucklingEntityExtractor(duckCache, ducklingClient)
     await extractor.init()
     return extractor
   }
