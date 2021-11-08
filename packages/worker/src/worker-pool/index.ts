@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
-import { deserializeError } from '../error-utils'
+import { ErrorHandler } from '../error-handler'
 import { TaskAlreadyStartedError, TaskCanceledError, TaskExitedUnexpectedlyError } from '../errors'
 import { SIG_KILL } from '../signals'
-import { Logger, PoolOptions, WorkerPool as IWorkerPool } from '../typings'
+import { Logger, PoolOptions, WorkerPool as IWorkerPool, ErrorDeserializer } from '../typings'
 
 import {
   AllIncomingMessages,
@@ -21,7 +21,11 @@ import { Worker } from './worker'
 export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
   protected _scheduler = new Scheduler(() => this._createNewWorker(), { maxItems: this.config.maxWorkers })
 
-  constructor(protected logger: Logger, private config: PoolOptions) {}
+  private errorHandler: ErrorDeserializer
+
+  constructor(protected logger: Logger, private config: PoolOptions) {
+    this.errorHandler = config.errorHandler ?? new ErrorHandler()
+  }
 
   abstract createWorker: (entryPoint: string, env: NodeJS.ProcessEnv) => Promise<Worker>
   abstract isMainWorker: () => boolean
@@ -78,7 +82,9 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
         }
         if (isTrainingError(msg)) {
           removeHandlers()
-          reject(deserializeError(msg.payload.error))
+
+          const deserializedError = this.errorHandler.deserializeError(msg.payload.error)
+          reject(deserializedError)
         }
         if (isTrainingProgress(msg)) {
           progress(msg.payload.progress)

@@ -5,6 +5,7 @@ import { TrainingAlreadyStarted, TrainingCanceled, TrainingExitedUnexpectedly } 
 
 import { LanguageConfig, Logger } from '../../typings'
 import { TrainInput, TrainOutput } from '../training-pipeline'
+import { ErrorHandler } from './error-handler'
 
 const PROCESS_ENTRY_POINT = 'process-entry-point.js'
 
@@ -22,7 +23,8 @@ export class TrainingProcessPool {
     this._processPool = makeProcessPool<TrainInput, TrainOutput>(this._logger, {
       maxWorkers: Number.POSITIVE_INFINITY,
       entryPoint,
-      env
+      env,
+      errorHandler: new ErrorHandler()
     })
   }
 

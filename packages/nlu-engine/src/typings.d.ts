@@ -3,6 +3,7 @@ export const SYSTEM_ENTITIES: string[]
 export const errors: {
   isTrainingAlreadyStarted: (err: Error) => boolean
   isTrainingCanceled: (err: Error) => boolean
+  isLangServerError: (err: Error) => boolean
 }
 
 export const makeEngine: (config: Config, logger: Logger) => Promise<Engine>

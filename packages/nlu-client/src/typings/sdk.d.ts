@@ -68,12 +68,12 @@ export type EntityDefinition = ListEntityDefinition | PatternEntityDefinition
  */
 export type TrainingStatus = 'done' | 'training-pending' | 'training' | 'canceled' | 'errored'
 
-export type TrainingErrorType = 'zombie-training' | 'unknown'
+export type TrainingErrorType = 'lang-server' | 'zombie-training' | 'unknown'
 
 export interface TrainingError {
   type: TrainingErrorType
   message: string
-  stackTrace?: string
+  stack?: string
 }
 
 export interface TrainingState {
