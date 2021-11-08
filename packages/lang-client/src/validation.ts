@@ -56,7 +56,8 @@ export const responseValidator = (call: HTTPCall) => <S extends SuccessReponse>(
         'Received unsuccessfull HTTP response with no error. Expected response.error to be an object.'
       )
     }
-    return Joi.attempt(error, ERROR_RESPONSE_SCHEMA)
+    Joi.assert(error, ERROR_RESPONSE_SCHEMA)
+    return data
   }
 
   throw new ClientResponseError(

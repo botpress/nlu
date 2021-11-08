@@ -201,13 +201,13 @@ export class LanguageProvider {
         break
       }
 
-      const tokendRes = await this._langClient.tokenize(query, lang)
-      if (!tokendRes.success) {
-        const { error } = tokendRes
+      const tokenRes = await this._langClient.tokenize(query, lang)
+      if (!tokenRes.success) {
+        const { error } = tokenRes
         throw new LangServerError(error)
       }
 
-      let { tokens: fetched } = tokendRes
+      let { tokens: fetched } = tokenRes
       fetched = fetched.map((toks) => processUtteranceTokens(toks, vocab))
 
       if (fetched.length !== query.length) {
