@@ -11,15 +11,14 @@ describe('Duckling Extract Multiple', () => {
   let testCachePath = path.join(' ', 'cache', 'testCache.json')
   beforeAll(() => {
     const duckCache = new SystemEntityCacheManager(testCachePath, false)
-    duck = new DucklingEntityExtractor(duckCache)
+    duck = new DucklingEntityExtractor(duckCache, '')
     // @ts-ignore
     mockedFetch = jest.spyOn(duck, '_fetchDuckling')
   })
 
   beforeEach(async () => {
-    await duck.configure(true, '')
+    await duck.init()
     duck.resetCache()
-    duck.enable()
   })
 
   afterEach(() => {
@@ -31,16 +30,6 @@ describe('Duckling Extract Multiple', () => {
   })
 
   const dummyProgress = (p: number) => {}
-
-  test('When disabled returns empty array for each input', async () => {
-    duck.disable()
-    const examples = ['this is one', 'this is two']
-    const res = await duck.extractMultiple(examples, 'en', dummyProgress)
-    expect(mockedFetch).not.toHaveBeenCalled()
-    res.forEach((r) => {
-      expect(r).toEqual([])
-    })
-  })
 
   test('calls extract with join char', async () => {
     const examples = ['this is one', 'this is two']

@@ -38,3 +38,13 @@ export class LangServerError extends Error {
 export function isLangServerError(err: Error): err is LangServerError {
   return err instanceof LangServerError
 }
+
+export class DucklingServerError extends Error {
+  constructor(message: string, stack?: string) {
+    super(message)
+    this.stack = stack
+  }
+}
+export function isDucklingServerError(err: DucklingServerError): err is DucklingServerError {
+  return err instanceof DucklingServerError
+}

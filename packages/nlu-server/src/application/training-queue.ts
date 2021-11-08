@@ -18,7 +18,6 @@ import { watchDog, WatchDog } from '../utils/watch-dog'
 import { TrainingAlreadyStartedError, TrainingNotFoundError } from './errors'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
-
 const TRAINING_HEARTBEAT_SECURITY_FACTOR = 3
 const MIN_TRAINING_HEARTBEAT = ms('10s')
 const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * TRAINING_HEARTBEAT_SECURITY_FACTOR
@@ -221,12 +220,17 @@ export default class TrainingQueue {
         return
       }
 
-      const isLangServerError = NLUEngine.errors.isLangServerError(err)
-      if (isLangServerError) {
+      let type: TrainingErrorType = 'unknown'
+      if (NLUEngine.errors.isLangServerError(err)) {
+        type = 'lang-server'
         this.logger.attachError(err).error(`[${trainKey}] Error occured with Language Server.`)
       }
 
-      const type: TrainingErrorType = isLangServerError ? 'lang-server' : 'unknown'
+      if (NLUEngine.errors.isDucklingServerError(err)) {
+        type = 'duckling-server'
+        this.logger.attachError(err).error(`[${trainKey}] Error occured with Duckling Server.`)
+      }
+
       training.status = 'errored'
       const { message, stack } = err
       training.error = { message, stack, type }

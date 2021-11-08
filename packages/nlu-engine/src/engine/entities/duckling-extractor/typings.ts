@@ -1,3 +1,7 @@
+/**
+ * Approximate typings of Duckling Server response
+ */
+
 export type Duckling = DucklingReturn<DucklingDimension>
 
 export interface DucklingReturn<D extends DucklingDimension> {
@@ -36,7 +40,6 @@ type DucklingValueInfo<D extends DucklingDimension, T extends DucklingType> = D 
   ? Value
   : ValueUnit
 
-// Not sure yet, but I feel like if property `values` is defined, then root properties are also...
 type DucklingTimeValue<T extends DucklingType> = T extends 'interval'
   ? TimeInterval & { values?: ({ type: 'interval' } & TimeInterval)[] }
   : ValueGrain & { values?: ({ type: 'value' } & ValueGrain)[] }
