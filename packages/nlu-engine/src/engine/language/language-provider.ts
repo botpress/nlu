@@ -1,17 +1,15 @@
-import { Client as LangClient } from '@botpress/lang-client'
 import retry from 'bluebird-retry'
 import crypto from 'crypto'
 import fse from 'fs-extra'
-import httpsProxyAgent from 'https-proxy-agent'
 import _, { debounce, sumBy } from 'lodash'
 import lru from 'lru-cache'
 import ms from 'ms'
 import path from 'path'
-import { LangServerError } from '../../errors'
 import { Logger as ILogger } from '../../typings'
 
 import { isSpace, processUtteranceTokens, restoreOriginalUtteranceCasing } from '../tools/token-utils'
 import { LangServerInfo } from '../typings'
+import { LanguageClient } from './lang-client'
 
 const MAX_PAYLOAD_SIZE = 150 * 1024 // 150kb
 const VECTOR_FILE_PREFIX = 'lang_vectors'
@@ -38,41 +36,20 @@ export class LanguageProvider {
 
   public static async create(logger: ILogger, args: LangProviderArgs): Promise<LanguageProvider> {
     const { languageURL, languageAuthToken, cacheDir } = args
-    const headers: _.Dictionary<string> = {}
-    if (languageAuthToken) {
-      headers['authorization'] = `bearer ${languageAuthToken}`
-    }
 
-    const proxyConfig = process.env.PROXY ? { httpsAgent: new httpsProxyAgent(process.env.PROXY) } : {}
-
-    const langClient = new LangClient({
-      baseURL: languageURL,
-      headers,
-      ...proxyConfig
-    })
+    const langClient = new LanguageClient(languageURL, languageAuthToken)
 
     let installedLanguages: string[] | undefined
     let langServerInfo: LangServerInfo | undefined
 
     await retry<void>(async () => {
-      const infoRes = await langClient.getInfo()
-      if (!infoRes.success) {
-        const { error } = infoRes
-        throw new LangServerError(error)
-      }
-
-      const { success, ...info } = infoRes
+      const info = await langClient.getInfo()
       if (!info.ready) {
         throw new Error('Language server is not ready.')
       }
 
-      const langRes = await langClient.getLanguages()
-      if (!langRes.success) {
-        const { error } = langRes
-        throw new LangServerError(error)
-      }
-
-      const { installed } = langRes
+      const langState = await langClient.getLanguages()
+      const { installed } = langState
       installedLanguages = installed.map((x) => x.code)
       langServerInfo = {
         version: info.version,
@@ -93,7 +70,7 @@ export class LanguageProvider {
   }
 
   private constructor(
-    private _langClient: LangClient,
+    private _langClient: LanguageClient,
     private _logger: ILogger,
     private _langServerInfo: LangServerInfo,
     private _installedLanguages: string[],
@@ -141,12 +118,7 @@ export class LanguageProvider {
         break
       }
 
-      const vectorRes = await this._langClient.vectorize(query, lang)
-      if (!vectorRes.success) {
-        const { error } = vectorRes
-        throw new LangServerError(error)
-      }
-      const { vectors: fetched } = vectorRes
+      const { vectors: fetched } = await this._langClient.vectorize(query, lang)
 
       if (fetched.length !== query.length) {
         throw new Error(
@@ -201,13 +173,7 @@ export class LanguageProvider {
         break
       }
 
-      const tokenRes = await this._langClient.tokenize(query, lang)
-      if (!tokenRes.success) {
-        const { error } = tokenRes
-        throw new LangServerError(error)
-      }
-
-      let { tokens: fetched } = tokenRes
+      let { tokens: fetched } = await this._langClient.tokenize(query, lang)
       fetched = fetched.map((toks) => processUtteranceTokens(toks, vocab))
 
       if (fetched.length !== query.length) {

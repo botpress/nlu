@@ -15,7 +15,7 @@ const augmentWithExtraKey = (res: Object) => {
 }
 
 const error: LangError = { code: 500, type: 'unknown', message: 'An error' }
-const validateResponse = responseValidator({ verb: 'GET', ressource: 'info' })
+const validateResponse = responseValidator({ verb: 'GET', ressource: 'info', baseURL: 'lang-server' })
 
 const axiosRes = (data: any): AxiosResponse<any> => {
   const x: Partial<AxiosResponse<any>> = { data, status: 200 }
