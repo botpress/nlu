@@ -126,7 +126,7 @@ export interface SystemEntityExtractor {
     input: string[],
     lang: string,
     progress: (p: number) => void,
-    useCache?: Boolean
+    useCache?: boolean
   ): Promise<EntityExtractionResult[][]>
   extract(input: string, lang: string): Promise<EntityExtractionResult[]>
 }

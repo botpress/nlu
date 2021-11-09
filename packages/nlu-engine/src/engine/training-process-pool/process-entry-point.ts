@@ -10,7 +10,7 @@ const main = async () => {
   const taskEntry = makeProcessEntryPoint<TrainInput, TrainOutput>({ errorHandler: new ErrorHandler() })
   taskEntry.logger.info(`Training worker successfully started on process with pid ${processId}.`)
 
-  const tools = await initializeTools(config, taskEntry.logger)
+  const tools = await initializeTools(config, taskEntry.logger) // TODO: refactor worker lib so the initialization code is handled
 
   taskEntry.listenForTask(async (taskDef: TaskDefinition<TrainInput>) => {
     const { input, logger, progress } = taskDef

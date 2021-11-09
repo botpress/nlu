@@ -5,6 +5,8 @@ import yn from 'yn'
 import MLToolkit from '../ml/toolkit'
 import { LanguageConfig, Logger } from '../typings'
 import { DucklingEntityExtractor } from './entities/duckling-extractor'
+import { DucklingClient } from './entities/duckling-extractor/duckling-client'
+import { DummySystemEntityExtractor } from './entities/dummy-system-extractor'
 import { SystemEntityCacheManager } from './entities/entity-cache-manager'
 import { MicrosoftEntityExtractor } from './entities/microsoft-extractor'
 import languageIdentifier, { FastTextLanguageId } from './language/language-identifier'
@@ -18,6 +20,9 @@ import { SystemEntityExtractor, Tools } from './typings'
 const PRE_TRAINED_DIR = 'pre-trained'
 const STOP_WORDS_DIR = 'stop-words'
 const LANG_ID_MODEL = 'lid.176.ftz'
+
+const MICROSOFT_CACHE_FILE = 'microsoft_sys_entities.json'
+const DUCKLING_CACHE_FILE = 'duckling_sys_entities.json'
 
 const versionGetter = (languageProvider: LanguageProvider) => (): LangServerSpecs => {
   const { langServerInfo } = languageProvider
@@ -47,16 +52,22 @@ const makeSystemEntityExtractor = async (config: LanguageConfig, logger: Logger)
     logger.warning(
       'You are using Microsoft Recognizer entity extractor which is experimental. This feature can disappear at any time.'
     )
-    const msCache = makeCacheManager('microsoft_sys_entities.json')
+    const msCache = makeCacheManager(MICROSOFT_CACHE_FILE)
     const extractor = new MicrosoftEntityExtractor(msCache, logger)
     await extractor.configure()
     return extractor
   }
 
-  const duckCache = makeCacheManager('duckling_sys_entities.json')
-  const extractor = new DucklingEntityExtractor(duckCache, logger)
-  await extractor.configure(config.ducklingEnabled, config.ducklingURL)
-  return extractor
+  if (config.ducklingEnabled) {
+    const duckCache = makeCacheManager(DUCKLING_CACHE_FILE)
+    const ducklingClient = new DucklingClient(config.ducklingURL)
+    const extractor = new DucklingEntityExtractor(duckCache, ducklingClient)
+    await extractor.init()
+    return extractor
+  }
+
+  logger.warning('Duckling is disabled. No system entities available.')
+  return new DummySystemEntityExtractor()
 }
 
 const isSpaceSeparated = (lang: string) => {

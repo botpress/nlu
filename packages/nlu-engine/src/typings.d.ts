@@ -4,6 +4,7 @@ export const errors: {
   isTrainingAlreadyStarted: (err: Error) => boolean
   isTrainingCanceled: (err: Error) => boolean
   isLangServerError: (err: Error) => boolean
+  isDucklingServerError: (err: Error) => boolean
 }
 
 export const makeEngine: (config: Config, logger: Logger) => Promise<Engine>

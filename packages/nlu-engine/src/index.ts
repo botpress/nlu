@@ -2,7 +2,7 @@ import _ from 'lodash'
 import path from 'path'
 import Engine from './engine'
 import { DUCKLING_ENTITIES } from './engine/entities/duckling-extractor/enums'
-import { isTrainingAlreadyStarted, isTrainingCanceled, isLangServerError } from './errors'
+import { isTrainingAlreadyStarted, isTrainingCanceled, isLangServerError, isDucklingServerError } from './errors'
 import LanguageService from './language-service'
 import _modelIdService from './model-id-service'
 import { requireJSON } from './require-json'
@@ -23,7 +23,8 @@ export const SYSTEM_ENTITIES: typeof types.SYSTEM_ENTITIES = DUCKLING_ENTITIES
 export const errors: typeof types.errors = {
   isTrainingAlreadyStarted,
   isTrainingCanceled,
-  isLangServerError
+  isLangServerError,
+  isDucklingServerError
 }
 
 export const makeEngine: typeof types.makeEngine = async (config: types.Config, logger: types.Logger) => {
