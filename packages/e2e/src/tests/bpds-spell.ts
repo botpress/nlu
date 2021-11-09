@@ -1,4 +1,22 @@
-export default function (bitfan) {
+import _bitfan, { DataSetDef, DocumentDef, UnsupervisedProblem, Result } from '@botpress/bitfan'
+import chalk from 'chalk'
+import yn from 'yn'
+
+const orange = chalk.rgb(255, 150, 50)
+
+const debugResults = (results: Result<'spell'>[]) => {
+  let i = 0
+  for (const r of results) {
+    const { elected } = r.candidates[0]
+    const success = elected === r.label ? chalk.green('PASS') : chalk.red('FAIL')
+    const formatted = `${i++}. [${success}] ${orange(r.text)} -> ${chalk.yellowBright(elected)} | ${chalk.blueBright(
+      r.label
+    )}`
+    console.log(formatted)
+  }
+}
+
+export default function (bitfan: typeof _bitfan) {
   const metrics = [bitfan.metrics.accuracy]
 
   return {
@@ -6,10 +24,9 @@ export default function (bitfan) {
 
     computePerformance: async () => {
       const nluServerEndpoint = process.env.NLU_SERVER_ENDPOINT ?? 'http://localhost:3200'
-      const password = '123456'
-      const engine = bitfan.engines.makeBpSpellEngine(nluServerEndpoint, password)
+      const engine = bitfan.engines.makeBpSpellEngine(nluServerEndpoint)
 
-      const trainFileDef = {
+      const trainFileDef: DocumentDef = {
         name: 'A-train',
         lang: 'en',
         fileType: 'document',
@@ -17,7 +34,7 @@ export default function (bitfan) {
         namespace: 'bpds'
       }
 
-      const testFileDef = {
+      const testFileDef: DataSetDef<'spell'> = {
         name: 'A-test',
         lang: 'en',
         fileType: 'dataset',
@@ -25,10 +42,10 @@ export default function (bitfan) {
         namespace: 'bpds'
       }
 
-      const problem = {
+      const problem: UnsupervisedProblem<'spell'> = {
         name: 'bpds A spelling',
         type: 'spell',
-        trainSet: [await bitfan.datasets.readDataset(trainFileDef)],
+        corpus: [await bitfan.datasets.readDocument(trainFileDef)],
         testSet: await bitfan.datasets.readDataset(testFileDef),
         lang: 'en'
       }
@@ -43,7 +60,9 @@ export default function (bitfan) {
       )
 
       const performanceReport = bitfan.evaluateMetrics(results, metrics)
-      await bitfan.visualisation.showPerformanceReport(performanceReport)
+      bitfan.visualisation.showPerformanceReport(performanceReport)
+
+      yn(process.env.DEBUG_RESULTS) && debugResults(results)
 
       return performanceReport
     },
