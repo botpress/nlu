@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import path from 'path'
 
 export function getAppDataPath() {
@@ -11,9 +10,8 @@ export function getAppDataPath() {
     return path.join(homeDir, 'botpress')
   }
 
-  console.error(
-    chalk.red(`Could not determine your HOME directory.
-  Please set the environment variable "APP_DATA_PATH", then start Botpress`)
-  )
-  process.exit(1)
+  const errorMsg = `
+Could not determine your HOME directory.
+Please set the environment variable "APP_DATA_PATH", then start Botpress`
+  throw new Error(errorMsg)
 }

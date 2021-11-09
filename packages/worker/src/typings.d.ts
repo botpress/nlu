@@ -33,6 +33,7 @@ export interface WorkerPool<I, O> {
 export interface WorkerEntryPoint<I, O> {
   initialize(): Promise<void>
   listenForTask(handler: TaskHandler<I, O>): void
+  isMainWorker: () => boolean
   logger: Logger
 }
 export interface ProcessPool<I, O> extends WorkerPool<I, O> {
