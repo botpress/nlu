@@ -37,6 +37,8 @@ export type ErrorType =
   | 'training_already_started'
   | 'invalid_train_set'
   | 'request_format'
+  | 'lang-server'
+  | 'duckling-server'
   | 'unknown'
 
 export interface NLUError {

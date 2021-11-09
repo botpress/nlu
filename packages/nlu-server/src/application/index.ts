@@ -1,11 +1,11 @@
 import { Logger } from '@botpress/logger'
 import { TrainingState, PredictOutput, TrainInput, ServerInfo, TrainingStatus } from '@botpress/nlu-client'
-import { Engine, ModelId, modelIdService } from '@botpress/nlu-engine'
+import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelRepository } from '../infrastructure/model-repo'
 import { ReadonlyTrainingRepository } from '../infrastructure/training-repo/typings'
-import { ModelDoesNotExistError, TrainingNotFoundError } from './errors'
+import { ModelDoesNotExistError, TrainingNotFoundError, LangServerCommError, DucklingCommError } from './errors'
 import TrainingQueue from './training-queue'
 
 export class Application {
@@ -130,13 +130,19 @@ export class Application {
       await this._engine.loadModel(model)
     }
 
-    const predictions = await Bluebird.map(utterances as string[], async (utterance) => {
-      const detectedLanguage = await this._engine.detectLanguage(utterance, { [modelId.languageCode]: modelId })
-      const { entities, contexts, spellChecked } = await this._engine.predict(utterance, modelId)
-      return { entities, contexts, spellChecked, detectedLanguage }
-    })
-
-    return predictions
+    try {
+      const predictions = await Bluebird.map(utterances, (utterance) => this._engine.predict(utterance, modelId))
+      return predictions
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      if (engineErrors.isLangServerError(err)) {
+        throw new LangServerCommError(err)
+      }
+      if (engineErrors.isDucklingServerError(err)) {
+        throw new DucklingCommError(err)
+      }
+      throw thrown
+    }
   }
 
   public async detectLanguage(appId: string, modelIds: ModelId[], utterances: string[]): Promise<string[]> {
@@ -158,12 +164,14 @@ export class Application {
     const missingModels = modelIds.filter((m) => !this._engine.hasModel(m))
 
     if (missingModels.length) {
-      const stringMissingModels = missingModels.map(modelIdService.toString)
-      this._logger.warn(
-        `About to detect language but your model cache seems to small to contains all models simultaneously. The following models are missing [${stringMissingModels.join(
-          ', '
-        )}. You can increase your cache size by the CLI or config.]`
-      )
+      const stringMissingModels = missingModels.map(modelIdService.toString).join(', ')
+
+      const CACHE_TOO_SMALL_WARNING = `
+About to detect language but your model cache seems to small to contains all models simultaneously. 
+The following models are missing [${stringMissingModels}].
+You can increase your cache size by the CLI or config.
+          `
+      this._logger.warn(CACHE_TOO_SMALL_WARNING)
     }
 
     const loadedModels = modelIds.filter((m) => this._engine.hasModel(m))

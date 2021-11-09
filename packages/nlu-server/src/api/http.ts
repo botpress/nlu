@@ -3,7 +3,13 @@ import { NLUError } from '@botpress/nlu-client/src/typings/http'
 import { Request, Response, NextFunction } from 'express'
 import _ from 'lodash'
 
-import { ModelDoesNotExistError, TrainingNotFoundError, TrainingAlreadyStartedError } from '../application/errors'
+import {
+  ModelDoesNotExistError,
+  TrainingNotFoundError,
+  TrainingAlreadyStartedError,
+  LangServerCommError,
+  DucklingCommError
+} from '../application/errors'
 import { InvalidRequestFormatError } from './errors'
 
 const serializeError = (err: Error): NLUError => {
@@ -23,6 +29,14 @@ const serializeError = (err: Error): NLUError => {
   if (err instanceof InvalidRequestFormatError) {
     const { statusCode } = err
     return { message, stack, type: 'request_format', code: statusCode }
+  }
+  if (err instanceof LangServerCommError) {
+    const { statusCode } = err
+    return { message, stack, type: 'lang-server', code: statusCode }
+  }
+  if (err instanceof DucklingCommError) {
+    const { statusCode } = err
+    return { message, stack, type: 'duckling-server', code: statusCode }
   }
   return { message, stack, type: 'unknown', code: 500 }
 }
