@@ -12,21 +12,21 @@ const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
 
 export type HTTPVerb = 'GET' | 'POST' | 'PUT' | 'DELETE'
 export interface HTTPCall<V extends HTTPVerb> {
-  baseURL: string
   verb: V
   ressource: string
 }
 
 export class ClientResponseError extends Error {
   constructor(call: HTTPCall<HTTPVerb>, status: number, message: string) {
-    const { verb, ressource, baseURL } = call
-    const ressourcePath = `${baseURL}/${ressource}`
+    const { verb, ressource } = call
+    const ressourcePath = `lang-server/${ressource}`
     const prefix = status >= 300 ? `${verb} ${ressourcePath} -> ${status}` : `${verb} ${ressourcePath}`
     super(`(${prefix}) ${message}`)
   }
 }
 
-export const responseValidator = (call: HTTPCall<HTTPVerb>) => <S extends SuccessReponse>(
+export const validateResponse = <S extends SuccessReponse>(
+  call: HTTPCall<HTTPVerb>,
   res: AxiosResponse<S | ErrorResponse>
 ): S | ErrorResponse => {
   const { status, data } = res

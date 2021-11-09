@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 import _ from 'lodash'
 import { Client as IClient } from './typings'
@@ -17,7 +17,7 @@ import {
   ErrorResponse,
   ListTrainingsResponseBody
 } from './typings/http'
-import { validateResponse } from './validation'
+import { validateResponse, HTTPCall, HTTPVerb, ClientResponseError } from './validation'
 
 const DEFAULT_CONFIG: AxiosRequestConfig = {
   validateStatus: () => true
@@ -35,74 +35,114 @@ export class NLUClient implements IClient {
   }
 
   public async getInfo(): Promise<InfoResponseBody | ErrorResponse> {
-    const { data } = await this._axios.get('info')
-    return validateResponse<InfoResponseBody>(data)
+    const ressource = 'data'
+    const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
+    const res = await this._get(call)
+    return validateResponse<InfoResponseBody>(call, res)
   }
 
-  public async startTraining(
-    appId: string,
-    trainRequestBody: TrainRequestBody
-  ): Promise<TrainResponseBody | ErrorResponse> {
+  public async startTraining(appId: string, body: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const { data } = await this._axios.post('train', trainRequestBody, { headers })
-    return validateResponse<TrainResponseBody>(data)
+    const ressource = 'train'
+    const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
+    const res = await this._post(call, body, { headers })
+    return validateResponse<TrainResponseBody>(call, res)
   }
 
   public async listTrainings(appId: string, lang?: string): Promise<ListTrainingsResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const endpoint = 'train'
+    const ressource = 'train'
+    const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const params = lang && { lang }
-    const { data } = await this._axios.get(endpoint, { headers, params })
-    return validateResponse<ListTrainingsResponseBody>(data)
+    const res = await this._get(call, { headers, params })
+    return validateResponse<ListTrainingsResponseBody>(call, res)
   }
 
   public async getTrainingStatus(appId: string, modelId: string): Promise<TrainProgressResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const endpoint = `train/${modelId}`
-    const { data } = await this._axios.get(endpoint, { headers })
-    return validateResponse<TrainProgressResponseBody>(data)
+    const ressource = `train/${modelId}`
+    const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
+    const res = await this._get(call, { headers })
+    return validateResponse<TrainProgressResponseBody>(call, res)
   }
 
   public async cancelTraining(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const endpoint = `train/${modelId}/cancel`
-    const { data } = await this._axios.post(endpoint, {}, { headers })
-    return validateResponse<SuccessReponse>(data)
+    const ressource = `train/${modelId}/cancel`
+    const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
+    const res = await this._post(call, {}, { headers })
+    return validateResponse<SuccessReponse>(call, res)
   }
 
   public async listModels(appId: string): Promise<ListModelsResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const endpoint = 'models'
-    const { data } = await this._axios.get(endpoint, { headers })
-    return validateResponse<ListModelsResponseBody>(data)
+    const ressource = 'models'
+    const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
+    const res = await this._get(call, { headers })
+    return validateResponse<ListModelsResponseBody>(call, res)
   }
 
   public async pruneModels(appId: string): Promise<PruneModelsResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const endpoint = 'models/prune'
-    const { data } = await this._axios.post(endpoint, {}, { headers })
-    return validateResponse<PruneModelsResponseBody>(data)
+    const ressource = 'models/prune'
+    const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
+    const res = await this._post(call, {}, { headers })
+    return validateResponse<PruneModelsResponseBody>(call, res)
   }
 
   public async detectLanguage(
     appId: string,
-    detectLangRequestBody: DetectLangRequestBody
+    body: DetectLangRequestBody
   ): Promise<DetectLangResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const endpoint = 'detect-lang'
-    const { data } = await this._axios.post(endpoint, detectLangRequestBody, { headers })
-    return validateResponse<DetectLangResponseBody>(data)
+    const ressource = 'detect-lang'
+    const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
+    const res = await this._post(call, body, { headers })
+    return validateResponse<DetectLangResponseBody>(call, res)
   }
 
   public async predict(
     appId: string,
     modelId: string,
-    predictRequestBody: PredictRequestBody
+    body: PredictRequestBody
   ): Promise<PredictResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const endpoint = `predict/${modelId}`
-    const { data } = await this._axios.post(endpoint, predictRequestBody, { headers })
-    return validateResponse<PredictResponseBody>(data)
+    const ressource = `predict/${modelId}`
+    const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
+    const res = await this._post(call, body, { headers })
+    return validateResponse<PredictResponseBody>(call, res)
+  }
+
+  private _post = async (
+    call: HTTPCall<'POST'>,
+    body?: any,
+    config?: AxiosRequestConfig
+  ): Promise<AxiosResponse<any>> => {
+    try {
+      const { ressource } = call
+      const res = await this._axios.post(ressource, body, config)
+      return res
+    } catch (err) {
+      // axios validate status does not prevent all exceptions
+      throw this._mapErr(call, err)
+    }
+  }
+
+  private _get = async (call: HTTPCall<'GET'>, config?: AxiosRequestConfig): Promise<AxiosResponse<any>> => {
+    try {
+      const { ressource } = call
+      const res = await this._axios.get(ressource, config)
+      return res
+    } catch (err) {
+      // axios validate status does not prevent all exceptions
+      throw this._mapErr(call, err)
+    }
+  }
+
+  private _mapErr = (call: HTTPCall<HTTPVerb>, thrown: any): ClientResponseError => {
+    const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+    const httpStatus = -1
+    return new ClientResponseError(call, httpStatus, err.message)
   }
 
   private _appIdHeader = (appId: string) => {
