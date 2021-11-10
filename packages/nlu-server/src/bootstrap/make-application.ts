@@ -42,7 +42,7 @@ export const makeApplication = async (
 
   const { dbURL, modelDir } = options
 
-  const ghost = makeGhost(baseLogger, modelDir!, watcher, dbURL)
+  const ghost = makeGhost(baseLogger, modelDir, watcher, dbURL)
   await ghost.initialize(!!dbURL)
 
   const modelRepo = new ModelRepository(ghost, baseLogger)

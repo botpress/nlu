@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "nodejs addon for sentencepiece",
   "main": "./dist/index.js",
-  "types": "typings.d.ts",
+  "types": "./src/typings.d.ts",
   "author": "Botpress, Inc.",
   "license": "MIT",
   "gypfile": true,

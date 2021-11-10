@@ -2,14 +2,12 @@ import { makeThreadPool, ThreadPool } from '@botpress/worker'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import os from 'os'
-import path from 'path'
 import { Logger } from 'src/typings'
 import { EntityExtractionResult, ListEntityModel, WarmedListEntityModel } from '../../typings'
 import Utterance from '../../utterance/utterance'
 import { CustomEntityExtractor } from '.'
 import { SerializableUtteranceToken, serializeUtteranceToken } from './serializable-token'
-
-const THREAD_ENTRY_POINT = 'thread-entry-point.js'
+import { ENTRY_POINT } from './thread-entry-point'
 
 const maxMLThreads = Math.max(os.cpus().length - 1, 1) // ncpus - webworker
 const userMlThread = process.env.BP_NUM_ML_THREADS ? Number(process.env.BP_NUM_ML_THREADS) : 4
@@ -51,7 +49,7 @@ export class MultiThreadCustomEntityExtractor extends CustomEntityExtractor {
 
     if (!threadPool) {
       threadPool = makeThreadPool<TaskInput, TaskOutput>(logger, {
-        entryPoint: path.join(__dirname, THREAD_ENTRY_POINT),
+        entryPoint: ENTRY_POINT,
         env: { ...process.env },
         maxWorkers: numMLThreads
       })

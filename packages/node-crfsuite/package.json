@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "NodeJS binding for CRFsuite",
   "main": "dist/index.js",
-  "types": "typings.d.ts",
+  "types": "./src/typings.d.ts",
   "engines": {
     "node": ">=8.0.0"
   },
@@ -25,14 +25,12 @@
   },
   "homepage": "https://github.com/botpress/nlu/packages/node-crfsuite#readme",
   "files": [
-    "src",
+    "cppsrc",
     "crfsuite/lib",
     "crfsuite/include",
     "liblbfgs/lib",
     "liblbfgs/include",
-    "binding.gyp",
-    "index.js",
-    "index.d.ts"
+    "binding.gyp"
   ],
   "dependencies": {},
   "devDependencies": {

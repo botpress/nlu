@@ -1,12 +1,10 @@
 import { makeThreadPool, ThreadPool } from '@botpress/worker'
 import _ from 'lodash'
 import os from 'os'
-import path from 'path'
 import { Logger } from 'src/typings'
 import { MLToolkit } from '../typings'
+import { ENTRY_POINT } from './thread-entry-point'
 import { TaskInput, TaskOutput } from './typings'
-
-const ENTRY_POINT = 'thread-entry-point.js'
 
 class MLThreadPool {
   private _threadPool: ThreadPool<TaskInput, TaskOutput>
@@ -21,7 +19,7 @@ class MLThreadPool {
 
     this._threadPool = makeThreadPool<TaskInput, TaskOutput>(logger, {
       maxWorkers: numMLThreads,
-      entryPoint: path.resolve(__dirname, ENTRY_POINT),
+      entryPoint: ENTRY_POINT,
       env: { ...clean(process.env) }
     })
   }

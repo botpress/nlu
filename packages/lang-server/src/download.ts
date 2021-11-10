@@ -43,6 +43,7 @@ export default async (options: Argv) => {
   const alreadyInstalledModels = langService.getModels().filter((m) => m.lang === options.lang)
   if (alreadyInstalledModels.length) {
     launcherLogger.info(`Model ${options.lang}.${options.dim} is already installed.`)
+    downloadManager.teardown()
     return
   }
   launcherLogger.info(`About to download model ${options.lang}.${options.dim}.`)
@@ -86,6 +87,8 @@ export default async (options: Argv) => {
         launcherLogger.info(`- ${m}`)
       }
 
+      process.off('SIGINT', handleKill)
+      downloadManager.teardown()
       resolve()
     })
   })

@@ -19,9 +19,8 @@ Check out each individual packages for more details.
 **Prerequisites**: Node 12.13 (you can use [nvm](https://github.com/creationix/nvm)) and Yarn.
 
 1. Run `yarn` to fetch node packages.
-1. Run `yarn build` to build.
-1. Run `yarn start` to start the Standalone NLU server.
-1. \* _Optionnal_ \* Run `yarn package` to package in self contained binaries. Binaries are located inside `<nlu-root-path>/dist/*`
+1. Run `yarn build && yarn start` to build and start the Standalone NLU server.
+1. You can also run `yarn dev` to run the NLU Server with [ts-node](https://github.com/TypeStrong/ts-node) however, trainings won't be parallelized on several threads.
 
 ## Running from pre-built binaries
 

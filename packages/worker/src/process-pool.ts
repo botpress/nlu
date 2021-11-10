@@ -1,4 +1,4 @@
-import child_process from 'child_process'
+import child_process, { ForkOptions } from 'child_process'
 import yn from 'yn'
 import { SIG_KILL } from './signals'
 import { Logger, PoolOptions } from './typings'
@@ -11,11 +11,15 @@ export class ProcessPool<I, O> extends WorkerPool<I, O> {
     super(logger, config)
   }
 
-  public createWorker = async (entryPoint: string, env: NodeJS.ProcessEnv) => {
-    const worker = child_process.fork(entryPoint, [], {
-      env: { ...env, CHILD: 'true' },
-      execArgv: [] // important for pkg
-    })
+  public createWorker = async (entryPoint: string, environment: NodeJS.ProcessEnv) => {
+    const env = { ...environment, CHILD: 'true' }
+    const options: ForkOptions = (process as any).pkg
+      ? {
+          env,
+          execArgv: []
+        }
+      : { env }
+    const worker = child_process.fork(entryPoint, [], options)
     return Worker.fromProcess(worker)
   }
 
