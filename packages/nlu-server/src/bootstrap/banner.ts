@@ -24,7 +24,9 @@ export const showBanner = (config: BannerConfig) => {
   const versionLine = `Version ${version}`
 
   let buildLine: string | undefined
-  if (buildInfo) {
+  if (process.env.TS_NODE_DEV) {
+    buildLine = 'TS Node'
+  } else if (buildInfo) {
     const builtFrom = process.pkg ? 'BIN' : 'SRC'
     const branchInfo = buildInfo.branch !== 'master' ? `/${buildInfo.branch}` : ''
     buildLine = `Build ${moment(buildInfo.date).format('YYYYMMDD-HHmm')}_${builtFrom}${branchInfo}`
