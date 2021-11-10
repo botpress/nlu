@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Nodejs binding for Fasttext representation and classification",
   "main": "./dist/index.js",
-  "types": "typings.d.ts",
+  "types": "./src/typings.d.ts",
   "engines": {
     "node": ">=8.0.0"
   },
@@ -34,7 +34,7 @@
     "typescript": "^3.9.10"
   },
   "files": [
-    "src",
+    "cppsrc",
     "fastText/src",
     "index.js",
     "index.d.ts",
