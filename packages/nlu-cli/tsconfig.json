@@ -1,7 +1,4 @@
 {
-  "ts-node": {
-    "files": true
-  },
   "extends": "../../tsconfig.packages.json",
   "references": [{ "path": "../logger" }, { "path": "../nlu-server" }, { "path": "../lang-server" }],
   "compilerOptions": {
