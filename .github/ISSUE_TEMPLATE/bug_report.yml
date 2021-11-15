@@ -16,7 +16,7 @@ body:
       id: nlu-related-confirmation
   - type: dropdown
     validations:
-        required: true
+      required: true
     attributes:
       label: 'Operating system'
       description: 'On which operating system are you observing this issue?'
@@ -32,8 +32,8 @@ body:
         - Other
       id: operating-system
   - type: dropdown
-      validations:
-        required: true
+    validations:
+      required: true
     attributes:
       label: 'Product used'
       description: 'On which product do you experience the issue?'
@@ -52,7 +52,7 @@ body:
         - Sources (NodeJS)
         - Binary
         - Docker Image
-      id: deploy-option  
+      id: deploy-option
   - type: input
     validations:
       required: true
