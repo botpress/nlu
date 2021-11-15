@@ -54,12 +54,12 @@ body:
         - Binary
         - Docker Image
   - type: input
-    id: version
+    id: product-version
     validations:
       required: true
     attributes:
       label: Version
-      description: 'What version of the product are you running? (use command `./nlu [nlu|lang] --version`)'
+      description: 'What version of the product are you running? Use command `./nlu [nlu|lang] --version`. There is a separate version for NLU Server and Lang Server.'
   - type: textarea
     id: config-file
     attributes:
@@ -67,10 +67,10 @@ body:
       description: 'Copy and paste your JSON configuration file. This can be empty.'
       render: json
       placeholder: |
-        '{
-            "verbose": 4, 
-            "doc": false
-         }'
+        {
+          "verbose": 4, 
+          "doc": false
+        }
   - type: textarea
     id: cli-args
     attributes:
@@ -78,7 +78,7 @@ body:
       description: 'With what CLI arguments do you call the product? This can be empty.'
       render: bash
       placeholder: |
-        './nlu --verbose 4 --doc false --languageURL http://localhost:3101'
+        ./nlu --verbose 4 --doc false --languageURL http://localhost:3101
   - type: textarea
     id: env-variables
     attributes:
@@ -86,9 +86,9 @@ body:
       description: 'With what environment variables do you call the product? This can be empty.'
       render: bash
       placeholder: |
-        'NATIVE_EXTENSIONS_DIR="~/myDir" ./nlu'
+        NATIVE_EXTENSIONS_DIR="~/myDir" ./nlu
   - type: textarea
-    id: description
+    id: bug-description
     attributes:
       label: 'Description of the bug'
-      description: 'What is your issue? Make sure to add logs, screenshots, context or any information that you think might help understand and solve the issue.'
+      description: 'What is your issue? Make sure to add logs, context or any information that you think might help understand and solve the issue.'
