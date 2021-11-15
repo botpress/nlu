@@ -5,15 +5,15 @@ name: 'Bug Report'
 body:
   - attributes:
       value: "Thank you for taking the time to fill out this bug report\n"
-    type: markdown
+      type: markdown
   - attributes:
       label: 'Make sure the issue is NLU related'
       description: 'If you are using the NLU Server or the Language Server through Botpress, ensure that the bug you want to report is NLU related. When in doubt, please report the issue on the [main Botpress repo](https://github.com/botpress/botpress).'
       options:
         - label: 'I confirm that the reported bug concerns the NLU independently of Botpress'
           required: true
-    id: nlu-related-confirmation
-    type: checkboxes
+      id: nlu-related-confirmation
+      type: checkboxes
   - attributes:
       label: 'Operating system'
       description: 'On which operating system are you observing this issue?'
@@ -27,10 +27,10 @@ body:
         - CentOS 7.5
         - Alpine 3.11
         - Other
-    id: operating-system
-    type: dropdown
-    validations:
-      required: true
+      id: operating-system
+      type: dropdown
+      validations:
+        required: true
   - attributes:
       label: 'Product used'
       description: 'On which product do you experience the issue?'
@@ -38,10 +38,10 @@ body:
         - NLU Server
         - Lang Server
         - Other
-    id: product-used
-    type: dropdown
-    validations:
-      required: true
+      id: product-used
+      type: dropdown
+      validations:
+        required: true
   - attributes:
       label: 'Deploy Option'
       description: 'How do you run NLU Server or Lang Server?'
@@ -49,17 +49,17 @@ body:
         - Sources (NodeJS)
         - Binary
         - Docker Image
-    id: deploy-option
-    type: dropdown
-    validations:
-      required: true
+      id: deploy-option
+      type: dropdown
+      validations:
+        required: true
   - attributes:
       label: Version
       description: 'What version of the product are you running? (use command `./nlu [nlu|lang] --version`)'
-    id: version
-    type: input
-    validations:
-      required: true
+      id: version
+      type: input
+      validations:
+        required: true
   - attributes:
       label: 'Configuration File'
       description: 'Copy and paste your JSON configuration file. This can be empty.'
