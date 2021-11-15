@@ -6,7 +6,6 @@ body:
   - attributes:
       value: "Thank you for taking the time to fill out this bug report\n"
     type: markdown
-
   - attributes:
       label: 'Make sure the issue is NLU related'
       description: 'If you are using the NLU Server or the Language Server through Botpress, ensure that the bug you want to report is NLU related. When in doubt, please report the issue on the [main Botpress repo](https://github.com/botpress/botpress).'
@@ -15,7 +14,6 @@ body:
           required: true
     id: nlu-related-confirmation
     type: checkboxes
-
   - attributes:
       label: 'Operating system'
       description: 'On which operating system are you observing this issue?'
@@ -33,8 +31,7 @@ body:
     type: dropdown
     validations:
       required: true
-
-    - attributes:
+  - attributes:
       label: 'Product used'
       description: 'On which product do you experience the issue?'
       options:
@@ -45,7 +42,6 @@ body:
     type: dropdown
     validations:
       required: true
-
   - attributes:
       label: 'Deploy Option'
       description: 'How do you run NLU Server or Lang Server?'
@@ -57,7 +53,6 @@ body:
     type: dropdown
     validations:
       required: true
-
   - attributes:
       label: Version
       description: 'What version of the product are you running? (use command `./nlu [nlu|lang] --version`)'
@@ -65,7 +60,6 @@ body:
     type: input
     validations:
       required: true
-
   - attributes:
       label: 'Configuration File'
       description: 'Copy and paste your JSON configuration file. This can be empty.'
@@ -75,29 +69,26 @@ body:
             "verbose": 4, 
             "doc": false
          }'  
-    id: config-file
-    type: textarea
-
+      id: config-file
+      type: textarea
   - attributes:
       label: 'CLI Arguments'
       description: 'With what CLI arguments do you call the product? This can be empty.'
       render: bash
       placeholder: |
         './nlu --verbose 4 --doc false --languageURL http://localhost:3101'  
-    id: cli-args
-    type: textarea
-
+      id: cli-args
+      type: textarea
   - attributes:
       label: 'Environment variables'
       description: 'With what environment variables do you call the product? This can be empty.'
       render: bash
       placeholder: |
         'NATIVE_EXTENSIONS_DIR="~/myDir" ./nlu'  
-    id: env-variables
-    type: textarea
-
+      id: env-variables
+      type: textarea
   - attributes:
       label: Description of the bug
       description: 'What\'s your issue? Make sure to add logs, screenshots, context or any information that you think might help understand and solve the issue.'
-    id: description
-    type: textarea
+      id: description
+      type: textarea
