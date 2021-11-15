@@ -68,7 +68,7 @@ body:
         '{
             "verbose": 4, 
             "doc": false
-         }'  
+         }'
       id: config-file
       type: textarea
   - attributes:
@@ -76,7 +76,7 @@ body:
       description: 'With what CLI arguments do you call the product? This can be empty.'
       render: bash
       placeholder: |
-        './nlu --verbose 4 --doc false --languageURL http://localhost:3101'  
+        './nlu --verbose 4 --doc false --languageURL http://localhost:3101'
       id: cli-args
       type: textarea
   - attributes:
@@ -84,11 +84,11 @@ body:
       description: 'With what environment variables do you call the product? This can be empty.'
       render: bash
       placeholder: |
-        'NATIVE_EXTENSIONS_DIR="~/myDir" ./nlu'  
+        'NATIVE_EXTENSIONS_DIR="~/myDir" ./nlu'
       id: env-variables
       type: textarea
   - attributes:
-      label: Description of the bug
-      description: 'What\'s your issue? Make sure to add logs, screenshots, context or any information that you think might help understand and solve the issue.'
+      label: 'Description of the bug'
+      description: 'What is your issue? Make sure to add logs, screenshots, context or any information that you think might help understand and solve the issue.'
       id: description
       type: textarea
