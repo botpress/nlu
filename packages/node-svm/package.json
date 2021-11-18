@@ -6,7 +6,7 @@
   "author": "Botpress, Inc.",
   "license": "MIT",
   "repository": "https://github.com/botpress/nlu.git",
-  "types": "./typings.d.ts",
+  "types": "./src/typings.d.ts",
   "dependencies": {
     "bluebird": "^3.7.2",
     "getos": "^3.2.1"

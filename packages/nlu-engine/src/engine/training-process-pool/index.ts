@@ -1,20 +1,16 @@
 import { errors, makeProcessPool, ProcessPool } from '@botpress/worker'
 import _ from 'lodash'
-import path from 'path'
 import { TrainingAlreadyStarted, TrainingCanceled, TrainingExitedUnexpectedly } from '../../errors'
 
 import { LanguageConfig, Logger } from '../../typings'
 import { TrainInput, TrainOutput } from '../training-pipeline'
 import { ErrorHandler } from './error-handler'
-
-const PROCESS_ENTRY_POINT = 'process-entry-point.js'
+import { ENTRY_POINT } from './process-entry-point'
 
 export class TrainingProcessPool {
   private _processPool: ProcessPool<TrainInput, TrainOutput>
 
   constructor(private _logger: Logger, config: LanguageConfig) {
-    const entryPoint = path.resolve(__dirname, PROCESS_ENTRY_POINT)
-
     const env = {
       ...process.env,
       NLU_CONFIG: JSON.stringify(config)
@@ -22,7 +18,7 @@ export class TrainingProcessPool {
 
     this._processPool = makeProcessPool<TrainInput, TrainOutput>(this._logger, {
       maxWorkers: Number.POSITIVE_INFINITY,
-      entryPoint,
+      entryPoint: ENTRY_POINT,
       env,
       errorHandler: new ErrorHandler()
     })

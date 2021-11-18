@@ -85,11 +85,11 @@
         "crfsuite/lib/cqdb/src/cqdb.c",
         "crfsuite/lib/cqdb/src/lookup3.c",
 
-        "src/main.cc",
-        "src/trainer_class.cc",
-        "src/tagger_class.cc",
-        "src/node_trainer.cc",
-        "src/training_worker.cc"
+        "cppsrc/main.cc",
+        "cppsrc/trainer_class.cc",
+        "cppsrc/tagger_class.cc",
+        "cppsrc/node_trainer.cc",
+        "cppsrc/training_worker.cc"
       ],
       "defines": [
         "NAPI_VERSION=4"

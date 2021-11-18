@@ -6,15 +6,6 @@
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "bin": "./dist/index.js",
-  "pkg": {
-    "scripts": "./dist/**/*.js",
-    "targets": [
-      "node12-macos-x64",
-      "node12-linux-x64",
-      "node12-win-x64"
-    ],
-    "outputPath": "../dist"
-  },
   "dependencies": {
     "@botpress/lang-server": "*",
     "@botpress/logger": "*",
@@ -42,7 +33,6 @@
     "yn": "^4.0.0"
   },
   "scripts": {
-    "dev": "cross-env ts-node-dev ./src/index.ts",
     "build": "tsc --build",
     "start": "cross-env node ./dist/index.js",
     "test": "echo \"no tests\""

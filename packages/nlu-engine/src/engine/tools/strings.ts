@@ -152,9 +152,9 @@ export function levenshtein(a: string, b: string): number {
     j: number,
     res: number = 0
 
-  const alen = a.length,
-    blen = b.length,
-    row = [...Array(alen + 1).keys()]
+  const alen = a.length
+  const blen = b.length
+  const row = _.range(alen + 1)
 
   let tmp: number
   for (i = 1; i <= blen; i++) {

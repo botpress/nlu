@@ -61,7 +61,6 @@
     "jest": "^24.9.0",
     "prettier": "^2.2.1",
     "ts-jest": "^26.5.5",
-    "ts-node-dev": "^1.1.6",
     "typescript": "^3.9.10"
   },
   "types": "./src/typings.d.ts",

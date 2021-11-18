@@ -62,6 +62,12 @@ export default class DownloadManager {
     await this._refreshMeta()
   }
 
+  public teardown(): void {
+    if (this._refreshTimer) {
+      clearInterval(this._refreshTimer)
+    }
+  }
+
   private async _refreshMeta() {
     try {
       new URL(this.metaUrl)

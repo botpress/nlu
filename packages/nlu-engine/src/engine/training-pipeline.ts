@@ -6,6 +6,7 @@ import { Logger } from '../typings'
 import { watchDog } from '../utils/watch-dog'
 
 import { serializeKmeans } from './clustering'
+import { CustomEntityExtractor } from './entities/custom-extractor'
 import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/multi-thread-extractor'
 import { warmEntityCache } from './entities/entity-cache-manager'
 import { getCtxFeatures } from './intents/context-featurizer'
@@ -288,7 +289,10 @@ async function ExtractEntities(input: TrainStep, tools: Tools, progress: progres
   tools.logger?.debug('Extracting list entities')
 
   step = 1
-  const customEntityExtractor = new MultiThreadCustomEntityExtractor(tools.logger)
+  const customEntityExtractor = process.env.TS_NODE_DEV
+    ? new CustomEntityExtractor() // worker_threads do not work with ts-node
+    : new MultiThreadCustomEntityExtractor(tools.logger)
+
   const allListEntities = await customEntityExtractor.extractMultipleListEntities(
     utterances,
     input.list_entities,

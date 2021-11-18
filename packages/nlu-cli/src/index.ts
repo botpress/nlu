@@ -1,10 +1,9 @@
+import './rewire'
 import { run as runLanguageServer, download as downloadLang, version as langServerVersion } from '@botpress/lang-server'
 import { makeLogger, LoggerLevel } from '@botpress/logger'
 import { run as runNLUServer, version as nluServerVersion } from '@botpress/nlu-server'
 import yargs from 'yargs'
 import yn from 'yn'
-
-import { getAppDataPath } from './app-data'
 
 void yargs
   .version(false)
@@ -36,7 +35,7 @@ void yargs
       },
       modelDir: {
         description: 'Directory where to persist models, ignored if dbURL is set.',
-        default: getAppDataPath()
+        type: 'string'
       },
       limit: {
         description: 'Maximum number of requests per IP per "limitWindow" interval (0 means unlimited)',
@@ -180,7 +179,7 @@ void yargs
         type: 'string'
       }
     },
-    async (argv) => {
+    (argv) => {
       const baseLogger = makeLogger({ prefix: 'LANG' })
       if (argv.version) {
         baseLogger.sub('Version').info(langServerVersion)
@@ -220,16 +219,12 @@ void yargs
         demandOption: true
       }
     },
-    async (argv) => {
-      void downloadLang(argv)
-        .then(() => {
-          process.exit(0)
-        })
-        .catch((err) => {
-          const baseLogger = makeLogger({ prefix: 'LANG' })
-          baseLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occured.')
-          process.exit(1)
-        })
+    (argv) => {
+      void downloadLang(argv).catch((err) => {
+        const baseLogger = makeLogger({ prefix: 'LANG' })
+        baseLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occured.')
+        process.exit(1)
+      })
     }
   )
   .help().argv

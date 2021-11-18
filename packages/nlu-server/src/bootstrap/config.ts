@@ -11,7 +11,7 @@ interface BaseOptions {
   batchSize: number
   modelCacheSize: string
   dbURL?: string
-  modelDir?: string
+  modelDir: string
   verbose: number
   doc: boolean
   logFilter?: string[]
@@ -24,7 +24,7 @@ interface BaseOptions {
   ducklingEnabled: boolean
 }
 
-export type CommandLineOptions = BaseOptions & {
+export type CommandLineOptions = Partial<BaseOptions> & {
   config?: string
 }
 
@@ -32,7 +32,7 @@ export type NLUServerOptions = BaseOptions & {
   legacyElection: boolean // not available from CLI
 }
 
-const DEFAULT_OPTIONS: NLUServerOptions = {
+const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   host: 'localhost',
   port: 3200,
   limit: 0,
@@ -49,19 +49,18 @@ const DEFAULT_OPTIONS: NLUServerOptions = {
   legacyElection: false,
   modelDir: getAppDataPath(),
   maxTraining: 2
-}
+})
 
 export type ConfigSource = 'environment' | 'cli' | 'file'
 
-const _mapCli = (c: CommandLineOptions): NLUServerOptions => {
-  const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken } = c
+const _mapCli = (c: CommandLineOptions): Partial<NLUServerOptions> => {
+  const { ducklingEnabled, ducklingURL, languageURL, languageAuthToken } = c
   return {
     ...c,
     languageURL,
     languageAuthToken,
     ducklingEnabled,
     ducklingURL,
-    modelCacheSize,
     legacyElection: false
   }
 }
@@ -73,7 +72,8 @@ const readEnvJSONConfig = (): NLUServerOptions | null => {
   }
   try {
     const parsedContent = JSON.parse(rawContent)
-    return { ...DEFAULT_OPTIONS, ...parsedContent }
+    const defaults = DEFAULT_OPTIONS()
+    return { ...defaults, ...parsedContent }
   } catch {
     return null
   }
@@ -83,7 +83,8 @@ const readFileConfig = async (configPath: string): Promise<NLUServerOptions> => 
   try {
     const rawContent = await fse.readFile(configPath, 'utf8')
     const parsedContent = JSON.parse(rawContent)
-    return { ...DEFAULT_OPTIONS, ...parsedContent }
+    const defaults = DEFAULT_OPTIONS()
+    return { ...defaults, ...parsedContent }
   } catch (err) {
     const e = new Error(`The following errored occured when reading config file "${configPath}": ${err.message}`)
     e.stack = err.stack
@@ -104,7 +105,9 @@ export const getConfig = async (
     return { options, source: 'file' }
   }
 
-  const options = _mapCli(c)
+  const cliOptions = _mapCli(c)
+  const defaults = DEFAULT_OPTIONS()
+  const options: NLUServerOptions = { ...defaults, ...cliOptions }
   return { options, source: 'cli' }
 }
 
