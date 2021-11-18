@@ -1,11 +1,11 @@
 import { Logger } from '@botpress/logger'
 import { TrainingState, PredictOutput, TrainInput, ServerInfo, TrainingStatus } from '@botpress/nlu-client'
-import { Engine, ModelId, modelIdService } from '@botpress/nlu-engine'
+import { Engine, ModelId, modelIdService, Specifications } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { ReadonlyTrainingRepository, Training } from '../infrastructure/training-repo/typings'
-import { ModelDoesNotExistError, TrainingNotFoundError } from './errors'
+import { ReadonlyTrainingRepository } from '../infrastructure/training-repo/typings'
+import { ModelDoesNotExistError, TrainingNotFoundError, InvalidModelSpecError } from './errors'
 import TrainingQueue from './training-queue'
 
 export class Application {
@@ -43,11 +43,11 @@ export class Application {
   }
 
   public async getModels(appId: string): Promise<ModelId[]> {
-    return this._modelRepo.listModels(appId)
+    return this._modelRepo.listModels(appId, this._getSpecFilter())
   }
 
   public async pruneModels(appId: string): Promise<ModelId[]> {
-    const modelIds = await this._modelRepo.pruneModels(appId, { keep: 0 })
+    const modelIds = await this._modelRepo.pruneModels(appId, { keep: 0 }, this._getSpecFilter())
 
     for (const modelId of modelIds) {
       if (this._engine.hasModel(modelId)) {
@@ -85,7 +85,7 @@ export class Application {
 
     const hasACorrespondingTraining = (m: ModelId) => sessions.some(({ modelId }) => modelIdService.areSame(modelId, m))
 
-    const filters = _.pickBy({ languageCode }, _.negate(_.isUndefined))
+    const filters = { ...this._getSpecFilter(), languageCode }
     const models = await this._modelRepo.listModels(appId, filters)
     const doneSessions = models
       .filter(_.negate(hasACorrespondingTraining))
@@ -99,6 +99,11 @@ export class Application {
     if (training) {
       const { status, error, progress } = training
       return { status, error, progress }
+    }
+
+    const { specificationHash: currentSpec } = this._getSpecFilter()
+    if (modelId.specificationHash !== currentSpec) {
+      throw new InvalidModelSpecError(modelId, currentSpec)
     }
 
     const model = await this._modelRepo.getModel(appId, modelId)
@@ -120,6 +125,11 @@ export class Application {
     const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
     if (!modelExists) {
       throw new ModelDoesNotExistError(modelId)
+    }
+
+    const { specificationHash: currentSpec } = this._getSpecFilter()
+    if (modelId.specificationHash !== currentSpec) {
+      throw new InvalidModelSpecError(modelId, currentSpec)
     }
 
     if (!this._engine.hasModel(modelId)) {
@@ -145,6 +155,11 @@ export class Application {
       const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
       if (!modelExists) {
         throw new ModelDoesNotExistError(modelId)
+      }
+
+      const { specificationHash: currentSpec } = this._getSpecFilter()
+      if (modelId.specificationHash !== currentSpec) {
+        throw new InvalidModelSpecError(modelId, currentSpec)
       }
 
       if (!this._engine.hasModel(modelId)) {
@@ -177,5 +192,11 @@ export class Application {
     })
 
     return detectedLanguages
+  }
+
+  private _getSpecFilter = (): { specificationHash: string } => {
+    const specifications = this._engine.getSpecifications()
+    const specFilter = modelIdService.briefId({ specifications }) as { specificationHash: string }
+    return specFilter
   }
 }
