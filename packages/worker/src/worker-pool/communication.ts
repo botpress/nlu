@@ -1,4 +1,4 @@
-import { ErrorMessage } from '../error-utils'
+import { SerializedError } from 'src/typings'
 
 export type OutgoingPayload<T extends OutgoingMessageType, I> = T extends 'start_task'
   ? {
@@ -18,7 +18,7 @@ export type IncomingPayload<T extends IncomingMessageType, P> = T extends 'log'
   : T extends 'task_progress'
   ? { progress: number }
   : T extends 'task_error'
-  ? { error: ErrorMessage }
+  ? { error: SerializedError }
   : T extends 'task_done'
   ? { output: P }
   : {}

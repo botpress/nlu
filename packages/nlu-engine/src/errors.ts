@@ -1,3 +1,5 @@
+import { LangError as SerializedError, ErrorType as LangServerErrorType } from '@botpress/lang-client'
+
 export class TrainingCanceled extends Error {}
 export function isTrainingCanceled(err: Error): err is TrainingCanceled {
   return err instanceof TrainingCanceled
@@ -19,4 +21,30 @@ export class ModelLoadingError extends Error {
   constructor(component: string, innerError: Error | undefined) {
     super(`${component} could load model. Inner error is: "${innerError?.message}"`)
   }
+}
+
+export class LangServerError extends Error {
+  public code: number
+  public type: LangServerErrorType
+
+  constructor(serializedError: SerializedError) {
+    super(serializedError.message)
+    const { code, type, stack } = serializedError
+    this.stack = stack
+    this.code = code
+    this.type = type
+  }
+}
+export function isLangServerError(err: Error): err is LangServerError {
+  return err instanceof LangServerError
+}
+
+export class DucklingServerError extends Error {
+  constructor(message: string, stack?: string) {
+    super(message)
+    this.stack = stack
+  }
+}
+export function isDucklingServerError(err: DucklingServerError): err is DucklingServerError {
+  return err instanceof DucklingServerError
 }

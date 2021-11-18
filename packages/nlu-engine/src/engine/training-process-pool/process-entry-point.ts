@@ -1,6 +1,7 @@
 import { makeProcessEntryPoint, TaskDefinition } from '@botpress/worker'
 import { initializeTools } from '../initialize-tools'
 import { Trainer, TrainInput, TrainOutput } from '../training-pipeline'
+import { ErrorHandler } from './error-handler'
 
 export const ENTRY_POINT = __filename
 

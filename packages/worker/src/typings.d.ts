@@ -6,6 +6,20 @@ export interface Logger {
   sub: (namespace: string) => Logger
 }
 
+export interface SerializedError {
+  message: string
+  stack?: string
+  data: any
+}
+
+export interface ErrorSerializer {
+  serializeError(err: Error): SerializedError
+}
+
+export interface ErrorDeserializer {
+  deserializeError(err: SerializedError): Error
+}
+
 export interface TaskDefinition<I> {
   input: I
   logger: Logger // TODO use the actual logger implementation with a custom LogTransporter
@@ -24,10 +38,15 @@ export interface PoolOptions {
   entryPoint: string
   maxWorkers: number
   env: NodeJS.ProcessEnv
+  errorHandler?: ErrorDeserializer
 }
 
 export interface WorkerPool<I, O> {
   run(taskId: string, input: I, progress: (x: number) => void): Promise<O>
+}
+
+export interface EntryPointOptions {
+  errorHandler?: ErrorSerializer
 }
 
 export interface WorkerEntryPoint<I, O> {
@@ -45,6 +64,6 @@ export interface ThreadPool<I, O> extends WorkerPool<I, O> {}
 export interface ThreadEntyPoint<I, O> extends WorkerEntryPoint<I, O> {}
 
 export const makeProcessPool: <I, O>(logger: Logger, config: PoolOptions) => ProcessPool<I, O>
-export const makeProcessEntryPoint: <I, O>() => ProcessEntyPoint<I, O>
+export const makeProcessEntryPoint: <I, O>(config?: EntryPointOptions) => ProcessEntyPoint<I, O>
 export const makeThreadPool: <I, O>(logger: Logger, config: PoolOptions) => ThreadPool<I, O>
-export const makeThreadEntryPoint: <I, O>() => ThreadEntyPoint<I, O>
+export const makeThreadEntryPoint: <I, O>(config?: EntryPointOptions) => ThreadEntyPoint<I, O>

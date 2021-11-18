@@ -6,8 +6,9 @@ import path from 'path'
 
 import API, { APIOptions } from './api'
 import { getAppDataPath } from './app-data'
+import { LangApplication } from './application'
+import DownloadManager from './application/download-manager'
 import { requireJSON } from './require-json'
-import DownloadManager from './service/download-manager'
 
 const packageJsonPath = path.resolve(__dirname, '../package.json')
 const packageJson = requireJSON<{ version: string }>(packageJsonPath)
@@ -134,13 +135,11 @@ ${_.repeat(' ', 9)}========================================`)
 
   launcherLogger.info(`Serving ${options.dim} language dimensions from ${options.langDir}`)
 
-  if (options.offline) {
-    await Promise.all([API(apiOptions, baseLogger, langService), langService.initialize()])
-  } else {
-    await Promise.all([
-      API(apiOptions, baseLogger, langService, downloadManager),
-      downloadManager.initialize(),
-      langService.initialize()
-    ])
-  }
+  const { offline, adminToken } = options
+  const langApplication = new LangApplication(langService, downloadManager, {
+    offline,
+    version,
+    adminToken
+  })
+  await Promise.all([API(apiOptions, baseLogger, langApplication), langApplication.initialize()])
 }

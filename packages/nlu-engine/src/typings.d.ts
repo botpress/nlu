@@ -3,11 +3,18 @@ export const SYSTEM_ENTITIES: string[]
 export const errors: {
   isTrainingAlreadyStarted: (err: Error) => boolean
   isTrainingCanceled: (err: Error) => boolean
+  isLangServerError: (err: Error) => boolean
+  isDucklingServerError: (err: Error) => boolean
 }
 
 export const makeEngine: (config: Config, logger: Logger) => Promise<Engine>
 
 export const modelIdService: ModelIdService
+
+export interface InstalledModel {
+  lang: string
+  loaded: boolean
+}
 
 export class LanguageService {
   constructor(dim: number, domain: string, langDir: string, logger?: Logger)
@@ -18,8 +25,8 @@ export class LanguageService {
   loadModel(lang: string): Promise<void>
   tokenize(utterances: string[], lang: string): Promise<string[][]>
   vectorize(tokens: string[], lang: string): Promise<number[][]>
-  getModels()
-  remove(lang: string)
+  getModels(): InstalledModel[]
+  remove(lang: string): void
 }
 
 export interface Config extends LanguageConfig {
@@ -30,13 +37,9 @@ export interface Config extends LanguageConfig {
 export interface LanguageConfig {
   ducklingURL: string
   ducklingEnabled: boolean
-  languageSources: LanguageSource[]
+  languageURL: string
+  languageAuthToken?: string
   cachePath: string
-}
-
-export interface LanguageSource {
-  endpoint: string
-  authToken?: string
 }
 
 export interface Logger {
@@ -58,7 +61,6 @@ export interface TrainingOptions {
 }
 
 export interface Engine {
-  getHealth: () => Health
   getLanguages: () => string[]
   getSpecifications: () => Specifications
 
@@ -100,19 +102,15 @@ export interface Model {
   }
 }
 
-export interface Specifications {
-  nluVersion: string // semver string
-  languageServer: {
-    dimensions: number
-    domain: string
-    version: string // semver string
-  }
+export interface LangServerSpecs {
+  dimensions: number
+  domain: string
+  version: string
 }
 
-export interface Health {
-  isEnabled: boolean
-  validProvidersCount: number
-  validLanguages: string[]
+export interface Specifications {
+  engineVersion: string
+  languageServer: LangServerSpecs
 }
 
 /**

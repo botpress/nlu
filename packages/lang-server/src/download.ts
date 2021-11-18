@@ -6,7 +6,7 @@ import _ from 'lodash'
 import path from 'path'
 
 import { getAppDataPath } from './app-data'
-import DownloadManager from './service/download-manager'
+import DownloadManager from './application/download-manager'
 
 interface Argv {
   langDir?: string

@@ -14,12 +14,10 @@ import {
   TrainingState,
   WrittableTrainingRepository
 } from '../infrastructure/training-repo/typings'
-import { serializeError } from '../utils/error-utils'
 import { watchDog, WatchDog } from '../utils/watch-dog'
 import { TrainingAlreadyStartedError, TrainingNotFoundError } from './errors'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
-
 const TRAINING_HEARTBEAT_SECURITY_FACTOR = 3
 const MIN_TRAINING_HEARTBEAT = ms('10s')
 const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * TRAINING_HEARTBEAT_SECURITY_FACTOR
@@ -202,10 +200,12 @@ export default class TrainingQueue {
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set(training)
       }, '_train_done')
-    } catch (err) {
+    } catch (thrownObject) {
       throttledCb.cancel()
 
-      if (NLUEngine.errors.isTrainingCanceled(err as Error)) {
+      const err = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
+
+      if (NLUEngine.errors.isTrainingCanceled(err)) {
         this.logger.info(`[${trainKey}] Training Canceled.`)
 
         training.status = 'canceled'
@@ -215,14 +215,25 @@ export default class TrainingQueue {
         return
       }
 
-      if (NLUEngine.errors.isTrainingAlreadyStarted(err as Error)) {
+      if (NLUEngine.errors.isTrainingAlreadyStarted(err)) {
         this.logger.warn(`[${trainKey}] Training Already Started.`) // This should never occur.
         return
       }
 
-      const type: TrainingErrorType = 'unknown'
+      let type: TrainingErrorType = 'unknown'
+      if (NLUEngine.errors.isLangServerError(err)) {
+        type = 'lang-server'
+        this.logger.attachError(err).error(`[${trainKey}] Error occured with Language Server.`)
+      }
+
+      if (NLUEngine.errors.isDucklingServerError(err)) {
+        type = 'duckling-server'
+        this.logger.attachError(err).error(`[${trainKey}] Error occured with Duckling Server.`)
+      }
+
       training.status = 'errored'
-      training.error = { ...serializeError(err), type }
+      const { message, stack } = err
+      training.error = { message, stack, type }
 
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set(training)

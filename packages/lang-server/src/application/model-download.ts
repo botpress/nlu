@@ -4,8 +4,8 @@ import Bluebird from 'bluebird'
 import fse from 'fs-extra'
 import _ from 'lodash'
 import { Readable } from 'stream'
-type ModelType = 'bpe' | 'embeddings'
 
+type ModelType = 'bpe' | 'embeddings'
 export interface DownloadableModel {
   type: ModelType
   remoteUrl: string

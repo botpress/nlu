@@ -4,7 +4,7 @@ import _ from 'lodash'
 import LRUCache from 'lru-cache'
 import ms from 'ms'
 import sizeof from 'object-sizeof'
-import { PredictOutput, TrainInput } from 'src/typings'
+import { PredictOutput, TrainInput, Specifications } from 'src/typings'
 
 import v8 from 'v8'
 import { isListEntity, isPatternEntity } from '../guards'
@@ -61,7 +61,7 @@ export default class Engine implements IEngine {
   private _trainLogger: Logger
   private _predictLogger: Logger
 
-  constructor(private _logger: Logger, opt: Partial<EngineOptions> = {}) {
+  constructor(private version: string, private _logger: Logger, opt: Partial<EngineOptions> = {}) {
     this._trainLogger = _logger.sub('training')
     this._predictLogger = _logger.sub('predict')
 
@@ -94,25 +94,20 @@ export default class Engine implements IEngine {
     return Math.abs(parsedCacheSize)
   }
 
-  public getHealth() {
-    return this._tools.getHealth()
-  }
-
   public getLanguages() {
     return this._tools.getLanguages()
   }
 
-  public getSpecifications() {
-    return this._tools.getSpecifications()
+  public getSpecifications(): Specifications {
+    const languageServer = this._tools.getLangServerSpecs()
+    return {
+      engineVersion: this.version,
+      languageServer
+    }
   }
 
   public async initialize(config: LanguageConfig & { assetsPath: string }): Promise<void> {
     this._tools = await initializeTools(config, this._logger)
-    const { nluVersion, languageServer } = this._tools.getSpecifications()
-    if (!_.isString(nluVersion) || !this._dictionnaryIsFilled(languageServer)) {
-      this._logger.warning('Either the nlu version or the lang server version is not set correctly.')
-    }
-
     this._trainingWorkerQueue = new TrainingProcessPool(this._trainLogger, config)
   }
 

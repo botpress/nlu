@@ -31,9 +31,26 @@ export interface DetectLangRequestBody extends PredictRequestBody {
   models: string[]
 }
 
+export type ErrorType =
+  | 'model_not_found'
+  | 'training_not_found'
+  | 'training_already_started'
+  | 'invalid_train_set'
+  | 'request_format'
+  | 'lang-server'
+  | 'duckling-server'
+  | 'unknown'
+
+export interface NLUError {
+  message: string
+  stack?: string
+  type: ErrorType
+  code: number
+}
+
 export interface ErrorResponse {
   success: false
-  error: string
+  error: NLUError
 }
 
 export interface SuccessReponse {

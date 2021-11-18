@@ -387,7 +387,6 @@ const makeLogger = (trainId: string, logger: Logger) => {
     // awaiting if not responsibility of this logger decorator
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     ret.then(() => logger.debug(taskDone(trainId, fn.name))).catch((_err) => {})
-
     return ret
   }
 }

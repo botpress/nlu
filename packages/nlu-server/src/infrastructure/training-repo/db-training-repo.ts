@@ -144,7 +144,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
 
   private _partialTrainStateToQuery = (state: Partial<TrainingState>): Partial<Omit<TableRow, keyof TableId>> => {
     const { progress, status, error, cluster } = state
-    const { type: error_type, message: error_message, stackTrace: error_stack } = error || {}
+    const { type: error_type, message: error_message, stack: error_stack } = error || {}
     const rowFilters = {
       status,
       progress,
@@ -158,7 +158,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
 
   private _trainStateToRow = (state: TrainingState): Omit<TableRow, keyof TableId | 'dataset'> => {
     const { progress, status, error } = state
-    const { type: error_type, message: error_message, stackTrace: error_stack } = error || {}
+    const { type: error_type, message: error_message, stack: error_stack } = error || {}
     return {
       status,
       progress,
@@ -184,7 +184,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
         ? {
             type: error_type!,
             message: error_message!,
-            stackTrace: error_stack!
+            stack: error_stack!
           }
         : undefined
 

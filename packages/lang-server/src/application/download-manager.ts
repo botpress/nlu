@@ -1,3 +1,4 @@
+import { AvailableModel } from '@botpress/lang-client'
 import { Logger } from '@botpress/logger'
 import axios from 'axios'
 import fse from 'fs-extra'
@@ -8,8 +9,7 @@ import { getAppDataPath } from '../app-data'
 import ModelDownload from './model-download'
 
 type ModelType = 'bpe' | 'embeddings'
-
-export interface DownloadableModel {
+interface DownloadableModel {
   type: ModelType
   remoteUrl: string
   language: string
@@ -53,7 +53,7 @@ export default class DownloadManager {
     this._logger = baseLogger.sub('lang').sub('download')
   }
 
-  async initialize() {
+  public async initialize(): Promise<void> {
     fse.ensureDirSync(this.destDir)
     if (this._refreshTimer) {
       clearInterval(this._refreshTimer)
@@ -120,17 +120,18 @@ export default class DownloadManager {
     }
   }
 
-  get downloadableLanguages() {
+  public get downloadableLanguages(): AvailableModel[] {
     if (!this.meta) {
       throw new Error('Meta not initialized yet')
     }
 
-    return this.meta.embeddings
+    const { meta } = this
+    return meta.embeddings
       .filter((mod) => mod.dim === this.dim && mod.domain === this.domain)
       .map((mod) => {
         return {
-          ...this.meta!.languages[mod.language],
-          size: mod.size + this.meta!.bpe[mod.language].size
+          ...meta.languages[mod.language],
+          size: mod.size + meta.bpe[mod.language].size
         }
       })
   }
@@ -145,7 +146,7 @@ export default class DownloadManager {
     })
   }
 
-  cancelAndRemove(id: string) {
+  public cancelAndRemove(id: string): void {
     const activeDownload = this.inProgress.find((x) => x.id !== id)
     if (activeDownload && activeDownload.getStatus().status === 'downloading') {
       activeDownload.cancel()
@@ -158,7 +159,7 @@ export default class DownloadManager {
     this.inProgress = this.inProgress.filter((x) => x.id !== id)
   }
 
-  async download(lang: string) {
+  public async download(lang: string): Promise<string> {
     if (!this.downloadableLanguages.find((l) => lang === l.code)) {
       throw new Error(`Could not find model of dimention "${this.dim}" in domain "${this.domain}" for lang "${lang}"`)
     }
