@@ -14,7 +14,7 @@ const augmentWithExtraKey = (res: Object) => {
   ]
 }
 
-const error: LangError = { code: 500, type: 'unknown', message: 'An error' }
+const error: LangError = { code: 500, type: 'internal', message: 'An error' }
 const call: HTTPCall<'GET'> = { verb: 'GET', ressource: 'info' }
 
 const axiosRes = (data: any): AxiosResponse<any> => {
@@ -45,7 +45,7 @@ test('validating an unsuccessfull response with unempty error should pass', asyn
 })
 
 test('validating an unsuccessfull response with empty error message should pass', async () => {
-  const error: LangError = { message: '', code: 500, type: 'unknown' }
+  const error: LangError = { message: '', code: 500, type: 'internal' }
 
   // arrange
   const res: ErrorResponse = { success: false, error }

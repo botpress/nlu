@@ -68,7 +68,7 @@ export interface DownloadStartResult {
  * ### HTTP Communication ###
  * ##########################
  */
-export type ErrorType = 'bad_request' | 'not_ready' | 'unauthorized' | 'offline' | 'unknown'
+export type ErrorType = 'bad_request' | 'not_ready' | 'unauthorized' | 'offline' | 'internal'
 export interface LangError {
   message: string
   stack?: string

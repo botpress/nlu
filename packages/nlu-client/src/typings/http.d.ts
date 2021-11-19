@@ -39,7 +39,7 @@ export type ErrorType =
   | 'request_format'
   | 'lang-server'
   | 'duckling-server'
-  | 'unknown'
+  | 'internal'
 
 export interface NLUError {
   message: string

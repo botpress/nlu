@@ -82,6 +82,6 @@ export class LanguageClient {
       return err
     }
     const { message, stack } = err
-    return new LangServerError({ message, stack, code: -1, type: 'unknown' })
+    return new LangServerError({ message, stack, code: -1, type: 'internal' })
   }
 }

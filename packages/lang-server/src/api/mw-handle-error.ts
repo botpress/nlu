@@ -23,9 +23,9 @@ const serializeError = (err: Error): LangError => {
   }
   if (err instanceof ResponseError) {
     const { statusCode } = err
-    return { message, stack, type: 'unknown', code: statusCode }
+    return { message, stack, type: 'internal', code: statusCode }
   }
-  return { message, stack, type: 'unknown', code: 500 }
+  return { message, stack, type: 'internal', code: 500 }
 }
 
 const _handleErrorLogging = (err: Error, logger: Logger) => {

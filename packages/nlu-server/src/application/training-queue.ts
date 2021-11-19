@@ -220,7 +220,7 @@ export default class TrainingQueue {
         return
       }
 
-      let type: TrainingErrorType = 'unknown'
+      let type: TrainingErrorType = 'internal'
       if (NLUEngine.errors.isLangServerError(err)) {
         type = 'lang-server'
         this.logger.attachError(err).error(`[${trainKey}] Error occured with Language Server.`)
@@ -239,7 +239,7 @@ export default class TrainingQueue {
         return repo.set(training)
       }, '_train_errored')
 
-      if (type === 'unknown') {
+      if (type === 'internal') {
         this.logger.attachError(err as Error).error('an error occured during training')
       }
     } finally {

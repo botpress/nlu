@@ -38,7 +38,7 @@ const serializeError = (err: Error): NLUError => {
     const { statusCode } = err
     return { message, stack, type: 'duckling-server', code: statusCode }
   }
-  return { message, stack, type: 'unknown', code: 500 }
+  return { message, stack, type: 'internal', code: 500 }
 }
 
 export const handleError = (thrownObject: any, _req: Request, res: Response, _next: NextFunction) => {
