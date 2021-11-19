@@ -15,6 +15,12 @@ export class TrainingNotFoundError extends ResponseError {
   }
 }
 
+export class InvalidModelSpecError extends ResponseError {
+  constructor(modelId: ModelId, currentSpec: string) {
+    super(`expected spec hash to be "${currentSpec}". target model has spec "${modelId.specificationHash}".`, 400)
+  }
+}
+
 export class TrainingAlreadyStartedError extends ResponseError {
   constructor(appId: string, modelId: ModelId) {
     const stringId = modelIdService.toString(modelId)
