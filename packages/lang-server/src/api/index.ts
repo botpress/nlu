@@ -85,7 +85,6 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
   const waitForServiceMw = serviceLoadingMiddleware(application.languageService)
   const validateLanguageMw = extractPathLanguageMiddleware(application.languageService)
   const adminTokenMw = authMiddleware(options.adminToken, baseLogger)
-
   const handleErr = handleUnexpectedError(logger)
 
   app.get('/info', (req, res, next) => {
@@ -97,7 +96,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       }
       return res.json(response)
     } catch (err) {
-      return handleErr(err, req, res, next)
+      return next(err)
     }
   })
 
@@ -112,7 +111,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       }
       return res.set(cachePolicy).json(response)
     } catch (err) {
-      return handleErr(err, req, res, next)
+      return next(err)
     }
   })
 
@@ -127,7 +126,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       }
       return res.set(cachePolicy).json(response)
     } catch (err) {
-      return handleErr(err, req, res, next)
+      return next(err)
     }
   })
 
@@ -142,7 +141,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       }
       return res.json(response)
     } catch (err) {
-      return handleErr(err, req, res, next)
+      return next(err)
     }
   })
 
@@ -153,7 +152,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       const response: DownloadLangResponseBody = { success: true, downloadId }
       return res.json(response)
     } catch (err) {
-      return handleErr(err, req, res, next)
+      return next(err)
     }
   })
 
@@ -164,7 +163,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       const response: SuccessReponse = { success: true }
       return res.json(response)
     } catch (err) {
-      return handleErr(err, req, res, next)
+      return next(err)
     }
   })
 
@@ -175,7 +174,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       const response: SuccessReponse = { success: true }
       return res.json(response)
     } catch (err) {
-      return handleErr(err, req, res, next)
+      return next(err)
     }
   })
 
@@ -186,11 +185,12 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
       const response: SuccessReponse = { success: true }
       return res.json(response)
     } catch (err) {
-      return handleErr(err, req, res, next)
+      return next(err)
     }
   })
 
   app.use('/languages', waitForServiceMw, router)
+  app.use(handleErr)
 
   const httpServer = createServer(app)
 
