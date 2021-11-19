@@ -1,6 +1,6 @@
 {
   "name": "@botpress/lang-client",
-  "version": "0.0.1",
+  "version": "1.2.0",
   "description": "Client and typings for Language Server's API",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",

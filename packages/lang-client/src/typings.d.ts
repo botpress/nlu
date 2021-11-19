@@ -93,12 +93,10 @@ export interface DownloadLangResponseBody extends SuccessReponse, DownloadStartR
 
 export interface TokenizeRequestBody {
   utterances: string[]
-  language: string
 }
 
 export interface VectorizeRequestBody {
   tokens: string[]
-  language: string
 }
 
 /**

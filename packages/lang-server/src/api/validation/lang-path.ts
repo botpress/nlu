@@ -1,13 +1,14 @@
 import { LanguageService } from '@botpress/nlu-engine'
 import { NextFunction, Request, Response } from 'express'
 import _ from 'lodash'
+import { LANGUAGES } from '../../languages'
 import { BadRequestError } from './../errors'
 
 export type RequestWithLang = Request & {
-  language?: string
+  params: { lang: string }
 }
 
-export const validateLanguage = (service: LanguageService) => (language: any): string => {
+export const assertLanguage = (service: LanguageService, language: any): void => {
   if (!language) {
     throw new BadRequestError("Param 'lang' is mandatory")
   }
@@ -16,21 +17,22 @@ export const validateLanguage = (service: LanguageService) => (language: any): s
     throw new BadRequestError(`Param 'lang': ${language} must be a string`)
   }
 
+  if (!_(LANGUAGES).keys().includes(language)) {
+    throw new BadRequestError(`Param 'lang': ${language} is not an iso 639-1 language code`)
+  }
+
   const availableLanguages = service.getModels().map((x) => x.lang)
   if (!availableLanguages.includes(language)) {
     throw new BadRequestError(`Param 'lang': ${language} is not element of the available languages`)
   }
 
-  return language
+  // language is valid
 }
 
 export const extractPathLanguageMiddleware = (service: LanguageService) => {
-  const languageValidator = validateLanguage(service)
-
   return (req: Request, _res: Response, next: NextFunction) => {
     try {
-      const language = languageValidator(req.params.lang)
-      ;(req as RequestWithLang).language = language
+      assertLanguage(service, req.params.lang)
       next()
     } catch (err) {
       next(err)

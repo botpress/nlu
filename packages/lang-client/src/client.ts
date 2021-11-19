@@ -39,17 +39,17 @@ export class LangClient implements IClient {
     return validateResponse<InfoResponseBody>(call, res)
   }
 
-  public async tokenize(utterances: string[], language: string): Promise<TokenizeResponseBody | ErrorResponse> {
-    const ressource = 'tokenize'
-    const body: TokenizeRequestBody = { utterances, language }
+  public async tokenize(utterances: string[], lang: string): Promise<TokenizeResponseBody | ErrorResponse> {
+    const ressource = `tokenize/${lang}`
+    const body: TokenizeRequestBody = { utterances }
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, body)
     return validateResponse<TokenizeResponseBody>(call, res)
   }
 
-  public async vectorize(tokens: string[], language: string): Promise<VectorizeResponseBody | ErrorResponse> {
-    const ressource = 'vectorize'
-    const body: VectorizeRequestBody = { tokens, language }
+  public async vectorize(tokens: string[], lang: string): Promise<VectorizeResponseBody | ErrorResponse> {
+    const ressource = `vectorize/${lang}`
+    const body: VectorizeRequestBody = { tokens }
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, body)
     return validateResponse<VectorizeResponseBody>(call, res)
