@@ -24,7 +24,7 @@ import { authMiddleware } from './mw-authentification'
 import { handleUnexpectedError } from './mw-handle-error'
 import { serviceLoadingMiddleware } from './mw-service-loading'
 import { validateTokenizeRequestBody, validateVectorizeRequestBody } from './validation/body'
-import { extractPathLanguageMiddleware, RequestWithLang } from './validation/lang-path'
+import { extractPathLanguageMiddleware, RequestWithLang, assertLanguage } from './validation/lang-path'
 
 export interface APIOptions {
   version: string
@@ -86,9 +86,6 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
   const validateLanguageMw = extractPathLanguageMiddleware(application.languageService)
   const adminTokenMw = authMiddleware(options.adminToken, baseLogger)
 
-  const validateVectorize = validateVectorizeRequestBody(application.languageService)
-  const validateTokenize = validateTokenizeRequestBody(application.languageService)
-
   const handleErr = handleUnexpectedError(logger)
 
   app.get('/info', (req, res, next) => {
@@ -104,10 +101,11 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
     }
   })
 
-  app.post('/tokenize', waitForServiceMw, async (req, res, next) => {
+  app.post('/tokenize/:lang', waitForServiceMw, validateLanguageMw, async (req: RequestWithLang, res, next) => {
     try {
-      const { utterances, language } = validateTokenize(req.body)
-      const result = await application.tokenize(utterances, language)
+      const { lang } = req.params
+      const { utterances } = validateTokenizeRequestBody(req.body)
+      const result = await application.tokenize(utterances, lang)
       const response: TokenizeResponseBody = {
         success: true,
         ...result
@@ -118,10 +116,11 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
     }
   })
 
-  app.post('/vectorize', waitForServiceMw, async (req, res, next) => {
+  app.post('/vectorize/:lang', waitForServiceMw, validateLanguageMw, async (req: RequestWithLang, res, next) => {
     try {
-      const { tokens, language } = validateVectorize(req.body)
-      const result = await application.vectorize(tokens, language)
+      const { lang } = req.params
+      const { tokens } = validateVectorizeRequestBody(req.body)
+      const result = await application.vectorize(tokens, lang)
       const response: VectorizeResponseBody = {
         success: true,
         ...result
@@ -160,7 +159,8 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
 
   router.post('/:lang/delete', adminTokenMw, validateLanguageMw, async (req: RequestWithLang, res, next) => {
     try {
-      application.deleteLang(req.language!)
+      const { lang } = req.params
+      application.deleteLang(lang)
       const response: SuccessReponse = { success: true }
       return res.json(response)
     } catch (err) {
@@ -170,7 +170,8 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
 
   router.post('/:lang/load', adminTokenMw, validateLanguageMw, async (req: RequestWithLang, res, next) => {
     try {
-      await application.loadLang(req.language!)
+      const { lang } = req.params
+      await application.loadLang(lang)
       const response: SuccessReponse = { success: true }
       return res.json(response)
     } catch (err) {
