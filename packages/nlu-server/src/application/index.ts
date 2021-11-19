@@ -86,7 +86,7 @@ export class Application {
     const hasACorrespondingTraining = (m: ModelId) => sessions.some(({ modelId }) => modelIdService.areSame(modelId, m))
 
     const filters = { ...this._getSpecFilter(), languageCode }
-    const models = await this._modelRepo.listModels(appId, filters)
+    const models = await this._modelRepo.listModels(appId, _.pickBy(filters, _.negate(_.isUndefined)))
     const doneSessions = models
       .filter(_.negate(hasACorrespondingTraining))
       .map((modelId) => ({ modelId, status: <TrainingStatus>'done', progress: 1 }))
