@@ -7,7 +7,6 @@ import { createAPI } from './api'
 import { CommandLineOptions, getConfig, validateConfig, NLUServerOptions } from './bootstrap/config'
 import { logLaunchingMessage } from './bootstrap/launcher'
 import { makeApplication } from './bootstrap/make-application'
-import { buildWatcher } from './bootstrap/watcher'
 import { requireJSON } from './require-json'
 import * as types from './typings'
 
@@ -51,12 +50,10 @@ export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
     minLevel: LoggerLevel.Info // Launcher always display
   })
 
-  const watcher = buildWatcher()
-
   const launchingMessageInfo = { ...options, version, buildInfo, configSource, configFile: cliOptions.config }
   await logLaunchingMessage(launchingMessageInfo, launcherLogger)
 
-  const application = await makeApplication(options, version, baseLogger, watcher)
+  const application = await makeApplication(options, version, baseLogger)
   const app = await createAPI(options, application, baseLogger)
   const httpServer = createServer(app)
   await serverListen(httpServer, options)

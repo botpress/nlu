@@ -115,7 +115,7 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   }
 }
 
-export default class InMemoryTrainingRepo implements TrainingRepository {
+export class InMemoryTrainingRepo implements TrainingRepository {
   private _trxQueue: LockedTransactionQueue<void>
   private _writtableRepo: WrittableTrainingRepo
 

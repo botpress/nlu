@@ -7,6 +7,7 @@ import Knex from 'knex'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
+import { createTableIfNotExists } from '../../utils/database'
 import {
   Training,
   TrainingId,
@@ -47,7 +48,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   constructor(protected _database: Knex, private _clusterId: string) {}
 
   public async initialize(): Promise<void> {
-    await this._createTableIfNotExists(this._database, TABLE_NAME, (table) => {
+    await createTableIfNotExists(this._database, TABLE_NAME, (table: Knex.CreateTableBuilder) => {
       table.string('appId').notNullable()
       table.string('modelId').notNullable()
       table.string('status').notNullable()
@@ -62,19 +63,10 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
     })
   }
 
-  private _createTableIfNotExists = async (knex: Knex, tableName: string, cb: Knex.KnexCallback): Promise<boolean> => {
-    return knex.schema.hasTable(tableName).then((exists) => {
-      if (exists) {
-        return false
-      }
-      return knex.schema.createTable(tableName, cb).then(() => true)
-    })
-  }
-
   public async teardown(): Promise<void> {}
 
   private get table() {
-    return this._database.table(TABLE_NAME)
+    return this._database.table<TableRow>(TABLE_NAME)
   }
 
   public set = async (training: Training): Promise<void> => {
