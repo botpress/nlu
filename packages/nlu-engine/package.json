@@ -5,7 +5,8 @@
   "license": "AGPL-3.0",
   "scripts": {
     "build": "tsc --build",
-    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js"
+    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js",
+    "clean": "rm -rf ./dist && rm -rf ./node_modules"
   },
   "dependencies": {
     "@botpress/node-crfsuite": "*",

@@ -85,6 +85,7 @@
     "build": "tsc --build",
     "postbuild": "cross-env node ./scripts/buildinfo.js ./.buildinfo.json",
     "start": "cross-env node ./dist/index.js",
-    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js"
+    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js",
+    "clean": "rm -rf ./dist && rm -rf ./node_modules"
   }
 }
