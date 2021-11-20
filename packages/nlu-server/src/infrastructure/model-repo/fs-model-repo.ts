@@ -20,6 +20,11 @@ export class FileSystemModelRepository implements ModelRepository {
 
   public async initialize() {
     this._logger.debug('Model repo initializing...')
+    const basePathExists = fse.existsSync(this._basePath)
+    if (!basePathExists) {
+      throw new Error(`Model directory \"${this._basePath}\" does not exist.`)
+    }
+    return this._syncDir(path.join(this._basePath, MODELS_DIR))
   }
 
   public async teardown() {
@@ -47,22 +52,30 @@ export class FileSystemModelRepository implements ModelRepository {
   public async saveModel(appId: string, model: NLUEngine.Model): Promise<void | void[]> {
     const filePath = this._computeFilePath(appId, model.id)
     const buffer: Buffer = await compressModel(model)
+
+    await this._syncDir(this._computeDirPath(appId))
     return fse.writeFile(filePath, buffer)
   }
 
   public async listModels(appId: string, filters: Partial<NLUEngine.ModelId> = {}): Promise<NLUEngine.ModelId[]> {
     const dirPath = this._computeDirPath(appId)
+    await this._syncDir(dirPath)
     const allFiles = await fse.readdir(dirPath)
+    const allFileStats = await Bluebird.map(allFiles, async (f) => ({
+      file: f,
+      stat: await fse.stat(path.join(dirPath, f))
+    }))
 
     const modelfileEndingPattern = `.${MODELS_EXT}`
-    const modelFiles = allFiles.filter((f) => f.endsWith(modelfileEndingPattern))
 
-    const modelIds = modelFiles
-      .map((f) => f.substring(0, f.lastIndexOf(modelfileEndingPattern)))
+    return _(allFileStats)
+      .orderBy(({ stat }) => stat.mtime.getTime(), 'asc')
+      .filter(({ file }) => file.endsWith(modelfileEndingPattern))
+      .map(({ file }) => file.substring(0, file.lastIndexOf(modelfileEndingPattern)))
       .filter((stringId) => modelIdService.isId(stringId))
       .map((stringId) => modelIdService.fromString(stringId))
-
-    return _.filter(modelIds, filters)
+      .filter(filters)
+      .value()
   }
 
   public async pruneModels(
@@ -91,12 +104,19 @@ export class FileSystemModelRepository implements ModelRepository {
     const dirPath = this._computeDirPath(appId)
     const stringId = modelIdService.toString(modelId)
     const fname = `${stringId}.${MODELS_EXT}`
-    const rawPath = [dirPath, fname].join(path.sep)
+    const rawPath = path.join(dirPath, fname)
     return path.normalize(rawPath)
   }
 
   private _computeDirPath = (appId: string): string => {
-    const rawPath = [this._basePath, MODELS_DIR, appId].join(path.sep)
+    const rawPath = path.join(this._basePath, MODELS_DIR, appId)
     return path.normalize(rawPath)
+  }
+
+  private _syncDir = async (dirPath: string): Promise<void> => {
+    if (fse.existsSync(dirPath)) {
+      return
+    }
+    return fse.mkdir(dirPath)
   }
 }

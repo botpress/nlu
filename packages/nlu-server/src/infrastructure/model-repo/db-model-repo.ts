@@ -1,7 +1,7 @@
 import { Logger } from '@botpress/logger'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
-import Knex, { Table } from 'knex'
+import Knex from 'knex'
 import _ from 'lodash'
 import { createTableIfNotExists } from '../../utils/database'
 import { compressModel, decompressModel } from './compress-model'
