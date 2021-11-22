@@ -224,6 +224,7 @@ export class DbTrainingRepository implements TrainingRepository {
   public async teardown(): Promise<void> {
     this._janitorIntervalId && clearInterval(this._janitorIntervalId)
     await this._trxQueue.teardown()
+    await this._database.destroy()
   }
 
   private async _janitor() {

@@ -2,7 +2,7 @@ import { Logger } from '@botpress/logger'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import Knex from 'knex'
-import _ from 'lodash'
+import _, { cond } from 'lodash'
 import { createTableIfNotExists } from '../../utils/database'
 import { compressModel, decompressModel } from './compress-model'
 import { ModelRepository, PruneOptions } from './typings'
@@ -44,6 +44,7 @@ export class DatabaseModelRepository implements ModelRepository {
 
   public async teardown() {
     this._logger.debug('Model repo teardown...')
+    return this._database.destroy()
   }
 
   public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<NLUEngine.Model | undefined> {

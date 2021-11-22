@@ -50,7 +50,6 @@ const makeServicesWithDb = (dbURL: string) => async (
   queueOptions?: Partial<QueueOptions>
 ): Promise<Services> => {
   const knexDb = Knex({ connection: dbURL, client: 'pg' })
-  knexDb.initialize()
 
   const modelRepo = new DatabaseModelRepository(knexDb, logger)
   const loggingCb = (msg: string) => logger.sub('trx-queue').debug(msg)
