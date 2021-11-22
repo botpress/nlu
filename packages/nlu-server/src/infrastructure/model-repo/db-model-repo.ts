@@ -21,7 +21,7 @@ interface TableRow extends TableKey {
 
 type Column = keyof TableRow
 
-export class DatabaseModelRepository implements ModelRepository {
+export class DbModelRepository implements ModelRepository {
   private _logger: Logger
 
   constructor(private _database: Knex, logger: Logger) {

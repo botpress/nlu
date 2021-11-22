@@ -7,8 +7,14 @@ import PGPubsub from 'pg-pubsub'
 import { Application } from '../application'
 import { DistributedTrainingQueue } from '../application/distributed-training-queue'
 import TrainingQueue, { QueueOptions } from '../application/training-queue'
-import { FileSystemModelRepository, DatabaseModelRepository, ModelRepository } from '../infrastructure/model-repo'
-import { DbTrainingRepository, InMemoryTrainingRepo, TrainingRepository } from '../infrastructure/training-repo'
+import {
+  DbTrainingRepository,
+  InMemoryTrainingRepo,
+  TrainingRepository,
+  FileSystemModelRepository,
+  DbModelRepository,
+  ModelRepository
+} from '../infrastructure'
 import { Broadcaster } from '../utils/broadcast'
 import { NLUServerOptions } from './config'
 import { makeEngine } from './make-engine'
@@ -51,7 +57,7 @@ const makeServicesWithDb = (dbURL: string) => async (
 ): Promise<Services> => {
   const knexDb = Knex({ connection: dbURL, client: 'pg' })
 
-  const modelRepo = new DatabaseModelRepository(knexDb, logger)
+  const modelRepo = new DbModelRepository(knexDb, logger)
   const loggingCb = (msg: string) => logger.sub('trx-queue').debug(msg)
   const trainRepo = new DbTrainingRepository(knexDb, makePostgresTrxQueue(dbURL, loggingCb), logger, CLUSTER_ID)
   const broadcaster = makeBroadcaster(dbURL)
