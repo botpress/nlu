@@ -2,7 +2,7 @@ import { Logger } from '@botpress/logger'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import Knex from 'knex'
-import _, { cond } from 'lodash'
+import _ from 'lodash'
 import { createTableIfNotExists } from '../../utils/database'
 import { compressModel, decompressModel } from './compress-model'
 import { ModelRepository, PruneOptions } from './typings'
@@ -16,7 +16,7 @@ interface TableKey {
 }
 
 interface TableRow extends TableKey {
-  content: string
+  content: Buffer
 }
 
 type Column = keyof TableRow
@@ -37,7 +37,7 @@ export class DatabaseModelRepository implements ModelRepository {
     await createTableIfNotExists(this._database, TABLE_NAME, (table: Knex.CreateTableBuilder) => {
       table.string('appId').notNullable()
       table.string('modelId').notNullable()
-      table.text('content').notNullable()
+      table.binary('content').notNullable()
       table.primary(['appId', 'modelId'])
     })
   }
@@ -70,8 +70,7 @@ export class DatabaseModelRepository implements ModelRepository {
 
   public async saveModel(appId: string, model: NLUEngine.Model): Promise<void | void[]> {
     const modelExists = await this.exists(appId, model.id)
-    const buffer: Buffer = await compressModel(model)
-    const content = buffer.toString()
+    const content: Buffer = await compressModel(model)
     const modelId = modelIdService.toString(model.id)
     if (modelExists) {
       const filter: TableKey = { appId, modelId }
@@ -108,13 +107,13 @@ export class DatabaseModelRepository implements ModelRepository {
     const stringId = modelIdService.toString(modelId)
     const filter: TableKey = { appId, modelId: stringId }
     const columns: Column[] = ['appId', 'modelId']
-    const row: TableKey = await this.table.select(columns).where(filter).first()
+    const row: TableKey | undefined = await this.table.select(columns).where(filter).first()
     return !!row
   }
 
   public async deleteModel(appId: string, modelId: NLUEngine.ModelId): Promise<void> {
     const stringId = modelIdService.toString(modelId)
     const filter: TableKey = { appId, modelId: stringId }
-    await this.table.delete().where(filter).first()
+    await this.table.delete().where(filter)
   }
 }
