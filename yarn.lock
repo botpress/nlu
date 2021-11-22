@@ -1205,7 +1205,7 @@
     merge-options "3.0.4"
     tslib "2.2.0"
 
-"@promster/metrics@^6.0.2":
+"@promster/metrics@6.0.2", "@promster/metrics@^6.0.2":
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/@promster/metrics/-/metrics-6.0.2.tgz#2609881242ee14247bd79ff4c29671d4c96d06bb"
   integrity sha512-VtuSn/OeI0W3rYwRYrg0IlSHxujGZaZTBg+u2dbCw/grazoYiBpLJLZkZjNHlzeWuioN8u3otcGrWfJe2bFQAA==
@@ -1220,6 +1220,14 @@
     url-value-parser "2.0.3"
   optionalDependencies:
     gc-stats "1.4.0"
+
+"@promster/server@6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@promster/server/-/server-6.0.2.tgz#97d4a032360e244fface27ffd815db0e115bdb40"
+  integrity sha512-HLsVQinSToJS3PFCy19cv0x7DQNfK/3P5U5As+mXg8FGD6jpYQUvX/GW9HFlmVDGD/zm9pK0ykFgR9FLT5mLNQ==
+  dependencies:
+    "@promster/metrics" "^6.0.2"
+    tslib "2.2.0"
 
 "@sentry/core@6.9.0":
   version "6.9.0"

@@ -13,7 +13,7 @@ import ms from 'ms'
 import { Application } from '../application'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
-import { initPrometheus } from './prometheus'
+import { initPrometheus } from './telemetry/metric'
 
 import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
 interface APIOptions {
@@ -38,7 +38,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   expressApp.use(cors())
 
   if (options.prometheusEnabled) {
-    initPrometheus(expressApp)
+    await initPrometheus(expressApp)
   }
 
   if (options.apmEnabled) {

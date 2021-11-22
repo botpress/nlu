@@ -13,6 +13,8 @@
     "@botpress/nlu-client": "*",
     "@botpress/nlu-engine": "*",
     "@promster/express": "5.0.3",
+    "@promster/metrics": "6.0.2",
+    "@promster/server": "6.0.2",
     "@sentry/node": "^6.9.0",
     "@sentry/tracing": "^6.9.0",
     "@types/nanoid": "^3.0.0",

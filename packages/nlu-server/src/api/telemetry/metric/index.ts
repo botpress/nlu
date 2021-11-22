@@ -1,0 +1,1 @@
+export { initPrometheus } from './prometheus'
