@@ -40,6 +40,10 @@ export class Application {
     await this._trainingQueue.teardown()
   }
 
+  public getLocalTrainingCount() {
+    return this._trainingQueue.getLocalTrainingCount()
+  }
+
   public getInfo(): ServerInfo {
     const specs = this._engine.getSpecifications()
     const languages = this._engine.getLanguages()

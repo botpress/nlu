@@ -35,6 +35,7 @@ interface TableId {
 interface TableRow extends TableId {
   status: TrainingStatus
   progress: number
+  training_time?: number
   error_type?: TrainingErrorType
   error_message?: string
   error_stack?: string
@@ -52,6 +53,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       table.string('modelId').notNullable()
       table.string('status').notNullable()
       table.float('progress').notNullable()
+      table.integer('training_time')
       table.text('dataset').notNullable()
       table.string('error_type').nullable()
       table.text('error_message').nullable()

@@ -1,6 +1,7 @@
 import { createMiddleware, defaultNormalizers } from '@promster/express'
-import { createServer } from '@promster/server'
+import { getSummary, getContentType } from '@promster/metrics'
 import { Application as ExpressApp, Request, Response } from 'express'
+import * as http from 'http'
 
 const NOT_FOUND = 'not_found'
 
@@ -67,7 +68,24 @@ const normalizePath = (app: ExpressApp, path: string, { req, res }: { req: Reque
   return NOT_FOUND
 }
 
-export const initPrometheus = async (app: ExpressApp) => {
+const createServer = (onRequest?: () => Promise<void>) =>
+  new Promise((resolve, reject) => {
+    const server = http.createServer(async (_req, res) => {
+      if (onRequest) {
+        await onRequest()
+      }
+
+      res.writeHead(200, 'OK', { 'content-type': getContentType() })
+      res.end(await getSummary())
+    })
+
+    server.listen(9090, '0.0.0.0', () => {
+      server.on('error', reject)
+      resolve(server)
+    })
+  })
+
+export const initPrometheus = async (app: ExpressApp, onRequest?: () => Promise<void>) => {
   app.use(
     createMiddleware({
       app,
@@ -79,5 +97,5 @@ export const initPrometheus = async (app: ExpressApp) => {
     })
   )
 
-  await createServer({ port: 9090 })
+  await createServer(onRequest)
 }
