@@ -11,7 +11,8 @@
     "install": ":",
     "build-native": "node-gyp install && node-gyp rebuild",
     "build": "tsc --build",
-    "test": "echo \"no tests\""
+    "test": "echo \"no tests\"",
+    "clean": "rm -rf ./dist && rm -rf ./node_modules"
   },
   "keywords": [
     "crf",
