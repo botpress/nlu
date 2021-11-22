@@ -1,3 +1,5 @@
+import _ from 'lodash'
+import { Logger } from '../typings'
 import { Worker } from './worker'
 
 interface Options {
@@ -13,10 +15,11 @@ export class Scheduler {
   private active: { [id: string]: Worker } = {}
   private waiting: ItemCallback[] = []
 
-  constructor(private _generator: Generator, private _options: Options) {}
+  constructor(private _generator: Generator, private logger: Logger, private _options: Options) {}
 
   public async getNext(id: string): Promise<Worker> {
-    this.ready = this.ready.filter((x) => x.isAlive())
+    this.ready = this._filterOutDeadWorkers(this.ready)
+
     const readyCount = this.ready.length
     const activeCount = Object.values(this.active).length
     const totalCount = readyCount + activeCount
@@ -41,6 +44,15 @@ export class Scheduler {
         resolve(item)
       })
     })
+  }
+
+  private _filterOutDeadWorkers = (workers: Worker[]): Worker[] => {
+    const [alive, dead] = _.partition(workers, (w) => w.isAlive())
+    if (dead.length) {
+      const formattedDeads = dead.map((w) => w.wid).join(', ')
+      this.logger.warning(`The following workers have died since last usage: [${formattedDeads}]`)
+    }
+    return alive
   }
 
   public cancel(id: string): void {

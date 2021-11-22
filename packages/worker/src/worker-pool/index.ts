@@ -19,12 +19,13 @@ import { Scheduler } from './scheduler'
 import { Worker } from './worker'
 
 export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
-  protected _scheduler = new Scheduler(() => this._createNewWorker(), { maxItems: this.config.maxWorkers })
+  protected _scheduler: Scheduler
 
   private errorHandler: ErrorDeserializer
 
   constructor(protected logger: Logger, private config: PoolOptions) {
     this.errorHandler = config.errorHandler ?? new ErrorHandler()
+    this._scheduler = new Scheduler(() => this._createNewWorker(), this.logger, { maxItems: this.config.maxWorkers })
   }
 
   abstract createWorker: (entryPoint: string, env: NodeJS.ProcessEnv) => Promise<Worker>
