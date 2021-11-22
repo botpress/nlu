@@ -17,9 +17,14 @@ interface TableKey {
 
 interface TableRow extends TableKey {
   content: Buffer
+  updatedOn: string
 }
 
 type Column = keyof TableRow
+
+type Result<C extends Readonly<Column[]>> = {
+  [c in C[number]]: TableRow[c]
+}
 
 export class DbModelRepository implements ModelRepository {
   private _logger: Logger
@@ -38,6 +43,7 @@ export class DbModelRepository implements ModelRepository {
       table.string('appId').notNullable()
       table.string('modelId').notNullable()
       table.binary('content').notNullable()
+      table.timestamp('updatedOn').notNullable()
       table.primary(['appId', 'modelId'])
     })
   }
@@ -72,23 +78,27 @@ export class DbModelRepository implements ModelRepository {
     const modelExists = await this.exists(appId, model.id)
     const content: Buffer = await compressModel(model)
     const modelId = modelIdService.toString(model.id)
+    const iso = new Date().toISOString()
     if (modelExists) {
       const filter: TableKey = { appId, modelId }
-      const row: Partial<TableRow> = { content }
+      const row: Partial<TableRow> = { content, updatedOn: iso }
       await this.table.update(row).where(filter)
       return
     }
-    const row: TableRow = { appId, modelId, content }
+    const row: TableRow = { appId, modelId, content, updatedOn: iso }
     return this.table.insert(row)
   }
 
   public async listModels(appId: string, filters: Partial<NLUEngine.ModelId> = {}): Promise<NLUEngine.ModelId[]> {
     const rowfilters: Partial<TableKey> = { appId }
-    const columns: Column[] = ['appId', 'modelId']
-    const queryResult: Partial<TableRow>[] = await this.table.select(columns).where(rowfilters)
-    const hasModelId = (q: Partial<TableRow>): q is { modelId: string } => !!q.modelId
-    const modelIds = queryResult.filter(hasModelId).map(({ modelId }) => modelIdService.fromString(modelId))
-    return _.filter(modelIds, filters)
+    const columns = ['appId', 'modelId', 'updatedOn'] as const
+    const queryResult: Result<typeof columns>[] = await this.table.select(columns).where(rowfilters)
+
+    return _(queryResult)
+      .orderBy(({ updatedOn }) => new Date(updatedOn).getTime(), 'asc')
+      .map(({ modelId }) => modelIdService.fromString(modelId))
+      .filter(filters)
+      .value()
   }
 
   public async pruneModels(
@@ -106,8 +116,8 @@ export class DbModelRepository implements ModelRepository {
   public async exists(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
     const stringId = modelIdService.toString(modelId)
     const filter: TableKey = { appId, modelId: stringId }
-    const columns: Column[] = ['appId', 'modelId']
-    const row: TableKey | undefined = await this.table.select(columns).where(filter).first()
+    const columns = ['appId', 'modelId'] as const
+    const row: Result<typeof columns> | undefined = await this.table.select(columns).where(filter).first()
     return !!row
   }
 

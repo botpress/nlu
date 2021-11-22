@@ -102,7 +102,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   public deleteOlderThan = async (threshold: Date): Promise<number> => {
-    const iso = moment(threshold).toDate().toISOString()
+    const iso = this._toISO(threshold)
     return this.table.where('updatedOn', '<=', iso).delete()
   }
 
@@ -163,7 +163,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   private _toISO(date: Date): string {
-    return moment(date).toDate().toISOString()
+    return date.toISOString()
   }
 
   private _rowToTraining(row: TableRow): Training {
