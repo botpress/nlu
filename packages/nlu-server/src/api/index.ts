@@ -11,10 +11,10 @@ import rateLimit from 'express-rate-limit'
 import _ from 'lodash'
 import ms from 'ms'
 import { Application } from '../application'
+import { initPrometheus } from '../telemetry/metric'
+import { initTracing } from '../telemetry/trace'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
-import { initPrometheus } from './telemetry/metric'
-import { initTracing } from './telemetry/trace'
 
 import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
 interface APIOptions {
