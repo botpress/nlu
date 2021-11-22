@@ -56,6 +56,10 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
     return output
   }
 
+  public cancel(id: string) {
+    return this._scheduler.cancel(id)
+  }
+
   private async _startTask(worker: Worker, input: I, progress: (x: number) => void): Promise<O> {
     const msg: OutgoingMessage<'start_task', I> = {
       type: 'start_task',

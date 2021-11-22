@@ -1,19 +1,22 @@
+import { Worker } from './worker'
+
 interface Options {
   maxItems: number
 }
 
-type Generator<T> = () => Promise<T>
+type Generator = () => Promise<Worker>
 
-type ItemCallback<T> = (item: T) => void
+type ItemCallback = (item: Worker) => void
 
-export class Scheduler<T> {
-  private ready: T[] = []
-  private active: { [id: string]: T } = {}
-  private waiting: ItemCallback<T>[] = []
+export class Scheduler {
+  private ready: Worker[] = []
+  private active: { [id: string]: Worker } = {}
+  private waiting: ItemCallback[] = []
 
-  constructor(private _generator: Generator<T>, private _options: Options) {}
+  constructor(private _generator: Generator, private _options: Options) {}
 
-  public async getNext(id: string): Promise<T> {
+  public async getNext(id: string): Promise<Worker> {
+    this.ready = this.ready.filter((x) => x.isAlive())
     const readyCount = this.ready.length
     const activeCount = Object.values(this.active).length
     const totalCount = readyCount + activeCount
@@ -27,24 +30,26 @@ export class Scheduler<T> {
     const isPlaceLeft = this._options.maxItems < 0 || this._options.maxItems > totalCount
     if (!readyCount && isPlaceLeft) {
       const newItem = await this._generator()
+      newItem.isAlive()
       this.active[id] = newItem
       return newItem
     }
 
     return new Promise((resolve) => {
-      this.waiting.push((item: T) => {
+      this.waiting.push((item: Worker) => {
         this.active[id] = item
         resolve(item)
       })
     })
   }
 
-  public cancel(id: string, cancel: (item: T) => void): void {
+  public cancel(id: string): void {
     const item = this.active[id]
     if (!item) {
       return
     }
-    cancel(item)
+
+    item.cancel()
 
     delete this.active[id]
   }
@@ -53,7 +58,7 @@ export class Scheduler<T> {
     return !!this.active[id]
   }
 
-  public releaseItem(id: string, item: T) {
+  public releaseItem(id: string, item: Worker) {
     delete this.active[id]
 
     if (!this.waiting.length) {
