@@ -3,7 +3,7 @@ import { Application as ExpressApp, Request, Response } from 'express'
 
 const NOT_FOUND = 'not_found'
 
-const trimPrefix = (value: string, prefix: string) => value.startsWith(prefix) ? value.slice(prefix.length) : value
+const trimPrefix = (value: string, prefix: string) => (value.startsWith(prefix) ? value.slice(prefix.length) : value)
 
 // Disable naming convention because fast_slash comes from Express.
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -31,7 +31,12 @@ const processMiddleware = (path: string, req: Request, middleware: any, prefix =
   if (middleware.name === 'router' && middleware.handle.stack) {
     for (const subMiddleware of middleware.handle.stack) {
       if (middleware.regexp?.test(path)) {
-        const match = processMiddleware(trimPrefix(path, middleware.path), req, subMiddleware, `${prefix}${middleware.path}`)
+        const match = processMiddleware(
+          trimPrefix(path, middleware.path),
+          req,
+          subMiddleware,
+          `${prefix}${middleware.path}`
+        )
 
         if (match) {
           return match
@@ -62,13 +67,15 @@ const normalizePath = (app: ExpressApp, path: string, { req, res }: { req: Reque
 }
 
 export const initPrometheus = (app: ExpressApp) => {
-  app.use(createMiddleware({
-    app,
-    options: {
-      ...defaultNormalizers,
-     normalizePath: normalizePath.bind(undefined, app),
-    }
-  }))
+  app.use(
+    createMiddleware({
+      app,
+      options: {
+        ...defaultNormalizers,
+        normalizePath: normalizePath.bind(undefined, app)
+      }
+    })
+  )
 
   app.get('/metrics', async (req, res) => {
     req.statusCode = 200
