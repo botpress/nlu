@@ -53,6 +53,11 @@ void yargs
         description: 'Authentication token for your language server',
         type: 'string'
       },
+      tracingEnabled: {
+        description: 'When enabled, a tracing client is configured using opentelemetry',
+        default: yn(process.env.TRACING_ENABLED),
+        type: 'boolean'
+      },
       prometheusEnabled: {
         description: 'When enabled, a prometheus endpoint will be avaiable at /metrics',
         default: yn(process.env.PROMETHEUS_ENABLED),

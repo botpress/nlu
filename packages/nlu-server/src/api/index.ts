@@ -14,6 +14,7 @@ import { Application } from '../application'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
 import { initPrometheus } from './telemetry/metric'
+import { initTracing } from './telemetry/trace'
 
 import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
 interface APIOptions {
@@ -23,6 +24,7 @@ interface APIOptions {
   limit: number
   bodySize: string
   batchSize: number
+  tracingEnabled?: boolean
   prometheusEnabled?: boolean
   apmEnabled?: boolean
   apmSampleRate?: number
@@ -39,6 +41,10 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   if (options.prometheusEnabled) {
     await initPrometheus(expressApp)
+  }
+
+  if (options.tracingEnabled) {
+    await initTracing()
   }
 
   if (options.apmEnabled) {
