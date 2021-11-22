@@ -12,8 +12,9 @@ import _ from 'lodash'
 import ms from 'ms'
 import { Application } from '../application'
 import { InvalidRequestFormatError } from './errors'
-
 import { handleError, getAppId } from './http'
+import { initPrometheus } from './prometheus'
+
 import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
 interface APIOptions {
   host: string
@@ -22,6 +23,7 @@ interface APIOptions {
   limit: number
   bodySize: string
   batchSize: number
+  prometheusEnabled?: boolean
   apmEnabled?: boolean
   apmSampleRate?: number
 }
@@ -34,6 +36,10 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   // This must be first, otherwise the /info endpoint can't be called when token is used
   expressApp.use(cors())
+
+  if (options.prometheusEnabled) {
+    initPrometheus(expressApp)
+  }
 
   if (options.apmEnabled) {
     Sentry.init({
