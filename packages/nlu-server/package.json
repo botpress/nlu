@@ -32,7 +32,6 @@
     "body-parser": "^1.18.3",
     "bytes": "^3.1.0",
     "chalk": "^2.4.2",
-    "chokidar": "^2.1.5",
     "cors": "^2.8.5",
     "diff": "^4.0.1",
     "eventemitter2": "^5.0.1",
@@ -99,6 +98,7 @@
     "build": "tsc --build",
     "postbuild": "cross-env node ./scripts/buildinfo.js ./.buildinfo.json",
     "start": "cross-env node ./dist/index.js",
-    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js"
+    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js",
+    "clean": "rm -rf ./dist && rm -rf ./node_modules"
   }
 }

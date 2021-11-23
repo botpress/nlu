@@ -8,7 +8,6 @@ import {
 import * as NLUEngine from '@botpress/nlu-engine'
 import { validate } from 'joi'
 
-import { isListEntity, isPatternEntity } from '../../utils/guards'
 import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema } from './schemas'
 
 const SLOT_ANY = 'any'
@@ -43,6 +42,14 @@ const makeIntentChecker = (contexts: string[]) => (
   }
   const variableChecker = makeSlotChecker(enums, patterns)
   intent.slots.forEach(variableChecker)
+}
+
+const isListEntity = (e: ListEntityDefinition | PatternEntityDefinition): e is ListEntityDefinition => {
+  return e.type === 'list'
+}
+
+const isPatternEntity = (e: ListEntityDefinition | PatternEntityDefinition): e is PatternEntityDefinition => {
+  return e.type === 'pattern'
 }
 
 export async function validateTrainInput(rawInput: any): Promise<http.TrainRequestBody> {

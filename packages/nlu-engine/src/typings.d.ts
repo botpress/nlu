@@ -77,8 +77,8 @@ export interface Engine {
 
 export interface ModelIdService {
   toString: (modelId: ModelId) => string // to use ModelId as a key
-  areSame: (id1: ModelId, id2: ModelId) => boolean
   fromString: (stringId: string) => ModelId // to parse information from a key
+  areSame: (id1: ModelId, id2: ModelId) => boolean
   isId: (m: string) => boolean
   makeId: (factors: ModelIdArgs) => ModelId
   briefId: (factors: Partial<ModelIdArgs>) => Partial<ModelId> // makes incomplete Id from incomplete information
