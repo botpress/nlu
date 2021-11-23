@@ -17,6 +17,9 @@
     "build-native:win32": "(.\\scripts\\win_build_sentencepiece.bat || true) && node-gyp rebuild",
     "test": "echo \"no tests\""
   },
+  "dependencies": {
+    "yn": "^4.0.0"
+  },
   "devDependencies": {
     "node-gyp": "^4.0.0",
     "node-addon-api": "^1.6.3",

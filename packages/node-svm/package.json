@@ -7,10 +7,6 @@
   "license": "MIT",
   "repository": "https://github.com/botpress/nlu.git",
   "types": "./src/typings.d.ts",
-  "dependencies": {
-    "bluebird": "^3.7.2",
-    "getos": "^3.2.1"
-  },
   "scripts": {
     "install": ":",
     "build-native": "node-gyp install && node-gyp rebuild",
@@ -19,6 +15,11 @@
     "test": "jest -i --detectOpenHandles -c ./jest.config.js"
   },
   "gypfile": true,
+  "dependencies": {
+    "bluebird": "^3.7.2",
+    "getos": "^3.2.1",
+    "yn": "^4.0.0"
+  },
   "devDependencies": {
     "@babel/preset-typescript": "^7.10.1",
     "@types/bluebird": "^3.5.32",
