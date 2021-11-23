@@ -1,5 +1,6 @@
 import { ChildProcess } from 'child_process'
 import { Worker as Thread } from 'worker_threads'
+import { SIG_KILL } from '../signals'
 
 type InnerWorker =
   | {
@@ -28,6 +29,22 @@ export class Worker {
       return
     }
     this._innerWorker.worker.send(msg)
+  }
+
+  public cancel() {
+    if (this._innerWorker.type === 'thread') {
+      // not implemented for threads
+      return
+    }
+    return (this.innerWorker.worker as ChildProcess).kill(SIG_KILL)
+  }
+
+  public isAlive(): boolean {
+    if (this._innerWorker.type === 'thread') {
+      // currently no way of telling if thread exited
+      return true
+    }
+    return this._innerWorker.worker.connected
   }
 
   public get wid() {
