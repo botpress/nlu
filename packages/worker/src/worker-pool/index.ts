@@ -19,12 +19,13 @@ import { Scheduler } from './scheduler'
 import { Worker } from './worker'
 
 export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
-  protected _scheduler = new Scheduler(() => this._createNewWorker(), { maxItems: this.config.maxWorkers })
+  protected _scheduler: Scheduler
 
   private errorHandler: ErrorDeserializer
 
   constructor(protected logger: Logger, private config: PoolOptions) {
     this.errorHandler = config.errorHandler ?? new ErrorHandler()
+    this._scheduler = new Scheduler(() => this._createNewWorker(), this.logger, { maxItems: this.config.maxWorkers })
   }
 
   abstract createWorker: (entryPoint: string, env: NodeJS.ProcessEnv) => Promise<Worker>
@@ -54,6 +55,10 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
     }
     this._scheduler.releaseItem(taskId, worker)
     return output
+  }
+
+  public cancel(id: string) {
+    return this._scheduler.cancel(id)
   }
 
   private async _startTask(worker: Worker, input: I, progress: (x: number) => void): Promise<O> {
