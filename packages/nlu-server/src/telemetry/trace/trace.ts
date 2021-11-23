@@ -17,10 +17,6 @@ export const initTracing = async (serviceName: string) => {
   provider.register()
 
   registerInstrumentations({
-    instrumentations: [
-      new PgInstrumentation(),
-      new HttpInstrumentation(),
-      new ExpressInstrumentation(),
-    ],
+    instrumentations: [new PgInstrumentation(), new HttpInstrumentation(), new ExpressInstrumentation()]
   })
 }
