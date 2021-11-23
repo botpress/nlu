@@ -53,7 +53,9 @@ export default class TrainingQueue {
   }
 
   private _setTrainingDurationMetric(training: Training) {
-    trainingDuration.observe({ status: training.status }, training.training_time / 1000)
+    if (training.training_time) {
+      trainingDuration.observe({ status: training.status }, training.training_time / 1000)
+    }
   }
 
   public async initialize() {
