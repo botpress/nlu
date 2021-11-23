@@ -5,7 +5,8 @@
   "license": "AGPL-3.0",
   "scripts": {
     "build": "tsc --build",
-    "test": "echo \"no tests\""
+    "test": "echo \"no tests\"",
+    "clean": "rm -rf ./dist && rm -rf ./node_modules"
   },
   "dependencies": {
     "lodash": "^4.17.19",

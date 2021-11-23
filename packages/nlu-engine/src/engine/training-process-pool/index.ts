@@ -40,7 +40,7 @@ export class TrainingProcessPool {
         throw new TrainingAlreadyStarted()
       }
       if (errors.isTaskExitedUnexpectedly(err)) {
-        throw new TrainingExitedUnexpectedly(err.pid, err.info)
+        throw new TrainingExitedUnexpectedly(err.wid, err.info)
       }
       throw err
     }

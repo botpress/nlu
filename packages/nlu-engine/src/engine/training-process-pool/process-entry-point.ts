@@ -5,7 +5,9 @@ import { ErrorHandler } from './error-handler'
 
 export const ENTRY_POINT = __filename
 
-const processEntryPoint = makeProcessEntryPoint<TrainInput, TrainOutput>()
+const processEntryPoint = makeProcessEntryPoint<TrainInput, TrainOutput>({
+  errorHandler: new ErrorHandler()
+})
 
 const main = async () => {
   const config = JSON.parse(process.env.NLU_CONFIG!)
