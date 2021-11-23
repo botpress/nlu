@@ -14,9 +14,10 @@
   "scripts": {
     "install": ":",
     "build-native": "node-gyp install && node-gyp rebuild",
-    "clean": "node-gyp clean",
+    "clean-native": "node-gyp clean",
     "build": "tsc --build",
-    "test": "jest -i --detectOpenHandles -c ./jest.config.js"
+    "test": "jest -i --detectOpenHandles -c ./jest.config.js",
+    "clean": "rm -rf ./dist && rm -rf ./node_modules"
   },
   "gypfile": true,
   "devDependencies": {

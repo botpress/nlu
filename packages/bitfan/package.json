@@ -9,7 +9,8 @@
   "types": "./src/bitfan.d.ts",
   "scripts": {
     "build": "tsc --build",
-    "test": "jest"
+    "test": "jest",
+    "clean": "rm -rf ./dist && rm -rf ./node_modules"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
