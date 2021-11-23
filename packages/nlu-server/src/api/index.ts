@@ -44,7 +44,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   }
 
   if (options.tracingEnabled) {
-    await initTracing()
+    await initTracing('nlu')
   }
 
   if (options.apmEnabled) {
