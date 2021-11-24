@@ -138,7 +138,9 @@ const initialize = async <T>(): Promise<T> => {
 
   if (customNativeExtensionFilePath) {
     debuglog(`using custom bin file path "${customNativeExtensionFilePath}"`)
-    return require(customNativeExtensionFilePath)
+    const binding = require(customNativeExtensionFilePath)
+    debuglog('success')
+    return binding
   }
 
   debuglog(`using base dir path "${nativeExtensionsDirPath}"`)
