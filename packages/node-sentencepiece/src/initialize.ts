@@ -1,12 +1,10 @@
+// This file is copied across all 4 node-bindings packages
 import fs from 'fs'
 import getos from 'getos'
 import path from 'path'
 import yn from 'yn'
 
-/* ###################
- * ### UPDATE HERE ###
- * ################### */
-const binName = 'sentencepiece'
+import { binName } from './constants'
 
 const fileName = `${binName}.node`
 const packageName = `node-${binName}`
