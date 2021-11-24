@@ -17,18 +17,20 @@
   "gypfile": true,
   "dependencies": {
     "getos": "^3.2.1",
-    "yn": "^4.0.0",
-    "lock": "1.1.0"
+    "lock": "1.1.0",
+    "lodash.orderby": "^4.6.0",
+    "yn": "^4.0.0"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.10.1",
     "@types/bluebird": "^3.5.32",
     "@types/getos": "^3.0.0",
+    "@types/lodash.orderby": "^4.6.6",
+    "@types/node": "^12.13.0",
+    "jest": "^24.9.0",
     "node-addon-api": "^2.0.0",
     "node-gyp": "^6.1.0",
-    "jest": "^24.9.0",
     "ts-jest": "^26.5.5",
-    "@types/node": "^12.13.0",
     "typescript": "^3.9.10"
   }
 }

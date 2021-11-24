@@ -4,6 +4,7 @@ import getos from 'getos'
 import { Lock } from 'lock'
 import path from 'path'
 import yn from 'yn'
+import orderBy from 'lodash.orderby'
 
 import { binName } from './constants'
 
@@ -30,7 +31,7 @@ const debuglog = (...msg: any[]): void => {
 
 const requireExtension = (os: string, distribution: string) => {
   const filePath = path.join(nativeExtensionsPath, os, distribution, fileName)
-  debuglog(`about to require file "${filePath}"`)
+  debuglog(`about to require file "${path.join('$basepath', os, distribution, fileName)}"`)
   return require(filePath)
 }
 
@@ -45,12 +46,31 @@ const getOS = async (): Promise<getos.Os> => {
   })
 }
 
+const sanitizeDistribution = (os: getos.LinuxOs) => {
+  return os.dist.toLowerCase().replace(/ |-|_|linux/g, '')
+}
+
+type ExtensionDir = Record<'dirName' | 'dist' | 'version', string>
+const parseDirName = (dirName: string): ExtensionDir | undefined => {
+  const [dist, ...semverParts] = dirName.split('_')
+  if (!semverParts.length) {
+    return
+  }
+
+  return {
+    dirName,
+    dist,
+    version: semverParts.join('.')
+  }
+}
+
 const initialize = async <T>(): Promise<T> => {
   debuglog('initializing...')
+  debuglog(`using path "${nativeExtensionsPath}"`)
 
   const distro = await getOS()
 
-  debuglog('operating system: ', distro)
+  debuglog('operating system:', distro)
 
   if (distro.os === 'win32') {
     const binding = requireExtension('windows', 'all')
@@ -64,20 +84,27 @@ const initialize = async <T>(): Promise<T> => {
   }
 
   if (distro.os === 'linux') {
-    const distribution = distro.dist.toLowerCase()
+    const distribution = sanitizeDistribution(distro)
 
-    debuglog('linux distribution: ', distro)
+    debuglog('linux distribution:', distribution)
 
-    const relevantFolders = fs
+    let relevantFolders: ExtensionDir[] = fs
       .readdirSync(path.join(nativeExtensionsPath, 'linux'))
-      .filter((dir) => dir.startsWith(distribution))
-      .sort()
-      .reverse()
-    relevantFolders.push('default')
+      .map(parseDirName)
+      .filter((x): x is ExtensionDir => !!x)
+      .filter(({ dist }) => dist === distribution)
+    relevantFolders = orderBy(relevantFolders, ({ version }) => version, 'desc')
+    relevantFolders.push({
+      dirName: 'default',
+      dist: 'ubuntu',
+      version: '18.04'
+    })
 
-    for (const dir of relevantFolders) {
+    debuglog('relevant directories:', relevantFolders)
+
+    for (const { dirName } of relevantFolders) {
       try {
-        const binding = requireExtension('linux', dir) // this might throw
+        const binding = requireExtension('linux', dirName) // this might throw
         debuglog('success')
         return binding
       } catch (err) {
