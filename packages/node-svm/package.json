@@ -16,9 +16,9 @@
   },
   "gypfile": true,
   "dependencies": {
-    "bluebird": "^3.7.2",
     "getos": "^3.2.1",
-    "yn": "^4.0.0"
+    "yn": "^4.0.0",
+    "lock": "1.1.0"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.10.1",

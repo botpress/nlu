@@ -1,4 +1,4 @@
-import { init } from './initialize'
+import { getBinding } from './initialize'
 import { NSVM } from './typings'
 
 type SvmCtor = new (args?: { random_seed: number }) => NSVM
@@ -8,11 +8,7 @@ interface BindingType {
   hello: HelloWorld
 }
 
-let binding: BindingType | undefined
 export const makeSvm = async (args?: { random_seed: number }) => {
-  if (binding) {
-    return new binding.NSVM(args)
-  }
-  binding = await init<BindingType>()
+  const binding = await getBinding<BindingType>()
   return new binding.NSVM(args)
 }

@@ -1,6 +1,7 @@
 // This file is copied across all 4 node-bindings packages
 import fs from 'fs'
 import getos from 'getos'
+import { Lock } from 'lock'
 import path from 'path'
 import yn from 'yn'
 
@@ -44,7 +45,7 @@ const getOS = async (): Promise<getos.Os> => {
   })
 }
 
-export const init = async <T>(): Promise<T> => {
+const initialize = async <T>(): Promise<T> => {
   debuglog('initializing...')
 
   const distro = await getOS()
@@ -88,4 +89,35 @@ export const init = async <T>(): Promise<T> => {
   }
 
   throw new Error(`The plateform ${distro.os} is not supported by ${packageName}.`)
+}
+
+interface Mutex {
+  release: () => void
+}
+
+const _lock = Lock()
+const acquireLock = (ressource: string): Promise<Mutex> => {
+  return new Promise<Mutex>((resolve) => {
+    _lock(ressource, (releaser) => {
+      resolve({ release: releaser() })
+    })
+  })
+}
+
+let binding: any | undefined
+export const getBinding = async <T>() => {
+  if (binding) {
+    return binding
+  }
+
+  const mutex = await acquireLock(binName)
+  if (binding) {
+    mutex.release()
+    return binding
+  }
+
+  binding = await initialize()
+
+  mutex.release()
+  return binding
 }

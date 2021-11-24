@@ -1,4 +1,4 @@
-import { init } from './initialize'
+import { getBinding } from './initialize'
 import { Tagger, Trainer, TrainerOptions } from './typings'
 
 type TaggerCtor = new () => Tagger
@@ -9,19 +9,12 @@ interface BindingType {
   Trainer: TrainerCtor
 }
 
-let binding: BindingType | undefined
 export const makeTrainer = async (args?: TrainerOptions) => {
-  if (binding) {
-    return new binding.Trainer(args)
-  }
-  binding = await init<BindingType>()
+  const binding = await getBinding<BindingType>()
   return new binding.Trainer(args)
 }
 
 export const makeTagger = async () => {
-  if (binding) {
-    return new binding.Tagger()
-  }
-  binding = await init<BindingType>()
+  const binding = await getBinding<BindingType>()
   return new binding.Tagger()
 }
