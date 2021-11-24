@@ -1,13 +1,43 @@
-// This file is copied across all 4 node-bindings packages
+/**
+ * This file is copied across all 4 node-bindings packages.
+ *
+ * The reason is: we can't extract common logic in a dedicated package
+ *  as some node bindings are published on the public npm registry and
+ *  we try not publishing npm packages for no reason.
+ *
+ * This code is deliberately kept in a single file to facilitate
+ *  copy/pasting across multiple node-bindings package and not to
+ *  mess up relative paths to native-extensions.
+ */
+
+/**
+ * ###############
+ * ### imports ###
+ * ###############
+ */
 import fs from 'fs'
 import getos from 'getos'
 import { Lock } from 'lock'
 import path from 'path'
 import yn from 'yn'
-import orderBy from 'lodash.orderby'
-
 import { binName } from './constants'
 
+/**
+ * ###############
+ * ### typings ###
+ * ###############
+ */
+type ExtensionDir = Record<'dirName' | 'dist' | 'version', string>
+
+interface Mutex {
+  release: () => void
+}
+
+/**
+ * #################
+ * ### constants ###
+ * #################
+ */
 const fileName = `${binName}.node`
 const packageName = `node-${binName}`
 const customLocationEnv = `NODE_${binName.toUpperCase()}_DIR`
@@ -16,10 +46,23 @@ const verboseEnv = `NODE_${binName.toUpperCase()}_VERBOSE`
 const defaultNativeExtensionsPath = path.join(__dirname, '..', 'native-extensions')
 const envNativeExtensionsPath =
   process.env?.[customLocationEnv] && fs.existsSync(process.env[customLocationEnv]!) && process.env[customLocationEnv]
-
 const nativeExtensionsPath = envNativeExtensionsPath || defaultNativeExtensionsPath
 
 const verbose: boolean = !!yn(process.env[verboseEnv])
+
+const defaultLinuxDirectory: ExtensionDir = {
+  dirName: 'default',
+  dist: 'ubuntu',
+  version: '18.04'
+}
+
+const lock = Lock()
+
+/**
+ * #######################
+ * ### utils functions ###
+ * #######################
+ */
 const debuglog = (...msg: any[]): void => {
   if (!verbose) {
     return
@@ -46,11 +89,10 @@ const getOS = async (): Promise<getos.Os> => {
   })
 }
 
-const sanitizeDistribution = (os: getos.LinuxOs) => {
+const sanitizeLinuxDistribution = (os: getos.LinuxOs) => {
   return os.dist.toLowerCase().replace(/ |-|_|linux/g, '')
 }
 
-type ExtensionDir = Record<'dirName' | 'dist' | 'version', string>
 const parseDirName = (dirName: string): ExtensionDir | undefined => {
   const [dist, ...semverParts] = dirName.split('_')
   if (!semverParts.length) {
@@ -64,6 +106,19 @@ const parseDirName = (dirName: string): ExtensionDir | undefined => {
   }
 }
 
+const acquireLock = (ressource: string): Promise<Mutex> => {
+  return new Promise<Mutex>((resolve) => {
+    lock(ressource, (releaser) => {
+      resolve({ release: releaser() })
+    })
+  })
+}
+
+/**
+ * ######################
+ * ### main functions ###
+ * ######################
+ */
 const initialize = async <T>(): Promise<T> => {
   debuglog('initializing...')
   debuglog(`using path "${nativeExtensionsPath}"`)
@@ -77,6 +132,7 @@ const initialize = async <T>(): Promise<T> => {
     debuglog('success')
     return binding
   }
+
   if (distro.os === 'darwin') {
     const binding = requireExtension('darwin', 'all')
     debuglog('success')
@@ -84,21 +140,17 @@ const initialize = async <T>(): Promise<T> => {
   }
 
   if (distro.os === 'linux') {
-    const distribution = sanitizeDistribution(distro)
+    const { dist: rawDistribution } = distro
 
-    debuglog('linux distribution:', distribution)
+    const sanitizedDist = sanitizeLinuxDistribution(distro)
+    debuglog('sanitized linux distribution:', sanitizedDist)
 
-    let relevantFolders: ExtensionDir[] = fs
+    const relevantFolders: ExtensionDir[] = fs
       .readdirSync(path.join(nativeExtensionsPath, 'linux'))
       .map(parseDirName)
       .filter((x): x is ExtensionDir => !!x)
-      .filter(({ dist }) => dist === distribution)
-    relevantFolders = orderBy(relevantFolders, ({ version }) => version, 'desc')
-    relevantFolders.push({
-      dirName: 'default',
-      dist: 'ubuntu',
-      version: '18.04'
-    })
+      .filter(({ dist }) => dist === sanitizedDist)
+    relevantFolders.push(defaultLinuxDirectory)
 
     debuglog('relevant directories:', relevantFolders)
 
@@ -112,23 +164,10 @@ const initialize = async <T>(): Promise<T> => {
       }
     }
 
-    throw new Error(`Linux distribution ${distribution} is not supported by ${packageName}.`)
+    throw new Error(`Linux distribution ${rawDistribution} is not supported by ${packageName}.`)
   }
 
   throw new Error(`The plateform ${distro.os} is not supported by ${packageName}.`)
-}
-
-interface Mutex {
-  release: () => void
-}
-
-const _lock = Lock()
-const acquireLock = (ressource: string): Promise<Mutex> => {
-  return new Promise<Mutex>((resolve) => {
-    _lock(ressource, (releaser) => {
-      resolve({ release: releaser() })
-    })
-  })
 }
 
 let binding: any | undefined
