@@ -7,28 +7,6 @@ const NOT_FOUND = 'not_found'
 
 const trimPrefix = (value: string, prefix: string) => (value.startsWith(prefix) ? value.slice(prefix.length) : value)
 
-// Disable naming convention because fast_slash comes from Express.
-// eslint-disable-next-line @typescript-eslint/naming-convention
-// Source: https://github.com/thenativeweb/get-routes/blob/main/lib/getRoutes.ts
-const regexToString = (path: { fast_slash: any; toString: () => string }): string => {
-  if (path.fast_slash) {
-    return ''
-  }
-
-  // eslint-disable-next-line prefer-named-capture-group
-  const match = /^\/\^((?:\\[$()*+./?[\\\]^{|}]|[^$()*+./?[\\\]^{|}])*)\$\//u.exec(
-    path.toString().replace('\\/?', '').replace('(?=\\/|$)', '$')
-  )
-
-  if (match) {
-    // Unescape characters.
-    // eslint-disable-next-line prefer-named-capture-group
-    return match[1].replace(/\\(.)/gu, '$1')
-  }
-
-  return '[Unknown path]'
-}
-
 const processMiddleware = (path: string, req: Request, middleware: any, prefix = '') => {
   if (middleware.name === 'router' && middleware.handle.stack) {
     for (const subMiddleware of middleware.handle.stack) {
@@ -52,7 +30,7 @@ const processMiddleware = (path: string, req: Request, middleware: any, prefix =
   }
 
   if (middleware.regexp?.test(path)) {
-    return `${prefix}${regexToString(middleware.regexp)}`
+    return `${prefix}${middleware.path}`
   }
 }
 

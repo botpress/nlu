@@ -183,6 +183,8 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   })
 
   router.get('/train/:modelId', async (req, res, next) => {
+    console.log('hi')
+
     try {
       const appId = getAppId(req)
       const { modelId: stringId } = req.params
