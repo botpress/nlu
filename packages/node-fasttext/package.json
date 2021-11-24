@@ -27,6 +27,11 @@
     "url": "https://github.com/botpress/nlu/issues"
   },
   "homepage": "https://github.com/botpress/nlu/packages/node-fasttext#readme",
+  "dependencies": {
+    "getos": "^3.2.1",
+    "yn": "^4.0.0",
+    "lock": "1.1.0"
+  },
   "devDependencies": {
     "@types/node": "^12.13.0",
     "node-addon-api": "^3.0.0",

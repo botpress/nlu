@@ -32,7 +32,11 @@
     "liblbfgs/include",
     "binding.gyp"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "getos": "^3.2.1",
+    "yn": "^4.0.0",
+    "lock": "1.1.0"
+  },
   "devDependencies": {
     "node-addon-api": "^3.0.0",
     "node-gyp": "^5.0.0",
