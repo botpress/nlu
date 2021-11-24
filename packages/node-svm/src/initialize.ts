@@ -1,13 +1,23 @@
 /**
- * This file is copied across all 4 node-bindings packages.
+ * Description:
+ *  This file is copied across all 4 node-bindings packages.
  *
- * The reason is: we can't extract common logic in a dedicated package
+ *  The reason is we can't extract common logic in a dedicated package
  *  as some node bindings are published on the public npm registry and
  *  we try not publishing npm packages for no reason.
  *
- * This code is deliberately kept in a single file to facilitate
+ *  This code is deliberately kept in a single file to facilitate
  *  copy/pasting across multiple node-bindings package and not to
  *  mess up relative paths to native-extensions.
+ *
+ * Usage:
+ *  The following environment variables can be used to customize
+ *  which extension is loaded at runtime:
+ *
+ *  1. NATIVE_EXTENSIONS_DIR="/my/dir" # allows changing the extension directory for all packages
+ *  2. NODE_${PACKAGE}_DIR="/my/dir" # allows changing the extension directory for a single package
+ *  3. NODE_${PACKAGE}_BIN="/my/dir/myfile.node" # allows specifying which file to load
+ *  4. NODE_${PACKAGE}_VERBOSE=1 # enables debug logs to trouble shoot an extension not loading
  */
 
 /**
@@ -38,15 +48,19 @@ interface Mutex {
  * ### constants ###
  * #################
  */
-const fileName = `${binName}.node`
+const binFileName = `${binName}.node`
 const packageName = `node-${binName}`
-const customLocationEnv = `NODE_${binName.toUpperCase()}_DIR`
+
+const customGlobalDirLocationEnv = 'NATIVE_EXTENSIONS_DIR'
+const customDirLocationEnv = `NODE_${binName.toUpperCase()}_DIR`
+const customFileLocationEnv = `NODE_${binName.toUpperCase()}_BIN`
 const verboseEnv = `NODE_${binName.toUpperCase()}_VERBOSE`
 
-const defaultNativeExtensionsPath = path.join(__dirname, '..', 'native-extensions')
-const envNativeExtensionsPath =
-  process.env?.[customLocationEnv] && fs.existsSync(process.env[customLocationEnv]!) && process.env[customLocationEnv]
-const nativeExtensionsPath = envNativeExtensionsPath || defaultNativeExtensionsPath
+const defaultNativeExtensionsDirPath = path.join(__dirname, '..', 'native-extensions')
+const customNativeExtensionsDirPath = process.env[customDirLocationEnv] || process.env[customGlobalDirLocationEnv]
+const nativeExtensionsDirPath = customNativeExtensionsDirPath || defaultNativeExtensionsDirPath
+
+const customNativeExtensionFilePath: string | undefined = process.env[customFileLocationEnv]
 
 const verbose: boolean = !!yn(process.env[verboseEnv])
 
@@ -73,8 +87,8 @@ const debuglog = (...msg: any[]): void => {
 }
 
 const requireExtension = (os: string, distribution: string) => {
-  const filePath = path.join(nativeExtensionsPath, os, distribution, fileName)
-  debuglog(`about to require file "${path.join('$basepath', os, distribution, fileName)}"`)
+  const filePath = path.join(nativeExtensionsDirPath, os, distribution, binFileName)
+  debuglog(`about to require file "${path.join('$basepath', os, distribution, binFileName)}"`)
   return require(filePath)
 }
 
@@ -121,7 +135,13 @@ const acquireLock = (ressource: string): Promise<Mutex> => {
  */
 const initialize = async <T>(): Promise<T> => {
   debuglog('initializing...')
-  debuglog(`using path "${nativeExtensionsPath}"`)
+
+  if (customNativeExtensionFilePath) {
+    debuglog(`using custom bin file path "${customNativeExtensionFilePath}"`)
+    return require(customNativeExtensionFilePath)
+  }
+
+  debuglog(`using base dir path "${nativeExtensionsDirPath}"`)
 
   const distro = await getOS()
 
@@ -146,7 +166,7 @@ const initialize = async <T>(): Promise<T> => {
     debuglog('sanitized linux distribution:', sanitizedDist)
 
     const relevantFolders: ExtensionDir[] = fs
-      .readdirSync(path.join(nativeExtensionsPath, 'linux'))
+      .readdirSync(path.join(nativeExtensionsDirPath, 'linux'))
       .map(parseDirName)
       .filter((x): x is ExtensionDir => !!x)
       .filter(({ dist }) => dist === sanitizedDist)
@@ -156,7 +176,7 @@ const initialize = async <T>(): Promise<T> => {
 
     for (const { dirName } of relevantFolders) {
       try {
-        const binding = requireExtension('linux', dirName) // this might throw
+        const binding = requireExtension('linux', dirName)
         debuglog('success')
         return binding
       } catch (err) {
@@ -171,7 +191,7 @@ const initialize = async <T>(): Promise<T> => {
 }
 
 let binding: any | undefined
-export const getBinding = async <T>() => {
+export const getBinding = async <T>(): Promise<T> => {
   if (binding) {
     return binding
   }
