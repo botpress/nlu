@@ -65,7 +65,7 @@ For development:
 
 ```bash
 # rebuild
-yarn build && yarn build-native
+yarn build && yarn build:native
 
 # run unit-test
 yarn test

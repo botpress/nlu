@@ -9,7 +9,7 @@
   "types": "./src/typings.d.ts",
   "scripts": {
     "install": ":",
-    "build-native": "node-gyp install && node-gyp rebuild",
+    "build:native": "node-gyp install && node-gyp rebuild",
     "clean": "node-gyp clean",
     "build": "tsc --build",
     "test": "jest -i --detectOpenHandles -c ./jest.config.js"
