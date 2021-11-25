@@ -2,9 +2,9 @@ import { Logger } from '@botpress/logger'
 import chalk from 'chalk'
 import _ from 'lodash'
 import ms from 'ms'
-import { BuildInfo } from '../typings'
+import { BuildInfo, NLUServerOptions } from '../typings'
 import { showBanner } from './banner'
-import { ConfigSource, NLUServerOptions } from './config'
+import { ConfigSource } from './config'
 import { displayDocumentation } from './documentation'
 
 interface LaunchingInfo {

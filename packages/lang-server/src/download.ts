@@ -3,27 +3,19 @@ import { LanguageService } from '@botpress/nlu-engine'
 import cliProgress from 'cli-progress'
 import fse from 'fs-extra'
 import _ from 'lodash'
-import path from 'path'
 
-import { getAppDataPath } from './app-data'
 import DownloadManager from './application/download-manager'
+import { getDownloadConfig } from './config'
+import * as types from './typings'
 
-interface Argv {
-  langDir?: string
-  lang: string
-  dim: number
-  domain: string
-  metadataLocation: string
-}
-
-export default async (options: Argv) => {
+export const download: typeof types.download = async (argv: types.DownloadArgv) => {
+  const options = getDownloadConfig(argv)
   const baseLogger = makeLogger({
     level: LoggerLevel.Info,
     filters: undefined
   })
 
-  const appDataPath = getAppDataPath()
-  const languageDirectory = options.langDir || path.join(appDataPath, 'embeddings')
+  const languageDirectory = options.langDir
   await fse.ensureDir(languageDirectory)
 
   const launcherLogger = baseLogger.sub('Launcher')

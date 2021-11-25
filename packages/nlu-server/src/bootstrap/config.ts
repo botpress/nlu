@@ -1,48 +1,28 @@
+import { LoggerLevel } from '@botpress/logger'
 import bytes from 'bytes'
 import fse from 'fs-extra'
 import { getAppDataPath } from '../app-data'
-
-export interface NLUServerOptions {
-  host: string
-  port: number
-  limitWindow: string
-  limit: number
-  bodySize: string
-  batchSize: number
-  modelCacheSize: string
-  dbURL?: string
-  modelDir: string
-  verbose: number
-  doc: boolean
-  logFilter?: string[]
-  apmEnabled?: boolean
-  apmSampleRate?: number
-  maxTraining: number
-  languageURL: string
-  languageAuthToken?: string
-  ducklingURL: string
-  ducklingEnabled: boolean
-}
-
-export type CommandLineOptions = Partial<NLUServerOptions> & {
-  config?: string
-}
+import { NLUServerOptions, CommandLineOptions } from '../typings'
 
 const DEFAULT_OPTIONS = (): NLUServerOptions => ({
-  host: 'localhost',
   port: 3200,
+  host: 'localhost',
+  modelDir: getAppDataPath(),
+  dbURL: undefined,
   limit: 0,
   limitWindow: '1h',
-  bodySize: '2mb',
-  batchSize: 1,
   languageURL: 'https://lang-01.botpress.io',
+  languageAuthToken: undefined,
+  apmEnabled: undefined,
+  apmSampleRate: undefined,
   ducklingURL: 'https://duckling.botpress.io',
   ducklingEnabled: true,
+  bodySize: '2mb',
+  batchSize: 1,
   modelCacheSize: '2.5gb',
-  verbose: 3,
-  doc: false,
+  verbose: LoggerLevel.Info,
+  doc: true,
   logFilter: undefined,
-  modelDir: getAppDataPath(),
   maxTraining: 2
 })
 
