@@ -1,6 +1,6 @@
 {
   "name": "@botpress/node-crfsuite",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "NodeJS binding for CRFsuite",
   "main": "dist/index.js",
   "types": "./src/typings.d.ts",

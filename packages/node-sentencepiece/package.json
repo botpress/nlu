@@ -1,6 +1,6 @@
 {
   "name": "@botpress/node-sentencepiece",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "nodejs addon for sentencepiece",
   "main": "./dist/index.js",
   "types": "./src/typings.d.ts",
