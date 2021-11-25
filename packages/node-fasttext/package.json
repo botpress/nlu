@@ -9,7 +9,7 @@
   },
   "scripts": {
     "install": ":",
-    "build-native": "node-gyp install && node-gyp rebuild",
+    "build:native": "node-gyp install && node-gyp rebuild",
     "build": "tsc --build",
     "test": "echo \"no tests\""
   },
@@ -29,8 +29,8 @@
   "homepage": "https://github.com/botpress/nlu/packages/node-fasttext#readme",
   "dependencies": {
     "getos": "^3.2.1",
-    "yn": "^4.0.0",
-    "lock": "1.1.0"
+    "lock": "1.1.0",
+    "yn": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^12.13.0",

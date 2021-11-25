@@ -81,11 +81,3 @@ main()
 ```
 
 For more details about training parameters, check out [cjlin1/libsvm](https://github.com/cjlin1/libsvm) readme file.
-
-## Typescript
-
-For typescript usage, checkout the [nsvm.d.ts](https://github.com/botpress/node-svm-napi/blob/master/nsvm.d.ts) file at the project's root directory.
-
-## Contributing
-
-Feel free to open a PR to contribute this project, but before doing so, make sure there's no regression in your code. You can run unit tests with command `yarn test`. Also, you should run memory_test.js for at least an hour without the process memory consumption increasing.
