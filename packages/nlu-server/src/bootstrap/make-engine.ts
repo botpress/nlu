@@ -17,14 +17,13 @@ const wrapLogger = (logger: Logger): NLUEngine.Logger => {
 export const makeEngine = async (options: NLUServerOptions, logger: Logger) => {
   const loggerWrapper: NLUEngine.Logger = wrapLogger(logger)
 
-  const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken, legacyElection } = options
+  const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken } = options
   const config: NLUEngine.Config = {
     languageURL,
     languageAuthToken,
     ducklingEnabled,
     ducklingURL,
     modelCacheSize,
-    legacyElection,
     cachePath: getAppDataPath()
   }
 

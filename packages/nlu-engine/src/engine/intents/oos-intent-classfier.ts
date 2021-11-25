@@ -11,26 +11,13 @@ import { Intent, Tools } from '../typings'
 import Utterance, { buildUtteranceBatch } from '../utterance/utterance'
 
 import { ExactIntenClassifier } from './exact-intent-classifier'
-import {
-  IntentTrainInput,
-  NoneableIntentClassifier,
-  NoneableIntentPredictions,
-  IntentPredictions
-} from './intent-classifier'
+import { IntentTrainInput, NoneableIntentClassifier, NoneableIntentPredictions } from './intent-classifier'
 import { getIntentFeatures } from './intent-featurizer'
 import { featurizeInScopeUtterances, featurizeOOSUtterances, getUtteranceFeatures } from './out-of-scope-featurizer'
 import { SvmIntentClassifier } from './svm-intent-classifier'
 
 interface TrainInput extends IntentTrainInput {
   allUtterances: Utterance[]
-}
-
-interface Options {
-  legacyElection: boolean
-}
-
-const DEFAULT_OPTIONS: Options = {
-  legacyElection: false
 }
 
 const JUNK_VOCAB_SIZE = 500
@@ -82,11 +69,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   private model: Model | undefined
   private predictors: Predictors | undefined
 
-  private _options: Options
-
-  constructor(private tools: Tools, private _logger: Logger, opt: Partial<Options> = {}) {
-    this._options = { ...DEFAULT_OPTIONS, ...opt }
-  }
+  constructor(private tools: Tools, private _logger: Logger) {}
 
   get name() {
     return OOSIntentClassifier._name
@@ -344,46 +327,12 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       } catch (err) {}
     }
 
-    if (this._options.legacyElection) {
-      const exactMatchPredictions = {
-        oos: exactPredictions.oos,
-        intents: [
-          ...exactPredictions.intents,
-          { name: NONE_INTENT, confidence: 0, extractor: exactIntenClassifier.name }
-        ]
-      }
-      return this._returnLegacy(svmPredictions, exactMatchPredictions, oosPrediction)
-    }
-    return this._returnNatural(svmPredictions, exactPredictions, oosPrediction)
-  }
-
-  private _returnLegacy = (
-    svmPredictions: IntentPredictions,
-    exactMatchPredictions: NoneableIntentPredictions,
-    oos: number
-  ) => {
-    // No election between none intent and oos
-    if (exactMatchPredictions.oos === 0) {
-      return exactMatchPredictions
-    }
-
-    return {
-      intents: svmPredictions.intents,
-      oos
-    }
-  }
-
-  private _returnNatural = (
-    svmPredictions: IntentPredictions,
-    exactMatchPredictions: NoneableIntentPredictions,
-    oos: number
-  ) => {
-    if (exactMatchPredictions.oos === 0) {
-      return exactMatchPredictions
+    if (exactPredictions.oos === 0) {
+      return exactPredictions
     }
     return OOSIntentClassifier._removeNoneIntent({
       intents: svmPredictions.intents,
-      oos
+      oos: oosPrediction
     })
   }
 

@@ -2,7 +2,7 @@ import bytes from 'bytes'
 import fse from 'fs-extra'
 import { getAppDataPath } from '../app-data'
 
-interface BaseOptions {
+export interface NLUServerOptions {
   host: string
   port: number
   limitWindow: string
@@ -24,12 +24,8 @@ interface BaseOptions {
   ducklingEnabled: boolean
 }
 
-export type CommandLineOptions = Partial<BaseOptions> & {
+export type CommandLineOptions = Partial<NLUServerOptions> & {
   config?: string
-}
-
-export type NLUServerOptions = BaseOptions & {
-  legacyElection: boolean // not available from CLI
 }
 
 const DEFAULT_OPTIONS = (): NLUServerOptions => ({
@@ -46,7 +42,6 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   verbose: 3,
   doc: false,
   logFilter: undefined,
-  legacyElection: false,
   modelDir: getAppDataPath(),
   maxTraining: 2
 })
@@ -60,8 +55,7 @@ const _mapCli = (c: CommandLineOptions): Partial<NLUServerOptions> => {
     languageURL,
     languageAuthToken,
     ducklingEnabled,
-    ducklingURL,
-    legacyElection: false
+    ducklingURL
   }
 }
 

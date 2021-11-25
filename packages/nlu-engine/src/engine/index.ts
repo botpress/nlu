@@ -35,8 +35,7 @@ interface LoadedModel {
 
 const DEFAULT_CACHE_SIZE = '850mb'
 const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
-  cacheSize: DEFAULT_CACHE_SIZE,
-  legacyElection: false
+  cacheSize: DEFAULT_CACHE_SIZE
 }
 
 const DEFAULT_TRAINING_OPTIONS: TrainingOptions = {
@@ -47,7 +46,6 @@ const DEFAULT_TRAINING_OPTIONS: TrainingOptions = {
 
 interface EngineOptions {
   cacheSize: string
-  legacyElection: boolean
 }
 
 export default class Engine implements IEngine {
@@ -297,8 +295,7 @@ export default class Engine implements IEngine {
 
     const intent_classifier_per_ctx: _.Dictionary<OOSIntentClassifier> = await Bluebird.props(
       _.mapValues(intent_model_by_ctx, async (model) => {
-        const { legacyElection } = this._options
-        const intentClf = new OOSIntentClassifier(tools, this._predictLogger, { legacyElection })
+        const intentClf = new OOSIntentClassifier(tools, this._predictLogger)
         await intentClf.load(model)
         return intentClf
       })
