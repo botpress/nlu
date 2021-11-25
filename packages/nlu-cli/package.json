@@ -10,6 +10,7 @@
     "@botpress/lang-server": "*",
     "@botpress/logger": "*",
     "@botpress/nlu-server": "*",
+    "decamelize": "5.0.1",
     "wtfnode": "^0.9.1",
     "yargs": "^17.2.1"
   },

@@ -28,17 +28,6 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
 
 export type ConfigSource = 'environment' | 'cli' | 'file'
 
-const _mapCli = (c: CommandLineOptions): Partial<NLUServerOptions> => {
-  const { ducklingEnabled, ducklingURL, languageURL, languageAuthToken } = c
-  return {
-    ...c,
-    languageURL,
-    languageAuthToken,
-    ducklingEnabled,
-    ducklingURL
-  }
-}
-
 const readEnvJSONConfig = (): NLUServerOptions | null => {
   const rawContent = process.env.NLU_SERVER_CONFIG
   if (!rawContent) {
@@ -67,19 +56,18 @@ const readFileConfig = async (configPath: string): Promise<NLUServerOptions> => 
 }
 
 export const getConfig = async (
-  c: CommandLineOptions
+  cliOptions: CommandLineOptions
 ): Promise<{ options: NLUServerOptions; source: ConfigSource }> => {
   const envConfig = readEnvJSONConfig()
   if (envConfig) {
     return { options: envConfig, source: 'environment' }
   }
 
-  if (c.config) {
-    const options = await readFileConfig(c.config)
+  if (cliOptions.config) {
+    const options = await readFileConfig(cliOptions.config)
     return { options, source: 'file' }
   }
 
-  const cliOptions = _mapCli(c)
   const defaults = DEFAULT_OPTIONS()
   const options: NLUServerOptions = { ...defaults, ...cliOptions }
   return { options, source: 'cli' }
