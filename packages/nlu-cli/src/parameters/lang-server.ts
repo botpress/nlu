@@ -1,4 +1,4 @@
-import { asYargs } from './yargs-utils'
+import { asYargs } from '../yargs-utils'
 
 export const parameters = asYargs({
   version: {

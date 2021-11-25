@@ -1,0 +1,4 @@
+{
+  "$schema": "./nlu-server.schema.json",
+  "actionServers": {}
+}
