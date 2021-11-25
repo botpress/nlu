@@ -31,7 +31,6 @@ export class LanguageService {
 
 export interface Config extends LanguageConfig {
   modelCacheSize: string
-  legacyElection: boolean
 }
 
 export interface LanguageConfig {
