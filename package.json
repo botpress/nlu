@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu",
-  "version": "1.0.0-rc.3",
+  "version": "1.0.0-rc.4",
   "description": "Botpress NLU; Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
