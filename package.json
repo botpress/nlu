@@ -22,9 +22,8 @@
     ]
   },
   "scripts": {
-    "postinstall": "yarn cmd config",
     "cmd": "yarn run gulp",
-    "dev": "cross-env tsnd --transpile-only --watch ./packages/**/*.ts ./packages/nlu-cli/src/index.ts",
+    "dev": "cross-env tsnd --transpile-only --exit-child --watch ./packages/**/*.ts ./packages/nlu-cli/src/index.ts",
     "start": "cross-env node ./packages/nlu-cli/dist/index.js",
     "build": "tsc --build ./tsconfig.json",
     "clean": "yarn workspaces run clean",

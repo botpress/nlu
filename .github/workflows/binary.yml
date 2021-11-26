@@ -27,7 +27,7 @@ jobs:
           mv ./dist/$bin_original_name ./nlu
       - name: Download language models
         run: |
-          ./nlu download --lang en --dim 25
+          ./nlu lang download --lang en --dim 25
       - name: Run Regression Test
         run: |
 

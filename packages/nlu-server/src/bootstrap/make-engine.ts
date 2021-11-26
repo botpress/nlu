@@ -2,7 +2,7 @@ import { Logger } from '@botpress/logger'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import { getAppDataPath } from '../app-data'
-import { NLUServerOptions } from './config'
+import { NLUServerOptions } from '../typings'
 
 const wrapLogger = (logger: Logger): NLUEngine.Logger => {
   return {

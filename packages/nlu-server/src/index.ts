@@ -4,7 +4,7 @@ import _ from 'lodash'
 import path from 'path'
 
 import { createAPI } from './api'
-import { CommandLineOptions, getConfig, validateConfig, NLUServerOptions } from './bootstrap/config'
+import { getConfig, validateConfig } from './bootstrap/config'
 import { logLaunchingMessage } from './bootstrap/launcher'
 import { makeApplication } from './bootstrap/make-application'
 import { requireJSON } from './require-json'
@@ -22,7 +22,7 @@ const { version: pkgVersion } = packageJson
 
 export const version = pkgVersion
 
-const serverListen = (httpServer: Server, options: NLUServerOptions): Promise<void> => {
+const serverListen = (httpServer: Server, options: types.NLUServerOptions): Promise<void> => {
   return new Promise((resolve, reject) => {
     try {
       const hostname = options.host === 'localhost' ? undefined : options.host
@@ -35,8 +35,8 @@ const serverListen = (httpServer: Server, options: NLUServerOptions): Promise<vo
   })
 }
 
-export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
-  const { options, source: configSource } = await getConfig(cliOptions)
+export const run: typeof types.run = async (cliOptions: types.CommandLineOptions) => {
+  const options = await getConfig(cliOptions)
   validateConfig(options)
 
   const baseLogger = makeLogger({
@@ -50,8 +50,7 @@ export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
     minLevel: LoggerLevel.Info // Launcher always display
   })
 
-  const launchingMessageInfo = { ...options, version, buildInfo, configSource, configFile: cliOptions.config }
-  await logLaunchingMessage(launchingMessageInfo, launcherLogger)
+  await logLaunchingMessage({ ...options, version, buildInfo }, launcherLogger)
 
   const application = await makeApplication(options, version, baseLogger)
   const app = await createAPI(options, application, baseLogger)

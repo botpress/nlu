@@ -18,8 +18,8 @@ jobs:
           yarn build
       - name: Download language models
         run: |
-          yarn start download --lang fr --dim 100
-          yarn start download --lang en --dim 100
+          yarn start lang download --lang fr --dim 100
+          yarn start lang download --lang en --dim 100
       - name: Run Regression Test
         run: |
           yarn start lang --dim 100 &

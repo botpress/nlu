@@ -75,4 +75,4 @@ jspm_packages/
 dist/
 
 
-config.json
+*.config.json

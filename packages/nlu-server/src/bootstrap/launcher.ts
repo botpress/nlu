@@ -2,16 +2,13 @@ import { Logger } from '@botpress/logger'
 import chalk from 'chalk'
 import _ from 'lodash'
 import ms from 'ms'
-import { BuildInfo } from '../typings'
+import { BuildInfo, NLUServerOptions } from '../typings'
 import { showBanner } from './banner'
-import { ConfigSource, NLUServerOptions } from './config'
 import { displayDocumentation } from './documentation'
 
 interface LaunchingInfo {
   version: string
   buildInfo?: BuildInfo
-  configSource: ConfigSource
-  configFile?: string
 }
 
 export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo, launcherLogger: Logger) => {
@@ -23,12 +20,6 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
     bannerWidth: 75,
     logger: launcherLogger
   })
-
-  if (info.configSource === 'environment') {
-    launcherLogger.info('Loading config from environment variables')
-  } else if (info.configSource === 'file') {
-    launcherLogger.info(`Loading config from file "${info.configFile}"`)
-  }
 
   if (info.limit) {
     launcherLogger.info(

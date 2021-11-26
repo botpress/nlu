@@ -66,7 +66,7 @@ export class StanProvider {
   public async predict(utterances: string[]): Promise<PredictOutput[]> {
     const predOutput = await this._client.predict(APP_ID, this._modelId ?? '', { utterances })
     if (!predOutput.success) {
-      throw new Error(`An error occured at prediction: ${predOutput.error}.`)
+      throw new Error(`An error occured at prediction: ${predOutput.error.message}.`)
     }
     return predOutput.predictions
   }
