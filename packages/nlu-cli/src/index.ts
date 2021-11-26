@@ -4,6 +4,7 @@ import { makeLogger } from '@botpress/logger'
 import { run as runNLUServer, version as nluServerVersion } from '@botpress/nlu-server'
 import path from 'path'
 import yargs from 'yargs'
+import { getAppDataPath } from './app-data'
 import { writeConfigFile, readConfigFile } from './config-file'
 import { nluServerParameters, langServerParameters, langDownloadParameters } from './parameters'
 import { parseEnv } from './parse-env'
@@ -50,9 +51,10 @@ void yargs
         }
       )
       .command('init', 'create configuration file in current working directory', {}, (argv) => {
+        const cachePath = getAppDataPath()
         return writeConfigFile({
-          fileLocation: path.join(process.cwd(), 'nlu-server.config.json'),
-          schemaLocation: path.join(process.cwd(), 'nlu-server.config.schema.json'),
+          fileLocation: path.join(process.cwd(), 'nlu.config.json'),
+          schemaLocation: path.join(cachePath, 'nlu.config.schema.json'),
           yargSchema: nluServerParameters
         })
       })
@@ -96,6 +98,14 @@ void yargs
           })
         }
       )
+      .command('init', 'create configuration file in current working directory', {}, (argv) => {
+        const cachePath = getAppDataPath()
+        return writeConfigFile({
+          fileLocation: path.join(process.cwd(), 'lang.config.json'),
+          schemaLocation: path.join(cachePath, 'lang.config.schema.json'),
+          yargSchema: langServerParameters
+        })
+      })
       .command('download', 'Download a language model for lang and dim', langDownloadParameters, (argv) => {
         argv = { ...parseEnv(langDownloadParameters), ...argv }
         void downloadLang(argv).catch((err) => {
