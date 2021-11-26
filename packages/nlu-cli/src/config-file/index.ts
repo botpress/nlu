@@ -25,12 +25,12 @@ export const writeConfigFile = async <S extends YargsSchema>(props: WriteConfigF
 export const readConfigFile = async <S extends YargsSchema>(props: ReadConfigFileProps<S>): Promise<YargsArgv<S>> => {
   const { fileLocation, yargSchema } = props
   const configFileContent = await fse.readFile(fileLocation, 'utf8')
-  const parsedConfigFile = JSON.parse(configFileContent)
+  const { $schema, ...parsedConfigFile } = JSON.parse(configFileContent)
   const schema = generateSchema(yargSchema)
   const validationResult = validate(parsedConfigFile, schema)
   const { valid, errors } = validationResult
   if (!valid) {
-    const errorMsg = errors.map((err) => `${err.property}:${err.message}`).join('\n')
+    const errorMsg = errors.map((err) => `${err.property} ${err.message}`).join('\n')
     throw new Error(errorMsg)
   }
   return parsedConfigFile
