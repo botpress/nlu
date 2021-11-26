@@ -36,7 +36,7 @@ const serverListen = (httpServer: Server, options: types.NLUServerOptions): Prom
 }
 
 export const run: typeof types.run = async (cliOptions: types.CommandLineOptions) => {
-  const { options, source: configSource } = await getConfig(cliOptions)
+  const options = await getConfig(cliOptions)
   validateConfig(options)
 
   const baseLogger = makeLogger({
@@ -50,8 +50,7 @@ export const run: typeof types.run = async (cliOptions: types.CommandLineOptions
     minLevel: LoggerLevel.Info // Launcher always display
   })
 
-  const launchingMessageInfo = { ...options, version, buildInfo, configSource, configFile: cliOptions.config }
-  await logLaunchingMessage(launchingMessageInfo, launcherLogger)
+  await logLaunchingMessage({ ...options, version, buildInfo }, launcherLogger)
 
   const application = await makeApplication(options, version, baseLogger)
   const app = await createAPI(options, application, baseLogger)

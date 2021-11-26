@@ -1,6 +1,5 @@
 import { LoggerLevel } from '@botpress/logger'
 import bytes from 'bytes'
-import fse from 'fs-extra'
 import { getAppDataPath } from '../app-data'
 import { NLUServerOptions, CommandLineOptions } from '../typings'
 
@@ -26,51 +25,10 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   maxTraining: 2
 })
 
-export type ConfigSource = 'environment' | 'cli' | 'file'
-
-const readEnvJSONConfig = (): NLUServerOptions | null => {
-  const rawContent = process.env.NLU_SERVER_CONFIG
-  if (!rawContent) {
-    return null
-  }
-  try {
-    const parsedContent = JSON.parse(rawContent)
-    const defaults = DEFAULT_OPTIONS()
-    return { ...defaults, ...parsedContent }
-  } catch {
-    return null
-  }
-}
-
-const readFileConfig = async (configPath: string): Promise<NLUServerOptions> => {
-  try {
-    const rawContent = await fse.readFile(configPath, 'utf8')
-    const parsedContent = JSON.parse(rawContent)
-    const defaults = DEFAULT_OPTIONS()
-    return { ...defaults, ...parsedContent }
-  } catch (err) {
-    const e = new Error(`The following errored occured when reading config file "${configPath}": ${err.message}`)
-    e.stack = err.stack
-    throw e
-  }
-}
-
-export const getConfig = async (
-  cliOptions: CommandLineOptions
-): Promise<{ options: NLUServerOptions; source: ConfigSource }> => {
-  const envConfig = readEnvJSONConfig()
-  if (envConfig) {
-    return { options: envConfig, source: 'environment' }
-  }
-
-  if (cliOptions.config) {
-    const options = await readFileConfig(cliOptions.config)
-    return { options, source: 'file' }
-  }
-
+export const getConfig = async (cliOptions: CommandLineOptions): Promise<NLUServerOptions> => {
   const defaults = DEFAULT_OPTIONS()
   const options: NLUServerOptions = { ...defaults, ...cliOptions }
-  return { options, source: 'cli' }
+  return options
 }
 
 export const validateConfig = (options: NLUServerOptions) => {
