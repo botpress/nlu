@@ -20,7 +20,7 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   batchSize: -1,
   modelCacheSize: '2.5gb',
   verbose: LoggerLevel.Info,
-  doc: true,
+  doc: false,
   logFilter: undefined,
   maxTraining: 2
 })
