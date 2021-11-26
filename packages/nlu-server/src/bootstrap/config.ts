@@ -17,7 +17,7 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   ducklingURL: 'https://duckling.botpress.io',
   ducklingEnabled: true,
   bodySize: '2mb',
-  batchSize: 1,
+  batchSize: -1,
   modelCacheSize: '2.5gb',
   verbose: LoggerLevel.Info,
   doc: true,
