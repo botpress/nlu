@@ -1,8 +1,9 @@
+import { Dictionary } from 'lodash'
 import yargs from 'yargs'
 
-export interface YargsSchema {
-  [key: string]: yargs.Options
-}
+export type YargsOptionType = Exclude<yargs.Options['type'], 'count'>
+export type YargsOption = yargs.Options & { type?: YargsOptionType }
+export type YargsSchema = Dictionary<YargsOption>
 
 export type YargsArgv<T extends YargsSchema> = yargs.Arguments<yargs.InferredOptionTypes<T>>
 

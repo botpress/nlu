@@ -1,16 +1,6 @@
 import { asYargs } from '../yargs-utils'
 
 export const parameters = asYargs({
-  version: {
-    description: "Prints the NLU Server's version",
-    type: 'boolean',
-    default: false
-  },
-  config: {
-    description: 'Path to your config file. If defined, rest of the CLI arguments are ignored.',
-    type: 'string',
-    alias: 'c'
-  },
   port: {
     description: 'The port to listen to',
     type: 'number'

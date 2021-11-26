@@ -1,16 +1,13 @@
 import decamelize from 'decamelize'
 import yargs from 'yargs'
 import yn from 'yn'
-import { YargsSchema, YargsArgv } from './yargs-utils'
-
-const isUndefined = <T>(x: T | undefined): x is undefined => x === undefined
-const isDefined = <T>(x: T | undefined): x is T => x !== undefined
+import { YargsSchema } from './yargs-utils'
 
 const parseSingleEnv = <O extends yargs.Options>(
   yargSchema: O,
   envVarValue: string | undefined
 ): yargs.InferredOptionType<O> | undefined => {
-  if (isUndefined(envVarValue)) {
+  if (envVarValue === undefined) {
     return
   }
 
@@ -40,15 +37,16 @@ const parseSingleEnv = <O extends yargs.Options>(
  * @param yargsSchema the yargs builder parameter that declares what named parameters are required
  * @param argv the filled argv datastructure returned by yargs
  */
-export const parseEnv = <T extends YargsSchema>(yargsSchema: T, argv: YargsArgv<T>): YargsArgv<T> => {
+export const parseEnv = <T extends YargsSchema>(yargsSchema: T): Partial<yargs.InferredOptionTypes<T>> => {
+  const returned: Partial<yargs.InferredOptionTypes<T>> = {}
   for (const param in yargsSchema) {
     const envVarName = decamelize(param, { preserveConsecutiveUppercase: true, separator: '_' }).toUpperCase()
     const envVarValue = process.env[envVarName]
     const schema = yargsSchema[param]
     const parsedEnvValue = parseSingleEnv(schema, envVarValue)
-    if (isUndefined(argv[param]) && isDefined(parsedEnvValue)) {
-      ;(argv as yargs.InferredOptionTypes<T>)[param] = parsedEnvValue
+    if (parsedEnvValue !== undefined) {
+      returned[param] = parsedEnvValue
     }
   }
-  return argv
+  return returned
 }

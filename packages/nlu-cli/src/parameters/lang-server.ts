@@ -1,11 +1,6 @@
 import { asYargs } from '../yargs-utils'
 
 export const parameters = asYargs({
-  version: {
-    description: "Prints the Lang Server's version",
-    type: 'boolean',
-    default: false
-  },
   port: {
     description: 'The port to listen to',
     type: 'number'
