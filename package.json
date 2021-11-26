@@ -40,7 +40,7 @@
     "conventional-changelog": "^3.1.24",
     "gulp": "^4.0.0",
     "gulp-cli": "^2.0.1",
-    "pkg": "^4.5.1",
+    "pkg": "^5.4.1",
     "prepend-file": "^2.0.0",
     "semver": "^7.3.5",
     "ts-node-dev": "^1.1.6",

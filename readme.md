@@ -16,7 +16,7 @@ Check out each individual packages for more details.
 
 ## Running from source
 
-**Prerequisites**: Node 12.13 (you can use [nvm](https://github.com/creationix/nvm)) and Yarn.
+**Prerequisites**: Node 16.13 (you can use [nvm](https://github.com/creationix/nvm)) and Yarn.
 
 1. Run `yarn` to fetch node packages.
 1. Run `yarn build && yarn start` to build and start the Standalone NLU server.

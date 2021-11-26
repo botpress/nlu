@@ -48,7 +48,7 @@
     "@types/lodash": "^4.14.116",
     "@types/lru-cache": "^5.1.0",
     "@types/ms": "^0.7.30",
-    "@types/node": "^12.13.0",
+    "@types/node": "^16.11.10",
     "@types/numeric": "^1.2.1",
     "@types/seedrandom": "^2.4.28",
     "@types/tmp": "^0.0.33",

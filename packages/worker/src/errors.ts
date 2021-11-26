@@ -11,7 +11,7 @@ export function isTaskAlreadyStarted(err: Error): err is TaskAlreadyStartedError
 }
 
 export class TaskExitedUnexpectedlyError extends Error {
-  public wid: number
+  public wid: number | undefined
   public info: { exitCode: number; signal: string }
 
   constructor(worker: Worker, info: { exitCode: number; signal: string }) {
@@ -20,7 +20,8 @@ export class TaskExitedUnexpectedlyError extends Error {
     const workerType = type === 'process' ? 'Process' : 'Thread'
     const message = `${workerType} ${worker.wid} exited with exit code ${exitCode} and signal ${signal}.`
     super(message)
-    ;(this.wid = worker.wid), (this.info = info)
+    this.wid = worker.wid
+    this.info = info
   }
 }
 export function isTaskExitedUnexpectedly(err: Error): err is TaskExitedUnexpectedlyError {
