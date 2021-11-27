@@ -78,14 +78,13 @@
     "jest": "^24.9.0",
     "prettier": "^2.2.1",
     "supertest": "^6.1.3",
-    "ts-jest": "^26.5.5",
     "typescript": "^3.9.10"
   },
   "scripts": {
     "build": "tsc --build",
     "postbuild": "cross-env node ./scripts/buildinfo.js ./.buildinfo.json",
     "start": "cross-env node ./dist/index.js",
-    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js",
+    "test": "jest --roots ./dist",
     "clean": "rm -rf ./dist && rm -rf ./node_modules"
   }
 }

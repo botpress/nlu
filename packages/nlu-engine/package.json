@@ -5,7 +5,7 @@
   "license": "AGPL-3.0",
   "scripts": {
     "build": "tsc --build",
-    "test": "cross-env jest -i --detectOpenHandles -c jest.config.js",
+    "test": "jest --roots ./dist",
     "clean": "rm -rf ./dist && rm -rf ./node_modules"
   },
   "dependencies": {
@@ -61,7 +61,6 @@
     "eslint-plugin-jsdoc": "^32.3.2",
     "jest": "^24.9.0",
     "prettier": "^2.2.1",
-    "ts-jest": "^26.5.5",
     "typescript": "^3.9.10"
   },
   "types": "./src/typings.d.ts",

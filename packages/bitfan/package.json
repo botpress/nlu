@@ -9,7 +9,7 @@
   "types": "./src/bitfan.d.ts",
   "scripts": {
     "build": "tsc --build",
-    "test": "jest",
+    "test": "jest --roots ./dist",
     "clean": "rm -rf ./dist && rm -rf ./node_modules"
   },
   "publishConfig": {
@@ -42,7 +42,6 @@
     "@types/seedrandom": "^2.4.28",
     "babel-jest": "^24.0.0",
     "jest": "^24.0.0",
-    "ts-jest": "^24.3.0",
     "typescript": "^3.9.10"
   }
 }

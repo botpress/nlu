@@ -12,7 +12,7 @@
     "build:native": "node-gyp install && node-gyp rebuild",
     "clean:native": "node-gyp clean",
     "build": "tsc --build",
-    "test": "jest -i --detectOpenHandles -c ./jest.config.js",
+    "test": "jest --roots ./dist",
     "clean": "rm -rf ./dist && rm -rf ./node_modules"
   },
   "gypfile": true,
@@ -29,7 +29,6 @@
     "jest": "^24.9.0",
     "node-addon-api": "^2.0.0",
     "node-gyp": "^6.1.0",
-    "ts-jest": "^26.5.5",
     "typescript": "^3.9.10"
   }
 }
