@@ -25,7 +25,7 @@
     "@babel/preset-typescript": "^7.10.1",
     "@types/bluebird": "^3.5.32",
     "@types/getos": "^3.0.0",
-    "@types/node": "^12.13.0",
+    "@types/node": "^16.11.10",
     "jest": "^24.9.0",
     "node-addon-api": "^2.0.0",
     "node-gyp": "^6.1.0",

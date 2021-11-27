@@ -41,7 +41,7 @@
   "devDependencies": {
     "node-addon-api": "^3.0.0",
     "node-gyp": "^5.0.0",
-    "@types/node": "^12.13.0",
+    "@types/node": "^16.11.10",
     "typescript": "^3.9.10"
   }
 }

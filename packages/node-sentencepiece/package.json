@@ -27,7 +27,7 @@
     "node-gyp": "^4.0.0",
     "node-addon-api": "^1.6.3",
     "run-script-os": "^1.0.5",
-    "@types/node": "^12.13.0",
+    "@types/node": "^16.11.10",
     "typescript": "^3.9.10"
   }
 }
