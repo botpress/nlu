@@ -1,4 +1,7 @@
 import _ from 'lodash'
+import { Logger } from 'src/typings'
+import { ModelLoadingError } from '../../errors'
+import { makeFakeTools } from '../test-utils/fake-tools'
 import { makeTestUtterance } from '../test-utils/fake-utterance'
 
 import { BIO, ExtractedEntity, ExtractedSlot } from '../typings'
@@ -6,9 +9,6 @@ import Utterance from '../utterance/utterance'
 
 import SlotTagger, { labelizeUtterance, makeExtractedSlots } from './slot-tagger'
 import { TagResult } from './typings'
-import { makeFakeTools } from '../test-utils/fake-tools'
-import { ModelLoadingError } from '../../errors'
-import { Logger } from 'src/typings'
 
 const fakeTools = makeFakeTools(300, ['en'])
 const dummyProgress = (p: number) => {}

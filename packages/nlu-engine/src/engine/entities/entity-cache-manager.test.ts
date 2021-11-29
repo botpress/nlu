@@ -5,7 +5,7 @@ import { SystemEntityCacheManager } from './entity-cache-manager'
 
 describe('System Entity Cache', () => {
   let testCache: SystemEntityCacheManager
-  let testCachePath = path.join(' ', 'cache', 'testCache.json')
+  const testCachePath = path.join(' ', 'cache', 'testCache.json')
   let inputExemples: string[]
   beforeEach(async () => {
     testCache = new SystemEntityCacheManager(testCachePath, false)
@@ -112,7 +112,7 @@ describe('System Entity Cache', () => {
   })
 
   test('Cache is restored', async () => {
-    testCache.restoreCache()
+    await testCache.restoreCache()
 
     const [testCached, testToFetch] = testCache.splitCacheHitFromCacheMiss(inputExemples, true)
 

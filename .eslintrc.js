@@ -11,7 +11,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module'
   },
-  ignorePatterns: ['**/index.d.ts', '**/global.d.ts', '**/*.test.ts', '*.js', '**/dist/**'],
+  ignorePatterns: ['**/index.d.ts', '**/global.d.ts', '*.js', '**/dist/**'],
   plugins: ['eslint-plugin-import', 'eslint-plugin-jsdoc', '@typescript-eslint'],
   rules: {
     '@typescript-eslint/consistent-type-definitions': 'error',

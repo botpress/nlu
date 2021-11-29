@@ -30,7 +30,7 @@
     "postbuild": "yarn workspace @botpress/nlu-server postbuild",
     "package": "yarn cmd package",
     "e2e": "yarn workspace e2e start",
-    "test": "yarn workspaces run test",
+    "test": "jest -c ./jest.config.js",
     "prettier": "cross-env prettier --check './packages/**/*.ts' '!**/*.d.ts'",
     "prettier-fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "cross-env eslint packages/ --ext .ts",
