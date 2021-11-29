@@ -114,7 +114,7 @@ export default class Engine implements IEngine {
     return !!this.modelsById.get(stringId)
   }
 
-  async train(trainId: string, trainSet: TrainInput, opt: Partial<TrainingOptions> = {}): Promise<Model> {
+  public async train(trainId: string, trainSet: TrainInput, opt: Partial<TrainingOptions> = {}): Promise<Model> {
     const { language, seed, entities, intents } = trainSet
     this._trainLogger.debug(`[${trainId}] Started ${language} training`)
 
@@ -212,11 +212,11 @@ export default class Engine implements IEngine {
     return serializeModel(model)
   }
 
-  cancelTraining(trainSessionId: string): Promise<void> {
+  public cancelTraining(trainSessionId: string): Promise<void> {
     return this._trainingWorkerQueue.cancelTraining(trainSessionId)
   }
 
-  async loadModel(serialized: Model) {
+  public async loadModel(serialized: Model) {
     const stringId = modelIdService.toString(serialized.id)
     this._logger.debug(`Load model ${stringId}`)
 
@@ -265,7 +265,7 @@ export default class Engine implements IEngine {
     )
   }
 
-  unloadModel(modelId: ModelId) {
+  public unloadModel(modelId: ModelId) {
     const stringId = modelIdService.toString(modelId)
     this._logger.debug(`Unload model ${stringId}`)
 
@@ -327,7 +327,7 @@ export default class Engine implements IEngine {
     }
   }
 
-  async predict(text: string, modelId: ModelId): Promise<PredictOutput> {
+  public async predict(text: string, modelId: ModelId): Promise<PredictOutput> {
     this._predictLogger.debug(`Predict for input: "${text}"`)
 
     const stringId = modelIdService.toString(modelId)
@@ -347,7 +347,7 @@ export default class Engine implements IEngine {
     )
   }
 
-  async detectLanguage(text: string, modelsByLang: _.Dictionary<ModelId>): Promise<string> {
+  public async detectLanguage(text: string, modelsByLang: _.Dictionary<ModelId>): Promise<string> {
     this._predictLogger.debug(`Detecting language for input: "${text}"`)
 
     const predictorsByLang = _.mapValues(modelsByLang, (id) => {

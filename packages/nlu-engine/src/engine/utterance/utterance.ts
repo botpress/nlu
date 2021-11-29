@@ -124,11 +124,11 @@ export default class Utterance {
     this._tokens = arr
   }
 
-  get tokens(): ReadonlyArray<UtteranceToken> {
+  public get tokens(): ReadonlyArray<UtteranceToken> {
     return this._tokens
   }
 
-  sentenceEmbedding(
+  public sentenceEmbedding(
     options?: Partial<{
       keepToken: (t: UtteranceToken) => boolean
     }>
@@ -172,11 +172,11 @@ export default class Utterance {
     return this._sentenceEmbedding
   }
 
-  setGlobalTfidf(tfidf: TFIDF) {
+  public setGlobalTfidf(tfidf: TFIDF) {
     this._globalTfidf = _.mapKeys(tfidf, (tfidf, token) => token.toLowerCase())
   }
 
-  setKmeans(kmeans?: MLToolkit.KMeans.KmeansResult) {
+  public setKmeans(kmeans?: MLToolkit.KMeans.KmeansResult) {
     this._kmeans = kmeans
   }
 
@@ -206,7 +206,7 @@ export default class Utterance {
   }
 
   // TODO memoize this for better perf
-  toString(opt?: Partial<UtteranceToStringOptions>): string {
+  public toString(opt?: Partial<UtteranceToStringOptions>): string {
     const nonEmptyOptions = _.pickBy(opt, (v) => v !== undefined)
     const options: UtteranceToStringOptions = { ...DEFAULT_UTT_TO_STRING_OPTIONS, ...nonEmptyOptions }
 
@@ -227,7 +227,7 @@ export default class Utterance {
     return final.replace(new RegExp(SPACE, 'g'), ' ')
   }
 
-  clone(copyEntities: boolean, copySlots: boolean): Utterance {
+  public clone(copyEntities: boolean, copySlots: boolean): Utterance {
     const tokens = this.tokens.map((x) => x.value)
     const vectors = this.tokens.map((x) => <number[]>x.vector)
     const POStags = this.tokens.map((x) => x.POS)
@@ -254,7 +254,7 @@ export default class Utterance {
     }
   }
 
-  tagEntity(entity: ExtractedEntity, start: number, end: number) {
+  public tagEntity(entity: ExtractedEntity, start: number, end: number) {
     this._validateRange(start, end)
     const range = this.tokens.filter((x) => x.offset >= start && x.offset + x.value.length <= end)
     if (_.isEmpty(range)) {
@@ -271,7 +271,7 @@ export default class Utterance {
     this.entities = [...this.entities, entityWithPos]
   }
 
-  tagSlot(slot: ExtractedSlot, start: number, end: number) {
+  public tagSlot(slot: ExtractedSlot, start: number, end: number) {
     this._validateRange(start, end)
     const range = this.tokens.filter((x) => x.offset >= start && x.offset + x.value.length <= end)
     if (_.isEmpty(range)) {

@@ -113,12 +113,12 @@ export class Client {
 
   constructor(config: LangClientConfig)
 
-  getInfo(): Promise<InfoResponseBody | ErrorResponse>
-  tokenize(utterances: string[], language: string): Promise<TokenizeResponseBody | ErrorResponse>
-  vectorize(tokens: string[], language: string): Promise<VectorizeResponseBody | ErrorResponse>
-  getLanguages(): Promise<LanguagesResponseBody | ErrorResponse>
-  startDownload(lang: string): Promise<DownloadLangResponseBody | ErrorResponse>
-  deleteLang(lang: string): Promise<SuccessReponse | ErrorResponse>
-  loadLang(lang: string): Promise<SuccessReponse | ErrorResponse>
-  cancelDownload(downloadId: string): Promise<SuccessReponse | ErrorResponse>
+  public getInfo(): Promise<InfoResponseBody | ErrorResponse>
+  public tokenize(utterances: string[], language: string): Promise<TokenizeResponseBody | ErrorResponse>
+  public vectorize(tokens: string[], language: string): Promise<VectorizeResponseBody | ErrorResponse>
+  public getLanguages(): Promise<LanguagesResponseBody | ErrorResponse>
+  public startDownload(lang: string): Promise<DownloadLangResponseBody | ErrorResponse>
+  public deleteLang(lang: string): Promise<SuccessReponse | ErrorResponse>
+  public loadLang(lang: string): Promise<SuccessReponse | ErrorResponse>
+  public cancelDownload(downloadId: string): Promise<SuccessReponse | ErrorResponse>
 }

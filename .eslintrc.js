@@ -100,6 +100,19 @@ module.exports = {
     'no-trailing-spaces': 'error',
     'no-var': 'error',
     'object-shorthand': 'error',
-    'prefer-const': 'warn'
+    'prefer-const': 'warn',
+    '@typescript-eslint/explicit-member-accessibility': [
+      'warn',
+      {
+        accessibility: 'explicit',
+        overrides: {
+          accessors: 'explicit',
+          constructors: 'no-public',
+          methods: 'explicit',
+          properties: 'off',
+          parameterProperties: 'explicit'
+        }
+      }
+    ]
   }
 }

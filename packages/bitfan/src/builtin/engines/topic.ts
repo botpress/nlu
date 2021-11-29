@@ -14,7 +14,7 @@ export class BpTopicEngine implements sdk.Engine<'topic'> {
     this._stanProvider = new StanProvider(bpEndpoint)
   }
 
-  train(trainSet: sdk.DataSet<'topic'>, seed: number, progress: sdk.ProgressCb) {
+  public train(trainSet: sdk.DataSet<'topic'>, seed: number, progress: sdk.ProgressCb) {
     const samples = trainSet.samples
 
     const allTopics = _(samples)
@@ -47,7 +47,7 @@ export class BpTopicEngine implements sdk.Engine<'topic'> {
     })
   }
 
-  async predict(testSet: sdk.DataSet<'topic'>, progress: sdk.ProgressCb) {
+  public async predict(testSet: sdk.DataSet<'topic'>, progress: sdk.ProgressCb) {
     const results: sdk.Prediction<'topic'>[] = []
 
     let done = 0

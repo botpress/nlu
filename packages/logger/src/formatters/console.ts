@@ -27,7 +27,7 @@ function _serializeArgs(args: any): string {
 export class ConsoleFormatter implements LogEntryFormatter {
   constructor(private _opts: ConsoleFormatterOpts = { indent: false }) {}
 
-  format(config: LoggerConfig, entry: LogEntry): FormattedLogEntry {
+  public format(config: LoggerConfig, entry: LogEntry): FormattedLogEntry {
     const time = moment().format(config.timeFormat)
     const serializedMetadata = entry.metadata ? _serializeArgs(entry.metadata) : ''
 

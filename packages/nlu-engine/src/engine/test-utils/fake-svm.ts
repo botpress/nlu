@@ -4,7 +4,7 @@ import { MLToolkit } from '../../ml/typings'
 export class FakeSvmTrainer implements MLToolkit.SVM.Trainer {
   private _isTrained = false
   constructor() {}
-  async train(
+  public async train(
     points: MLToolkit.SVM.DataPoint[],
     options?: MLToolkit.SVM.SVMOptions | undefined,
     callback?: MLToolkit.SVM.TrainProgressCallback | undefined
@@ -20,7 +20,7 @@ export class FakeSvmTrainer implements MLToolkit.SVM.Trainer {
       .value()
       .join(',')
   }
-  isTrained(): boolean {
+  public isTrained(): boolean {
     return this._isTrained
   }
 }
@@ -28,18 +28,18 @@ export class FakeSvmTrainer implements MLToolkit.SVM.Trainer {
 export class FakeSvmPredictor implements MLToolkit.SVM.Predictor {
   constructor(private model: string) {}
 
-  async predict(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
+  public async predict(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
     const labels = this.model.split(',')
     return labels.map((label) => ({ label, confidence: 1 / labels.length }))
   }
 
-  async initialize() {}
+  public async initialize() {}
 
-  isLoaded(): boolean {
+  public isLoaded(): boolean {
     return true
   }
 
-  getLabels(): string[] {
+  public getLabels(): string[] {
     return this.model.split(',')
   }
 }
