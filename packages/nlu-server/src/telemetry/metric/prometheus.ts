@@ -1,49 +1,71 @@
 import { createMiddleware, defaultNormalizers } from '@promster/express'
 import { getSummary, getContentType } from '@promster/metrics'
-import { Application as ExpressApp, Request, Response } from 'express'
+import { Express, Request } from 'express'
+import listEndpoints from 'express-list-endpoints'
 import * as http from 'http'
+import url from 'url'
+import UrlPattern from 'url-pattern'
 
-const NOT_FOUND = 'not_found'
-
-const trimPrefix = (value: string, prefix: string) => (value.startsWith(prefix) ? value.slice(prefix.length) : value)
-
-const processMiddleware = (path: string, req: Request, middleware: any, prefix = '') => {
-  if (middleware.name === 'router' && middleware.handle.stack) {
-    for (const subMiddleware of middleware.handle.stack) {
-      if (middleware.regexp?.test(path)) {
-        const match = processMiddleware(
-          trimPrefix(path, middleware.path),
-          req,
-          subMiddleware,
-          `${prefix}${middleware.path}`
-        )
-
-        if (match) {
-          return match
-        }
-      }
-    }
-  }
-
-  if (!middleware.route?.methods?.[req.method.toLowerCase()]) {
-    return
-  }
-
-  if (middleware.regexp?.test(path)) {
-    return `${prefix}${middleware.path}`
-  }
+interface Route {
+  methods: string[]
+  pattern: string
+  path: UrlPattern
 }
 
-const normalizePath = (app: ExpressApp, path: string, { req, res }: { req: Request; res: Response }) => {
-  for (const middleware of app._router.stack) {
-    const match = processMiddleware(path, req, middleware)
+const captureAllRoutes = (app: Express) => {
+  const endpoints = listEndpoints(app).filter((route) => route.path !== '/*' && route.path !== '*')
 
-    if (match) {
-      return match
+  const routes = endpoints.map((route) => {
+    if (route.path.endsWith('/')) {
+      route.path = route.path.replace(/\/$/, '')
     }
-  }
 
-  return NOT_FOUND
+    return {
+      methods: route.methods,
+      pattern: route.path,
+      path: new UrlPattern(route.path, {
+        segmentNameCharset: 'a-zA-Z0-9_-'
+      })
+    }
+  })
+
+  return routes
+}
+
+const normalizePath = (app: Express) => {
+  const allRoutes: Route[] = []
+
+  return ({ req }: { req: Request }) => {
+    if (!allRoutes.length) {
+      captureAllRoutes(app).forEach((route) => allRoutes.push(route))
+    }
+
+    let pattern: string | null = null
+    let path = url.parse(req.originalUrl || req.url).pathname || ''
+
+    if (path && path.endsWith('/')) {
+      path = path.replace(/\/$/, '')
+    }
+
+    allRoutes.some((route) => {
+      if (route.methods.indexOf(req.method) === -1) {
+        return false
+      }
+
+      if (route.path.match(path)) {
+        pattern = route.pattern
+        return true
+      }
+
+      return false
+    })
+
+    if (pattern === null) {
+      return false
+    }
+
+    return pattern || path
+  }
 }
 
 const createServer = (onRequest?: () => Promise<void>) =>
@@ -63,13 +85,13 @@ const createServer = (onRequest?: () => Promise<void>) =>
     })
   })
 
-export const initPrometheus = async (app: ExpressApp, onRequest?: () => Promise<void>) => {
+export const initPrometheus = async (app: Express, onRequest?: () => Promise<void>) => {
   app.use(
     createMiddleware({
       app,
       options: {
         ...defaultNormalizers,
-        normalizePath: normalizePath.bind(undefined, app),
+        normalizePath: normalizePath(app),
         buckets: [0.05, 0.1, 0.5, 1, 3]
       }
     })

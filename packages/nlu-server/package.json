@@ -26,6 +26,7 @@
     "@promster/server": "6.0.2",
     "@sentry/node": "^6.9.0",
     "@sentry/tracing": "^6.9.0",
+    "@types/express-list-endpoints": "^6.0.0",
     "@types/nanoid": "^3.0.0",
     "axios": "^0.21.1",
     "bluebird": "^3.7.2",
@@ -36,6 +37,7 @@
     "diff": "^4.0.1",
     "eventemitter2": "^5.0.1",
     "express": "^4.16.4",
+    "express-list-endpoints": "^6.0.0",
     "express-rate-limit": "^5.5.0",
     "fs-extra": "^9.1.0",
     "glob": "^7.1.6",
@@ -57,6 +59,7 @@
     "tar": "^4.4.6",
     "tmp": "^0.0.33",
     "unzipper": "^0.10.3",
+    "url-pattern": "^1.0.3",
     "verror": "^1.10.0",
     "yn": "^2.0.0"
   },
