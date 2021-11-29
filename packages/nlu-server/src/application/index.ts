@@ -28,11 +28,11 @@ export class Application {
     this._logger = baseLogger.sub('app')
   }
 
-  addTrainingListener(listener: TrainingListener) {
+  public addTrainingListener(listener: TrainingListener) {
     this._trainingQueue.addListener(listener)
   }
 
-  removeTrainingListener(listener: TrainingListener) {
+  public removeTrainingListener(listener: TrainingListener) {
     this._trainingQueue.removeListener(listener)
   }
 

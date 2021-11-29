@@ -47,11 +47,11 @@ export default class TrainingQueue {
     this.options = { ...DEFAULT_OPTIONS, ..._.pickBy(opt) }
   }
 
-  addListener(listener: TrainingListener) {
+  public addListener(listener: TrainingListener) {
     this.trainingRepo.addListener(listener)
   }
 
-  removeListener(listener: TrainingListener) {
+  public removeListener(listener: TrainingListener) {
     this.trainingRepo.removeListener(listener)
   }
 
