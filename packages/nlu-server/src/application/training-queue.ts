@@ -12,9 +12,9 @@ import {
   TrainingId,
   TrainingRepository,
   TrainingState,
-  WrittableTrainingRepository
+  WrittableTrainingRepository,
+  TrainingListener
 } from '../infrastructure/training-repo/typings'
-import { trainingDuration } from '../telemetry/metric'
 import { watchDog, WatchDog } from '../utils/watch-dog'
 import { TrainingAlreadyStartedError, TrainingNotFoundError } from './errors'
 
@@ -22,8 +22,6 @@ const MAX_MODEL_PER_USER_PER_LANG = 1
 const TRAINING_HEARTBEAT_SECURITY_FACTOR = 3
 const MIN_TRAINING_HEARTBEAT = ms('10s')
 const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * TRAINING_HEARTBEAT_SECURITY_FACTOR
-
-export type TrainingListener = (training: Training) => Promise<void>
 
 export interface QueueOptions {
   maxTraining: number
@@ -36,7 +34,6 @@ export default class TrainingQueue {
   private logger: Logger
   private options: QueueOptions
   private task!: WatchDog<[]>
-  private listeners: TrainingListener[] = []
 
   constructor(
     private engine: NLUEngine.Engine,
@@ -51,15 +48,11 @@ export default class TrainingQueue {
   }
 
   addListener(listener: TrainingListener) {
-    this.listeners.push(listener)
+    this.trainingRepo.addListener(listener)
   }
 
-  removeListener(listenerToRemove: TrainingListener) {
-    _.remove(this.listeners, (listener) => listener === listenerToRemove)
-  }
-
-  private _onTrainingEvent(training: Training) {
-    this.listeners.forEach((listener) => listener(training))
+  removeListener(listener: TrainingListener) {
+    this.trainingRepo.removeListener(listener)
   }
 
   private _getTrainingTime(startTime: Date) {
@@ -169,7 +162,6 @@ export default class TrainingQueue {
 
       const training = pendings[0]
       training.status = 'training'
-      this._onTrainingEvent(training)
 
       await repo.set(training)
 
@@ -227,7 +219,6 @@ export default class TrainingQueue {
 
       training.trainingTime = this._getTrainingTime(startTime)
       training.status = 'done'
-      this._onTrainingEvent(training)
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set(training)
       }, '_train_done')
@@ -241,7 +232,6 @@ export default class TrainingQueue {
 
         training.trainingTime = this._getTrainingTime(startTime)
         training.status = 'canceled'
-        this._onTrainingEvent(training)
         await this.trainingRepo.inTransaction(async (repo) => {
           return repo.set(training)
         }, '_train_canceled')
@@ -266,7 +256,6 @@ export default class TrainingQueue {
 
       training.trainingTime = this._getTrainingTime(startTime)
       training.status = 'errored'
-      this._onTrainingEvent(training)
       const { message, stack } = err
       training.error = { message, stack, type }
 
