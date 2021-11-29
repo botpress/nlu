@@ -36,7 +36,6 @@ interface TableId {
 interface TableRow extends TableId {
   status: TrainingStatus
   progress: number
-  training_time?: number
   error_type?: TrainingErrorType
   error_message?: string
   error_stack?: string
