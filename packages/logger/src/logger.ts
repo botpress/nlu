@@ -11,7 +11,7 @@ export class Logger implements sdk.Logger {
 
   constructor(private _name: string = Logger._GLOBAL_NAMESPACE) {}
 
-  configure(config: Partial<sdk.LoggerConfig>) {
+  public configure(config: Partial<sdk.LoggerConfig>) {
     this._config = { ...this._config, ...config }
 
     // logger configures all childs
@@ -40,7 +40,7 @@ export class Logger implements sdk.Logger {
     return logger
   }
 
-  attachError(error: Error): this {
+  public attachError(error: Error): this {
     this.push({ type: 'stacktrace', level: LoggerLevel.Critical, message: error.message, stack: error.stack })
     return this
   }
@@ -50,23 +50,23 @@ export class Logger implements sdk.Logger {
     this._config.transports.forEach((transport) => transport.send(this._config, formattedEntry))
   }
 
-  critical(message: string, metadata?: any): void {
+  public critical(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Critical, message, metadata })
   }
 
-  debug(message: string, metadata?: any): void {
+  public debug(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Debug, message, metadata })
   }
 
-  info(message: string, metadata?: any): void {
+  public info(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Info, message, metadata })
   }
 
-  warn(message: string, metadata?: any): void {
+  public warn(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Warn, message, metadata })
   }
 
-  error(message: string, metadata?: any): void {
+  public error(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Error, message, metadata })
   }
 }

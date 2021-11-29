@@ -37,11 +37,11 @@ export class SvmIntentClassifier implements IntentClassifier {
 
   constructor(private tools: Tools, private featurizer: Featurizer, private _logger: Logger) {}
 
-  get name() {
+  public get name() {
     return SvmIntentClassifier._name
   }
 
-  async train(input: IntentTrainInput, progress: (p: number) => void): Promise<void> {
+  public async train(input: IntentTrainInput, progress: (p: number) => void): Promise<void> {
     const { intents, nluSeed, list_entities, pattern_entities } = input
 
     const entitiesName = this._getEntitiesName(list_entities, pattern_entities)
@@ -80,14 +80,14 @@ export class SvmIntentClassifier implements IntentClassifier {
     }
   }
 
-  serialize(): string {
+  public serialize(): string {
     if (!this.model) {
       throw new Error(`${SvmIntentClassifier._displayName} must be trained before calling serialize.`)
     }
     return JSON.stringify(this.model)
   }
 
-  async load(serialized: string): Promise<void> {
+  public async load(serialized: string): Promise<void> {
     try {
       const raw = JSON.parse(serialized)
       const model: Model = await validate(raw, modelSchema)
@@ -110,7 +110,7 @@ export class SvmIntentClassifier implements IntentClassifier {
     }
   }
 
-  async predict(utterance: Utterance): Promise<IntentPredictions> {
+  public async predict(utterance: Utterance): Promise<IntentPredictions> {
     if (!this.predictors) {
       if (!this.model) {
         throw new Error(`${SvmIntentClassifier._displayName} must be trained before calling predict.`)

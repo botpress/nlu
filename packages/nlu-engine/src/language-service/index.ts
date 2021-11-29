@@ -76,7 +76,7 @@ export default class LanguageService implements ILanguageService {
     }
   }
 
-  async initialize() {
+  public async initialize() {
     if (Object.keys(this._models).length) {
       throw new Error('Language Service already initialized')
     }
@@ -98,11 +98,11 @@ export default class LanguageService implements ILanguageService {
     this._ready = true
   }
 
-  get isReady(): boolean {
+  public get isReady(): boolean {
     return this._ready
   }
 
-  async loadModel(lang: string) {
+  public async loadModel(lang: string) {
     if (!this._models[lang]) {
       this._models = {
         ...this._getModels(),

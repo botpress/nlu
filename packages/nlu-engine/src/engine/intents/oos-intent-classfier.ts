@@ -71,7 +71,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
 
   constructor(private tools: Tools, private _logger: Logger) {}
 
-  get name() {
+  public get name() {
     return OOSIntentClassifier._name
   }
 
@@ -336,7 +336,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     })
   }
 
-  static _removeNoneIntent(preds: NoneableIntentPredictions): NoneableIntentPredictions {
+  public static _removeNoneIntent(preds: NoneableIntentPredictions): NoneableIntentPredictions {
     const noneIdx = preds.intents.findIndex((i) => i.name === NONE_INTENT)
     if (noneIdx < 0) {
       return preds
