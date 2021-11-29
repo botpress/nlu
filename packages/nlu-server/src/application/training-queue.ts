@@ -23,6 +23,8 @@ const TRAINING_HEARTBEAT_SECURITY_FACTOR = 3
 const MIN_TRAINING_HEARTBEAT = ms('10s')
 const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * TRAINING_HEARTBEAT_SECURITY_FACTOR
 
+export type TrainingListener = (training: Training) => Promise<void>
+
 export interface QueueOptions {
   maxTraining: number
 }
@@ -34,6 +36,7 @@ export default class TrainingQueue {
   private logger: Logger
   private options: QueueOptions
   private task!: WatchDog<[]>
+  private listeners: TrainingListener[] = []
 
   constructor(
     private engine: NLUEngine.Engine,
@@ -47,15 +50,21 @@ export default class TrainingQueue {
     this.options = { ...DEFAULT_OPTIONS, ..._.pickBy(opt) }
   }
 
+  addListener(listener: TrainingListener) {
+    this.listeners.push(listener)
+  }
+
+  removeListener(listenerToRemove: TrainingListener) {
+    _.remove(this.listeners, (listener) => listener === listenerToRemove)
+  }
+
+  private _onTrainingEvent(training: Training) {
+    this.listeners.forEach((listener) => listener(training))
+  }
+
   private _getTrainingTime(startTime: Date) {
     const endTime = new Date()
     return endTime.getTime() - startTime.getTime()
-  }
-
-  private _setTrainingDurationMetric(training: Training) {
-    if (training.training_time) {
-      trainingDuration.observe({ status: training.status }, training.training_time / 1000)
-    }
   }
 
   public async initialize() {
@@ -160,6 +169,7 @@ export default class TrainingQueue {
 
       const training = pendings[0]
       training.status = 'training'
+      this._onTrainingEvent(training)
 
       await repo.set(training)
 
@@ -215,9 +225,9 @@ export default class TrainingQueue {
 
       this.logger.info(`[${trainKey}] Training Done.`)
 
-      training.training_time = this._getTrainingTime(startTime)
+      training.trainingTime = this._getTrainingTime(startTime)
       training.status = 'done'
-      this._setTrainingDurationMetric(training)
+      this._onTrainingEvent(training)
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set(training)
       }, '_train_done')
@@ -229,9 +239,9 @@ export default class TrainingQueue {
       if (NLUEngine.errors.isTrainingCanceled(err)) {
         this.logger.info(`[${trainKey}] Training Canceled.`)
 
-        training.training_time = this._getTrainingTime(startTime)
+        training.trainingTime = this._getTrainingTime(startTime)
         training.status = 'canceled'
-        this._setTrainingDurationMetric(training)
+        this._onTrainingEvent(training)
         await this.trainingRepo.inTransaction(async (repo) => {
           return repo.set(training)
         }, '_train_canceled')
@@ -254,9 +264,9 @@ export default class TrainingQueue {
         this.logger.attachError(err).error(`[${trainKey}] Error occured with Duckling Server.`)
       }
 
-      training.training_time = this._getTrainingTime(startTime)
+      training.trainingTime = this._getTrainingTime(startTime)
       training.status = 'errored'
-      this._setTrainingDurationMetric(training)
+      this._onTrainingEvent(training)
       const { message, stack } = err
       training.error = { message, stack, type }
 

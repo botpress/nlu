@@ -11,7 +11,8 @@ import rateLimit from 'express-rate-limit'
 import _ from 'lodash'
 import ms from 'ms'
 import { Application } from '../application'
-import { initPrometheus, trainingCount } from '../telemetry/metric'
+import { Training } from '../infrastructure/training-repo/typings'
+import { initPrometheus, trainingCount, trainingDuration } from '../telemetry/metric'
 import { initTracing } from '../telemetry/trace'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
@@ -40,6 +41,16 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   expressApp.use(cors())
 
   if (options.prometheusEnabled) {
+    app.addTrainingListener(async (training: Training) => {
+      if (training.status !== 'canceled' && training.status !== 'done' && training.status !== 'errored') {
+        return
+      }
+
+      if (training.trainingTime) {
+        trainingDuration.observe({ status: training.status }, training.trainingTime / 1000)
+      }
+    })
+
     await initPrometheus(expressApp, async () => {
       const count = await app.getLocalTrainingCount()
       trainingCount.set(count)
@@ -183,8 +194,6 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   })
 
   router.get('/train/:modelId', async (req, res, next) => {
-    console.log('hi')
-
     try {
       const appId = getAppId(req)
       const { modelId: stringId } = req.params

@@ -1,6 +1,7 @@
 import { Logger } from '@botpress/logger'
 import { TrainingState, PredictOutput, TrainInput, ServerInfo, TrainingStatus } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelRepository } from '../infrastructure/model-repo'
@@ -12,7 +13,7 @@ import {
   DucklingCommError,
   InvalidModelSpecError
 } from './errors'
-import TrainingQueue from './training-queue'
+import TrainingQueue, { TrainingListener } from './training-queue'
 
 export class Application {
   private _logger: Logger
@@ -26,6 +27,14 @@ export class Application {
     baseLogger: Logger
   ) {
     this._logger = baseLogger.sub('app')
+  }
+
+  addTrainingListener(listener: TrainingListener) {
+    this._trainingQueue.addListener(listener)
+  }
+
+  removeTrainingListener(listener: TrainingListener) {
+    this._trainingQueue.removeListener(listener)
   }
 
   public async initialize() {

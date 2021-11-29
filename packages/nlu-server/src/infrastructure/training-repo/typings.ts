@@ -27,7 +27,7 @@ export interface TrainingId {
 
 export type TrainingState = TrainingStateDto & {
   cluster: string
-  training_time?: number
+  trainingTime?: number
 }
 
 export interface Training extends TrainingId, TrainingState {

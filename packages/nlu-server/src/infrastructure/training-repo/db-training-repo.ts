@@ -54,7 +54,6 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
       table.string('modelId').notNullable()
       table.string('status').notNullable()
       table.float('progress').notNullable()
-      table.integer('training_time')
       table.text('dataset').notNullable()
       table.string('error_type').nullable()
       table.text('error_message').nullable()
