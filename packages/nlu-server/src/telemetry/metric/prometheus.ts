@@ -1,70 +1,85 @@
 import { createMiddleware, defaultNormalizers } from '@promster/express'
 import { getSummary, getContentType } from '@promster/metrics'
 import { Express, Request } from 'express'
-import listEndpoints from 'express-list-endpoints'
 import * as http from 'http'
-import url from 'url'
-import UrlPattern from 'url-pattern'
 
 interface Route {
-  methods: string[]
-  pattern: string
-  path: UrlPattern
+  prefix?: RegExp
+  subroutes?: Route[]
+  methods?: { [key: string]: boolean }
+  regexp?: RegExp
+  path: string
 }
 
-const captureAllRoutes = (app: Express) => {
-  const endpoints = listEndpoints(app).filter((route) => route.path !== '/*' && route.path !== '*')
+const NOT_FOUND = 'not_found'
 
-  const routes = endpoints.map((route) => {
-    if (route.path.endsWith('/')) {
-      route.path = route.path.replace(/\/$/, '')
+const trimPrefix = (value: string, prefix: string) => (value.startsWith(prefix) ? value.slice(prefix.length) : value)
+
+const getMiddlewareRoutes = (middleware: any) => {
+  const routes: Route[] = []
+
+  if (middleware.route) {
+    routes.push({
+      path: middleware.route.path,
+      regexp: middleware.regexp,
+      methods: middleware.route?.methods
+    })
+  }
+
+  if (middleware.name === 'router' && middleware.handle.stack) {
+    const subroutes: Route[] = []
+
+    for (const subMiddleware of middleware.handle.stack) {
+      subroutes.push(...getMiddlewareRoutes(subMiddleware))
     }
 
-    return {
-      methods: route.methods,
-      pattern: route.path,
-      path: new UrlPattern(route.path, {
-        segmentNameCharset: 'a-zA-Z0-9_-'
+    if (subroutes.length) {
+      routes.push({
+        prefix: middleware.regexp,
+        path: middleware.path || '',
+        subroutes
       })
     }
-  })
+  }
 
   return routes
 }
 
+const getRoutes = (app: Express) => {
+  const routes: Route[] = []
+
+  for (const middleware of app._router.stack) {
+    routes.push(...getMiddlewareRoutes(middleware))
+  }
+
+  return routes
+}
+
+const getRoutesPath = (path: string, method: string, routes: Route[], prefix = '') => {
+  for (const route of routes) {
+    if (route.prefix && route.subroutes) {
+      if (route.prefix.test(path)) {
+        return getRoutesPath(trimPrefix(path, route.path), method, route.subroutes, route.path)
+      }
+    } else if (route.regexp) {
+      if (route.regexp.test(path) && route.methods?.[method]) {
+        return `${prefix}${route.path}`
+      }
+    }
+  }
+
+  return NOT_FOUND
+}
+
 const normalizePath = (app: Express) => {
-  const allRoutes: Route[] = []
+  const routes: Route[] = []
 
-  return ({ req }: { req: Request }) => {
-    if (!allRoutes.length) {
-      captureAllRoutes(app).forEach((route) => allRoutes.push(route))
+  return (path: string, { req }: { req: Request }) => {
+    if (!routes.length) {
+      routes.push(...getRoutes(app))
     }
 
-    let pattern: string | null = null
-    let path = url.parse(req.originalUrl || req.url).pathname || ''
-
-    if (path && path.endsWith('/')) {
-      path = path.replace(/\/$/, '')
-    }
-
-    allRoutes.some((route) => {
-      if (route.methods.indexOf(req.method) === -1) {
-        return false
-      }
-
-      if (route.path.match(path)) {
-        pattern = route.pattern
-        return true
-      }
-
-      return false
-    })
-
-    if (pattern === null) {
-      return false
-    }
-
-    return pattern || path
+    return getRoutesPath(path, req.method.toLowerCase(), routes)
   }
 }
 
