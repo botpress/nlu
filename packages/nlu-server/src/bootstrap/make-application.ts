@@ -15,8 +15,8 @@ import {
   DbModelRepository,
   ModelRepository
 } from '../infrastructure'
+import { NLUServerOptions } from '../typings'
 import { Broadcaster } from '../utils/broadcast'
-import { NLUServerOptions } from './config'
 import { makeEngine } from './make-engine'
 
 interface Services {

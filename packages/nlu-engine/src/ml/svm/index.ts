@@ -15,11 +15,11 @@ export class Trainer implements MLToolkit.SVM.Trainer {
 
   constructor(protected logger: Logger) {}
 
-  cancelTraining() {
+  public cancelTraining() {
     this.svm?.cancelTraining()
   }
 
-  async train(
+  public async train(
     points: MLToolkit.SVM.DataPoint[],
     options?: MLToolkit.SVM.SVMOptions,
     callback?: MLToolkit.SVM.TrainProgressCallback | undefined
@@ -74,7 +74,7 @@ export class Trainer implements MLToolkit.SVM.Trainer {
     return JSON.stringify(serialized)
   }
 
-  isTrained(): boolean {
+  public isTrained(): boolean {
     return !!this.model
   }
 
@@ -125,7 +125,7 @@ export class Predictor implements MLToolkit.SVM.Predictor {
     return this.labels[idx]
   }
 
-  async predict(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
+  public async predict(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
     if (this.parameters?.probability) {
       return this._predictProb(coordinates)
     } else {
@@ -163,11 +163,11 @@ export class Predictor implements MLToolkit.SVM.Predictor {
     ]
   }
 
-  isLoaded(): boolean {
+  public isLoaded(): boolean {
     return !!this.clf
   }
 
-  getLabels(): string[] {
+  public getLabels(): string[] {
     return _.values(this.labels)
   }
 }

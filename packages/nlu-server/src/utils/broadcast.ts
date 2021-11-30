@@ -8,7 +8,7 @@ interface Task<X extends any[]> {
 }
 
 export class Broadcaster {
-  public constructor(private _pubsub: PGPubSub) {}
+  constructor(private _pubsub: PGPubSub) {}
 
   public async broadcast<X extends any[]>(t: Task<X>): Promise<Func<X, Promise<void>>> {
     await this._pubsub.addChannel(t.name, (x) => t.run(...x))

@@ -33,11 +33,11 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
 
   private model: Model | undefined
 
-  get name() {
+  public get name() {
     return ExactIntenClassifier._name
   }
 
-  async train(trainInput: IntentTrainInput, progress: (p: number) => void) {
+  public async train(trainInput: IntentTrainInput, progress: (p: number) => void) {
     const { intents } = trainInput
     const exact_match_index = this._buildExactMatchIndex(intents)
 
@@ -65,14 +65,14 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
       .value()
   }
 
-  serialize() {
+  public serialize() {
     if (!this.model) {
       throw new Error(`${ExactIntenClassifier._displayName} must be trained before calling serialize.`)
     }
     return JSON.stringify(this.model)
   }
 
-  async load(serialized: string) {
+  public async load(serialized: string) {
     try {
       const raw = JSON.parse(serialized)
       const model: Model = await validate(raw, modelSchema)
@@ -82,7 +82,7 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
     }
   }
 
-  async predict(utterance: Utterance): Promise<NoneableIntentPredictions> {
+  public async predict(utterance: Utterance): Promise<NoneableIntentPredictions> {
     if (!this.model) {
       throw new Error(`${ExactIntenClassifier._displayName} must be trained before calling predict.`)
     }

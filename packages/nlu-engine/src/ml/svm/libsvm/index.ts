@@ -34,7 +34,7 @@ export class SVM {
     this._config = { ...checkConfig(defaultConfig(config)) }
   }
 
-  async initialize(model: SvmModel) {
+  public async initialize(model: SvmModel) {
     const self = this
     this._baseSvm = await BaseSVM.restore(model)
     Object.entries(model.param).forEach(([key, val]) => {

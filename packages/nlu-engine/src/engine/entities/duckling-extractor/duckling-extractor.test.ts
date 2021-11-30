@@ -1,9 +1,9 @@
+import { unlinkSync } from 'fs'
 import _ from 'lodash'
 import path from 'path'
-import { unlinkSync } from 'fs'
-import { DucklingEntityExtractor } from '.'
 import { JOIN_CHAR } from '../../tools/token-utils'
 import { SystemEntityCacheManager } from '../entity-cache-manager'
+import { DucklingEntityExtractor } from '.'
 import { DucklingClient } from './duckling-client'
 
 class FakeDucklingClient extends DucklingClient {
@@ -13,7 +13,7 @@ class FakeDucklingClient extends DucklingClient {
 describe('Duckling Extract Multiple', () => {
   let duck: DucklingEntityExtractor
   let mockedFetch: jest.SpyInstance
-  let testCachePath = path.join(' ', 'cache', 'testCache.json')
+  const testCachePath = path.join(' ', 'cache', 'testCache.json')
   beforeAll(() => {
     const duckCache = new SystemEntityCacheManager(testCachePath, false)
     duck = new DucklingEntityExtractor(duckCache, new FakeDucklingClient(''))
