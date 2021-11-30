@@ -212,14 +212,14 @@ export default class SlotTagger {
     return crfTagger
   }
 
-  serialize(): string {
+  public serialize(): string {
     if (!this.model) {
       throw new Error(`${SlotTagger._name} must be trained before calling serialize.`)
     }
     return JSON.stringify(this.model)
   }
 
-  async train(trainSet: TrainInput, progress: (p: number) => void): Promise<void> {
+  public async train(trainSet: TrainInput, progress: (p: number) => void): Promise<void> {
     const { intent, list_entites } = trainSet
     const intentFeatures = getEntitiesAndVocabOfIntent(intent, list_entites)
     const { slot_definitions } = intent
@@ -335,7 +335,7 @@ export default class SlotTagger {
       .value()
   }
 
-  async predict(utterance: Utterance): Promise<SlotExtractionResult[]> {
+  public async predict(utterance: Utterance): Promise<SlotExtractionResult[]> {
     if (!this.predictors) {
       if (!this.model) {
         throw new Error(`${SlotTagger._name} must be trained before calling predict.`)

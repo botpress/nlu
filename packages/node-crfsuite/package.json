@@ -1,6 +1,6 @@
 {
   "name": "@botpress/node-crfsuite",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "NodeJS binding for CRFsuite",
   "main": "dist/index.js",
   "types": "./src/typings.d.ts",
@@ -9,9 +9,8 @@
   },
   "scripts": {
     "install": ":",
-    "build-native": "node-gyp install && node-gyp rebuild",
+    "build:native": "node-gyp install && node-gyp rebuild",
     "build": "tsc --build",
-    "test": "echo \"no tests\"",
     "clean": "rm -rf ./dist && rm -rf ./node_modules"
   },
   "keywords": [
@@ -33,11 +32,15 @@
     "liblbfgs/include",
     "binding.gyp"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "getos": "^3.2.1",
+    "yn": "^4.0.0",
+    "lock": "1.1.0"
+  },
   "devDependencies": {
     "node-addon-api": "^3.0.0",
     "node-gyp": "^5.0.0",
-    "@types/node": "^12.13.0",
+    "@types/node": "^16.11.10",
     "typescript": "^3.9.10"
   }
 }

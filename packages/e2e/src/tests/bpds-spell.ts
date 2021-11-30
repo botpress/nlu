@@ -12,6 +12,7 @@ const debugResults = (results: Result<'spell'>[]) => {
     const formatted = `${i++}. [${success}] ${orange(r.text)} -> ${chalk.yellowBright(elected)} | ${chalk.blueBright(
       r.label
     )}`
+    // eslint-disable-next-line no-console
     console.log(formatted)
   }
 }

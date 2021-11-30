@@ -1,6 +1,6 @@
 import { Logger } from 'src/typings'
-import { Predictor, Trainer } from '.'
 import { MLToolkit } from '../typings'
+import { Predictor, Trainer } from '.'
 
 const SEED = 42
 

@@ -1,8 +1,8 @@
-import { MLToolkit } from '../../ml/typings'
 import _ from 'lodash'
+import { MLToolkit } from '../../ml/typings'
+import { POSClass } from '../language/pos-tagger'
 import { tokenizeLatinTextForTests } from '../test-utils/fake-tools'
 
-import { POSClass } from '../language/pos-tagger'
 import { SPACE } from '../tools/token-utils'
 import { EntityExtractor, ExtractedEntity, ExtractedSlot } from '../typings'
 

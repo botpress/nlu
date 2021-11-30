@@ -86,11 +86,11 @@ export default class BaseSVM {
     })
   }
 
-  isTrained = () => {
+  public isTrained = () => {
     return !!this._clf ? this._clf.is_trained() : false
   }
 
-  free() {
+  public free() {
     return this._clf?.free_model()
   }
 }

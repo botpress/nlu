@@ -1,16 +1,16 @@
-import { Domain } from './domain'
 import './domain/jest-helpers'
 
 import _ from 'lodash'
 import { Data } from '../typings'
 import { BaseKFold } from './base'
+import { Domain } from './domain'
 import { StratifiedKFold } from './stratified'
 
 const x: Data = [[0, 0], 1]
 const o: Data = [[0, 0], 2]
 const $: Data = [[0, 0], 3]
 
-type Test = {
+interface Test {
   idx: number
   ds: Data[]
   base: Domain

@@ -28,15 +28,7 @@ export const errors: typeof types.errors = {
 }
 
 export const makeEngine: typeof types.makeEngine = async (config: types.Config, logger: types.Logger) => {
-  const {
-    ducklingEnabled,
-    ducklingURL,
-    languageURL,
-    languageAuthToken,
-    modelCacheSize,
-    legacyElection,
-    cachePath
-  } = config
+  const { ducklingEnabled, ducklingURL, languageURL, languageAuthToken, modelCacheSize, cachePath } = config
   const langConfig: types.LanguageConfig & { assetsPath: string } = {
     ducklingEnabled,
     ducklingURL,
@@ -45,7 +37,7 @@ export const makeEngine: typeof types.makeEngine = async (config: types.Config, 
     assetsPath,
     cachePath
   }
-  const engine = new Engine(pkgVersion, logger, { cacheSize: modelCacheSize, legacyElection })
+  const engine = new Engine(pkgVersion, logger, { cacheSize: modelCacheSize })
   await engine.initialize(langConfig)
   return engine
 }

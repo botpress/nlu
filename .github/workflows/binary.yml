@@ -9,7 +9,7 @@ jobs:
         uses: actions/checkout@master
       - uses: actions/setup-node@v1
         with:
-          node-version: '12.13.0'
+          node-version: '16.13.0'
       - name: Fetch Node Packages
         run: |
           yarn --verbose
@@ -27,7 +27,7 @@ jobs:
           mv ./dist/$bin_original_name ./nlu
       - name: Download language models
         run: |
-          ./nlu download --lang en --dim 25
+          ./nlu lang download --lang en --dim 25
       - name: Run Regression Test
         run: |
 

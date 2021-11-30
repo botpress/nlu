@@ -5,10 +5,11 @@ import _ from 'lodash'
 import path from 'path'
 
 import API, { APIOptions } from './api'
-import { getAppDataPath } from './app-data'
 import { LangApplication } from './application'
 import DownloadManager from './application/download-manager'
+import { getLangServerConfig } from './config'
 import { requireJSON } from './require-json'
+import * as types from './typings'
 
 const packageJsonPath = path.resolve(__dirname, '../package.json')
 const packageJson = requireJSON<{ version: string }>(packageJsonPath)
@@ -18,24 +19,8 @@ if (!packageJson) {
 
 const { version: pkgVersion } = packageJson
 
-export { default as download } from './download'
+export { download } from './download'
 export const version = pkgVersion
-
-export interface ArgV {
-  port: number
-  host: string
-  limit: number
-  limitWindow: string
-  langDir?: string
-  authToken?: string
-  adminToken?: string
-  metadataLocation: string
-  offline: boolean
-  dim: number
-  domain: string
-  verbose: number
-  logFilter: string[] | undefined
-}
 
 const wrapLogger = (logger: Logger): EngineLogger => {
   return {
@@ -47,15 +32,13 @@ const wrapLogger = (logger: Logger): EngineLogger => {
   }
 }
 
-export const run = async (options: ArgV) => {
+export const run: typeof types.run = async (argv: types.LangArgv) => {
+  const options = getLangServerConfig(argv)
   const baseLogger = makeLogger({
     level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
     filters: options.logFilter,
     prefix: 'LANG'
   })
-
-  const appDataPath = getAppDataPath()
-  options.langDir = options.langDir || path.join(appDataPath, 'embeddings')
 
   const launcherLogger = baseLogger.sub('Launcher')
   // Launcher always display

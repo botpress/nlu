@@ -1,6 +1,6 @@
 import { Logger } from '@botpress/logger'
 import chalk from 'chalk'
-import { NLUServerOptions } from './config'
+import { NLUServerOptions } from '../typings'
 
 const GH_TYPINGS_FILE = 'https://github.com/botpress/nlu/blob/master/packages/nlu-client/src/typings/sdk.d.ts'
 const GH_TRAIN_INPUT_EXAMPLE =

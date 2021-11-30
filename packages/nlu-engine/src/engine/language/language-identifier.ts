@@ -23,7 +23,7 @@ export class FastTextLanguageId {
     FastTextLanguageId.model = ft
   }
 
-  async identify(text: string): Promise<MLToolkit.FastText.PredictResult[]> {
+  public async identify(text: string): Promise<MLToolkit.FastText.PredictResult[]> {
     if (!FastTextLanguageId.model) {
       return []
     }

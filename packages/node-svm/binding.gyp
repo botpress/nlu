@@ -1,6 +1,6 @@
 {
     "targets": [{
-        "target_name": "node-svm",
+        "target_name": "svm",
         'cflags': ['-Wall', '-O3', '-fPIC', '-c', '-std=c++11'],
         "sources": [
             "libsvm/svm.cpp",
