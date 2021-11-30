@@ -12,7 +12,8 @@ import {
   TrainingId,
   TrainingRepository,
   TrainingState,
-  WrittableTrainingRepository
+  WrittableTrainingRepository,
+  TrainingListener
 } from '../infrastructure/training-repo/typings'
 import { watchDog, WatchDog } from '../utils/watch-dog'
 import { TrainingAlreadyStartedError, TrainingNotFoundError } from './errors'
@@ -46,12 +47,30 @@ export default class TrainingQueue {
     this.options = { ...DEFAULT_OPTIONS, ..._.pickBy(opt) }
   }
 
+  public addListener(listener: TrainingListener) {
+    this.trainingRepo.addListener(listener)
+  }
+
+  public removeListener(listener: TrainingListener) {
+    this.trainingRepo.removeListener(listener)
+  }
+
+  private _getTrainingTime(startTime: Date) {
+    const endTime = new Date()
+    return endTime.getTime() - startTime.getTime()
+  }
+
   public async initialize() {
     this.task = watchDog(this._runTask.bind(this), MAX_TRAINING_HEARTBEAT * 2)
   }
 
   public async teardown() {
     return this.task.stop()
+  }
+
+  public getLocalTrainingCount = async () => {
+    const localTrainings = await this.trainingRepo.query({ cluster: this._clusterId, status: 'training' })
+    return localTrainings.length
   }
 
   public queueTraining = async (appId: string, modelId: NLUEngine.ModelId, trainInput: TrainInput) => {
@@ -170,6 +189,8 @@ export default class TrainingQueue {
       throw new Error("Invalid state: training state can't be found")
     }
 
+    const startTime = new Date()
+
     const progressCb = async (progress: number) => {
       training.status = 'training'
       training.progress = progress
@@ -196,6 +217,7 @@ export default class TrainingQueue {
 
       this.logger.info(`[${trainKey}] Training Done.`)
 
+      training.trainingTime = this._getTrainingTime(startTime)
       training.status = 'done'
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set(training)
@@ -208,6 +230,7 @@ export default class TrainingQueue {
       if (NLUEngine.errors.isTrainingCanceled(err)) {
         this.logger.info(`[${trainKey}] Training Canceled.`)
 
+        training.trainingTime = this._getTrainingTime(startTime)
         training.status = 'canceled'
         await this.trainingRepo.inTransaction(async (repo) => {
           return repo.set(training)
@@ -231,6 +254,7 @@ export default class TrainingQueue {
         this.logger.attachError(err).error(`[${trainKey}] Error occured with Duckling Server.`)
       }
 
+      training.trainingTime = this._getTrainingTime(startTime)
       training.status = 'errored'
       const { message, stack } = err
       training.error = { message, stack, type }

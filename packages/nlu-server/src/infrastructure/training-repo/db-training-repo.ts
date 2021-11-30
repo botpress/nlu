@@ -8,6 +8,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
 import { createTableIfNotExists } from '../../utils/database'
+import { BaseWritableTrainingRepo, BaseTrainingRepository } from './base-training-repo'
 import {
   Training,
   TrainingId,
@@ -44,8 +45,10 @@ interface TableRow extends TableId {
   updatedOn: string
 }
 
-class DbWrittableTrainingRepo implements WrittableTrainingRepository {
-  constructor(protected _database: Knex, private _clusterId: string) {}
+class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements WrittableTrainingRepository {
+  constructor(protected _database: Knex, private _clusterId: string, _logger: Logger) {
+    super(_logger)
+  }
 
   public async initialize(): Promise<void> {
     await createTableIfNotExists(this._database, TABLE_NAME, (table: Knex.CreateTableBuilder) => {
@@ -70,6 +73,7 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   public set = async (training: Training): Promise<void> => {
+    await super.set(training)
     const row = this._trainingToRow(training)
     const { appId, modelId } = row
 
@@ -200,10 +204,10 @@ class DbWrittableTrainingRepo implements WrittableTrainingRepository {
   }
 }
 
-export class DbTrainingRepository implements TrainingRepository {
-  private _writtableTrainingRepo: DbWrittableTrainingRepo
+export class DbTrainingRepository
+  extends BaseTrainingRepository<DbWrittableTrainingRepo>
+  implements TrainingRepository {
   private _janitorIntervalId: NodeJS.Timeout | undefined
-  private _logger: Logger
 
   constructor(
     private _database: Knex,
@@ -211,13 +215,12 @@ export class DbTrainingRepository implements TrainingRepository {
     logger: Logger,
     private _clusterId: string
   ) {
-    this._writtableTrainingRepo = new DbWrittableTrainingRepo(_database, this._clusterId)
+    super(logger.sub('training-repo'), new DbWrittableTrainingRepo(_database, _clusterId, logger.sub('training-repo')))
     this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
-    this._logger = logger.sub('training-repo')
   }
 
   public initialize = async (): Promise<void> => {
-    await this._writtableTrainingRepo.initialize()
+    await this._writtableTrainingRepository.initialize()
     await this._trxQueue.initialize()
   }
 
@@ -230,7 +233,7 @@ export class DbTrainingRepository implements TrainingRepository {
   private async _janitor() {
     const now = moment()
     const before = now.subtract({ milliseconds: MS_BEFORE_PRUNE })
-    const nDeletions = await this._writtableTrainingRepo.deleteOlderThan(before.toDate())
+    const nDeletions = await this._writtableTrainingRepository.deleteOlderThan(before.toDate())
     if (nDeletions) {
       this._logger.debug(`Pruning ${nDeletions} training state from database`)
     }
@@ -240,7 +243,7 @@ export class DbTrainingRepository implements TrainingRepository {
   public inTransaction = async (action: TrainingTrx, name: string): Promise<void> => {
     const cb = async () => {
       const operation = async () => {
-        const ctx = new DbWrittableTrainingRepo(this._database, this._clusterId)
+        const ctx = new DbWrittableTrainingRepo(this._database, this._clusterId, this._logger)
         return action(ctx)
       }
       return Promise.race([operation(), timeout<void>(TRANSACTION_TIMEOUT_MS)])
@@ -253,22 +256,22 @@ export class DbTrainingRepository implements TrainingRepository {
   }
 
   public get = async (trainId: TrainingId): Promise<Training | undefined> => {
-    return this._writtableTrainingRepo.get(trainId)
+    return this._writtableTrainingRepository.get(trainId)
   }
 
   public has = async (trainId: TrainingId): Promise<boolean> => {
-    return this._writtableTrainingRepo.has(trainId)
+    return this._writtableTrainingRepository.has(trainId)
   }
 
   public query = async (query: Partial<TrainingState>): Promise<Training[]> => {
-    return this._writtableTrainingRepo.query(query)
+    return this._writtableTrainingRepository.query(query)
   }
 
   public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
-    return this._writtableTrainingRepo.queryOlderThan(query, threshold)
+    return this._writtableTrainingRepository.queryOlderThan(query, threshold)
   }
 
   public async delete(id: TrainingId): Promise<void> {
-    return this._writtableTrainingRepo.delete(id)
+    return this._writtableTrainingRepository.delete(id)
   }
 }

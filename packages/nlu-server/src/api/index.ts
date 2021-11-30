@@ -11,9 +11,12 @@ import rateLimit from 'express-rate-limit'
 import _ from 'lodash'
 import ms from 'ms'
 import { Application } from '../application'
+import { Training } from '../infrastructure/training-repo/typings'
+import { initPrometheus, trainingCount, trainingDuration } from '../telemetry/metric'
+import { initTracing } from '../telemetry/trace'
 import { InvalidRequestFormatError } from './errors'
-
 import { handleError, getAppId } from './http'
+
 import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
 interface APIOptions {
   host: string
@@ -22,6 +25,8 @@ interface APIOptions {
   limit: number
   bodySize: string
   batchSize: number
+  tracingEnabled?: boolean
+  prometheusEnabled?: boolean
   apmEnabled?: boolean
   apmSampleRate?: number
 }
@@ -34,6 +39,27 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   // This must be first, otherwise the /info endpoint can't be called when token is used
   expressApp.use(cors())
+
+  if (options.prometheusEnabled) {
+    app.addTrainingListener(async (training: Training) => {
+      if (training.status !== 'canceled' && training.status !== 'done' && training.status !== 'errored') {
+        return
+      }
+
+      if (training.trainingTime) {
+        trainingDuration.observe({ status: training.status }, training.trainingTime / 1000)
+      }
+    })
+
+    await initPrometheus(expressApp, async () => {
+      const count = await app.getLocalTrainingCount()
+      trainingCount.set(count)
+    })
+  }
+
+  if (options.tracingEnabled) {
+    await initTracing('nlu')
+  }
 
   if (options.apmEnabled) {
     Sentry.init({

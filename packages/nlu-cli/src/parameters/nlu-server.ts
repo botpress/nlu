@@ -33,6 +33,14 @@ export const parameters = asYargs({
     description: 'Authentication token for your language server',
     type: 'string'
   },
+  tracingEnabled: {
+    description: 'When enabled, a tracing client is configured using opentelemetry',
+    type: 'boolean'
+  },
+  prometheusEnabled: {
+    description: 'When enabled, a prometheus endpoint will be avaiable at /metrics',
+    type: 'boolean'
+  },
   apmEnabled: {
     description:
       'When enabled, Sentry is added to the express server allowing the use of the environment variables SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_RELEASE',
