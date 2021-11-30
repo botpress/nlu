@@ -33,6 +33,10 @@ export const parameters = asYargs({
     description: 'Authentication token for your language server',
     type: 'string'
   },
+  tracingEnabled: {
+    description: 'When enabled, a tracing client is configured using opentelemetry',
+    type: 'boolean'
+  },
   prometheusEnabled: {
     description: 'When enabled, a prometheus endpoint will be avaiable at /metrics',
     type: 'boolean'
