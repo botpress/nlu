@@ -1,49 +1,86 @@
 import { createMiddleware, defaultNormalizers } from '@promster/express'
 import { getSummary, getContentType } from '@promster/metrics'
-import { Application as ExpressApp, Request, Response } from 'express'
+import { Express, Request } from 'express'
 import * as http from 'http'
+
+interface Route {
+  prefix?: RegExp
+  subroutes?: Route[]
+  methods?: { [key: string]: boolean }
+  regexp?: RegExp
+  path: string
+}
 
 const NOT_FOUND = 'not_found'
 
 const trimPrefix = (value: string, prefix: string) => (value.startsWith(prefix) ? value.slice(prefix.length) : value)
 
-const processMiddleware = (path: string, req: Request, middleware: any, prefix = '') => {
-  if (middleware.name === 'router' && middleware.handle.stack) {
-    for (const subMiddleware of middleware.handle.stack) {
-      if (middleware.regexp?.test(path)) {
-        const match = processMiddleware(
-          trimPrefix(path, middleware.path),
-          req,
-          subMiddleware,
-          `${prefix}${middleware.path}`
-        )
+const getMiddlewareRoutes = (middleware: any) => {
+  const routes: Route[] = []
 
-        if (match) {
-          return match
-        }
+  if (middleware.route) {
+    routes.push({
+      path: middleware.route.path,
+      regexp: middleware.regexp,
+      methods: middleware.route?.methods
+    })
+  }
+
+  if (middleware.name === 'router' && middleware.handle.stack) {
+    const subroutes: Route[] = []
+
+    for (const subMiddleware of middleware.handle.stack) {
+      subroutes.push(...getMiddlewareRoutes(subMiddleware))
+    }
+
+    if (subroutes.length) {
+      routes.push({
+        prefix: middleware.regexp,
+        path: middleware.path || '',
+        subroutes
+      })
+    }
+  }
+
+  return routes
+}
+
+const getRoutes = (app: Express) => {
+  const routes: Route[] = []
+
+  for (const middleware of app._router.stack) {
+    routes.push(...getMiddlewareRoutes(middleware))
+  }
+
+  return routes
+}
+
+const getRoutesPath = (path: string, method: string, routes: Route[], prefix = '') => {
+  for (const route of routes) {
+    if (route.prefix && route.subroutes) {
+      if (route.prefix.test(path)) {
+        return getRoutesPath(trimPrefix(path, route.path), method, route.subroutes, route.path)
+      }
+    } else if (route.regexp) {
+      if (route.regexp.test(path) && route.methods?.[method]) {
+        return `${prefix}${route.path}`
       }
     }
   }
 
-  if (!middleware.route?.methods?.[req.method.toLowerCase()]) {
-    return
-  }
-
-  if (middleware.regexp?.test(path)) {
-    return `${prefix}${middleware.path}`
-  }
+  return NOT_FOUND
 }
 
-const normalizePath = (app: ExpressApp, path: string, { req, res }: { req: Request; res: Response }) => {
-  for (const middleware of app._router.stack) {
-    const match = processMiddleware(path, req, middleware)
+const normalizePath = (app: Express) => {
+  const routes: Route[] = []
 
-    if (match) {
-      return match
+  return (path: string, { req }: { req: Request }) => {
+    if (!routes.length) {
+      routes.push(...getRoutes(app))
     }
-  }
 
-  return NOT_FOUND
+    return getRoutesPath(path, req.method.toLowerCase(), routes)
+  }
 }
 
 const createServer = (onRequest?: () => Promise<void>) =>
@@ -63,13 +100,13 @@ const createServer = (onRequest?: () => Promise<void>) =>
     })
   })
 
-export const initPrometheus = async (app: ExpressApp, onRequest?: () => Promise<void>) => {
+export const initPrometheus = async (app: Express, onRequest?: () => Promise<void>) => {
   app.use(
     createMiddleware({
       app,
       options: {
         ...defaultNormalizers,
-        normalizePath: normalizePath.bind(undefined, app),
+        normalizePath: normalizePath(app),
         buckets: [0.05, 0.1, 0.5, 1, 3]
       }
     })
