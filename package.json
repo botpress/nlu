@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu",
-  "version": "1.0.0-rc.3",
+  "version": "1.0.0-rc.4",
   "description": "Botpress NLU; Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
@@ -22,26 +22,25 @@
     ]
   },
   "scripts": {
-    "postinstall": "yarn cmd config",
     "cmd": "yarn run gulp",
-    "dev": "cross-env tsnd --transpile-only --watch ./packages/**/*.ts ./packages/nlu-cli/src/index.ts",
+    "dev": "cross-env tsnd --transpile-only --exit-child --watch ./packages/**/*.ts ./packages/nlu-cli/src/index.ts",
     "start": "cross-env node ./packages/nlu-cli/dist/index.js",
     "build": "tsc --build ./tsconfig.json",
     "clean": "yarn workspaces run clean",
     "postbuild": "yarn workspace @botpress/nlu-server postbuild",
     "package": "yarn cmd package",
     "e2e": "yarn workspace e2e start",
-    "test": "yarn workspaces run test",
+    "test": "jest -c ./jest.config.js",
     "prettier": "cross-env prettier --check './packages/**/*.ts' '!**/*.d.ts'",
-    "prettier-fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
+    "prettier:fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "cross-env eslint packages/ --ext .ts",
-    "eslint-fix": "cross-env eslint --fix packages/ --ext .ts"
+    "eslint:fix": "cross-env eslint --fix packages/ --ext .ts"
   },
   "devDependencies": {
     "conventional-changelog": "^3.1.24",
     "gulp": "^4.0.0",
     "gulp-cli": "^2.0.1",
-    "pkg": "^4.5.1",
+    "pkg": "~5.2.0",
     "prepend-file": "^2.0.0",
     "semver": "^7.3.5",
     "ts-node-dev": "^1.1.6",

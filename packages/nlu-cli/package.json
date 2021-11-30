@@ -10,11 +10,14 @@
     "@botpress/lang-server": "*",
     "@botpress/logger": "*",
     "@botpress/nlu-server": "*",
+    "decamelize": "5.0.1",
+    "json-schema": "^0.4.0",
     "wtfnode": "^0.9.1",
     "yargs": "^17.2.1"
   },
   "devDependencies": {
-    "@types/node": "^12.13.0",
+    "@types/json-schema": "^7.0.9",
+    "@types/node": "^16.11.10",
     "@types/wtfnode": "^0.7.0",
     "@types/yargs": "^17.0.4",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
@@ -27,7 +30,6 @@
     "jest": "^24.9.0",
     "pkg": "^4.3.7",
     "prettier": "^2.2.1",
-    "ts-jest": "^26.5.5",
     "ts-node-dev": "^1.1.6",
     "typescript": "^3.9.10",
     "yn": "^4.0.0"
@@ -35,7 +37,6 @@
   "scripts": {
     "build": "tsc --build",
     "start": "cross-env node ./dist/index.js",
-    "test": "echo \"no tests\"",
     "clean": "rm -rf ./dist && rm -rf ./node_modules"
   }
 }

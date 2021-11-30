@@ -47,7 +47,7 @@ export default class ModelDownload {
     return `${this.destDir}/${fn}`
   }
 
-  async start(done: DoneListener) {
+  public async start(done: DoneListener) {
     this._doneListeners.push(done)
 
     if (this.status !== 'pending') {
@@ -60,11 +60,11 @@ export default class ModelDownload {
     }
   }
 
-  async listenProgress(listener: (p: number) => void) {
+  public async listenProgress(listener: (p: number) => void) {
     this._progressListeners.push(listener)
   }
 
-  async listenCompletion(listener: DoneListener) {
+  public async listenCompletion(listener: DoneListener) {
     this._doneListeners.push(listener)
   }
 
@@ -105,7 +105,7 @@ export default class ModelDownload {
     stream.on('end', () => this._onFinishedDownloading(modelToDownload, downloadedSize, fileSize))
   }
 
-  async _onFinishedDownloading(downloadedModel: DownloadableModel, downloadSize: number, fileSize: number) {
+  public async _onFinishedDownloading(downloadedModel: DownloadableModel, downloadSize: number, fileSize: number) {
     this.currentModel++
 
     if (downloadSize !== fileSize) {
@@ -159,7 +159,7 @@ export default class ModelDownload {
     }
   }
 
-  cancel() {
+  public cancel() {
     if (this.status === 'downloading') {
       this.cancelToken.cancel()
       this.status = 'errored'

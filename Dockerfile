@@ -1,4 +1,4 @@
-FROM node:12.13.1
+FROM node:16.13.0
 
 ADD . /nlu
 

@@ -44,12 +44,12 @@ export class FastTextModel implements MLToolkit.FastText.Model {
 
   constructor(private lazy: boolean = true, private keepInMemory = false, private queryOnly = false) {}
 
-  cleanup() {
+  public cleanup() {
     this._modelPromise = undefined
     this._queryPromise = undefined
   }
 
-  async trainToFile(
+  public async trainToFile(
     method: MLToolkit.FastText.TrainCommand,
     modelPath: string,
     args: Partial<MLToolkit.FastText.TrainArgs>
@@ -72,7 +72,7 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     }
   }
 
-  async loadFromFile(modelPath: string): Promise<void> {
+  public async loadFromFile(modelPath: string): Promise<void> {
     this._modelPath = this._cleanPath(modelPath)
     if (!this.lazy) {
       if (!this.queryOnly) {
@@ -83,7 +83,7 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     }
   }
 
-  async predict(str: string, nbLabels: number): Promise<MLToolkit.FastText.PredictResult[]> {
+  public async predict(str: string, nbLabels: number): Promise<MLToolkit.FastText.PredictResult[]> {
     if (this.queryOnly) {
       throw new Error("This model is marked as Query Only, which doesn't support Prediction")
     }
@@ -92,12 +92,12 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     return model.predict(str, nbLabels)
   }
 
-  async queryWordVectors(word: string): Promise<number[]> {
+  public async queryWordVectors(word: string): Promise<number[]> {
     const query = await this._getQuery()
     return query.getWordVector(word)
   }
 
-  async queryNearestNeighbors(word: string, nb: number): Promise<string[]> {
+  public async queryNearestNeighbors(word: string, nb: number): Promise<string[]> {
     const query = await this._getQuery()
     const ret = await query.nn(word, nb)
     return ret.map((x) => x.label)

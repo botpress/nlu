@@ -1,6 +1,6 @@
-import { validateResponse, HTTPCall } from './validation'
-import { SuccessReponse, ErrorResponse, NLUError } from './typings/http'
 import { AxiosResponse } from 'axios'
+import { SuccessReponse, ErrorResponse, NLUError } from './typings/http'
+import { validateResponse, HTTPCall } from './validation'
 
 const augmentWithExtraKey = (res: Object) => {
   return [

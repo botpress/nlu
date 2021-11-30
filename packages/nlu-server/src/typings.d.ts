@@ -1,9 +1,9 @@
-interface BuildInfo {
+export interface BuildInfo {
   date: number
   branch: string
 }
 
-interface Options {
+export interface NLUServerOptions {
   host: string
   port: number
   limitWindow: string
@@ -12,17 +12,20 @@ interface Options {
   batchSize: number
   modelCacheSize: string
   dbURL?: string
-  modelDir?: string
+  modelDir: string
   verbose: number
   doc: boolean
   logFilter?: string[]
+  apmEnabled?: boolean
+  apmSampleRate?: number
+  maxTraining: number
   languageURL: string
   languageAuthToken?: string
   ducklingURL: string
   ducklingEnabled: boolean
-  config?: string
-  maxTraining: number
 }
 
+export type CommandLineOptions = Partial<NLUServerOptions>
+
 export const version: string
-export const run: (argv: Options) => Promise<void>
+export const run: (argv: CommandLineOptions) => Promise<void>

@@ -112,7 +112,7 @@ Make sure you checked-out fastText submodule: `git submodule update --init`
 yarn
 
 # build node-fasttext from source
-yarn build && yarn build-native
+yarn build && yarn build:native
 ```
 
 # Contributing

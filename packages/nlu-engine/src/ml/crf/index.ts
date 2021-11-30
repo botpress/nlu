@@ -49,15 +49,15 @@ export class Tagger implements MLToolkit.CRF.Tagger {
     this.tagger = await makeTagger()
   }
 
-  tag(xseq: string[][]): { probability: number; result: string[] } {
+  public tag(xseq: string[][]): { probability: number; result: string[] } {
     return this.tagger.tag(xseq)
   }
 
-  open(model_filename: string): boolean {
+  public open(model_filename: string): boolean {
     return this.tagger.open(model_filename)
   }
 
-  marginal(xseq: string[][]): { [label: string]: number }[] {
+  public marginal(xseq: string[][]): { [label: string]: number }[] {
     return this.tagger.marginal(xseq)
   }
 }

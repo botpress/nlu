@@ -1,10 +1,9 @@
 import Bluebird from 'bluebird'
 import Joi, { validate } from 'joi'
+import { modelSchema as slotModelSchema, Model as SlotModel } from '../slots/slot-tagger'
 import { modelSchema as exactMatchModelSchema, Model as ExactMatchModel } from './exact-intent-classifier'
 import { modelSchema as oosModelSchema, Model as OOSModel } from './oos-intent-classfier'
 import { modelSchema as svmModelSchema, Model as SVMModel } from './svm-intent-classifier'
-
-import { modelSchema as slotModelSchema, Model as SlotModel } from '../slots/slot-tagger'
 
 const expectValidates = async (model: any, schema: Joi.ObjectSchema) => {
   await expect(validate(model, schema)).resolves.not.toThrow()

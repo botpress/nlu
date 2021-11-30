@@ -49,6 +49,7 @@ interface CommandLineArgs {
 function getTests(tests: string | undefined, skip: string | undefined) {
   const allTests = [bpdsIntents, bpdsSlots, bpdsSpell, clincIntents].map((t) => t(bitfan))
   if (skip && tests) {
+    // eslint-disable-next-line no-console
     console.log(chalk.yellow('Both --skip and --tests flags are set; Ignoring --skip flag.'))
   }
 
@@ -67,6 +68,7 @@ async function main(args: CommandLineArgs) {
   const { update, skip, keepGoing, tests: testsToRun } = args
 
   const tests = getTests(testsToRun, skip)
+  // eslint-disable-next-line no-console
   console.log(chalk.green(`Running tests [${tests.map(({ name }) => name).join(', ')}]`))
 
   let testsPass = true
@@ -82,6 +84,7 @@ async function main(args: CommandLineArgs) {
   }
 
   if (!testsPass) {
+    // eslint-disable-next-line no-console
     console.log(chalk.red('There was a regression in at least one test.'))
   }
 }

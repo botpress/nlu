@@ -137,7 +137,7 @@ describe('list entity extractor', () => {
     // assert
     expect(results.length).toEqual(3)
 
-    for (let result of results) {
+    for (const result of results) {
       const { entityId } = result.metadata
       test(`Expect ${result.value} to be one of ${expectedIds.join(' ')}`, () => {
         expectedIds.includes(entityId)

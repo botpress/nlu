@@ -97,7 +97,7 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
       .value()
   }
 
-  async delete(id: TrainingId): Promise<void> {
+  public async delete(id: TrainingId): Promise<void> {
     const key = this._makeTrainingKey(id)
     delete this._trainSessions[key]
   }

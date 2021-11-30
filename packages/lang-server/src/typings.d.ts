@@ -1,25 +1,29 @@
-export const run: (argv: {
+interface CommonOptions {
+  langDir: string
+  metadataLocation: string
+  dim: number
+  domain: string
+}
+
+export interface LangServerOptions extends CommonOptions {
   port: number
   host: string
   limit: number
   limitWindow: string
-  langDir?: string
   authToken?: string
   adminToken?: string
-  metadataLocation: string
   offline: boolean
-  dim: number
-  domain: string
   verbose: number
-  logFilter: string[] | undefined
-}) => Promise<void>
+  logFilter?: string[]
+}
 
-export const download: (argv: {
-  langDir?: string
+export interface DownloadOptions extends CommonOptions {
   lang: string
-  dim: number
-  domain: string
-  metadataLocation: string
-}) => Promise<void>
+}
+
+export type LangArgv = Partial<LangServerOptions>
+export type DownloadArgv = Partial<CommonOptions> & { lang: string }
 
 export const version: string
+export const run: (argv: LangArgv) => Promise<void>
+export const download: (argv: DownloadArgv) => Promise<void>
