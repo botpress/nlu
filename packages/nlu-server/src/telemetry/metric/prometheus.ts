@@ -1,83 +1,116 @@
 import { createMiddleware, defaultNormalizers } from '@promster/express'
-import { createServer } from '@promster/server'
-import { Application as ExpressApp, Request, Response } from 'express'
+import { getSummary, getContentType } from '@promster/metrics'
+import { Express, Request } from 'express'
+import * as http from 'http'
+
+interface Route {
+  prefix?: RegExp
+  subroutes?: Route[]
+  methods?: { [key: string]: boolean }
+  regexp?: RegExp
+  path: string
+}
 
 const NOT_FOUND = 'not_found'
 
 const trimPrefix = (value: string, prefix: string) => (value.startsWith(prefix) ? value.slice(prefix.length) : value)
 
-// Disable naming convention because fast_slash comes from Express.
-// eslint-disable-next-line @typescript-eslint/naming-convention
-// Source: https://github.com/thenativeweb/get-routes/blob/main/lib/getRoutes.ts
-const regexToString = (path: { fast_slash: any; toString: () => string }): string => {
-  if (path.fast_slash) {
-    return ''
+const getMiddlewareRoutes = (middleware: any) => {
+  const routes: Route[] = []
+
+  if (middleware.route) {
+    routes.push({
+      path: middleware.route.path,
+      regexp: middleware.regexp,
+      methods: middleware.route?.methods
+    })
   }
 
-  // eslint-disable-next-line prefer-named-capture-group
-  const match = /^\/\^((?:\\[$()*+./?[\\\]^{|}]|[^$()*+./?[\\\]^{|}])*)\$\//u.exec(
-    path.toString().replace('\\/?', '').replace('(?=\\/|$)', '$')
-  )
-
-  if (match) {
-    // Unescape characters.
-    // eslint-disable-next-line prefer-named-capture-group
-    return match[1].replace(/\\(.)/gu, '$1')
-  }
-
-  return '[Unknown path]'
-}
-
-const processMiddleware = (path: string, req: Request, middleware: any, prefix = '') => {
   if (middleware.name === 'router' && middleware.handle.stack) {
-    for (const subMiddleware of middleware.handle.stack) {
-      if (middleware.regexp?.test(path)) {
-        const match = processMiddleware(
-          trimPrefix(path, middleware.path),
-          req,
-          subMiddleware,
-          `${prefix}${middleware.path}`
-        )
+    const subroutes: Route[] = []
 
-        if (match) {
-          return match
-        }
-      }
+    for (const subMiddleware of middleware.handle.stack) {
+      subroutes.push(...getMiddlewareRoutes(subMiddleware))
+    }
+
+    if (subroutes.length) {
+      routes.push({
+        prefix: middleware.regexp,
+        path: middleware.path || '',
+        subroutes
+      })
     }
   }
 
-  if (!middleware.route?.methods?.[req.method.toLowerCase()]) {
-    return
-  }
-
-  if (middleware.regexp?.test(path)) {
-    return `${prefix}${regexToString(middleware.regexp)}`
-  }
+  return routes
 }
 
-const normalizePath = (app: ExpressApp, path: string, { req, res }: { req: Request; res: Response }) => {
-  for (const middleware of app._router.stack) {
-    const match = processMiddleware(path, req, middleware)
+const getRoutes = (app: Express) => {
+  const routes: Route[] = []
 
-    if (match) {
-      return match
+  for (const middleware of app._router.stack) {
+    routes.push(...getMiddlewareRoutes(middleware))
+  }
+
+  return routes
+}
+
+const getRoutesPath = (path: string, method: string, routes: Route[], prefix = '') => {
+  for (const route of routes) {
+    if (route.prefix && route.subroutes) {
+      if (route.prefix.test(path)) {
+        return getRoutesPath(trimPrefix(path, route.path), method, route.subroutes, route.path)
+      }
+    } else if (route.regexp) {
+      if (route.regexp.test(path) && route.methods?.[method]) {
+        return `${prefix}${route.path}`
+      }
     }
   }
 
   return NOT_FOUND
 }
 
-export const initPrometheus = async (app: ExpressApp) => {
+const normalizePath = (app: Express) => {
+  const routes: Route[] = []
+
+  return (path: string, { req }: { req: Request }) => {
+    if (!routes.length) {
+      routes.push(...getRoutes(app))
+    }
+
+    return getRoutesPath(path, req.method.toLowerCase(), routes)
+  }
+}
+
+const createServer = (onRequest?: () => Promise<void>) =>
+  new Promise((resolve, reject) => {
+    const server = http.createServer(async (_req, res) => {
+      if (onRequest) {
+        await onRequest()
+      }
+
+      res.writeHead(200, 'OK', { 'content-type': getContentType() })
+      res.end(await getSummary())
+    })
+
+    server.listen(9090, '0.0.0.0', () => {
+      server.on('error', reject)
+      resolve(server)
+    })
+  })
+
+export const initPrometheus = async (app: Express, onRequest?: () => Promise<void>) => {
   app.use(
     createMiddleware({
       app,
       options: {
         ...defaultNormalizers,
-        normalizePath: normalizePath.bind(undefined, app),
+        normalizePath: normalizePath(app),
         buckets: [0.05, 0.1, 0.5, 1, 3]
       }
     })
   )
 
-  await createServer({ port: 9090 })
+  await createServer(onRequest)
 }

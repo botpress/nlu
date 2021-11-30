@@ -6,6 +6,7 @@ import Bluebird from 'bluebird'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
+import { BaseWritableTrainingRepo, BaseTrainingRepository } from './base-training-repo'
 
 import {
   Training,
@@ -25,14 +26,13 @@ type TrainEntry = TrainingState & { updatedOn: Date } & {
   dataset: TrainInput
 }
 
-class WrittableTrainingRepo implements WrittableTrainingRepository {
+class WrittableTrainingRepo extends BaseWritableTrainingRepo implements WrittableTrainingRepository {
   private _trainSessions: {
     [key: string]: TrainEntry
   } = {}
 
-  private _logger: Logger
   constructor(logger: Logger) {
-    this._logger = logger.sub('training-repo')
+    super(logger.sub('training-repo'))
   }
 
   private _janitorIntervalId: NodeJS.Timeout | undefined
@@ -65,8 +65,14 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   public async set(training: Training): Promise<void> {
+    await super.set(training)
     const key = this._makeTrainingKey(training)
     this._trainSessions[key] = { ...training, updatedOn: new Date() }
+  }
+
+  public has = async (trainId: TrainingId): Promise<boolean> => {
+    const result = !!(await this.get(trainId))
+    return result
   }
 
   public async query(query: Partial<Training>): Promise<Training[]> {
@@ -115,44 +121,47 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   }
 }
 
-export class InMemoryTrainingRepo implements TrainingRepository {
+export class InMemoryTrainingRepo extends BaseTrainingRepository<WrittableTrainingRepo> implements TrainingRepository {
   private _trxQueue: LockedTransactionQueue<void>
-  private _writtableRepo: WrittableTrainingRepo
 
   constructor(logger: Logger) {
+    super(logger, new WrittableTrainingRepo(logger))
     const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)
     this._trxQueue = makeInMemoryTrxQueue(logCb)
-    this._writtableRepo = new WrittableTrainingRepo(logger)
   }
 
   public async initialize(): Promise<void> {
-    return this._writtableRepo.initialize()
+    return this._writtableTrainingRepository.initialize()
   }
 
   public async get(id: TrainingId): Promise<Training | undefined> {
-    return this._writtableRepo.get(id)
+    return this._writtableTrainingRepository.get(id)
+  }
+
+  public async has(id: TrainingId): Promise<boolean> {
+    return this._writtableTrainingRepository.has(id)
   }
 
   public async query(query: Partial<TrainingState>): Promise<Training[]> {
-    return this._writtableRepo.query(query)
+    return this._writtableTrainingRepository.query(query)
   }
 
   public async queryOlderThan(query: Partial<TrainingState>, threshold: Date): Promise<Training[]> {
-    return this._writtableRepo.queryOlderThan(query, threshold)
+    return this._writtableTrainingRepository.queryOlderThan(query, threshold)
   }
 
   public async delete(id: TrainingId): Promise<void> {
-    return this._writtableRepo.delete(id)
+    return this._writtableTrainingRepository.delete(id)
   }
 
   public async teardown() {
-    return this._writtableRepo.teardown()
+    return this._writtableTrainingRepository.teardown()
   }
 
   public async inTransaction(trx: TrainingTrx, name: string): Promise<void> {
     return this._trxQueue.runInLock({
       name,
-      cb: () => trx(this._writtableRepo)
+      cb: () => trx(this._writtableTrainingRepository)
     })
   }
 }

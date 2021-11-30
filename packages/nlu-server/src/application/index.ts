@@ -4,7 +4,7 @@ import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpre
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { ReadonlyTrainingRepository } from '../infrastructure/training-repo/typings'
+import { ReadonlyTrainingRepository, TrainingListener } from '../infrastructure/training-repo/typings'
 import {
   ModelDoesNotExistError,
   TrainingNotFoundError,
@@ -28,6 +28,14 @@ export class Application {
     this._logger = baseLogger.sub('app')
   }
 
+  public addTrainingListener(listener: TrainingListener) {
+    this._trainingQueue.addListener(listener)
+  }
+
+  public removeTrainingListener(listener: TrainingListener) {
+    this._trainingQueue.removeListener(listener)
+  }
+
   public async initialize() {
     await this._modelRepo.initialize()
     await this._trainingRepo.initialize()
@@ -38,6 +46,10 @@ export class Application {
     await this._modelRepo.teardown()
     await this._trainingRepo.teardown()
     await this._trainingQueue.teardown()
+  }
+
+  public getLocalTrainingCount() {
+    return this._trainingQueue.getLocalTrainingCount()
   }
 
   public getInfo(): ServerInfo {
