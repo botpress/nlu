@@ -2,7 +2,7 @@ import { Logger } from '@botpress/logger'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import { getAppDataPath } from '../app-data'
-import { NLUServerOptions } from './config'
+import { NLUServerOptions } from '../typings'
 
 const wrapLogger = (logger: Logger): NLUEngine.Logger => {
   return {
@@ -17,14 +17,13 @@ const wrapLogger = (logger: Logger): NLUEngine.Logger => {
 export const makeEngine = async (options: NLUServerOptions, logger: Logger) => {
   const loggerWrapper: NLUEngine.Logger = wrapLogger(logger)
 
-  const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken, legacyElection } = options
+  const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken } = options
   const config: NLUEngine.Config = {
     languageURL,
     languageAuthToken,
     ducklingEnabled,
     ducklingURL,
     modelCacheSize,
-    legacyElection,
     cachePath: getAppDataPath()
   }
 

@@ -16,7 +16,7 @@ export class BpSlotEngine implements sdk.Engine<'slot'> {
     this._stanProvider = new StanProvider(bpEndpoint)
   }
 
-  train(trainSet: sdk.DataSet<'slot'>, seed: number, progress: sdk.ProgressCb) {
+  public train(trainSet: sdk.DataSet<'slot'>, seed: number, progress: sdk.ProgressCb) {
     const { enums, patterns, lang, samples, variables } = trainSet
 
     const utterances = samples.map((r) => {
@@ -85,7 +85,7 @@ export class BpSlotEngine implements sdk.Engine<'slot'> {
     }
   }
 
-  async predict(testSet: sdk.DataSet<'slot'>, progress: sdk.ProgressCb) {
+  public async predict(testSet: sdk.DataSet<'slot'>, progress: sdk.ProgressCb) {
     const results: sdk.Prediction<'slot'>[] = []
 
     let done = 0

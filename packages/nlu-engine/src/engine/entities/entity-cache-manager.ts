@@ -19,14 +19,14 @@ export function warmEntityCache(coldCache: EntityCacheDump): EntityCache {
 export class EntityCacheManager {
   private cache: CacheByName = {}
 
-  getCache(listEntity: string): EntityCacheDump {
+  public getCache(listEntity: string): EntityCacheDump {
     if (!this.cache[listEntity]) {
       this.cache[listEntity] = []
     }
     return this.cache[listEntity]
   }
 
-  loadFromData(listEntities: ColdListEntityModel[]) {
+  public loadFromData(listEntities: ColdListEntityModel[]) {
     for (const e of listEntities) {
       this.setCache(e.entityName, e.cache)
     }

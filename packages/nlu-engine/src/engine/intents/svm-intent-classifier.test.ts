@@ -1,12 +1,12 @@
 import _ from 'lodash'
+import { Logger } from 'src/typings'
+import { ModelLoadingError } from '../../errors'
 import { makeFakeTools } from '../test-utils/fake-tools'
 import { makeTestUtterance } from '../test-utils/fake-utterance'
+import { Intent } from '../typings'
 import Utterance from '../utterance/utterance'
 
 import { SvmIntentClassifier } from './svm-intent-classifier'
-import { Intent } from '../typings'
-import { ModelLoadingError } from '../../errors'
-import { Logger } from 'src/typings'
 
 const languageDimension = 10
 const languages = ['en']

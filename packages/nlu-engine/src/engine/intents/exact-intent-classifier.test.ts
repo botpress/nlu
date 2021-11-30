@@ -1,11 +1,11 @@
 import _ from 'lodash'
+import { ModelLoadingError } from '../../errors'
 import { makeTestUtterance } from '../test-utils/fake-utterance'
 
 import { Intent } from '../typings'
 import Utterance from '../utterance/utterance'
 
 import { ExactIntenClassifier } from './exact-intent-classifier'
-import { ModelLoadingError } from '../../errors'
 
 const u1 = 'Hi my name is Alex W and I try to make NLU for a living'
 const u2 = "Hi I'm Justine and I'm a smart bot with very scoped skills"

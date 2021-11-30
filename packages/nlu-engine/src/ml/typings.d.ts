@@ -117,25 +117,25 @@ export namespace MLToolkit {
 
     export class Trainer {
       constructor(logger: Logger)
-      train(points: DataPoint[], options?: SVMOptions, callback: TrainProgressCallback): Promise<string>
-      isTrained(): boolean
+      public train(points: DataPoint[], options?: SVMOptions, callback: TrainProgressCallback): Promise<string>
+      public isTrained(): boolean
     }
 
     export class Predictor {
       constructor(model: string)
-      initialize(): Promise<void>
-      predict(coordinates: number[]): Promise<Prediction[]>
-      isLoaded(): boolean
-      getLabels(): string[]
+      public initialize(): Promise<void>
+      public predict(coordinates: number[]): Promise<Prediction[]>
+      public isLoaded(): boolean
+      public getLabels(): string[]
     }
   }
 
   export namespace CRF {
     export class Tagger {
-      initialize(): Promise<void>
-      tag(xseq: Array<string[]>): { probability: number; result: string[] }
-      open(model_filename: string): boolean
-      marginal(xseq: Array<string[]>): { [label: string]: number }[]
+      public initialize(): Promise<void>
+      public tag(xseq: Array<string[]>): { probability: number; result: string[] }
+      public open(model_filename: string): boolean
+      public marginal(xseq: Array<string[]>): { [label: string]: number }[]
     }
 
     export interface TrainerOptions {
@@ -153,8 +153,12 @@ export namespace MLToolkit {
 
     export class Trainer {
       constructor(logger: Logger)
-      initialize(): Promise<void>
-      train(elements: DataPoint[], options: TrainerOptions, progressCallback: TrainProgressCallback): Promise<string>
+      public initialize(): Promise<void>
+      public train(
+        elements: DataPoint[],
+        options: TrainerOptions,
+        progressCallback: TrainProgressCallback
+      ): Promise<string>
     }
   }
 

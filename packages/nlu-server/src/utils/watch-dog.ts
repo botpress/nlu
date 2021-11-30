@@ -5,12 +5,12 @@ class Interval<X extends any[]> {
     this.reset()
   }
 
-  reset(): void {
+  public reset(): void {
     this.stop()
     this._int = setInterval(this.f, this.ms)
   }
 
-  stop(): void {
+  public stop(): void {
     this._int && clearInterval(this._int)
   }
 }

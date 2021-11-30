@@ -1,5 +1,5 @@
-import modelIdService, { HALF_MD5_REG } from './model-id-service'
 import { IntentDefinition, EntityDefinition, Specifications } from 'src/typings'
+import modelIdService, { HALF_MD5_REG } from './model-id-service'
 import { ModelIdArgs } from './typings'
 
 const intents: IntentDefinition[] = [

@@ -1,0 +1,94 @@
+description: 'Create a bug report'
+labels:
+  - bug
+name: 'Bug Report'
+body:
+  - type: markdown
+    attributes:
+      value: "Thank you for taking the time to fill out this bug report\n"
+  - type: checkboxes
+    id: nlu-related-confirmation
+    attributes:
+      label: 'Make sure the issue is NLU related'
+      description: 'If you are using the NLU Server or the Language Server through Botpress, ensure that the bug you want to report is NLU related. When in doubt, please report the issue on the [main Botpress repo](https://github.com/botpress/botpress).'
+      options:
+        - label: 'I confirm that the reported bug concerns the NLU independently of Botpress'
+          required: true
+  - type: dropdown
+    id: operating-system
+    validations:
+      required: true
+    attributes:
+      label: 'Operating system'
+      description: 'On which operating system are you observing this issue?'
+      options:
+        - macOS
+        - Windows
+        - Ubuntu 18.04
+        - Ubuntu 16.04
+        - Debian 8.11
+        - RHEL 7.5
+        - CentOS 7.5
+        - Alpine 3.11
+        - Other
+  - type: dropdown
+    id: product-used
+    validations:
+      required: true
+    attributes:
+      label: 'Product used'
+      description: 'On which product do you experience the issue?'
+      options:
+        - NLU Server
+        - Lang Server
+        - Other
+  - type: dropdown
+    id: deploy-option
+    validations:
+      required: true
+    attributes:
+      label: 'Deploy Option'
+      description: 'How do you run NLU Server or Lang Server?'
+      options:
+        - Sources (NodeJS)
+        - Binary
+        - Docker Image
+  - type: input
+    id: product-version
+    validations:
+      required: true
+    attributes:
+      label: Version
+      description: 'What version of the product are you running? Use command `./nlu [nlu|lang] --version`. There is a separate version for NLU Server and Lang Server.'
+  - type: textarea
+    id: config-file
+    attributes:
+      label: 'Configuration File'
+      description: 'Copy and paste your JSON configuration file. This can be empty.'
+      render: json
+      placeholder: |
+        {
+          "verbose": 4, 
+          "doc": false
+        }
+  - type: textarea
+    id: cli-args
+    attributes:
+      label: 'CLI Arguments'
+      description: 'With what CLI arguments do you call the product? This can be empty.'
+      render: bash
+      placeholder: |
+        ./nlu --verbose 4 --doc false --languageURL http://localhost:3101
+  - type: textarea
+    id: env-variables
+    attributes:
+      label: 'Environment variables'
+      description: 'With what environment variables do you call the product? This can be empty.'
+      render: bash
+      placeholder: |
+        NATIVE_EXTENSIONS_DIR="~/myDir" ./nlu
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: 'Description of the bug'
+      description: 'What is your issue? Make sure to add logs, context or any information that you think might help understand and solve the issue.'
