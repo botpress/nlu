@@ -44,7 +44,7 @@ export default class TrainingQueue {
     opt: Partial<QueueOptions> = {}
   ) {
     this.logger = logger.sub('training-queue')
-    this.options = { ...DEFAULT_OPTIONS, ..._.pickBy(opt) }
+    this.options = { ...DEFAULT_OPTIONS, ...opt }
   }
 
   public addListener(listener: TrainingListener) {
