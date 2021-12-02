@@ -69,7 +69,8 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
         }
       }
       this.messageMain(doneResponse)
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       const errorResponse: IncomingMessage<'task_error', O> = {
         type: 'task_error',
         payload: {

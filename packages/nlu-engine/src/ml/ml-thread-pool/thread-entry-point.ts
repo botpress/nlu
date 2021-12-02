@@ -24,7 +24,8 @@ const main = async () => {
       return result
     })
     await threadEntryPoint.initialize()
-  } catch (err) {
+  } catch (thrown) {
+    const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
     threadEntryPoint.logger.error('An unhandled error occured in the thread', err)
     process.exit(1)
   }

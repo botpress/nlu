@@ -37,7 +37,8 @@ const makeSolutionRunner = <T extends sdk.ProblemType>(
   for (const problem of problems) {
     try {
       await runProblem({ problem, engine: solution.engine } as any) // TODO: refactor this
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       // eslint-disable-next-line no-console
       console.log(
         chalk.red(

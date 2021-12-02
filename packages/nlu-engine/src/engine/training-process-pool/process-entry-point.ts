@@ -30,7 +30,8 @@ const main = async () => {
     })
 
     await processEntryPoint.initialize()
-  } catch (err) {
+  } catch (thrown) {
+    const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
     processEntryPoint.logger.error('An unhandled error occured in the process', err)
     process.exit(1)
   }

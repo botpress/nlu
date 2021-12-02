@@ -77,7 +77,8 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
       const raw = JSON.parse(serialized)
       const model: Model = await validate(raw, modelSchema)
       this.model = model
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(ExactIntenClassifier._displayName, err)
     }
   }

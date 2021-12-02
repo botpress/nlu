@@ -32,7 +32,8 @@ export class TrainingProcessPool {
     try {
       const output = await this._processPool.run(input.trainId, input, progress)
       return output
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       if (errors.isTaskCanceled(err)) {
         throw new TrainingCanceled()
       }
@@ -40,7 +41,8 @@ export class TrainingProcessPool {
         throw new TrainingAlreadyStarted()
       }
       if (errors.isTaskExitedUnexpectedly(err)) {
-        throw new TrainingExitedUnexpectedly(err.wid, err.info)
+        // TODO: fix the any casting
+        throw new TrainingExitedUnexpectedly((err as any).wid, (err as any).info)
       }
       throw err
     }

@@ -20,7 +20,7 @@
     "@types/node": "^16.11.10",
     "@types/jest": "^24.9.0",
     "jest": "^24.9.0",
-    "typescript": "^3.9.10"
+    "typescript": "^4.5.2"
   },
   "types": "./src/typings.d.ts",
   "main": "./dist/index.js"

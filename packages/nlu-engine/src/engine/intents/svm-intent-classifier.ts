@@ -93,7 +93,8 @@ export class SvmIntentClassifier implements IntentClassifier {
       const model: Model = await validate(raw, modelSchema)
       this.predictors = await this._makePredictors(model)
       this.model = model
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(SvmIntentClassifier._displayName, err)
     }
   }

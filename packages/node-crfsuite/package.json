@@ -41,6 +41,6 @@
     "node-addon-api": "^3.0.0",
     "node-gyp": "^5.0.0",
     "@types/node": "^16.11.10",
-    "typescript": "^3.9.10"
+    "typescript": "^4.5.2"
   }
 }

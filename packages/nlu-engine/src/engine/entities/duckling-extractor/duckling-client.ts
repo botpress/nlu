@@ -35,7 +35,8 @@ export class DucklingClient {
         }
         success = true
       }, RETRY_POLICY)
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw this._mapError(new Error(`Couldn't reach the Duckling server. ${err.message}`))
     }
   }
