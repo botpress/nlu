@@ -5,7 +5,7 @@ import _ from 'lodash'
 import { DucklingServerError } from '../../../errors'
 import { Duckling } from './typings'
 
-export interface DucklingParams {
+export type DucklingParams = {
   tz: string
   refTime: number
   lang: string

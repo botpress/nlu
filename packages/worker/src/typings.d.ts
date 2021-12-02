@@ -1,4 +1,4 @@
-export interface Logger {
+export type Logger = {
   debug: (msg: string) => void
   info: (msg: string) => void
   warning: (msg: string, err?: Error) => void
@@ -6,21 +6,21 @@ export interface Logger {
   sub: (namespace: string) => Logger
 }
 
-export interface SerializedError {
+export type SerializedError = {
   message: string
   stack?: string
   data: any
 }
 
-export interface ErrorSerializer {
+export type ErrorSerializer = {
   serializeError(err: Error): SerializedError
 }
 
-export interface ErrorDeserializer {
+export type ErrorDeserializer = {
   deserializeError(err: SerializedError): Error
 }
 
-export interface TaskDefinition<I> {
+export type TaskDefinition<I> = {
   input: I
   logger: Logger // TODO use the actual logger implementation with a custom LogTransporter
   progress: (p: number) => void
@@ -34,34 +34,34 @@ export const errors: {
   isTaskExitedUnexpectedly: (err: Error) => boolean
 }
 
-export interface PoolOptions {
+export type PoolOptions = {
   entryPoint: string
   maxWorkers: number
   env: NodeJS.ProcessEnv
   errorHandler?: ErrorDeserializer
 }
 
-export interface WorkerPool<I, O> {
+export type WorkerPool<I, O> = {
   run(taskId: string, input: I, progress: (x: number) => void): Promise<O>
 }
 
-export interface EntryPointOptions {
+export type EntryPointOptions = {
   errorHandler?: ErrorSerializer
 }
 
-export interface WorkerEntryPoint<I, O> {
+export type WorkerEntryPoint<I, O> = {
   initialize(): Promise<void>
   listenForTask(handler: TaskHandler<I, O>): void
   isMainWorker: () => boolean
   logger: Logger
 }
-export interface ProcessPool<I, O> extends WorkerPool<I, O> {
+export type ProcessPool<I, O> = {
   cancel(id: string)
-}
-export interface ProcessEntyPoint<I, O> extends WorkerEntryPoint<I, O> {}
+} & WorkerPool<I, O>
+export type ProcessEntyPoint<I, O> = {} & WorkerEntryPoint<I, O>
 
-export interface ThreadPool<I, O> extends WorkerPool<I, O> {}
-export interface ThreadEntyPoint<I, O> extends WorkerEntryPoint<I, O> {}
+export type ThreadPool<I, O> = {} & WorkerPool<I, O>
+export type ThreadEntyPoint<I, O> = {} & WorkerEntryPoint<I, O>
 
 export const makeProcessPool: <I, O>(logger: Logger, config: PoolOptions) => ProcessPool<I, O>
 export const makeProcessEntryPoint: <I, O>(config?: EntryPointOptions) => ProcessEntyPoint<I, O>

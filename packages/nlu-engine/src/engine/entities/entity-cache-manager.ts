@@ -6,7 +6,7 @@ import sizeof from 'object-sizeof'
 import { Logger } from '../../typings'
 import { ColdListEntityModel, EntityCache, EntityCacheDump, EntityExtractionResult, KeyedItem } from '../typings'
 
-interface CacheByName {
+type CacheByName = {
   [name: string]: EntityCacheDump
 }
 

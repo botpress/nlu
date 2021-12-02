@@ -134,18 +134,18 @@ export function makeExtractedSlots(
     })
 }
 
-interface TrainInput {
+type TrainInput = {
   intent: Intent<Utterance>
   list_entites: ListEntityModel[]
 }
 
-export interface Model {
+export type Model = {
   crfModel: Buffer | undefined
   intentFeatures: IntentSlotFeatures
   slot_definitions: SlotDefinition[]
 }
 
-interface Predictors {
+type Predictors = {
   crfTagger: MLToolkit.CRF.Tagger | undefined
   intentFeatures: IntentSlotFeatures
   slot_definitions: SlotDefinition[]

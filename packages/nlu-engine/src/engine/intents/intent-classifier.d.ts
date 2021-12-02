@@ -1,7 +1,7 @@
 import { Intent, ListEntityModel, PatternEntity } from '../typings'
 import Utterance from '../utterance/utterance'
 
-export interface IntentTrainInput {
+export type IntentTrainInput = {
   languageCode: string
   list_entities: ListEntityModel[]
   pattern_entities: PatternEntity[]
@@ -9,24 +9,24 @@ export interface IntentTrainInput {
   nluSeed: number
 }
 
-export interface IntentPrediction {
+export type IntentPrediction = {
   name: string
   confidence: number
   extractor: string
 }
-export interface IntentPredictions {
+export type IntentPredictions = {
   intents: IntentPrediction[]
 }
-export interface NoneableIntentPredictions extends IntentPredictions {
+export type NoneableIntentPredictions = {
   oos: number
-}
+} & IntentPredictions
 
-export interface IntentClassifier {
+export type IntentClassifier = {
   train(trainInput: IntentTrainInput, progress: (p: number) => void): Promise<void>
   serialize(): string
   load(model: string): Promise<void>
   predict(utterance: Utterance): Promise<IntentPredictions>
 }
-export interface NoneableIntentClassifier {
+export type NoneableIntentClassifier = {
   predict(utterance: Utterance): Promise<NoneableIntentPredictions>
 }

@@ -20,7 +20,7 @@ import {
   MicrosoftValue,
   MicrosoftEntity
 } from './typings'
-interface MicrosoftParams {
+type MicrosoftParams = {
   lang: MicrosoftSupportedLanguage
   recognizers: any[]
 }

@@ -6,7 +6,7 @@ import Utterance, { UtteranceToStringOptions } from '../utterance/utterance'
 
 import { IntentTrainInput, NoneableIntentClassifier, NoneableIntentPredictions } from './intent-classifier'
 
-export interface Model {
+export type Model = {
   intents: string[]
   exact_match_index: ExactMatchIndex
 }

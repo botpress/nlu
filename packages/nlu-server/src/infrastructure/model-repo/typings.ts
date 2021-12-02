@@ -1,10 +1,10 @@
 import { ModelId, Model } from '@botpress/nlu-engine'
 
-export interface PruneOptions {
+export type PruneOptions = {
   keep: number
 }
 
-export interface ModelRepository {
+export type ModelRepository = {
   initialize(): Promise<void>
   teardown(): Promise<void>
   getModel(appId: string, modelId: ModelId): Promise<Model | undefined>

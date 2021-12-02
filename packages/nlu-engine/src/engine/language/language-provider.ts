@@ -22,7 +22,7 @@ const DISCOVERY_RETRY_POLICY: retry.Options = {
   max_tries: 5
 }
 
-export interface LangProviderArgs {
+export type LangProviderArgs = {
   languageURL: string
   languageAuthToken?: string
   cacheDir: string

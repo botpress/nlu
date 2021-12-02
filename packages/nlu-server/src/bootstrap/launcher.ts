@@ -6,7 +6,7 @@ import { BuildInfo, NLUServerOptions } from '../typings'
 import { showBanner } from './banner'
 import { displayDocumentation } from './documentation'
 
-interface LaunchingInfo {
+type LaunchingInfo = {
   version: string
   buildInfo?: BuildInfo
 }

@@ -4,7 +4,7 @@
 
 export type Duckling = DucklingReturn<DucklingDimension>
 
-export interface DucklingReturn<D extends DucklingDimension> {
+export type DucklingReturn<D extends DucklingDimension> = {
   start: number
   end: number
   dim: D
@@ -57,6 +57,6 @@ export type ValueUnit = Value & {
   unit: string
 }
 
-export interface Value {
+export type Value = {
   value: string | number
 }

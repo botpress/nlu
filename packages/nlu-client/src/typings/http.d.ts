@@ -15,7 +15,7 @@ import {
   Training
 } from './sdk'
 
-export interface TrainRequestBody {
+export type TrainRequestBody = {
   language: string
   contexts: string[]
   intents: IntentDefinition[]
@@ -23,13 +23,13 @@ export interface TrainRequestBody {
   seed?: number
 }
 
-export interface PredictRequestBody {
+export type PredictRequestBody = {
   utterances: string[]
 }
 
-export interface DetectLangRequestBody extends PredictRequestBody {
+export type DetectLangRequestBody = {
   models: string[]
-}
+} & PredictRequestBody
 
 export type ErrorType =
   | 'model_not_found'
@@ -41,50 +41,50 @@ export type ErrorType =
   | 'duckling-server'
   | 'internal'
 
-export interface NLUError {
+export type NLUError = {
   message: string
   stack?: string
   type: ErrorType
   code: number
 }
 
-export interface ErrorResponse {
+export type ErrorResponse = {
   success: false
   error: NLUError
 }
 
-export interface SuccessReponse {
+export type SuccessReponse = {
   success: true
 }
 
-export interface InfoResponseBody extends SuccessReponse {
+export type InfoResponseBody = {
   info: ServerInfo
-}
+} & SuccessReponse
 
-export interface TrainResponseBody extends SuccessReponse {
+export type TrainResponseBody = {
   modelId: string
-}
+} & SuccessReponse
 
-export interface TrainProgressResponseBody extends SuccessReponse {
+export type TrainProgressResponseBody = {
   session: TrainingState
-}
+} & SuccessReponse
 
-export interface ListTrainingsResponseBody extends SuccessReponse {
+export type ListTrainingsResponseBody = {
   trainings: Training[]
-}
+} & SuccessReponse
 
-export interface ListModelsResponseBody extends SuccessReponse {
+export type ListModelsResponseBody = {
   models: string[]
-}
+} & SuccessReponse
 
-export interface PruneModelsResponseBody extends SuccessReponse {
+export type PruneModelsResponseBody = {
   models: string[]
-}
+} & SuccessReponse
 
-export interface PredictResponseBody extends SuccessReponse {
+export type PredictResponseBody = {
   predictions: PredictOutput[]
-}
+} & SuccessReponse
 
-export interface DetectLangResponseBody extends SuccessReponse {
+export type DetectLangResponseBody = {
   detectedLanguages: string[]
-}
+} & SuccessReponse

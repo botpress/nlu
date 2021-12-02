@@ -10,7 +10,7 @@ const x: Data = [[0, 0], 1]
 const o: Data = [[0, 0], 2]
 const $: Data = [[0, 0], 3]
 
-interface Test {
+type Test = {
   idx: number
   ds: Data[]
   base: Domain

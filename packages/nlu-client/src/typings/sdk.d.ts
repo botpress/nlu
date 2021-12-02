@@ -1,10 +1,10 @@
-export interface ServerInfo {
+export type ServerInfo = {
   specs: Specifications
   languages: string[]
   version: string
 }
 
-export interface Specifications {
+export type Specifications = {
   engineVersion: string // semver string
   languageServer: {
     dimensions: number
@@ -19,26 +19,26 @@ export interface Specifications {
  * ##################################
  */
 
-export interface TrainInput {
+export type TrainInput = {
   language: string
   intents: IntentDefinition[]
   entities: EntityDefinition[]
   seed: number
 }
 
-export interface IntentDefinition {
+export type IntentDefinition = {
   name: string
   contexts: string[]
   utterances: string[]
   slots: SlotDefinition[]
 }
 
-export interface SlotDefinition {
+export type SlotDefinition = {
   name: string
   entities: string[]
 }
 
-export interface ListEntityDefinition {
+export type ListEntityDefinition = {
   name: string
   type: 'list'
   values: { name: string; synonyms: string[] }[]
@@ -47,7 +47,7 @@ export interface ListEntityDefinition {
   sensitive?: boolean
 }
 
-export interface PatternEntityDefinition {
+export type PatternEntityDefinition = {
   name: string
   type: 'pattern'
   regex: string
@@ -70,28 +70,28 @@ export type TrainingStatus = 'done' | 'training-pending' | 'training' | 'cancele
 
 export type TrainingErrorType = 'lang-server' | 'duckling-server' | 'zombie-training' | 'internal'
 
-export interface TrainingError {
+export type TrainingError = {
   type: TrainingErrorType
   message: string
   stack?: string
 }
 
-export interface TrainingState {
+export type TrainingState = {
   status: TrainingStatus
   progress: number
   error?: TrainingError
 }
 
-export interface Training extends TrainingState {
+export type Training = {
   modelId: string
-}
+} & TrainingState
 
 /**
  * ####################################
  * ############ PREDICTION ############
  * ####################################
  */
-export interface PredictOutput {
+export type PredictOutput = {
   entities: EntityPrediction[]
   contexts: ContextPrediction[]
   spellChecked: string
@@ -99,7 +99,7 @@ export interface PredictOutput {
 
 export type EntityType = 'pattern' | 'list' | 'system'
 
-export interface EntityPrediction {
+export type EntityPrediction = {
   name: string
   type: string // ex: ['custom.list.fruits', 'system.time']
   value: string
@@ -112,21 +112,21 @@ export interface EntityPrediction {
   sensitive?: boolean
 }
 
-export interface ContextPrediction {
+export type ContextPrediction = {
   name: string
   oos: number
   confidence: number
   intents: IntentPrediction[]
 }
 
-export interface IntentPrediction {
+export type IntentPrediction = {
   name: string
   confidence: number
   slots: SlotPrediction[]
   extractor: string
 }
 
-export interface SlotPrediction {
+export type SlotPrediction = {
   name: string
   value: string
   confidence: number

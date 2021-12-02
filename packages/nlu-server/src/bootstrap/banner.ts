@@ -4,12 +4,12 @@ import chalk from 'chalk'
 import _ from 'lodash'
 import moment from 'moment'
 
-interface BuildMetadata {
+type BuildMetadata = {
   date: number
   branch: string
 }
 
-interface BannerConfig {
+type BannerConfig = {
   title: string
   version: string
   buildInfo?: BuildMetadata

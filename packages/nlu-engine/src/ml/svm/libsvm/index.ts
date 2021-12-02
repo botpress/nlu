@@ -17,7 +17,7 @@ class TrainingCanceledError extends Error {
   }
 }
 
-interface TrainOutput {
+type TrainOutput = {
   model: SvmModel
   report?: Report
 }

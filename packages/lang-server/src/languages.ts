@@ -1,4 +1,4 @@
-interface Lang {
+type Lang = {
   name: string
   nativeName: string
 }

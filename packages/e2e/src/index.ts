@@ -39,7 +39,7 @@ async function runTest(test, { update, keepGoing }) {
   return true
 }
 
-interface CommandLineArgs {
+type CommandLineArgs = {
   update: boolean
   keepGoing: boolean
   tests?: string

@@ -7,7 +7,7 @@ export type OutgoingPayload<T extends OutgoingMessageType, I> = T extends 'start
   : {}
 
 export type OutgoingMessageType = 'start_task'
-export interface OutgoingMessage<T extends OutgoingMessageType, I> {
+export type OutgoingMessage<T extends OutgoingMessageType, I> = {
   type: T
   payload: OutgoingPayload<T, I>
 }
@@ -25,7 +25,7 @@ export type IncomingPayload<T extends IncomingMessageType, P> = T extends 'log'
 
 export type IncomingMessageType = 'log' | 'worker_ready' | 'task_done' | 'task_progress' | 'task_error'
 
-export interface IncomingMessage<T extends IncomingMessageType, P> {
+export type IncomingMessage<T extends IncomingMessageType, P> = {
   type: T
   payload: IncomingPayload<T, P>
 }

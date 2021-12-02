@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { Logger } from '../typings'
 import { Worker } from './worker'
 
-interface Options {
+type Options = {
   maxItems: number
 }
 

@@ -9,7 +9,7 @@ import { getAppDataPath } from '../app-data'
 import ModelDownload from './model-download'
 
 type ModelType = 'bpe' | 'embeddings'
-interface DownloadableModel {
+type DownloadableModel = {
   type: ModelType
   remoteUrl: string
   language: string
@@ -18,13 +18,13 @@ interface DownloadableModel {
   domain?: string
 }
 
-interface Language {
+type Language = {
   code: string
   name: string
   flag: string
 }
 
-interface Meta {
+type Meta = {
   languages: {
     [code: string]: Language
   }

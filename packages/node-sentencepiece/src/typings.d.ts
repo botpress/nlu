@@ -1,4 +1,4 @@
-export interface Processor {
+export type Processor = {
   loadModel: (modelPath: string) => void
   encode: (inputText: string) => string[]
   decode: (pieces: string[]) => string

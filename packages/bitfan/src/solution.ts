@@ -59,12 +59,12 @@ const makeSolutionRunner = <T extends sdk.ProblemType>(
   }
 }
 
-interface Unsupervised<T extends sdk.ProblemType> {
+type Unsupervised<T extends sdk.ProblemType> = {
   problem: sdk.UnsupervisedProblem<T>
   engine: sdk.UnsupervisedEngine<T>
 }
 
-interface Supervised<T extends sdk.ProblemType> {
+type Supervised<T extends sdk.ProblemType> = {
   problem: sdk.Problem<T>
   engine: sdk.Engine<T>
 }

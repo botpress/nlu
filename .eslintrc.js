@@ -14,7 +14,7 @@ module.exports = {
   ignorePatterns: ['**/index.d.ts', '**/global.d.ts', '*.js', '**/dist/**'],
   plugins: ['eslint-plugin-import', 'eslint-plugin-jsdoc', '@typescript-eslint'],
   rules: {
-    '@typescript-eslint/consistent-type-definitions': 'error',
+    '@typescript-eslint/consistent-type-definitions': ['warn', 'type'],
     '@typescript-eslint/member-delimiter-style': [
       'error',
       {

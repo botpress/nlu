@@ -19,7 +19,7 @@ import { NLUServerOptions } from '../typings'
 import { Broadcaster } from '../utils/broadcast'
 import { makeEngine } from './make-engine'
 
-interface Services {
+type Services = {
   modelRepo: ModelRepository
   trainRepo: TrainingRepository
   trainingQueue: TrainingQueue

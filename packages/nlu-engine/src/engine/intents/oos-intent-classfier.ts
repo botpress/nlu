@@ -16,22 +16,22 @@ import { getIntentFeatures } from './intent-featurizer'
 import { featurizeInScopeUtterances, featurizeOOSUtterances, getUtteranceFeatures } from './out-of-scope-featurizer'
 import { SvmIntentClassifier } from './svm-intent-classifier'
 
-interface TrainInput extends IntentTrainInput {
+type TrainInput = {
   allUtterances: Utterance[]
-}
+} & IntentTrainInput
 
 const JUNK_VOCAB_SIZE = 500
 const JUNK_TOKEN_MIN = 1
 const JUNK_TOKEN_MAX = 20
 
-export interface Model {
+export type Model = {
   trainingVocab: string[]
   baseIntentClfModel: string
   oosSvmModel: string | undefined
   exactMatchModel: string
 }
 
-interface Predictors {
+type Predictors = {
   baseIntentClf: SvmIntentClassifier
   oosSvm: MLToolkit.SVM.Predictor | undefined
   trainingVocab: string[]

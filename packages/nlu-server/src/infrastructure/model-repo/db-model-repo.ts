@@ -10,15 +10,15 @@ import { ModelRepository, PruneOptions } from './typings'
 const TABLE_NAME = 'nlu_models'
 const { modelIdService } = NLUEngine
 
-interface TableKey {
+type TableKey = {
   appId: string
   modelId: string
 }
 
-interface TableRow extends TableKey {
+type TableRow = {
   content: Buffer
   updatedOn: string
-}
+} & TableKey
 
 type Column = keyof TableRow
 

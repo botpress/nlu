@@ -3,7 +3,7 @@ export namespace MLToolkit {
     export type TrainCommand = 'supervised' | 'quantize' | 'skipgram' | 'cbow'
     export type Loss = 'hs' | 'softmax'
 
-    export interface TrainArgs {
+    export type TrainArgs = {
       lr: number
       dim: number
       ws: number
@@ -30,12 +30,12 @@ export namespace MLToolkit {
       dsub: number
     }
 
-    export interface PredictResult {
+    export type PredictResult = {
       label: string
       value: number
     }
 
-    export interface Model {
+    export type Model = {
       cleanup: () => void
       trainToFile: (method: TrainCommand, modelPath: string, args: Partial<TrainArgs>) => Promise<void>
       loadFromFile: (modelPath: string) => Promise<void>
@@ -44,7 +44,7 @@ export namespace MLToolkit {
       queryNearestNeighbors(word: string, nb: number): Promise<string[]>
     }
 
-    export interface ModelConstructor {
+    export type ModelConstructor = {
       new (): Model
       new (lazy: boolean, keepInMemory: boolean, queryOnly: boolean): Model
     }
@@ -53,7 +53,7 @@ export namespace MLToolkit {
   }
 
   export namespace KMeans {
-    export interface KMeansOptions {
+    export type KMeansOptions = {
       maxIterations?: number
       tolerance?: number
       withIterations?: boolean
@@ -62,14 +62,14 @@ export namespace MLToolkit {
       initialization?: 'random' | 'kmeans++' | 'mostDistant' | number[][]
     }
 
-    export interface Centroid {
+    export type Centroid = {
       centroid: number[]
       error: number
       size: number
     }
 
     // TODO convert this to class we build the source of ml-kmeans
-    export interface KmeansResult {
+    export type KmeansResult = {
       // constructor(
       //   clusters: number[],
       //   centroids: Centroid[],
@@ -91,7 +91,7 @@ export namespace MLToolkit {
   }
 
   export namespace SVM {
-    export interface SVMOptions {
+    export type SVMOptions = {
       classifier: 'C_SVC' | 'NU_SVC' | 'ONE_CLASS' | 'EPSILON_SVR' | 'NU_SVR'
       kernel: 'LINEAR' | 'POLY' | 'RBF' | 'SIGMOID'
       seed: number
@@ -101,17 +101,17 @@ export namespace MLToolkit {
       reduce?: boolean
     }
 
-    export interface DataPoint {
+    export type DataPoint = {
       label: string
       coordinates: number[]
     }
 
-    export interface Prediction {
+    export type Prediction = {
       label: string
       confidence: number
     }
 
-    export interface TrainProgressCallback {
+    export type TrainProgressCallback = {
       (progress: number): void
     }
 
@@ -138,15 +138,15 @@ export namespace MLToolkit {
       public marginal(xseq: Array<string[]>): { [label: string]: number }[]
     }
 
-    export interface TrainerOptions {
+    export type TrainerOptions = {
       [key: string]: string
     }
 
-    export interface TrainProgressCallback {
+    export type TrainProgressCallback = {
       (iteration: number): void
     }
 
-    interface DataPoint {
+    type DataPoint = {
       features: Array<string[]>
       labels: string[]
     }
@@ -163,7 +163,7 @@ export namespace MLToolkit {
   }
 
   export namespace SentencePiece {
-    export interface Processor {
+    export type Processor = {
       loadModel: (modelPath: string) => void
       encode: (inputText: string) => string[]
       decode: (pieces: string[]) => string

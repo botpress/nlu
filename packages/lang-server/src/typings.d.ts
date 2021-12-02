@@ -1,11 +1,11 @@
-interface CommonOptions {
+type CommonOptions = {
   langDir: string
   metadataLocation: string
   dim: number
   domain: string
 }
 
-export interface LangServerOptions extends CommonOptions {
+export type LangServerOptions = {
   port: number
   host: string
   limit: number
@@ -15,11 +15,11 @@ export interface LangServerOptions extends CommonOptions {
   offline: boolean
   verbose: number
   logFilter?: string[]
-}
+} & CommonOptions
 
-export interface DownloadOptions extends CommonOptions {
+export type DownloadOptions = {
   lang: string
-}
+} & CommonOptions
 
 export type LangArgv = Partial<LangServerOptions>
 export type DownloadArgv = Partial<CommonOptions> & { lang: string }

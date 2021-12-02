@@ -15,7 +15,7 @@ import { MLToolkit } from '../ml/typings'
 
 import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet, AvailableModel } from './typings'
 
-interface RamInfos {
+type RamInfos = {
   free: number
   total: number
   prediction: number

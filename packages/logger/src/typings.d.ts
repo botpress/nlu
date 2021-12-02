@@ -1,4 +1,4 @@
-export interface Logger {
+export type Logger = {
   attachError(error: Error): this
   configure(config: Partial<LoggerConfig>): void
   debug(message: string, metadata?: any): void
@@ -11,7 +11,7 @@ export interface Logger {
 
 export type LogEntryType = 'log' | 'stacktrace'
 
-export interface LogEntry {
+export type LogEntry = {
   type: LogEntryType
   level: number
   message: string
@@ -24,15 +24,15 @@ export type FormattedLogEntry = LogEntry & {
   formatted: string
 }
 
-export interface LogEntryFormatter {
+export type LogEntryFormatter = {
   format(config: LoggerConfig, entry: LogEntry): FormattedLogEntry
 }
 
-export interface LogTransporter {
+export type LogTransporter = {
   send(config: LoggerConfig, entry: FormattedLogEntry): Promise<void> | void
 }
 
-export interface LoggerConfig {
+export type LoggerConfig = {
   level: number
   minLevel: number | undefined // if defined, allows to bypass filters
   formatter: LogEntryFormatter

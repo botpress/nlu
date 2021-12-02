@@ -11,7 +11,7 @@ const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
 })
 
 export type HTTPVerb = 'GET' | 'POST' | 'PUT' | 'DELETE'
-export interface HTTPCall<V extends HTTPVerb> {
+export type HTTPCall<V extends HTTPVerb> = {
   verb: V
   ressource: string
 }

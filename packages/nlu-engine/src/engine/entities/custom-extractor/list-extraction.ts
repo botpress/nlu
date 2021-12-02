@@ -71,7 +71,7 @@ function computeStructuralScore(a: string[], b: string[]): number {
   return Math.sqrt(final_charset_score * token_qty_score * token_size_score)
 }
 
-interface Candidate {
+type Candidate = {
   score: number
   canonical: string
   start: number

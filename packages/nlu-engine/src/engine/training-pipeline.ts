@@ -61,7 +61,7 @@ export type TrainStep = Readonly<{
   ctxToTrain: string[]
 }>
 
-export interface TrainOutput {
+export type TrainOutput = {
   list_entities: ColdListEntityModel[]
   tfidf: TFIDF
   vocab: string[]
@@ -72,9 +72,9 @@ export interface TrainOutput {
   slots_model_by_intent: _.Dictionary<string>
 }
 
-interface Tools extends LanguageTools {
+type Tools = {
   logger: Logger
-}
+} & LanguageTools
 
 type progressCB = (p?: number) => void
 

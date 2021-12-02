@@ -12,7 +12,7 @@ import { OfflineError } from '../api/errors'
 import { getLanguageByCode } from '../languages'
 import DownloadManager from './download-manager'
 
-interface AppOptions {
+type AppOptions = {
   version: string
   adminToken?: string
   offline: boolean

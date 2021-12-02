@@ -1,9 +1,9 @@
-export interface BuildInfo {
+export type BuildInfo = {
   date: number
   branch: string
 }
 
-export interface NLUServerOptions {
+export type NLUServerOptions = {
   host: string
   port: number
   limitWindow: string
