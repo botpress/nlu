@@ -35,6 +35,7 @@ export type TrainingState = TrainingStateDto & {
   trainingTime?: number
 }
 
-export type Training = {
-  dataset: TrainInput
-} & TrainingId & TrainingState
+export type Training = TrainingId &
+  TrainingState & {
+    dataset: TrainInput
+  }
