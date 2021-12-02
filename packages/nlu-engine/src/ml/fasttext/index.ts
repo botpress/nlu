@@ -137,7 +137,8 @@ export class FastTextModel implements MLToolkit.FastText.Model {
         await q.getWordVector('hydrate') // hydration as fastText loads models lazily
         resolve(q)
         this._resetQueryBomb()
-      } catch (err) {
+      } catch (thrown) {
+        const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
         reject(new VError(err, `Model = "${this.modelPath}"`))
       }
     })

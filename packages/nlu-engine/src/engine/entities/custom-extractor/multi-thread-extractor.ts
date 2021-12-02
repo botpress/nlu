@@ -13,31 +13,31 @@ const maxMLThreads = Math.max(os.cpus().length - 1, 1) // ncpus - webworker
 const userMlThread = process.env.BP_NUM_ML_THREADS ? Number(process.env.BP_NUM_ML_THREADS) : 4
 const numMLThreads = Math.min(maxMLThreads, userMlThread)
 
-interface TaskUnitInput {
+type TaskUnitInput = {
   utt_idx: number
   entity_idx: number
   utterance: Utterance
   list_entity: WarmedListEntityModel
 }
 
-interface SerializableTaskUnitInput {
+type SerializableTaskUnitInput = {
   utt_idx: number
   entity_idx: number
   tokens: SerializableUtteranceToken[]
   list_entity: ListEntityModel
 }
 
-interface TaskUnitOutput {
+type TaskUnitOutput = {
   utt_idx: number
   entity_idx: number
   entities: EntityExtractionResult[]
 }
 
-export interface TaskInput {
+export type TaskInput = {
   units: SerializableTaskUnitInput[]
 }
 
-export interface TaskOutput {
+export type TaskOutput = {
   units: TaskUnitOutput[]
 }
 

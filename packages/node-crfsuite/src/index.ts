@@ -4,7 +4,7 @@ import { Tagger, Trainer, TrainerOptions } from './typings'
 type TaggerCtor = new () => Tagger
 type TrainerCtor = new (opt?: TrainerOptions) => Trainer
 
-interface BindingType {
+type BindingType = {
   Tagger: TaggerCtor
   Trainer: TrainerCtor
 }

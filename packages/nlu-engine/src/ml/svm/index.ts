@@ -103,7 +103,8 @@ export class Predictor implements MLToolkit.SVM.Predictor {
       this.parameters = model.param
       this.clf = new SVM({ kFold: 1 })
       await this.clf.initialize(model)
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this.throwModelHasChanged(err)
     }
   }

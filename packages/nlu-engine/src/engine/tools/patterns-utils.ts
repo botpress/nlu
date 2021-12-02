@@ -1,4 +1,4 @@
-interface ExtractedPattern {
+type ExtractedPattern = {
   value: string
   sourceIndex: number
 }

@@ -6,7 +6,7 @@ import util from 'util'
 import { LoggerLevel } from '../config'
 import { FormattedLogEntry, LogEntry, LogEntryFormatter, LoggerConfig } from '../typings'
 
-interface ConsoleFormatterOpts {
+type ConsoleFormatterOpts = {
   indent: boolean
 }
 

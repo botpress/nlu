@@ -6,7 +6,7 @@ import sizeof from 'object-sizeof'
 import { Logger } from '../../typings'
 import { ColdListEntityModel, EntityCache, EntityCacheDump, EntityExtractionResult, KeyedItem } from '../typings'
 
-interface CacheByName {
+type CacheByName = {
   [name: string]: EntityCacheDump
 }
 
@@ -100,7 +100,8 @@ export class SystemEntityCacheManager {
     if (this._dumpEnabled) {
       try {
         await this._dumpCache()
-      } catch (err) {
+      } catch (thrown) {
+        const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
         this._logger?.error(`Could not persist system entities cache, error ${err.message}`, err)
         this._dumpEnabled = false
       }

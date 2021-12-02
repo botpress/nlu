@@ -1,7 +1,7 @@
 export const makeClassifier: (modelFilename?: string) => Promise<Classifier>
 export const makeQuery: (modelFilename: string) => Promise<Query>
 
-export interface Classifier {
+export type Classifier = {
   loadModel(modelFilename: string): Promise<any>
   predict(sentence: string, k: number, callback?: DoneCallback): Promise<Array<{ label: string; value: number }>>
   train(
@@ -12,12 +12,12 @@ export interface Classifier {
   quantize(options: Options, callback?: DoneCallback)
 }
 
-export interface Query {
+export type Query = {
   nn(word: string, neighbors: number): Promise<Array<{ label: string; value: number }>>
   getWordVector(word: string): Promise<number[]>
 }
 
-export interface Options {
+export type Options = {
   [key: string]: any
   // The following arguments are mandatory
   input: string // training file path
@@ -56,6 +56,6 @@ export interface Options {
   dsub: number // size of each sub-vector [2]
 }
 
-export interface DoneCallback {
+export type DoneCallback = {
   (error: any, result: any): void
 }

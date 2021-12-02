@@ -30,11 +30,11 @@ const timeout = <T>(ms: number) => {
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
 const MS_BEFORE_PRUNE = ms('1h')
 
-interface TableId {
+type TableId = {
   appId: string
   modelId: string
 }
-interface TableRow extends TableId {
+type TableRow = {
   status: TrainingStatus
   progress: number
   error_type?: TrainingErrorType
@@ -43,7 +43,7 @@ interface TableRow extends TableId {
   cluster: string
   dataset: string
   updatedOn: string
-}
+} & TableId
 
 class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements WrittableTrainingRepository {
   constructor(protected _database: Knex, private _clusterId: string, _logger: Logger) {

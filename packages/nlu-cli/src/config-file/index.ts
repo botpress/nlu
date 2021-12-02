@@ -3,13 +3,13 @@ import { validate } from 'json-schema'
 import { YargsSchema, YargsArgv } from '../yargs-utils'
 import { generateSchema } from './schema'
 
-interface WriteConfigFileProps<S extends YargsSchema> {
+type WriteConfigFileProps<S extends YargsSchema> = {
   schemaLocation: string
   fileLocation: string
   yargSchema: S
 }
 
-interface ReadConfigFileProps<S extends YargsSchema> {
+type ReadConfigFileProps<S extends YargsSchema> = {
   fileLocation: string
   yargSchema: S
 }

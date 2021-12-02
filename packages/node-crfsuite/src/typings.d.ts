@@ -7,11 +7,11 @@ export declare class Tagger {
   public marginal(xseq: Array<string[]>): { [key: string]: number }[]
 }
 
-export interface Options {
+export type Options = {
   [key: string]: string
 }
 
-export interface TrainerOptions {
+export type TrainerOptions = {
   [key: string]: any
   debug?: boolean
 }

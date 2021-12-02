@@ -3,7 +3,7 @@ import { getSummary, getContentType } from '@promster/metrics'
 import { Express, Request } from 'express'
 import * as http from 'http'
 
-interface Route {
+type Route = {
   prefix?: RegExp
   subroutes?: Route[]
   methods?: { [key: string]: boolean }

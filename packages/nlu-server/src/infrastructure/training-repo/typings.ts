@@ -5,7 +5,7 @@ export type TrainingTrx = (repo: WrittableTrainingRepository) => Promise<void>
 
 export type TrainingListener = (training: Training) => Promise<void>
 
-export interface ReadonlyTrainingRepository {
+export type ReadonlyTrainingRepository = {
   addListener: (listener: TrainingListener) => void
   removeListener: (listener: TrainingListener) => void
   initialize: () => Promise<void>
@@ -17,15 +17,15 @@ export interface ReadonlyTrainingRepository {
   delete: (id: TrainingId) => Promise<void>
 }
 
-export interface WrittableTrainingRepository extends ReadonlyTrainingRepository {
+export type WrittableTrainingRepository = {
   set: (training: Training) => Promise<void>
-}
+} & ReadonlyTrainingRepository
 
-export interface TrainingRepository extends ReadonlyTrainingRepository {
+export type TrainingRepository = {
   inTransaction: (trx: TrainingTrx, name: string) => Promise<void> // Promise resolves once transaction is over
-}
+} & ReadonlyTrainingRepository
 
-export interface TrainingId {
+export type TrainingId = {
   modelId: ModelId
   appId: string
 }
@@ -35,6 +35,7 @@ export type TrainingState = TrainingStateDto & {
   trainingTime?: number
 }
 
-export interface Training extends TrainingId, TrainingState {
-  dataset: TrainInput
-}
+export type Training = TrainingId &
+  TrainingState & {
+    dataset: TrainInput
+  }

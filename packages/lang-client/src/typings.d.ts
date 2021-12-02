@@ -5,7 +5,7 @@ import { AxiosRequestConfig, AxiosInstance } from 'axios'
  * ### Basic Types ###
  * ###################
  */
-export interface LanguageInfo {
+export type LanguageInfo = {
   version: string
   ready: boolean
   dimentions: number
@@ -13,53 +13,53 @@ export interface LanguageInfo {
   readOnly: boolean
 }
 
-export interface TokenizeResult {
+export type TokenizeResult = {
   utterances: string[]
   language: string
   tokens: string[][]
 }
 
-export interface VectorizeResult {
+export type VectorizeResult = {
   language: string
   vectors: number[][]
 }
 
-export interface AvailableModel {
+export type AvailableModel = {
   code: string
   name: string
   flag: string
 }
 
-export interface InstalledModel {
+export type InstalledModel = {
   code: string
   name: string
   loaded: boolean
 }
 
 export type DownloadStatusType = 'pending' | 'downloading' | 'loading' | 'errored' | 'done'
-export interface DownloadStatus {
+export type DownloadStatus = {
   status: DownloadStatusType
   message: string
 }
 
-export interface DownloadProgress {
+export type DownloadProgress = {
   status: DownloadStatus
   downloadId: string
   size: number
 }
 
-export interface DownloadingModel {
+export type DownloadingModel = {
   lang: string
   progress: DownloadProgress
 }
 
-export interface LanguageState {
+export type LanguageState = {
   available: AvailableModel[]
   installed: InstalledModel[]
   downloading: DownloadingModel[]
 }
 
-export interface DownloadStartResult {
+export type DownloadStartResult = {
   downloadId: string
 }
 
@@ -69,33 +69,33 @@ export interface DownloadStartResult {
  * ##########################
  */
 export type ErrorType = 'bad_request' | 'not_ready' | 'unauthorized' | 'offline' | 'internal'
-export interface LangError {
+export type LangError = {
   message: string
   stack?: string
   type: ErrorType
   code: number
 }
 
-export interface ErrorResponse {
+export type ErrorResponse = {
   success: false
   error: LangError
 }
 
-export interface SuccessReponse {
+export type SuccessReponse = {
   success: true
 }
 
-export interface InfoResponseBody extends SuccessReponse, LanguageInfo {}
-export interface TokenizeResponseBody extends SuccessReponse, TokenizeResult {}
-export interface VectorizeResponseBody extends SuccessReponse, VectorizeResult {}
-export interface LanguagesResponseBody extends SuccessReponse, LanguageState {}
-export interface DownloadLangResponseBody extends SuccessReponse, DownloadStartResult {}
+export type InfoResponseBody = {} & SuccessReponse & LanguageInfo
+export type TokenizeResponseBody = {} & SuccessReponse & TokenizeResult
+export type VectorizeResponseBody = {} & SuccessReponse & VectorizeResult
+export type LanguagesResponseBody = {} & SuccessReponse & LanguageState
+export type DownloadLangResponseBody = {} & SuccessReponse & DownloadStartResult
 
-export interface TokenizeRequestBody {
+export type TokenizeRequestBody = {
   utterances: string[]
 }
 
-export interface VectorizeRequestBody {
+export type VectorizeRequestBody = {
   tokens: string[]
 }
 

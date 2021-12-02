@@ -4,7 +4,7 @@ import _ from 'lodash'
 import { TrainOutput } from './training-pipeline'
 import { Intent } from './typings'
 
-interface ContextChangeLog {
+type ContextChangeLog = {
   createdContexts: string[]
   deletedContexts: string[]
   modifiedContexts: string[]

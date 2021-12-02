@@ -6,7 +6,7 @@ import _ from 'lodash'
 import { Readable } from 'stream'
 
 type ModelType = 'bpe' | 'embeddings'
-export interface DownloadableModel {
+export type DownloadableModel = {
   type: ModelType
   remoteUrl: string
   language: string

@@ -9,13 +9,13 @@ import Utterance from '../utterance/utterance'
 import { IntentClassifier, IntentPredictions, IntentTrainInput } from './intent-classifier'
 
 type Featurizer = (u: Utterance, entities: string[]) => number[]
-export interface Model {
+export type Model = {
   svmModel: string | undefined
   intentNames: string[]
   entitiesName: string[]
 }
 
-interface Predictors {
+type Predictors = {
   svm: MLToolkit.SVM.Predictor | undefined
   intentNames: string[]
   entitiesName: string[]
@@ -93,7 +93,8 @@ export class SvmIntentClassifier implements IntentClassifier {
       const model: Model = await validate(raw, modelSchema)
       this.predictors = await this._makePredictors(model)
       this.model = model
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(SvmIntentClassifier._displayName, err)
     }
   }

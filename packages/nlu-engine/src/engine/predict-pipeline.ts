@@ -27,7 +27,7 @@ import {
 } from './typings'
 import Utterance, { buildUtteranceBatch, preprocessRawUtterance, UtteranceEntity } from './utterance/utterance'
 
-export interface Predictors {
+export type Predictors = {
   lang: string
   tfidf: TFIDF
   vocab: string[]
@@ -41,12 +41,12 @@ export interface Predictors {
   kmeans?: MLToolkit.KMeans.KmeansResult
 }
 
-export interface PredictInput {
+export type PredictInput = {
   language: string
   text: string
 }
 
-interface InitialStep {
+type InitialStep = {
   rawText: string
   languageCode: string
 }

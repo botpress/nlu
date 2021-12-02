@@ -26,7 +26,7 @@ import { serviceLoadingMiddleware } from './mw-service-loading'
 import { validateTokenizeRequestBody, validateVectorizeRequestBody } from './validation/body'
 import { extractPathLanguageMiddleware, RequestWithLang, assertLanguage } from './validation/lang-path'
 
-export interface APIOptions {
+export type APIOptions = {
   version: string
   host: string
   port: number

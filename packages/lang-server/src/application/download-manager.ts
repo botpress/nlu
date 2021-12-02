@@ -9,7 +9,7 @@ import { getAppDataPath } from '../app-data'
 import ModelDownload from './model-download'
 
 type ModelType = 'bpe' | 'embeddings'
-interface DownloadableModel {
+type DownloadableModel = {
   type: ModelType
   remoteUrl: string
   language: string
@@ -18,13 +18,13 @@ interface DownloadableModel {
   domain?: string
 }
 
-interface Language {
+type Language = {
   code: string
   name: string
   flag: string
 }
 
-interface Meta {
+type Meta = {
   languages: {
     [code: string]: Language
   }
@@ -84,7 +84,8 @@ export default class DownloadManager {
       if (this._isValidMetadata(data)) {
         this.meta = data
       }
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this._logger.debug('Error fetching models', { url: this.metaUrl, message: err.message })
       throw err
     }
@@ -115,7 +116,8 @@ export default class DownloadManager {
       if (this._isValidMetadata(json)) {
         this.meta = json
       }
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this._logger.debug('Error reading metadata file', { file: filePath, message: err.message })
     }
   }

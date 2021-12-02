@@ -22,7 +22,7 @@ const DISCOVERY_RETRY_POLICY: retry.Options = {
   max_tries: 5
 }
 
-export interface LangProviderArgs {
+export type LangProviderArgs = {
   languageURL: string
   languageAuthToken?: string
   cacheDir: string
@@ -274,7 +274,8 @@ export class LanguageProvider {
       await fse.ensureFile(tokensCachePath)
       await fse.writeJson(tokensCachePath, this._tokensCache.dump())
       this._logger.debug(`tokens cache updated at: ${tokensCachePath}`)
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this._logger.debug(`could not persist tokens cache, error: ${err.message}`)
       this._cacheDumpDisabled = true
     }
@@ -287,7 +288,8 @@ export class LanguageProvider {
         const dump = await fse.readJSON(tokensCachePath)
         this._tokensCache.load(dump)
       }
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this._logger.debug(`could not restore tokens cache, error: ${err.message}`)
     }
   }
@@ -298,7 +300,8 @@ export class LanguageProvider {
       await fse.ensureFile(vectorsCachePath)
       await fse.writeJSON(vectorsCachePath, this._vectorsCache.dump())
       this._logger.debug(`vectors cache updated at: ${vectorsCachePath}`)
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this._logger.debug(`could not persist vectors cache, error: ${err.message}`)
       this._cacheDumpDisabled = true
     }
@@ -314,7 +317,8 @@ export class LanguageProvider {
           this._vectorsCache.load(kve)
         }
       }
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this._logger.debug(`could not restore vectors cache, error: ${err.message}`)
     }
   }

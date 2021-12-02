@@ -29,6 +29,6 @@
     "jest": "^24.9.0",
     "node-addon-api": "^2.0.0",
     "node-gyp": "^6.1.0",
-    "typescript": "^3.9.10"
+    "typescript": "^4.5.2"
   }
 }

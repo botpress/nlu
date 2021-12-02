@@ -13,11 +13,11 @@ export const BIO = {
 
 export type Tag = 'o' | 'B' | 'I'
 
-export interface Token2Vec {
+export type Token2Vec = {
   [token: string]: number[]
 }
 
-export interface LangServerInfo {
+export type LangServerInfo = {
   version: string
   domain: string
   dim: number
@@ -43,7 +43,7 @@ export type ListEntity = Readonly<{
 export type EntityCache = LRUCache<string, EntityExtractionResult[]>
 export type EntityCacheDump = LRUCache.Entry<string, EntityExtractionResult[]>[]
 
-export interface ListEntityModel {
+export type ListEntityModel = {
   type: 'custom.list'
   id: string
   languageCode: string
@@ -62,7 +62,7 @@ export type WarmedListEntityModel = ListEntityModel & {
   cache: EntityCache
 }
 
-export interface ExtractedSlot {
+export type ExtractedSlot = {
   confidence: number
   name: string
   source: string
@@ -70,13 +70,13 @@ export interface ExtractedSlot {
   entity?: EntityExtractionResult
 }
 
-export interface SlotExtractionResult {
+export type SlotExtractionResult = {
   slot: ExtractedSlot
   start: number
   end: number
 }
 export type EntityExtractor = 'system' | 'list' | 'pattern'
-export interface ExtractedEntity {
+export type ExtractedEntity = {
   confidence: number
   type: string
   metadata: {
@@ -91,19 +91,19 @@ export interface ExtractedEntity {
 }
 export type EntityExtractionResult = ExtractedEntity & { start: number; end: number }
 
-export interface KeyedItem {
+export type KeyedItem = {
   input: string
   idx: number
   entities?: EntityExtractionResult[]
 }
 
-export interface SeededLodashProvider {
+export type SeededLodashProvider = {
   setSeed(seed: number): void
   getSeededLodash(): _.LoDashStatic
   resetSeed(): void
 }
 
-export interface Tools {
+export type Tools = {
   getLanguages(): string[]
   getLangServerSpecs(): LangServerSpecs
 
@@ -121,7 +121,7 @@ export interface Tools {
   systemEntityExtractor: SystemEntityExtractor
 }
 
-export interface SystemEntityExtractor {
+export type SystemEntityExtractor = {
   extractMultiple(
     input: string[],
     lang: string,

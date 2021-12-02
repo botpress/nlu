@@ -27,7 +27,7 @@ import { TrainingProcessPool } from './training-process-pool'
 import { EntityCacheDump, ListEntity, PatternEntity, Tools } from './typings'
 import { getModifiedContexts, mergeModelOutputs } from './warm-training-handler'
 
-interface LoadedModel {
+type LoadedModel = {
   model: PredictableModel
   predictors: Predictors
   entityCache: EntityCacheManager
@@ -44,7 +44,7 @@ const DEFAULT_TRAINING_OPTIONS: TrainingOptions = {
   minProgressHeartbeat: ms('10s')
 }
 
-interface EngineOptions {
+type EngineOptions = {
   cacheSize: string
 }
 

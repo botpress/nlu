@@ -18,7 +18,7 @@ import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
 
 import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
-interface APIOptions {
+type APIOptions = {
   host: string
   port: number
   limitWindow: string

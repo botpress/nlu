@@ -5,7 +5,7 @@ import Utterance from '../../utterance/utterance'
 import { extractForListModel } from './list-extraction'
 import { serializeUtteranceToken } from './serializable-token'
 
-interface SplittedModels {
+type SplittedModels = {
   withCacheHit: WarmedListEntityModel[]
   withCacheMiss: WarmedListEntityModel[]
 }

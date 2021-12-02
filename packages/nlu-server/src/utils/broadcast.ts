@@ -2,7 +2,7 @@ import PGPubSub from 'pg-pubsub'
 
 type Func<X extends any[], Y extends any> = (...x: X) => Y
 
-interface Task<X extends any[]> {
+type Task<X extends any[]> = {
   name: string
   run: Func<X, Promise<void>>
 }

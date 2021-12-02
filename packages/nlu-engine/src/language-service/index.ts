@@ -15,7 +15,7 @@ import { MLToolkit } from '../ml/typings'
 
 import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet, AvailableModel } from './typings'
 
-interface RamInfos {
+type RamInfos = {
   free: number
   total: number
   prediction: number
@@ -125,7 +125,8 @@ export default class LanguageService implements ILanguageService {
       const fastTextModel = await this._loadFastTextModel(lang)
       const bpeModel = await this._loadBPEModel(lang)
       this._models[lang] = { fastTextModel, bpeModel }
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this.logger?.error(`[${lang.toUpperCase()}] Error loading language. It will be unavailable.`, err)
     }
   }

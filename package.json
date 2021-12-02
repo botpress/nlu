@@ -26,7 +26,7 @@
     "dev": "cross-env tsnd --transpile-only --exit-child --watch ./packages/**/*.ts ./packages/nlu-cli/src/index.ts",
     "start": "cross-env node ./packages/nlu-cli/dist/index.js",
     "build": "tsc --build ./tsconfig.json",
-    "clean": "yarn workspaces run clean",
+    "clean": "rm -rf ./dist && rm -rf ./node_modules && yarn workspaces run clean",
     "postbuild": "yarn workspace @botpress/nlu-server postbuild",
     "package": "yarn cmd package",
     "e2e": "yarn workspace e2e start",

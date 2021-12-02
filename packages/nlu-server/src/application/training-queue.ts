@@ -23,7 +23,7 @@ const TRAINING_HEARTBEAT_SECURITY_FACTOR = 3
 const MIN_TRAINING_HEARTBEAT = ms('10s')
 const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * TRAINING_HEARTBEAT_SECURITY_FACTOR
 
-export interface QueueOptions {
+export type QueueOptions = {
   maxTraining: number
 }
 const DEFAULT_OPTIONS: QueueOptions = {

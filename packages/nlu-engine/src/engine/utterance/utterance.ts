@@ -15,19 +15,19 @@ type UtteranceToStringStrategy =
   | 'keep-token' // token keeps it's original value
   | 'ignore' // token won't be in resulting string
 
-export interface UtteranceToStringOptions {
+export type UtteranceToStringOptions = {
   lowerCase: boolean
   onlyWords: boolean
   strategy: UtteranceToStringStrategy
 }
 
-export interface TokenToStringOptions {
+export type TokenToStringOptions = {
   lowerCase?: boolean
   trim?: boolean
   realSpaces?: boolean
 }
 
-export interface UtteranceRange {
+export type UtteranceRange = {
   startTokenIdx: number
   endTokenIdx: number
   startPos: number

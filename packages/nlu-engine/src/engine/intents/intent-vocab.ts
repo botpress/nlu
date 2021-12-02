@@ -3,7 +3,7 @@ import { SPACE } from '../tools/token-utils'
 import { Intent, ListEntityModel } from '../typings'
 import Utterance from '../utterance/utterance'
 
-interface IntentVocab {
+type IntentVocab = {
   name: string
   vocab: string[]
   slot_entities: string[]

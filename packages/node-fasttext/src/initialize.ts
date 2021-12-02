@@ -39,7 +39,7 @@ import { binName } from './constants'
  */
 type ExtensionDir = Record<'dirName' | 'dist' | 'version', string>
 
-interface Mutex {
+type Mutex = {
   release: () => void
 }
 

@@ -1,4 +1,4 @@
-export interface Task<T> {
+export type Task<T> = {
   name: string
   cb: () => Promise<T>
 }
@@ -9,7 +9,7 @@ export interface Task<T> {
  *
  * Does not involve to mannualy check if lock is free.
  */
-export interface LockedTransactionQueue<T> {
+export type LockedTransactionQueue<T> = {
   /**
    * Waits for a lock to be free, aquires it and runs function
    * @param t The async function to run inside the aquire and release lock statement
