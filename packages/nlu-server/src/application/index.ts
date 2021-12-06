@@ -229,6 +229,23 @@ You can increase your cache size by the CLI or config.
     return detectedLanguages
   }
 
+  public async checkDataset(appId: string, trainInput: TrainInput) {
+    const modelId = modelIdService.makeId({
+      ...trainInput,
+      specifications: this._engine.getSpecifications()
+    })
+
+    const stringId = modelIdService.toString(modelId)
+    const key = `${appId}/${stringId}`
+
+    // to return asap
+    void this._engine.check(key, trainInput, { minSpeed: 'slow', progressCallback: () => {} })
+
+    return modelId
+  }
+
+  public async getHints(appId: string, modelId: ModelId) {}
+
   private _getSpecFilter = (): { specificationHash: string } => {
     const specifications = this._engine.getSpecifications()
     const specFilter = modelIdService.briefId({ specifications }) as { specificationHash: string }

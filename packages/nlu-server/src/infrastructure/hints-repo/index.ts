@@ -1,0 +1,1 @@
+export { HintsRepository } from './typings'
