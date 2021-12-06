@@ -43,6 +43,10 @@ export type ListEntity = Readonly<{
 export type EntityCache = LRUCache<string, EntityExtractionResult[]>
 export type EntityCacheDump = LRUCache.Entry<string, EntityExtractionResult[]>[]
 
+export type ListEntityWithCache = ListEntity & {
+  cache: EntityCacheDump
+}
+
 export type ListEntityModel = {
   type: 'custom.list'
   id: string

@@ -1,11 +1,12 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { Override } from 'src/utils/override-type'
 import { MLToolkit } from '../ml/typings'
 import { Logger } from '../typings'
 
 import { watchDog } from '../utils/watch-dog'
 
-import { serializeKmeans } from './clustering'
+import { computeKmeans, serializeKmeans } from './clustering'
 import { CustomEntityExtractor } from './entities/custom-extractor'
 import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/multi-thread-extractor'
 import { warmEntityCache } from './entities/entity-cache-manager'
@@ -18,10 +19,9 @@ import tfidf from './tools/tfidf'
 import { convertToRealSpaces } from './tools/token-utils'
 import {
   ColdListEntityModel,
-  EntityCacheDump,
   EntityExtractionResult,
   Intent,
-  ListEntity,
+  ListEntityWithCache,
   PatternEntity,
   SerializedKmeansResult,
   TFIDF,
@@ -31,11 +31,7 @@ import {
 } from './typings'
 import Utterance, { buildUtteranceBatch, UtteranceToken } from './utterance/utterance'
 
-type ListEntityWithCache = ListEntity & {
-  cache: EntityCacheDump
-}
-
-export type TrainInput = Readonly<{
+export type TrainInput = {
   trainId: string
   nluSeed: number
   languageCode: string
@@ -45,21 +41,19 @@ export type TrainInput = Readonly<{
   intents: Intent<string>[]
   ctxToTrain: string[]
   minProgressHeartbeat: number
-}>
+}
 
-export type TrainStep = Readonly<{
-  trainId: string
-  nluSeed: number
-  languageCode: string
-  list_entities: WarmedListEntityModel[]
-  pattern_entities: PatternEntity[]
-  contexts: string[]
-  intents: Intent<Utterance>[]
-  vocabVectors: Token2Vec
-  tfIdf?: TFIDF
-  kmeans?: MLToolkit.KMeans.KmeansResult
-  ctxToTrain: string[]
-}>
+type PreprocessTrainStep = Override<
+  TrainInput,
+  {
+    list_entities: WarmedListEntityModel[]
+    intents: Intent<Utterance>[]
+    vocabVectors: Token2Vec
+  }
+>
+type TfIdfTrainStep = PreprocessTrainStep & { tfIdf: TFIDF }
+type ClusterTrainStep = TfIdfTrainStep & { kmeans?: MLToolkit.KMeans.KmeansResult }
+type SerialTrainOuput = ClusterTrainStep
 
 export type TrainOutput = {
   list_entities: ColdListEntityModel[]
@@ -78,35 +72,11 @@ type Tools = {
 
 type progressCB = (p?: number) => void
 
-const NUM_CLUSTERS = 8
-const KMEANS_OPTIONS = {
-  iterations: 250,
-  initialization: 'random',
-  seed: 666 // so training is consistent
-} as MLToolkit.KMeans.KMeansOptions
-
-async function PreprocessInput(input: TrainInput, tools: Tools): Promise<TrainStep> {
-  input = _.cloneDeep(input)
-  const list_entities = await Bluebird.map(input.list_entities, (list) =>
-    makeListEntityModel(list, input.languageCode, tools)
-  )
-
-  const intents = await ProcessIntents(input.intents, input.languageCode, tools)
-  const vocabVectors = buildVectorsVocab(intents)
-
-  const { trainId, nluSeed, languageCode, pattern_entities, contexts, ctxToTrain } = input
-  return {
-    trainId,
-    nluSeed,
-    languageCode,
-    pattern_entities,
-    contexts,
-    ctxToTrain,
-    list_entities,
-    intents,
-    vocabVectors
-  }
-}
+/**
+ * ##############################
+ * ### Step 1 : Preprocessing ###
+ * ##############################
+ */
 
 async function makeListEntityModel(entity: ListEntityWithCache, languageCode: string, tools: Tools) {
   const allValues = _.uniq(Object.keys(entity.synonyms).concat(..._.values(entity.synonyms)))
@@ -133,29 +103,16 @@ async function makeListEntityModel(entity: ListEntityWithCache, languageCode: st
   }
 }
 
-function computeKmeans(intents: Intent<Utterance>[], tools: Tools): MLToolkit.KMeans.KmeansResult | undefined {
-  const data = _.chain(intents)
-    .flatMap((i) => i.utterances)
-    .flatMap((u) => u.tokens)
-    .uniqBy((t: UtteranceToken) => t.value)
-    .map((t: UtteranceToken) => t.vector)
-    .value() as number[][]
-
-  if (data.length < 2) {
-    return
-  }
-
-  const k = data.length > NUM_CLUSTERS ? NUM_CLUSTERS : 2
-
-  return tools.mlToolkit.KMeans.kmeans(data, k, KMEANS_OPTIONS)
-}
-
-async function ClusterTokens(input: TrainStep, tools: Tools): Promise<TrainStep> {
-  const kmeans = computeKmeans(input.intents, tools)
-  const copy = { ...input, kmeans }
-  copy.intents.forEach((x) => x.utterances.forEach((u) => u.setKmeans(kmeans)))
-
-  return copy
+async function processIntents(
+  intents: Intent<string>[],
+  languageCode: string,
+  tools: Tools
+): Promise<Intent<Utterance>[]> {
+  return Bluebird.map(intents, async (intent) => {
+    const cleaned = intent.utterances.map(_.flow([_.trim, replaceConsecutiveSpaces]))
+    const utterances = await buildUtteranceBatch(cleaned, languageCode, tools)
+    return { ...intent, utterances }
+  })
 }
 
 function buildVectorsVocab(intents: Intent<Utterance>[]): _.Dictionary<number[]> {
@@ -169,108 +126,53 @@ function buildVectorsVocab(intents: Intent<Utterance>[]): _.Dictionary<number[]>
     .value()
 }
 
-async function TrainIntentClassifiers(
-  input: TrainStep,
-  tools: Tools,
-  progress: progressCB
-): Promise<_.Dictionary<string>> {
-  const { list_entities, pattern_entities, intents, ctxToTrain, nluSeed, languageCode } = input
-
-  const progressPerCtx: _.Dictionary<number> = {}
-
-  const clampedProgress = (p: number) => progress(Math.min(0.99, p))
-  const reportProgress = () => {
-    const n = ctxToTrain.length
-    const total = _(progressPerCtx).values().sum()
-    clampedProgress(total / n)
-  }
-
-  const models = await Bluebird.map(ctxToTrain, async (ctx) => {
-    const taskName = `train Clf for Ctx "${ctx}"`
-    tools.logger.debug(taskStarted(input.trainId, taskName))
-
-    const allUtterances = _.flatMap(intents, (i) => i.utterances)
-    const trainableIntents = intents.filter((i) => i.contexts.includes(ctx))
-
-    const intentClf = new OOSIntentClassifier(tools, tools.logger)
-    await intentClf.train(
-      {
-        languageCode,
-        intents: trainableIntents,
-        list_entities,
-        nluSeed,
-        pattern_entities,
-        allUtterances
-      },
-      (p) => {
-        progressPerCtx[ctx] = p
-        reportProgress()
-      }
-    )
-
-    tools.logger.debug(taskDone(input.trainId, taskName))
-    const model = intentClf.serialize()
-    return { ctx, model }
-  })
-
-  progress(1)
-
-  return _(models)
-    .map(({ ctx, model }) => [ctx, model])
-    .fromPairs()
-    .value()
-}
-
-async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: progressCB): Promise<string> {
-  const { languageCode, intents, contexts, list_entities, pattern_entities, nluSeed } = input
-
-  const clampedProgress = (p: number) => progress(Math.min(0.99, p))
-
-  const rootIntents = contexts.map((ctx) => {
-    const utterances = _(intents)
-      .filter((intent) => intent.contexts.includes(ctx))
-      .flatMap((intent) => intent.utterances)
-      .value()
-
-    return <Intent<Utterance>>{
-      name: ctx,
-      contexts: [],
-      slot_definitions: [],
-      utterances
-    }
-  })
-
-  const rootIntentClassifier = new SvmIntentClassifier(tools, getCtxFeatures, tools.logger)
-  await rootIntentClassifier.train(
-    {
-      intents: rootIntents,
-      languageCode,
-      list_entities,
-      pattern_entities,
-      nluSeed
-    },
-    (p) => {
-      clampedProgress(p)
-    }
+async function preprocessInput(input: TrainInput, tools: Tools): Promise<PreprocessTrainStep> {
+  input = _.cloneDeep(input)
+  const list_entities = await Bluebird.map(input.list_entities, (list) =>
+    makeListEntityModel(list, input.languageCode, tools)
   )
 
-  progress(1)
-  return rootIntentClassifier.serialize()
+  const intents = await processIntents(input.intents, input.languageCode, tools)
+  const vocabVectors = buildVectorsVocab(intents)
+
+  return {
+    ...input,
+    list_entities,
+    intents,
+    vocabVectors
+  }
 }
 
-async function ProcessIntents(
-  intents: Intent<string>[],
-  languageCode: string,
-  tools: Tools
-): Promise<Intent<Utterance>[]> {
-  return Bluebird.map(intents, async (intent) => {
-    const cleaned = intent.utterances.map(_.flow([_.trim, replaceConsecutiveSpaces]))
-    const utterances = await buildUtteranceBatch(cleaned, languageCode, tools)
-    return { ...intent, utterances }
-  })
+async function tfidfTokens(input: PreprocessTrainStep): Promise<TfIdfTrainStep> {
+  const tfidfInput = input.intents.reduce(
+    (tfidfInput, intent) => ({
+      ...tfidfInput,
+      [intent.name]: _.flatMapDeep(intent.utterances.map((u) => u.tokens.map((t) => t.toString({ lowerCase: true }))))
+    }),
+    {} as _.Dictionary<string[]>
+  )
+
+  const { __avg__: avg_tfidf } = tfidf(tfidfInput)
+  const copy = { ...input, tfIdf: avg_tfidf }
+  copy.intents.forEach((x) => x.utterances.forEach((u) => u.setGlobalTfidf(avg_tfidf)))
+
+  return copy
 }
 
-async function ExtractEntities(input: TrainStep, tools: Tools, progress: progressCB): Promise<TrainStep> {
+async function clusterTokens(input: TfIdfTrainStep, tools: Tools): Promise<ClusterTrainStep> {
+  const kmeans = computeKmeans(input.intents, tools)
+  const copy = { ...input, kmeans }
+  copy.intents.forEach((x) => x.utterances.forEach((u) => u.setKmeans(kmeans)))
+  return copy
+}
+
+/**
+ * #########################
+ * ### Step 2 : Entities ###
+ * #########################
+ */
+
+async function extractEntities(input: ClusterTrainStep, tools: Tools, progress: progressCB): Promise<SerialTrainOuput> {
   const utterances: Utterance[] = _.chain(input.intents).flatMap('utterances').value()
 
   tools.logger?.debug('Extracting system entities')
@@ -329,23 +231,105 @@ async function ExtractEntities(input: TrainStep, tools: Tools, progress: progres
   return input
 }
 
-export async function TfidfTokens(input: TrainStep): Promise<TrainStep> {
-  const tfidfInput = input.intents.reduce(
-    (tfidfInput, intent) => ({
-      ...tfidfInput,
-      [intent.name]: _.flatMapDeep(intent.utterances.map((u) => u.tokens.map((t) => t.toString({ lowerCase: true }))))
-    }),
-    {} as _.Dictionary<string[]>
+/**
+ * ############################
+ * ### Steps 3-5 : Parallel ###
+ * ############################
+ */
+async function trainContextClassifier(input: SerialTrainOuput, tools: Tools, progress: progressCB): Promise<string> {
+  const { languageCode, intents, contexts, list_entities, pattern_entities, nluSeed } = input
+
+  const clampedProgress = (p: number) => progress(Math.min(0.99, p))
+
+  const rootIntents = contexts.map((ctx) => {
+    const utterances = _(intents)
+      .filter((intent) => intent.contexts.includes(ctx))
+      .flatMap((intent) => intent.utterances)
+      .value()
+
+    return <Intent<Utterance>>{
+      name: ctx,
+      contexts: [],
+      slot_definitions: [],
+      utterances
+    }
+  })
+
+  const rootIntentClassifier = new SvmIntentClassifier(tools, getCtxFeatures, tools.logger)
+  await rootIntentClassifier.train(
+    {
+      intents: rootIntents,
+      languageCode,
+      list_entities,
+      pattern_entities,
+      nluSeed
+    },
+    (p) => {
+      clampedProgress(p)
+    }
   )
 
-  const { __avg__: avg_tfidf } = tfidf(tfidfInput)
-  const copy = { ...input, tfIdf: avg_tfidf }
-  copy.intents.forEach((x) => x.utterances.forEach((u) => u.setGlobalTfidf(avg_tfidf)))
-
-  return copy
+  progress(1)
+  return rootIntentClassifier.serialize()
 }
 
-async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progressCB): Promise<_.Dictionary<string>> {
+async function trainIntentClassifiers(
+  input: SerialTrainOuput,
+  tools: Tools,
+  progress: progressCB
+): Promise<_.Dictionary<string>> {
+  const { list_entities, pattern_entities, intents, ctxToTrain, nluSeed, languageCode } = input
+
+  const progressPerCtx: _.Dictionary<number> = {}
+
+  const clampedProgress = (p: number) => progress(Math.min(0.99, p))
+  const reportProgress = () => {
+    const n = ctxToTrain.length
+    const total = _(progressPerCtx).values().sum()
+    clampedProgress(total / n)
+  }
+
+  const models = await Bluebird.map(ctxToTrain, async (ctx) => {
+    const taskName = `train Clf for Ctx "${ctx}"`
+    tools.logger.debug(taskStarted(input.trainId, taskName))
+
+    const allUtterances = _.flatMap(intents, (i) => i.utterances)
+    const trainableIntents = intents.filter((i) => i.contexts.includes(ctx))
+
+    const intentClf = new OOSIntentClassifier(tools, tools.logger)
+    await intentClf.train(
+      {
+        languageCode,
+        intents: trainableIntents,
+        list_entities,
+        nluSeed,
+        pattern_entities,
+        allUtterances
+      },
+      (p) => {
+        progressPerCtx[ctx] = p
+        reportProgress()
+      }
+    )
+
+    tools.logger.debug(taskDone(input.trainId, taskName))
+    const model = intentClf.serialize()
+    return { ctx, model }
+  })
+
+  progress(1)
+
+  return _(models)
+    .map(({ ctx, model }) => [ctx, model])
+    .fromPairs()
+    .value()
+}
+
+async function trainSlotTaggers(
+  input: SerialTrainOuput,
+  tools: Tools,
+  progress: progressCB
+): Promise<_.Dictionary<string>> {
   const slotModelByIntent: _.Dictionary<string> = {}
 
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
@@ -379,19 +363,23 @@ type AsyncFunction<A extends any[], R extends Promise<any>> = (...args: A) => R
 const taskStarted = (id: string, taskName: string) => `[${id}] Started ${taskName}`
 const taskDone = (id: string, taskName: string) => `[${id}] Done ${taskName}`
 
-const makeLogger = (trainId: string, logger: Logger) => {
+const makeLogDecorator = (trainId: string, logger: Logger) => {
   return <A extends any[], R extends Promise<any>>(fn: AsyncFunction<A, R>) => (...args: A): R => {
     logger.debug(taskStarted(trainId, fn.name))
     const ret = fn(...args)
 
-    // awaiting if not responsibility of this logger decorator
+    // awaiting is not responsibility of this logger decorator
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     ret.then(() => logger.debug(taskDone(trainId, fn.name))).catch((_err) => {})
     return ret
   }
 }
 
-export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: number) => void): Promise<TrainOutput> => {
+export const trainingPipeline = async (
+  input: TrainInput,
+  tools: Tools,
+  progress: (x: number) => void
+): Promise<TrainOutput> => {
   tools.logger.debug(`[${input.trainId}] Started running training pipeline.`)
 
   let totalProgress = 0
@@ -411,39 +399,41 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
     normalizedProgress = scaledProgress
     progressWatchDog.run()
   }
-  const logger = makeLogger(input.trainId, tools.logger)
+  const log = makeLogDecorator(input.trainId, tools.logger)
 
   progress(0) // 0%
 
-  let step = await logger(PreprocessInput)(input, tools)
-  step = await logger(TfidfTokens)(step)
-  step = await logger(ClusterTokens)(step, tools)
+  const preprocessStep = await log(preprocessInput)(input, tools)
+  const tfIdfStep = await log(tfidfTokens)(preprocessStep)
+  const clusterStep = await log(clusterTokens)(tfIdfStep, tools)
+
   reportProgress(1) // 20%
 
-  step = await logger(ExtractEntities)(step, tools, reportProgress)
+  const serialOutput = await log(extractEntities)(clusterStep, tools, reportProgress)
+
   const models = await Promise.all([
-    logger(TrainContextClassifier)(step, tools, reportProgress),
-    logger(TrainIntentClassifiers)(step, tools, reportProgress),
-    logger(TrainSlotTaggers)(step, tools, reportProgress)
+    log(trainContextClassifier)(serialOutput, tools, reportProgress),
+    log(trainIntentClassifiers)(serialOutput, tools, reportProgress),
+    log(trainSlotTaggers)(serialOutput, tools, reportProgress)
   ])
   progressWatchDog.stop()
 
   const [ctx_model, intent_model_by_ctx, slots_model_by_intent] = models
 
-  const coldEntities: ColdListEntityModel[] = step.list_entities.map((e) => ({
+  const coldEntities: ColdListEntityModel[] = serialOutput.list_entities.map((e) => ({
     ...e,
     cache: e.cache.dump()
   }))
 
   const output: TrainOutput = {
     list_entities: coldEntities,
-    tfidf: step.tfIdf!,
+    tfidf: serialOutput.tfIdf,
     ctx_model,
     intent_model_by_ctx,
     slots_model_by_intent,
     contexts: input.contexts,
-    vocab: Object.keys(step.vocabVectors),
-    kmeans: step.kmeans && serializeKmeans(step.kmeans)
+    vocab: Object.keys(serialOutput.vocabVectors),
+    kmeans: serialOutput.kmeans && serializeKmeans(serialOutput.kmeans)
   }
 
   tools.logger.debug(`[${input.trainId}] Done running training pipeline.`)

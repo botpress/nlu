@@ -24,7 +24,7 @@ import SlotTagger from './slots/slot-tagger'
 import { isPatternValid } from './tools/patterns-utils'
 import { TrainInput as TrainingPipelineInput, TrainOutput as TrainingPipelineOutput } from './training-pipeline'
 import { TrainingProcessPool } from './training-process-pool'
-import { EntityCacheDump, ListEntity, PatternEntity, Tools } from './typings'
+import { ListEntityWithCache, PatternEntity, Tools } from './typings'
 import { getModifiedContexts, mergeModelOutputs } from './warm-training-handler'
 
 type LoadedModel = {
@@ -124,7 +124,7 @@ export default class Engine implements IEngine {
     const previousModel = previousModelId && this.modelsById.get(modelIdService.toString(previousModelId))
 
     const list_entities = entities.filter(isListEntity).map((e) => {
-      return <ListEntity & { cache: EntityCacheDump }>{
+      return <ListEntityWithCache>{
         name: e.name,
         fuzzyTolerance: e.fuzzy,
         sensitive: e.sensitive,

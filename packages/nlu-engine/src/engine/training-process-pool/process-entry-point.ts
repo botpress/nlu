@@ -1,6 +1,6 @@
 import { makeProcessEntryPoint, TaskDefinition } from '@botpress/worker'
 import { initializeTools } from '../initialize-tools'
-import { Trainer, TrainInput, TrainOutput } from '../training-pipeline'
+import { trainingPipeline, TrainInput, TrainOutput } from '../training-pipeline'
 import { ErrorHandler } from './error-handler'
 
 export const ENTRY_POINT = __filename
@@ -22,7 +22,7 @@ const main = async () => {
 
       tools.seededLodashProvider.setSeed(input.nluSeed)
       try {
-        const output = await Trainer(input, { ...tools, logger }, progress)
+        const output = await trainingPipeline(input, { ...tools, logger }, progress)
         return output
       } finally {
         tools.seededLodashProvider.resetSeed()
