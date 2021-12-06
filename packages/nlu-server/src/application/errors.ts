@@ -1,4 +1,5 @@
 import { ModelId, modelIdService } from '@botpress/nlu-engine'
+import { DatasetIssue, IssueCode } from '@botpress/nlu-engine/src/hints'
 import { ResponseError } from '../api/errors'
 
 export class ModelDoesNotExistError extends ResponseError {
@@ -40,5 +41,12 @@ export class DucklingCommError extends ResponseError {
   constructor(err: Error) {
     const { message } = err
     super(`An error occured during communication with Duckling server: ${message}`, 500)
+  }
+}
+
+export class DatasetValidationError extends ResponseError {
+  constructor(issues: DatasetIssue<IssueCode>[]) {
+    const message = issues.map(({ code, message }) => `[${code}] ${message}`).join('\n')
+    super(message, 400)
   }
 }

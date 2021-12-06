@@ -10,7 +10,8 @@ import {
   TrainingNotFoundError,
   LangServerCommError,
   DucklingCommError,
-  InvalidModelSpecError
+  InvalidModelSpecError,
+  DatasetValidationError
 } from './errors'
 import TrainingQueue from './training-queue'
 
@@ -88,8 +89,7 @@ export class Application {
 
     const criticalErrors = issues.filter((i) => i.severity === 'critical')
     if (!!criticalErrors.length) {
-      const message: string = criticalErrors.map(({ code, message }) => `${code}:${message}`).join('\n')
-      throw new Error(message)
+      throw new DatasetValidationError(criticalErrors)
     }
 
     await this._trainingQueue.queueTraining(appId, modelId, trainInput)

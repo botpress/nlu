@@ -8,7 +8,8 @@ import {
   TrainingNotFoundError,
   TrainingAlreadyStartedError,
   LangServerCommError,
-  DucklingCommError
+  DucklingCommError,
+  DatasetValidationError
 } from '../application/errors'
 import { InvalidRequestFormatError } from './errors'
 
@@ -37,6 +38,10 @@ const serializeError = (err: Error): NLUError => {
   if (err instanceof DucklingCommError) {
     const { statusCode } = err
     return { message, stack, type: 'duckling-server', code: statusCode }
+  }
+  if (err instanceof DatasetValidationError) {
+    const { statusCode } = err
+    return { message, stack, type: 'dataset_format', code: statusCode }
   }
   return { message, stack, type: 'internal', code: 500 }
 }

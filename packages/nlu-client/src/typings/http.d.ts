@@ -40,6 +40,7 @@ export type ErrorType =
   | 'lang-server'
   | 'duckling-server'
   | 'internal'
+  | 'dataset_format'
 
 export type NLUError = {
   message: string
