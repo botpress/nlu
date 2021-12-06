@@ -18,6 +18,7 @@ if (!packageJson) {
 
 const { version: pkgVersion } = packageJson
 
+export const SLOT_ANY = 'any'
 export const SYSTEM_ENTITIES: typeof types.SYSTEM_ENTITIES = DUCKLING_ENTITIES
 
 export const errors: typeof types.errors = {

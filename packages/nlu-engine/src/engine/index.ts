@@ -4,7 +4,8 @@ import _ from 'lodash'
 import LRUCache from 'lru-cache'
 import ms from 'ms'
 import sizeof from 'object-sizeof'
-import { PredictOutput, TrainInput, Specifications } from 'src/typings'
+import { DatasetIssue, IssueCode } from 'src/hints'
+import { PredictOutput, TrainInput, Specifications, CheckingOptions, CheckingProgress } from 'src/typings'
 
 import v8 from 'v8'
 import { isListEntity, isPatternEntity } from '../guards'
@@ -14,6 +15,7 @@ import modelIdService from '../model-id-service'
 import { TrainingOptions, LanguageConfig, Logger, ModelId, Model, Engine as IEngine } from '../typings'
 import { deserializeKmeans } from './clustering'
 import { EntityCacheManager } from './entities/entity-cache-manager'
+import { hintsPipeline } from './hints/hints-pipeline'
 import { initializeTools } from './initialize-tools'
 import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
@@ -276,6 +278,15 @@ export default class Engine implements IEngine {
 
     this.modelsById.del(stringId)
     this._logger.debug('Model unloaded with success')
+  }
+
+  public check = async (hintsId: string, trainSet: TrainInput, opts?: Partial<CheckingOptions>) => {
+    const issues = await hintsPipeline(trainSet, this._tools, opts)
+    return { issues }
+  }
+
+  public cancelChecking = async (checkingId: string) => {
+    this._logger.warning(`Currently no way of canceling check of "${checkingId}"`)
   }
 
   private _makeCacheManager(output: TrainingPipelineOutput) {

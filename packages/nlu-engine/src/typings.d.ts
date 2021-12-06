@@ -1,3 +1,5 @@
+import * as hints from './hints'
+
 export const SYSTEM_ENTITIES: string[]
 
 export const errors: {
@@ -53,10 +55,17 @@ export type ModelIdArgs = {
   specifications: Specifications
 } & TrainInput
 
+export type TrainingProgress = (p: number) => void
 export type TrainingOptions = {
-  progressCallback: (x: number) => void
+  progressCallback: TrainingProgress
   previousModel: ModelId | undefined
   minProgressHeartbeat: number
+}
+
+export type CheckingProgress = (p: number, issues: hints.DatasetIssue<hints.IssueCode>[]) => void
+export type CheckingOptions = {
+  progressCallback: CheckingProgress
+  minSpeed: hints.IssueComputationSpeed
 }
 
 export type Engine = {
@@ -67,8 +76,11 @@ export type Engine = {
   unloadModel: (modelId: ModelId) => void
   hasModel: (modelId: ModelId) => boolean
 
-  train: (trainSessionId: string, trainSet: TrainInput, options?: Partial<TrainingOptions>) => Promise<Model>
-  cancelTraining: (trainSessionId: string) => Promise<void>
+  train: (trainingId: string, trainSet: TrainInput, options?: Partial<TrainingOptions>) => Promise<Model>
+  cancelTraining: (trainingId: string) => Promise<void>
+
+  check: (checkingId: string, trainSet: TrainInput, options?: Partial<CheckingOptions>) => Promise<hints.DatasetReport>
+  cancelChecking: (checkingId: string) => Promise<void>
 
   detectLanguage: (text: string, modelByLang: { [key: string]: ModelId }) => Promise<string>
   predict: (text: string, modelId: ModelId) => Promise<PredictOutput>

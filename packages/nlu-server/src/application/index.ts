@@ -82,6 +82,16 @@ export class Application {
       specifications: this._engine.getSpecifications()
     })
 
+    const stringId = modelIdService.toString(modelId)
+    const key = `${appId}/${stringId}`
+    const { issues } = await this._engine.check(key, trainInput, { minSpeed: 'fastest' })
+
+    const criticalErrors = issues.filter((i) => i.severity === 'critical')
+    if (!!criticalErrors.length) {
+      const message: string = criticalErrors.map(({ code, message }) => `${code}:${message}`).join('\n')
+      throw new Error(message)
+    }
+
     await this._trainingQueue.queueTraining(appId, modelId, trainInput)
     return modelId
   }

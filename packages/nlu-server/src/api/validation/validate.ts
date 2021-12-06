@@ -1,69 +1,23 @@
-import {
-  IntentDefinition,
-  ListEntityDefinition,
-  PatternEntityDefinition,
-  SlotDefinition,
-  http
-} from '@botpress/nlu-client'
-import * as NLUEngine from '@botpress/nlu-engine'
+import { IntentDefinition, http } from '@botpress/nlu-client'
 import { validate } from 'joi'
 
 import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema } from './schemas'
 
-const SLOT_ANY = 'any'
-
-const makeSlotChecker = (listEntities: ListEntityDefinition[], patternEntities: PatternEntityDefinition[]) => (
-  variable: SlotDefinition
-) => {
-  const { entities, name } = variable
-
-  const supportedTypes = [
-    ...listEntities.map((e) => e.name),
-    ...patternEntities.map((p) => p.name),
-    ...NLUEngine.SYSTEM_ENTITIES,
-    SLOT_ANY
-  ]
-  for (const entity of entities) {
-    if (!supportedTypes.includes(entity)) {
-      throw new Error(`Slot ${name} references entity ${entity}, but it does not exist.`)
-    }
-  }
-}
-
-const makeIntentChecker = (contexts: string[]) => (
-  intent: IntentDefinition,
-  enums: ListEntityDefinition[],
-  patterns: PatternEntityDefinition[]
-) => {
+const validateIntent = (contexts: string[], intent: IntentDefinition) => {
   for (const ctx of intent.contexts) {
     if (!contexts.includes(ctx)) {
       throw new Error(`Context ${ctx} of Intent ${intent.name} does not seem to appear in all contexts`)
     }
   }
-  const variableChecker = makeSlotChecker(enums, patterns)
-  intent.slots.forEach(variableChecker)
-}
-
-const isListEntity = (e: ListEntityDefinition | PatternEntityDefinition): e is ListEntityDefinition => {
-  return e.type === 'list'
-}
-
-const isPatternEntity = (e: ListEntityDefinition | PatternEntityDefinition): e is PatternEntityDefinition => {
-  return e.type === 'pattern'
 }
 
 export async function validateTrainInput(rawInput: any): Promise<http.TrainRequestBody> {
   const validatedInput: http.TrainRequestBody = await validate(rawInput, TrainInputSchema, {})
 
-  const { entities, contexts } = validatedInput
-
-  const listEntities = entities.filter(isListEntity)
-  const patternEntities = entities.filter(isPatternEntity)
-
-  const validateIntent = makeIntentChecker(contexts)
+  const { contexts } = validatedInput
 
   for (const intent of validatedInput.intents) {
-    validateIntent(intent, listEntities, patternEntities)
+    validateIntent(contexts, intent)
   }
 
   return validatedInput
