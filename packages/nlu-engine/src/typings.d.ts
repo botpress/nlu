@@ -81,6 +81,7 @@ export type Engine = {
 
   check: (checkingId: string, trainSet: TrainInput, options?: Partial<CheckingOptions>) => Promise<hints.DatasetReport>
   cancelChecking: (checkingId: string) => Promise<void>
+  getIssueDetails: <C extends IssueCode>(code: C) => hints.IssueDefinition<C> | undefined
 
   detectLanguage: (text: string, modelByLang: { [key: string]: ModelId }) => Promise<string>
   predict: (text: string, modelId: ModelId) => Promise<PredictOutput>

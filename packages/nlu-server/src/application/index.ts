@@ -1,8 +1,10 @@
 import { Logger } from '@botpress/logger'
 import { TrainingState, PredictOutput, TrainInput, ServerInfo, TrainingStatus } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
+import { DatasetIssue, IssueCode } from '@botpress/nlu-engine/src/hints'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { HintsRepository } from '../infrastructure/hints-repo'
 import { ModelRepository } from '../infrastructure/model-repo'
 import { ReadonlyTrainingRepository, TrainingListener } from '../infrastructure/training-repo/typings'
 import {
@@ -21,6 +23,7 @@ export class Application {
   constructor(
     private _modelRepo: ModelRepository,
     private _trainingRepo: ReadonlyTrainingRepository,
+    private _hintRepo: HintsRepository,
     private _trainingQueue: TrainingQueue,
     private _engine: Engine,
     private _serverVersion: string,
@@ -227,6 +230,30 @@ You can increase your cache size by the CLI or config.
     })
 
     return detectedLanguages
+  }
+
+  public async checkDataset(appId: string, trainInput: TrainInput) {
+    const modelId = modelIdService.makeId({
+      ...trainInput,
+      specifications: this._engine.getSpecifications()
+    })
+
+    const stringId = modelIdService.toString(modelId)
+    const key = `${appId}/${stringId}`
+
+    // unhandled promise to return asap
+    void this._engine.check(key, trainInput, {
+      minSpeed: 'slow',
+      progressCallback: (p: number, issues: DatasetIssue<IssueCode>[]) => {
+        return this._hintRepo.appendHints(appId, modelId, issues)
+      }
+    })
+
+    return modelId
+  }
+
+  public async getHints(appId: string, modelId: ModelId) {
+    return this._hintRepo.getHints(appId, modelId)
   }
 
   private _getSpecFilter = (): { specificationHash: string } => {

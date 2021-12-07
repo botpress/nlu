@@ -4,6 +4,7 @@
  * ############
  */
 
+import { DatasetIssue, IssueCode } from './hints'
 import {
   TrainingState,
   PredictOutput,
@@ -21,6 +22,13 @@ export type TrainRequestBody = {
   intents: IntentDefinition[]
   entities: EntityDefinition[]
   seed?: number
+}
+
+export type HintRequestBody = {
+  language: string
+  contexts: string[]
+  intents: IntentDefinition[]
+  entities: EntityDefinition[]
 }
 
 export type PredictRequestBody = {
@@ -66,8 +74,16 @@ export type TrainResponseBody = {
   modelId: string
 } & SuccessReponse
 
+export type HintResponseBody = {
+  modelId: string
+} & SuccessReponse
+
 export type TrainProgressResponseBody = {
   session: TrainingState
+} & SuccessReponse
+
+export type HintProgressResponseBody = {
+  issues: DatasetIssue<IssueCode>[]
 } & SuccessReponse
 
 export type ListTrainingsResponseBody = {
