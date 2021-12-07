@@ -46,6 +46,13 @@ export const TrainInputSchema = Joi.object().keys({
   seed: Joi.number().optional()
 })
 
+export const HintInputSchema = Joi.object().keys({
+  language: Joi.string().required(),
+  intents: Joi.array().items(IntentSchema).required().min(0),
+  contexts: Joi.array().items(Joi.string()).required().min(0),
+  entities: Joi.array().items(EntitySchema).optional().default([])
+})
+
 export const PredictInputSchema = Joi.object().keys({
   utterances: Joi.array().items(Joi.string()).required().min(1)
 })

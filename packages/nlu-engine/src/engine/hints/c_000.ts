@@ -9,8 +9,7 @@ const code = asCode('C_000')
 export const C_000: IssueDefinition<typeof code> = {
   code,
   severity: 'critical',
-  name: 'tokens_tagged_with_unexisting_slot',
-  speed: 'fastest'
+  name: 'tokens_tagged_with_unexisting_slot'
 }
 
 const validateIntent = (i: IntentDefinition): DatasetIssue<typeof code>[] => {
@@ -43,6 +42,7 @@ const validateIntent = (i: IntentDefinition): DatasetIssue<typeof code>[] => {
 
 export const C_000_Check: IssueChecker<typeof code> = {
   ...C_000,
+  speed: 'fastest',
   check: async (ts: TrainInput) => {
     let issues: DatasetIssue<typeof code>[] = []
     for (const i of ts.intents) {

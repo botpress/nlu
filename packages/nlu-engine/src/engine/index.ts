@@ -4,7 +4,7 @@ import _ from 'lodash'
 import LRUCache from 'lru-cache'
 import ms from 'ms'
 import sizeof from 'object-sizeof'
-import { DatasetIssue, IssueCode } from 'src/hints'
+import { IssueCode } from 'src/hints'
 import { PredictOutput, TrainInput, Specifications, CheckingOptions, CheckingProgress } from 'src/typings'
 
 import v8 from 'v8'
@@ -15,6 +15,7 @@ import modelIdService from '../model-id-service'
 import { TrainingOptions, LanguageConfig, Logger, ModelId, Model, Engine as IEngine } from '../typings'
 import { deserializeKmeans } from './clustering'
 import { EntityCacheManager } from './entities/entity-cache-manager'
+import { allIssues } from './hints/definitions'
 import { hintsPipeline } from './hints/hints-pipeline'
 import { initializeTools } from './initialize-tools'
 import { getCtxFeatures } from './intents/context-featurizer'
@@ -287,6 +288,10 @@ export default class Engine implements IEngine {
 
   public cancelChecking = async (checkingId: string) => {
     this._logger.warning(`Currently no way of canceling check of "${checkingId}"`)
+  }
+
+  public getIssueDetails<C extends IssueCode>(code: C) {
+    return allIssues[code]
   }
 
   private _makeCacheManager(output: TrainingPipelineOutput) {

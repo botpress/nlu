@@ -1,4 +1,4 @@
-import { IssueComputationSpeed } from 'src/hints'
+import { IssueComputationSpeed } from './typings'
 
 const speeds: Record<IssueComputationSpeed, number> = {
   fastest: 0,

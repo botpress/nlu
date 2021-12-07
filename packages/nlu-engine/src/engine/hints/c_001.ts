@@ -16,8 +16,7 @@ const code = asCode('C_001')
 export const C_001: IssueDefinition<typeof code> = {
   code,
   severity: 'critical',
-  name: 'slot_has_nonexistent_entity',
-  speed: 'fastest'
+  name: 'slot_has_nonexistent_entity'
 }
 
 const makeSlotChecker = (listEntities: ListEntityDefinition[], patternEntities: PatternEntityDefinition[]) => (
@@ -63,6 +62,7 @@ const validateIntent = (
 
 export const C_001_Check: IssueChecker<typeof code> = {
   ...C_001,
+  speed: 'fastest',
   check: async (ts: TrainInput) => {
     const { entities } = ts
     const lists = entities.filter(isListEntity)

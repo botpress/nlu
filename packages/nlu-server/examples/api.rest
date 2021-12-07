@@ -8,7 +8,7 @@ GET {{api}}/info
 
 ### do a training
 # @name train
-POST {{api}}/train
+POST {{api}}/hints
 Content-Type: application/json
 X-App-Id: {{appId}}
 
@@ -21,7 +21,7 @@ X-App-Id: {{appId}}
       "utterances": [
         "fruit is moldy",
         "this fruit is moldy",
-        "this [banana](moldy_fruit) is not good to eat",
+        "this [banana](fruit) is not good to eat",
         "theses [oranges](moldy_fruit) have passed",
         "theses [grapes](moldy_fruit) look bad",
         "theses [apples](moldy_fruit) look soo moldy"
@@ -29,7 +29,7 @@ X-App-Id: {{appId}}
       "slots": [
         {
           "name": "moldy_fruit",
-          "entities": ["fruits"]
+          "entities": ["fruits", "lol"]
         }
       ]
     },
@@ -98,8 +98,7 @@ X-App-Id: {{appId}}
         { "name": "orange", "synonyms": ["oranges"] }
       ]
     }
-  ],
-  "seed": 42
+  ]
 }
 ###
 @modelId = {{train.response.body.modelId}}
@@ -108,7 +107,7 @@ X-App-Id: {{appId}}
 
 ### get training-status
 # @name train-status
-GET {{api}}/train/{{modelId}}
+GET {{api}}/hints/{{modelId}}
 Content-Type: application/json
 X-App-Id: {{appId}}
 

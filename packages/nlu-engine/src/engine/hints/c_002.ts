@@ -8,12 +8,12 @@ const code = asCode('C_002')
 export const C_002: IssueDefinition<typeof code> = {
   code,
   severity: 'critical',
-  name: 'intent_has_no_utterances',
-  speed: 'fastest'
+  name: 'intent_has_no_utterances'
 }
 
 export const C_002_Check: IssueChecker<typeof code> = {
   ...C_002,
+  speed: 'fastest',
   check: async (ts: TrainInput) => {
     const issues: DatasetIssue<typeof code>[] = []
 

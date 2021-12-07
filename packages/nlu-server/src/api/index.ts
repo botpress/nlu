@@ -17,7 +17,13 @@ import { initTracing } from '../telemetry/trace'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
 
-import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
+import {
+  validatePredictInput,
+  validateTrainInput,
+  validateDetectLangInput,
+  validateHintInput
+} from './validation/validate'
+
 type APIOptions = {
   host: string
   port: number
@@ -272,6 +278,46 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const detectedLanguages = await app.detectLanguage(appId, modelIds, utterances)
 
       const resp: http.DetectLangResponseBody = { success: true, detectedLanguages }
+      res.send(resp)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
+  router.post('/hints', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+      const input = await validateHintInput(req.body)
+      const { intents, entities, language } = input
+
+      const trainInput: TrainInput = {
+        intents,
+        entities,
+        language,
+        seed: 0
+      }
+
+      const modelId = await app.checkDataset(appId, trainInput)
+
+      const resp: http.HintResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
+      return res.send(resp)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
+  router.get('/hints/:modelId', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+      const { modelId: stringId } = req.params
+      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
+        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
+      }
+
+      const modelId = NLUEngine.modelIdService.fromString(stringId)
+      const issues = await app.getHints(appId, modelId)
+
+      const resp: http.HintProgressResponseBody = { success: true, issues }
       res.send(resp)
     } catch (err) {
       return handleError(err, req, res, next)
