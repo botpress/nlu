@@ -315,9 +315,12 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       }
 
       const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const issues = await app.getHints(appId, modelId)
+      const session = await app.getHints(appId, modelId)
 
-      const resp: http.HintProgressResponseBody = { success: true, issues }
+      const resp: http.HintProgressResponseBody = {
+        success: true,
+        session
+      }
       res.send(resp)
     } catch (err) {
       return handleError(err, req, res, next)

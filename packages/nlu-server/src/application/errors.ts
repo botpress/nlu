@@ -16,6 +16,13 @@ export class TrainingNotFoundError extends ResponseError {
   }
 }
 
+export class CheckingTaskNotFoundError extends ResponseError {
+  constructor(modelId: ModelId) {
+    const stringId = modelIdService.toString(modelId)
+    super(`no current checking task for model: ${stringId}`, 404)
+  }
+}
+
 export class InvalidModelSpecError extends ResponseError {
   constructor(modelId: ModelId, currentSpec: string) {
     super(`expected spec hash to be "${currentSpec}". target model has spec "${modelId.specificationHash}".`, 400)

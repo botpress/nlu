@@ -4,7 +4,7 @@
  * ############
  */
 
-import { DatasetIssue, IssueCode } from './hints'
+import { DatasetIssue, IssueCode, CheckingState } from './hints'
 import {
   TrainingState,
   PredictOutput,
@@ -42,6 +42,7 @@ export type DetectLangRequestBody = {
 export type ErrorType =
   | 'model_not_found'
   | 'training_not_found'
+  | 'check_task_not_found'
   | 'training_already_started'
   | 'invalid_train_set'
   | 'request_format'
@@ -83,7 +84,7 @@ export type TrainProgressResponseBody = {
 } & SuccessReponse
 
 export type HintProgressResponseBody = {
-  issues: DatasetIssue<IssueCode>[]
+  session: CheckingState
 } & SuccessReponse
 
 export type ListTrainingsResponseBody = {

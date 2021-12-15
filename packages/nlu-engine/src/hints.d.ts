@@ -64,6 +64,7 @@ export type IssueDefinition<C extends IssueCode> = {
 }
 
 export type DatasetIssue<C extends IssueCode> = IssueDefinition<C> & {
+  id: string
   message: string
   data: IssueData<C>
 }

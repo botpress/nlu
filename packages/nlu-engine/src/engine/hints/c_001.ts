@@ -9,6 +9,7 @@ import {
 import { SLOT_ANY, SYSTEM_ENTITIES } from '../..'
 import { isListEntity, isPatternEntity } from '../../guards'
 import { DatasetIssue, IssueDefinition } from '../../hints'
+import { computeId } from './id'
 import { asCode, IssueChecker } from './typings'
 
 const code = asCode('C_001')
@@ -36,14 +37,17 @@ const makeSlotChecker = (listEntities: ListEntityDefinition[], patternEntities: 
 
   for (const entity of entities) {
     if (!supportedTypes.includes(entity)) {
+      const data = {
+        entity,
+        intent: intent.name,
+        slot: slot.name
+      }
+
       issues.push({
         ...C_001,
+        id: computeId(code, data),
         message: `Slot "${slot.name}" of intent "${intent.name}" referers to a type that does not exist: "${entity}"`,
-        data: {
-          entity,
-          intent: intent.name,
-          slot: slot.name
-        }
+        data
       })
     }
   }

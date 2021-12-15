@@ -26,8 +26,7 @@ export const hintsPipeline = async (ts: TrainInput, tools: Tools, opts: Partial<
 
   for (const checker of targetCheckers) {
     const issues = await checker.check(ts, tools)
-    const progress = idx++ / allCheckers.length
-    options.progressCallback(progress, issues)
+    options.progressCallback(++idx, targetCheckers.length, issues)
     allIssues = [...allIssues, ...issues]
   }
 

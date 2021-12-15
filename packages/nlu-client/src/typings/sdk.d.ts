@@ -82,9 +82,9 @@ export type TrainingState = {
   error?: TrainingError
 }
 
-export type Training = {
+export type Training = TrainingState & {
   modelId: string
-} & TrainingState
+}
 
 /**
  * ####################################

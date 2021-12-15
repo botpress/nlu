@@ -62,7 +62,7 @@ export type TrainingOptions = {
   minProgressHeartbeat: number
 }
 
-export type CheckingProgress = (p: number, issues: hints.DatasetIssue<hints.IssueCode>[]) => void
+export type CheckingProgress = (current: number, total: number, issues: hints.DatasetIssue<hints.IssueCode>[]) => void
 export type CheckingOptions = {
   progressCallback: CheckingProgress
   minSpeed: hints.IssueComputationSpeed
