@@ -69,6 +69,23 @@ export type DatasetIssue<C extends IssueCode> = IssueDefinition<C> & {
   data: IssueData<C>
 }
 
+export type CheckingStatus = 'done' | 'checking-pending' | 'checking' | 'canceled' | 'errored'
+export type CheckingErrorType = 'lang-server' | 'duckling-server' | 'zombie-checking' | 'internal'
+
+export type CheckingError = {
+  type: TrainingErrorType
+  message: string
+  stack?: string
+}
+
+export type CheckingState = {
+  status: TrainingStatus
+  currentCount: number
+  totalCount: number
+  error?: CheckingError
+  hints: DatasetIssue<IssueCode>[]
+}
+
 export type IssueSeverity<C extends IssueCode> = C extends `C_${infer CodeSufix}`
   ? 'critical'
   : C extends `E_${infer CodeSufix}`
