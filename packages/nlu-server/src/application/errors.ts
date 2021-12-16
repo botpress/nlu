@@ -1,5 +1,5 @@
+import { DatasetIssue, IssueCode } from '@botpress/nlu-client'
 import { ModelId, modelIdService } from '@botpress/nlu-engine'
-import { DatasetIssue, IssueCode } from '@botpress/nlu-engine/src/hints'
 import { ResponseError } from '../api/errors'
 
 export class ModelDoesNotExistError extends ResponseError {
@@ -16,10 +16,10 @@ export class TrainingNotFoundError extends ResponseError {
   }
 }
 
-export class CheckingTaskNotFoundError extends ResponseError {
+export class LintingNotFoundError extends ResponseError {
   constructor(modelId: ModelId) {
     const stringId = modelIdService.toString(modelId)
-    super(`no current checking task for model: ${stringId}`, 404)
+    super(`no current linting for model: ${stringId}`, 404)
   }
 }
 

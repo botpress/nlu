@@ -8,9 +8,9 @@ import {
 } from 'src/typings'
 import { SLOT_ANY, SYSTEM_ENTITIES } from '../..'
 import { isListEntity, isPatternEntity } from '../../guards'
-import { DatasetIssue, IssueDefinition } from '../../hints'
+import { DatasetIssue, IssueDefinition } from '../../linting'
 import { computeId } from './id'
-import { asCode, IssueChecker } from './typings'
+import { asCode, IssueLinter } from './typings'
 
 const code = asCode('C_001')
 
@@ -64,10 +64,10 @@ const validateIntent = (
   return _.flatMap(intent.slots, (s) => checkSlot(intent, s))
 }
 
-export const C_001_Check: IssueChecker<typeof code> = {
+export const C_001_Linter: IssueLinter<typeof code> = {
   ...C_001,
   speed: 'fastest',
-  check: async (ts: TrainInput) => {
+  lint: async (ts: TrainInput) => {
     const { entities } = ts
     const lists = entities.filter(isListEntity)
     const patterns = entities.filter(isPatternEntity)

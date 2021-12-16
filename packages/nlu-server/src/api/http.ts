@@ -10,7 +10,7 @@ import {
   LangServerCommError,
   DucklingCommError,
   DatasetValidationError,
-  CheckingTaskNotFoundError
+  LintingNotFoundError
 } from '../application/errors'
 import { InvalidRequestFormatError } from './errors'
 
@@ -24,9 +24,9 @@ const serializeError = (err: Error): NLUError => {
     const { statusCode } = err
     return { message, stack, type: 'training_not_found', code: statusCode }
   }
-  if (err instanceof CheckingTaskNotFoundError) {
+  if (err instanceof LintingNotFoundError) {
     const { statusCode } = err
-    return { message, stack, type: 'check_task_not_found', code: statusCode }
+    return { message, stack, type: 'linting_not_found', code: statusCode }
   }
   if (err instanceof TrainingAlreadyStartedError) {
     const { statusCode } = err

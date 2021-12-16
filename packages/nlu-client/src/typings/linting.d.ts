@@ -69,21 +69,21 @@ export type DatasetIssue<C extends IssueCode> = IssueDefinition<C> & {
   data: IssueData<C>
 }
 
-export type CheckingStatus = 'done' | 'checking-pending' | 'checking' | 'canceled' | 'errored'
-export type CheckingErrorType = 'lang-server' | 'duckling-server' | 'zombie-checking' | 'internal'
+export type LintingStatus = 'done' | 'linting-pending' | 'linting' | 'canceled' | 'errored'
+export type LintingErrorType = 'lang-server' | 'duckling-server' | 'zombie-linting' | 'internal'
 
-export type CheckingError = {
+export type LintingError = {
   type: TrainingErrorType
   message: string
   stack?: string
 }
 
-export type CheckingState = {
-  status: TrainingStatus
+export type LintingState = {
+  status: LintingStatus
   currentCount: number
   totalCount: number
-  error?: CheckingError
-  hints: DatasetIssue<IssueCode>[]
+  error?: LintingError
+  issues: DatasetIssue<IssueCode>[]
 }
 
 export type IssueSeverity<C extends IssueCode> = C extends `C_${infer CodeSufix}`
