@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { DatasetIssue, IssueDefinition } from 'src/hints'
 import { IntentDefinition, TrainInput } from 'src/typings'
 import { ParsedSlot, parseUtterance } from '../utterance/utterance-parser'
+import { computeId } from './id'
 import { asCode, IssueChecker } from './typings'
 
 const code = asCode('C_000')
@@ -25,14 +26,17 @@ const validateIntent = (i: IntentDefinition): DatasetIssue<typeof code>[] => {
         const { start, end } = invalidSlot.cleanPosition
         const faultyTokens = utterance.substring(start, end)
 
+        const data = {
+          intent: i.name,
+          slot: invalidSlot.name,
+          utterance
+        }
+
         const issue: DatasetIssue<typeof code> = {
           ...C_000,
+          id: computeId(code, data),
           message: `Tokens "${faultyTokens}" of intent "${i.name}" are tagged with a slot that does not exist: "${invalidSlot.name}"`,
-          data: {
-            intent: i.name,
-            slot: invalidSlot.name,
-            utterance
-          }
+          data
         }
         return issue
       })

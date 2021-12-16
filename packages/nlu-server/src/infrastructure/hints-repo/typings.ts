@@ -1,9 +1,10 @@
+import { CheckingState } from '@botpress/nlu-client/src/typings/hints'
 import { ModelId } from '@botpress/nlu-engine'
-import { DatasetIssue, IssueCode } from '@botpress/nlu-engine/src/hints'
 
 export type HintsRepository = {
   initialize(): Promise<void>
   teardown(): Promise<void>
-  getHints(appId: string, modelId: ModelId): Promise<DatasetIssue<IssueCode>[]>
-  appendHints(appId: string, modelId: ModelId, hints: DatasetIssue<IssueCode>[]): Promise<void | void[]>
+  get(appId: string, modelId: ModelId): Promise<CheckingState | undefined>
+  set(appId: string, modelId: ModelId, state: CheckingState): Promise<void | void[]>
+  has(appId: string, modelId: ModelId): Promise<boolean>
 }

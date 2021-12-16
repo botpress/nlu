@@ -1,5 +1,6 @@
 import { Logger } from '@botpress/logger'
 import { TrainingState, PredictOutput, TrainInput, ServerInfo, TrainingStatus } from '@botpress/nlu-client'
+import { CheckingState } from '@botpress/nlu-client/src/typings/hints'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
 import { DatasetIssue, IssueCode } from '@botpress/nlu-engine/src/hints'
 import Bluebird from 'bluebird'
@@ -13,7 +14,8 @@ import {
   LangServerCommError,
   DucklingCommError,
   InvalidModelSpecError,
-  DatasetValidationError
+  DatasetValidationError,
+  CheckingTaskNotFoundError
 } from './errors'
 import TrainingQueue from './training-queue'
 
@@ -244,16 +246,25 @@ You can increase your cache size by the CLI or config.
     // unhandled promise to return asap
     void this._engine.check(key, trainInput, {
       minSpeed: 'slow',
-      progressCallback: (p: number, issues: DatasetIssue<IssueCode>[]) => {
-        return this._hintRepo.appendHints(appId, modelId, issues)
+      progressCallback: (current: number, total: number, hints: DatasetIssue<IssueCode>[]) => {
+        return this._hintRepo.set(appId, modelId, {
+          status: 'checking',
+          currentCount: current,
+          totalCount: total,
+          hints
+        })
       }
     })
 
     return modelId
   }
 
-  public async getHints(appId: string, modelId: ModelId) {
-    return this._hintRepo.getHints(appId, modelId)
+  public async getHints(appId: string, modelId: ModelId): Promise<CheckingState> {
+    const state = await this._hintRepo.get(appId, modelId)
+    if (!state) {
+      throw new CheckingTaskNotFoundError(modelId)
+    }
+    return state
   }
 
   private _getSpecFilter = (): { specificationHash: string } => {
