@@ -1,4 +1,4 @@
-import { IssueCode, IssueData } from 'src/hints'
+import { IssueCode, IssueData } from '../../linting'
 import { halfmd5 } from '../../utils/half-md5'
 
 export const computeId = <C extends IssueCode>(code: C, data: IssueData<C>): string => {

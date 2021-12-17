@@ -2,7 +2,7 @@ import { IntentDefinition, http } from '@botpress/nlu-client'
 import { ObjectSchema, validate } from 'joi'
 import { Join } from 'knex'
 
-import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema, HintInputSchema } from './schemas'
+import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema, LintInputSchema } from './schemas'
 
 const validateIntent = (contexts: string[], intent: IntentDefinition) => {
   for (const ctx of intent.contexts) {
@@ -12,7 +12,7 @@ const validateIntent = (contexts: string[], intent: IntentDefinition) => {
   }
 }
 
-async function _validateTrainset<T extends http.TrainRequestBody | http.HintRequestBody>(
+async function _validateTrainset<T extends http.TrainRequestBody | http.LintRequestBody>(
   rawInput: any,
   schema: ObjectSchema
 ) {
@@ -31,8 +31,8 @@ export async function validateTrainInput(rawInput: any): Promise<http.TrainReque
   return _validateTrainset<http.TrainRequestBody>(rawInput, TrainInputSchema)
 }
 
-export async function validateHintInput(rawInput: any): Promise<http.HintRequestBody> {
-  return _validateTrainset<http.HintRequestBody>(rawInput, HintInputSchema)
+export async function validateLintInput(rawInput: any): Promise<http.LintRequestBody> {
+  return _validateTrainset<http.LintRequestBody>(rawInput, LintInputSchema)
 }
 
 export async function validatePredictInput(rawInput: any): Promise<http.PredictRequestBody> {

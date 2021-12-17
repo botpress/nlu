@@ -1,11 +1,18 @@
 import { Logger } from '@botpress/logger'
-import { TrainingState, PredictOutput, TrainInput, ServerInfo, TrainingStatus } from '@botpress/nlu-client'
-import { CheckingState } from '@botpress/nlu-client/src/typings/hints'
+import {
+  TrainingState,
+  PredictOutput,
+  TrainInput,
+  ServerInfo,
+  TrainingStatus,
+  LintingState,
+  DatasetIssue,
+  IssueCode
+} from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
-import { DatasetIssue, IssueCode } from '@botpress/nlu-engine/src/hints'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
-import { HintsRepository } from '../infrastructure/hints-repo'
+import { LintingRepository } from '../infrastructure/linting-repo'
 import { ModelRepository } from '../infrastructure/model-repo'
 import { ReadonlyTrainingRepository, TrainingListener } from '../infrastructure/training-repo/typings'
 import {
@@ -15,7 +22,7 @@ import {
   DucklingCommError,
   InvalidModelSpecError,
   DatasetValidationError,
-  CheckingTaskNotFoundError
+  LintingNotFoundError
 } from './errors'
 import TrainingQueue from './training-queue'
 
@@ -25,7 +32,7 @@ export class Application {
   constructor(
     private _modelRepo: ModelRepository,
     private _trainingRepo: ReadonlyTrainingRepository,
-    private _hintRepo: HintsRepository,
+    private _lintingRepo: LintingRepository,
     private _trainingQueue: TrainingQueue,
     private _engine: Engine,
     private _serverVersion: string,
@@ -90,7 +97,7 @@ export class Application {
 
     const stringId = modelIdService.toString(modelId)
     const key = `${appId}/${stringId}`
-    const { issues } = await this._engine.check(key, trainInput, { minSpeed: 'fastest' })
+    const { issues } = await this._engine.lint(key, trainInput, { minSpeed: 'fastest' })
 
     const criticalErrors = issues.filter((i) => i.severity === 'critical')
     if (!!criticalErrors.length) {
@@ -234,7 +241,7 @@ You can increase your cache size by the CLI or config.
     return detectedLanguages
   }
 
-  public async checkDataset(appId: string, trainInput: TrainInput) {
+  public async lintDataset(appId: string, trainInput: TrainInput): Promise<ModelId> {
     const modelId = modelIdService.makeId({
       ...trainInput,
       specifications: this._engine.getSpecifications()
@@ -244,14 +251,14 @@ You can increase your cache size by the CLI or config.
     const key = `${appId}/${stringId}`
 
     // unhandled promise to return asap
-    void this._engine.check(key, trainInput, {
+    void this._engine.lint(key, trainInput, {
       minSpeed: 'slow',
-      progressCallback: (current: number, total: number, hints: DatasetIssue<IssueCode>[]) => {
-        return this._hintRepo.set(appId, modelId, {
-          status: 'checking',
+      progressCallback: (current: number, total: number, issues: DatasetIssue<IssueCode>[]) => {
+        return this._lintingRepo.set(appId, modelId, {
+          status: 'linting',
           currentCount: current,
           totalCount: total,
-          hints
+          issues
         })
       }
     })
@@ -259,10 +266,10 @@ You can increase your cache size by the CLI or config.
     return modelId
   }
 
-  public async getHints(appId: string, modelId: ModelId): Promise<CheckingState> {
-    const state = await this._hintRepo.get(appId, modelId)
+  public async getLintingState(appId: string, modelId: ModelId): Promise<LintingState> {
+    const state = await this._lintingRepo.get(appId, modelId)
     if (!state) {
-      throw new CheckingTaskNotFoundError(modelId)
+      throw new LintingNotFoundError(modelId)
     }
     return state
   }

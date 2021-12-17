@@ -1,4 +1,4 @@
-import { IssueCode, IssueDefinition } from 'src/hints'
+import { IssueCode, IssueDefinition } from '../../linting'
 import { C_000 } from './c_000'
 import { C_001 } from './c_001'
 import { C_002 } from './c_002'

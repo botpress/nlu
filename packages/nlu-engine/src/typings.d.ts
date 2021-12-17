@@ -1,4 +1,4 @@
-import * as hints from './hints'
+import * as linting from './linting'
 
 export const SYSTEM_ENTITIES: string[]
 
@@ -62,10 +62,15 @@ export type TrainingOptions = {
   minProgressHeartbeat: number
 }
 
-export type CheckingProgress = (current: number, total: number, issues: hints.DatasetIssue<hints.IssueCode>[]) => void
-export type CheckingOptions = {
-  progressCallback: CheckingProgress
-  minSpeed: hints.IssueComputationSpeed
+export type LintingProgress = (
+  current: number,
+  total: number,
+  issues: linting.DatasetIssue<linting.IssueCode>[]
+) => void
+
+export type LintingOptions = {
+  progressCallback: LintingProgress
+  minSpeed: linting.IssueComputationSpeed
 }
 
 export type Engine = {
@@ -79,9 +84,9 @@ export type Engine = {
   train: (trainingId: string, trainSet: TrainInput, options?: Partial<TrainingOptions>) => Promise<Model>
   cancelTraining: (trainingId: string) => Promise<void>
 
-  check: (checkingId: string, trainSet: TrainInput, options?: Partial<CheckingOptions>) => Promise<hints.DatasetReport>
-  cancelChecking: (checkingId: string) => Promise<void>
-  getIssueDetails: <C extends IssueCode>(code: C) => hints.IssueDefinition<C> | undefined
+  lint: (lintingId: string, trainSet: TrainInput, options?: Partial<LintingOptions>) => Promise<linting.DatasetReport>
+  cancelLinting: (lintingId: string) => Promise<void>
+  getIssueDetails: <C extends IssueCode>(code: C) => linting.IssueDefinition<C> | undefined
 
   detectLanguage: (text: string, modelByLang: { [key: string]: ModelId }) => Promise<string>
   predict: (text: string, modelId: ModelId) => Promise<PredictOutput>

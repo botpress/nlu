@@ -1,9 +1,9 @@
 import _ from 'lodash'
-import { DatasetIssue, IssueDefinition } from 'src/hints'
-import { IntentDefinition, TrainInput } from 'src/typings'
+import { DatasetIssue, IssueDefinition } from '../../linting'
+import { IntentDefinition, TrainInput } from '../../typings'
 import { ParsedSlot, parseUtterance } from '../utterance/utterance-parser'
 import { computeId } from './id'
-import { asCode, IssueChecker } from './typings'
+import { asCode, IssueLinter } from './typings'
 
 const code = asCode('C_000')
 
@@ -44,10 +44,10 @@ const validateIntent = (i: IntentDefinition): DatasetIssue<typeof code>[] => {
     .value()
 }
 
-export const C_000_Check: IssueChecker<typeof code> = {
+export const C_000_Linter: IssueLinter<typeof code> = {
   ...C_000,
   speed: 'fastest',
-  check: async (ts: TrainInput) => {
+  lint: async (ts: TrainInput) => {
     let issues: DatasetIssue<typeof code>[] = []
     for (const i of ts.intents) {
       issues = [...issues, ...validateIntent(i)]

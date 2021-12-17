@@ -21,7 +21,7 @@ import {
   validatePredictInput,
   validateTrainInput,
   validateDetectLangInput,
-  validateHintInput
+  validateLintInput
 } from './validation/validate'
 
 type APIOptions = {
@@ -284,10 +284,10 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     }
   })
 
-  router.post('/hints', async (req, res, next) => {
+  router.post('/lint', async (req, res, next) => {
     try {
       const appId = getAppId(req)
-      const input = await validateHintInput(req.body)
+      const input = await validateLintInput(req.body)
       const { intents, entities, language } = input
 
       const trainInput: TrainInput = {
@@ -297,16 +297,16 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         seed: 0
       }
 
-      const modelId = await app.checkDataset(appId, trainInput)
+      const modelId = await app.lintDataset(appId, trainInput)
 
-      const resp: http.HintResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
+      const resp: http.LintResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
       return res.send(resp)
     } catch (err) {
       return handleError(err, req, res, next)
     }
   })
 
-  router.get('/hints/:modelId', async (req, res, next) => {
+  router.get('/lint/:modelId', async (req, res, next) => {
     try {
       const appId = getAppId(req)
       const { modelId: stringId } = req.params
@@ -315,9 +315,9 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       }
 
       const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const session = await app.getHints(appId, modelId)
+      const session = await app.getLintingState(appId, modelId)
 
-      const resp: http.HintProgressResponseBody = {
+      const resp: http.LintProgressResponseBody = {
         success: true,
         session
       }

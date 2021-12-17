@@ -1,11 +1,18 @@
 import { Logger } from '@botpress/logger'
-import { CheckingErrorType, CheckingState, CheckingStatus } from '@botpress/nlu-client/src/typings/hints'
+import {
+  LintingErrorType,
+  LintingState,
+  LintingStatus,
+  DatasetIssue,
+  IssueCode,
+  IssueData,
+  IssueDefinition
+} from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
-import { DatasetIssue, IssueCode, IssueData, IssueDefinition } from '@botpress/nlu-engine/src/hints'
 import _ from 'lodash'
-import { HintsRepository } from '.'
+import { LintingRepository } from '.'
 
-type HintsTableRow = {
+type IssuesRow = {
   appId: string
   modelId: string
   code: string
@@ -13,66 +20,66 @@ type HintsTableRow = {
   data: _.Dictionary<string>
 }
 
-type HintsTasksRow = {
-  status: CheckingStatus
+type LintingRow = {
+  status: LintingStatus
   currentCount: number
   totalCount: number
-  error_type?: CheckingErrorType
+  error_type?: LintingErrorType
   error_message?: string
   error_stack?: string
 }
 
-const HINT_TABLE_NAME = 'nlu_hints'
-const HINT_TASKS_TABLE_NAME = 'nlu_hints_task'
+const ISSUES_TABLE_NAME = 'nlu_dataset_issues'
+const LINTINGS_TABLE_NAME = 'nlu_lintings'
 
-export class InMemoryHintRepo implements HintsRepository {
+export class InMemoryLintingRepo implements LintingRepository {
   private _logger: Logger
 
-  private _hintsTable: { [id: string]: HintsTableRow } = {}
-  private _tasksTable: { [id: string]: HintsTasksRow } = {}
+  private _issuesTable: { [id: string]: IssuesRow } = {}
+  private _lintingTable: { [id: string]: LintingRow } = {}
 
   constructor(logger: Logger, private _engine: NLUEngine.Engine) {
-    this._logger = logger.sub('hints-repo')
+    this._logger = logger.sub('linting-repo')
   }
 
   public async initialize() {
-    this._logger.debug('Hints repo initializing...')
+    this._logger.debug('Linting repo initializing...')
   }
 
   public async teardown() {
-    this._logger.debug('Hints repo teardown...')
+    this._logger.debug('Linting repo teardown...')
   }
 
   public async has(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
     const taskId = this._taskId(appId, modelId)
-    return !!this._tasksTable[taskId]
+    return !!this._lintingTable[taskId]
   }
 
-  public async get(appId: string, modelId: NLUEngine.ModelId): Promise<CheckingState | undefined> {
+  public async get(appId: string, modelId: NLUEngine.ModelId): Promise<LintingState | undefined> {
     const taskId = this._taskId(appId, modelId)
-    const task = this._tasksTable[taskId]
+    const task = this._lintingTable[taskId]
     if (!task) {
       return
     }
 
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    const hints = Object.entries(this._hintsTable)
+    const issues = Object.entries(this._issuesTable)
       .map(([id, v]) => ({ id, ...v }))
       .filter((x) => x.appId === appId && x.modelId === stringId)
-      .map(this._rowToHint.bind(this))
+      .map(this._rowToIssue.bind(this))
 
     const { status, currentCount, totalCount, error_message, error_stack, error_type } = task
     const error = error_type && { message: error_message!, stack: error_stack!, type: error_type! }
-    const state: CheckingState = { status, currentCount, totalCount, error, hints }
+    const state: LintingState = { status, currentCount, totalCount, error, issues }
     return state
   }
 
-  public async set(appId: string, modelId: NLUEngine.ModelId, checking: CheckingState): Promise<void | void[]> {
-    const { currentCount, hints, totalCount, status, error } = checking
+  public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void | void[]> {
+    const { currentCount, issues, totalCount, status, error } = linting
     const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
 
     const taskId = this._taskId(appId, modelId)
-    const checkingTaskRow: HintsTasksRow = {
+    const lintingTaskRow: LintingRow = {
       currentCount,
       totalCount,
       status,
@@ -81,25 +88,25 @@ export class InMemoryHintRepo implements HintsRepository {
       error_message
     }
 
-    this._tasksTable[taskId] = checkingTaskRow
+    this._lintingTable[taskId] = lintingTaskRow
 
-    for (const h of hints) {
-      this._hintsTable[h.id] = {
-        ...this._hintToRow(h),
+    for (const issue of issues) {
+      this._issuesTable[issue.id] = {
+        ...this._issueToRow(issue),
         appId,
         modelId: NLUEngine.modelIdService.toString(modelId)
       }
     }
   }
 
-  private _rowToHint = (row: HintsTableRow & { id: string }): DatasetIssue<IssueCode> => {
+  private _rowToIssue = (row: IssuesRow & { id: string }): DatasetIssue<IssueCode> => {
     const { code: rawCode, data, message, id } = row
 
     const code = rawCode as IssueCode
     const definition: IssueDefinition<typeof code> | undefined = this._engine.getIssueDetails(code)
 
     if (!definition) {
-      throw new Error(`Code "${rawCode}" found in table "${HINT_TABLE_NAME}" does not seem to exist.`)
+      throw new Error(`Code "${rawCode}" found in table "${ISSUES_TABLE_NAME}" does not seem to exist.`)
     }
 
     return <DatasetIssue<IssueCode>>{
@@ -110,10 +117,10 @@ export class InMemoryHintRepo implements HintsRepository {
     }
   }
 
-  private _hintToRow = (
-    hint: DatasetIssue<IssueCode>
+  private _issueToRow = (
+    issue: DatasetIssue<IssueCode>
   ): { id: string; code: string; message: string; data: _.Dictionary<string> } => {
-    const { code, message, data, id } = hint
+    const { code, message, data, id } = issue
     return { id, code, message, data }
   }
 

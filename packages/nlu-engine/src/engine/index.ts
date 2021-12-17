@@ -4,23 +4,22 @@ import _ from 'lodash'
 import LRUCache from 'lru-cache'
 import ms from 'ms'
 import sizeof from 'object-sizeof'
-import { IssueCode } from 'src/hints'
-import { PredictOutput, TrainInput, Specifications, CheckingOptions, CheckingProgress } from 'src/typings'
-
+import { PredictOutput, TrainInput, Specifications, LintingOptions, LintingProgress } from 'src/typings'
 import v8 from 'v8'
 import { isListEntity, isPatternEntity } from '../guards'
+import { IssueCode } from '../linting'
 
 import modelIdService from '../model-id-service'
 
 import { TrainingOptions, LanguageConfig, Logger, ModelId, Model, Engine as IEngine } from '../typings'
 import { deserializeKmeans } from './clustering'
 import { EntityCacheManager } from './entities/entity-cache-manager'
-import { allIssues } from './hints/definitions'
-import { hintsPipeline } from './hints/hints-pipeline'
 import { initializeTools } from './initialize-tools'
 import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
+import { allIssues } from './linting/definitions'
+import { lintingPipeline } from './linting/linting-pipeline'
 import { deserializeModel, PredictableModel, serializeModel } from './model-serializer'
 import { Predict, Predictors } from './predict-pipeline'
 import SlotTagger from './slots/slot-tagger'
@@ -281,13 +280,13 @@ export default class Engine implements IEngine {
     this._logger.debug('Model unloaded with success')
   }
 
-  public check = async (hintsId: string, trainSet: TrainInput, opts?: Partial<CheckingOptions>) => {
-    const issues = await hintsPipeline(trainSet, this._tools, opts)
+  public lint = async (lintingId: string, trainSet: TrainInput, opts?: Partial<LintingOptions>) => {
+    const issues = await lintingPipeline(trainSet, this._tools, opts)
     return { issues }
   }
 
-  public cancelChecking = async (checkingId: string) => {
-    this._logger.warning(`Currently no way of canceling check of "${checkingId}"`)
+  public cancelLinting = async (lintingId: string) => {
+    this._logger.warning(`Currently no way of canceling linting of "${lintingId}"`)
   }
 
   public getIssueDetails<C extends IssueCode>(code: C) {

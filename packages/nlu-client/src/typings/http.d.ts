@@ -4,7 +4,7 @@
  * ############
  */
 
-import { DatasetIssue, IssueCode, CheckingState } from './hints'
+import { DatasetIssue, IssueCode, LintingState } from './linting'
 import {
   TrainingState,
   PredictOutput,
@@ -24,7 +24,7 @@ export type TrainRequestBody = {
   seed?: number
 }
 
-export type HintRequestBody = {
+export type LintRequestBody = {
   language: string
   contexts: string[]
   intents: IntentDefinition[]
@@ -42,7 +42,7 @@ export type DetectLangRequestBody = {
 export type ErrorType =
   | 'model_not_found'
   | 'training_not_found'
-  | 'check_task_not_found'
+  | 'linting_not_found'
   | 'training_already_started'
   | 'invalid_train_set'
   | 'request_format'
@@ -75,7 +75,7 @@ export type TrainResponseBody = {
   modelId: string
 } & SuccessReponse
 
-export type HintResponseBody = {
+export type LintResponseBody = {
   modelId: string
 } & SuccessReponse
 
@@ -83,8 +83,8 @@ export type TrainProgressResponseBody = {
   session: TrainingState
 } & SuccessReponse
 
-export type HintProgressResponseBody = {
-  session: CheckingState
+export type LintProgressResponseBody = {
+  session: LintingState
 } & SuccessReponse
 
 export type ListTrainingsResponseBody = {

@@ -15,7 +15,7 @@ import {
   DbModelRepository,
   ModelRepository
 } from '../infrastructure'
-import { InMemoryHintRepo } from '../infrastructure/hints-repo'
+import { InMemoryLintingRepo } from '../infrastructure/linting-repo'
 import { NLUServerOptions } from '../typings'
 import { Broadcaster } from '../utils/broadcast'
 import { makeEngine } from './make-engine'
@@ -88,11 +88,11 @@ export const makeApplication = async (
   const serviceMaker = dbURL ? makeServicesWithDb(dbURL) : makeServicesWithoutDb(modelDir)
   const { modelRepo, trainRepo, trainingQueue } = await serviceMaker(engine, baseLogger, options)
 
-  const inMemoryHintRepo = new InMemoryHintRepo(baseLogger, engine)
+  const inMemoryLintingRepo = new InMemoryLintingRepo(baseLogger, engine)
   const application = new Application(
     modelRepo,
     trainRepo,
-    inMemoryHintRepo,
+    inMemoryLintingRepo,
     trainingQueue,
     engine,
     serverVersion,

@@ -40,3 +40,4 @@ export class Client {
 
 export * as http from './http'
 export * from './sdk'
+export * from './linting'

@@ -1,12 +1,16 @@
-import { IntentDefinition, ListEntityDefinition, PatternEntityDefinition, SlotDefinition } from '@botpress/nlu-client'
-import { TrainInput } from 'src/typings'
+import {
+  IntentDefinition,
+  ListEntityDefinition,
+  PatternEntityDefinition,
+  SlotDefinition,
+  TrainInput
+} from 'src/typings'
 import { makeFakeTools } from '../test-utils/fake-tools'
-
-import { hintsPipeline } from './hints-pipeline'
+import { lintingPipeline } from './linting-pipeline'
 
 const validateTrainInput = async (ts: TrainInput) => {
   const tools = makeFakeTools(100, ['en'])
-  const issues = await hintsPipeline(ts, tools, {
+  const issues = await lintingPipeline(ts, tools, {
     minSpeed: 'fastest'
   })
 
