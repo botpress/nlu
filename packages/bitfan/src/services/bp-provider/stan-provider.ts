@@ -1,5 +1,4 @@
-import { PredictOutput, TrainingState, TrainInput, Client } from '@botpress/nlu-client'
-import { NLUError } from '@botpress/nlu-client/src/typings/http'
+import { PredictOutput, TrainingState, TrainInput, Client, http } from '@botpress/nlu-client'
 import _ from 'lodash'
 
 import { sleep } from '../../utils'
@@ -71,7 +70,7 @@ export class StanProvider {
     return predOutput.predictions
   }
 
-  private _deserializeError = (error: NLUError): Error => {
+  private _deserializeError = (error: http.NLUError): Error => {
     const { message, stack } = error
     const err = new Error(message)
     err.stack = stack

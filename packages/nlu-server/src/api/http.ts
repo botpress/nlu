@@ -1,5 +1,4 @@
 import { http } from '@botpress/nlu-client'
-import { NLUError } from '@botpress/nlu-client/src/typings/http'
 import { Request, Response, NextFunction } from 'express'
 import _ from 'lodash'
 
@@ -14,7 +13,7 @@ import {
 } from '../application/errors'
 import { InvalidRequestFormatError } from './errors'
 
-const serializeError = (err: Error): NLUError => {
+const serializeError = (err: Error): http.NLUError => {
   const { message, stack } = err
   if (err instanceof ModelDoesNotExistError) {
     const { statusCode } = err

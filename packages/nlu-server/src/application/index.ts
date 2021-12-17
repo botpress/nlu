@@ -241,7 +241,7 @@ You can increase your cache size by the CLI or config.
     return detectedLanguages
   }
 
-  public async lintDataset(appId: string, trainInput: TrainInput) {
+  public async lintDataset(appId: string, trainInput: TrainInput): Promise<ModelId> {
     const modelId = modelIdService.makeId({
       ...trainInput,
       specifications: this._engine.getSpecifications()
