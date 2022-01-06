@@ -66,7 +66,7 @@ export type LintingProgress = (
   current: number,
   total: number,
   issues: linting.DatasetIssue<linting.IssueCode>[]
-) => void
+) => void | Promise<void>
 
 export type LintingOptions = {
   progressCallback: LintingProgress

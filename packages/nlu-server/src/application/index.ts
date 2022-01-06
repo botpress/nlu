@@ -53,6 +53,7 @@ export class Application {
     await this._modelRepo.initialize()
     await this._trainingRepo.initialize()
     await this._trainingQueue.initialize()
+    await this._lintingRepo.initialize()
   }
 
   public async teardown() {
@@ -241,17 +242,11 @@ You can increase your cache size by the CLI or config.
     return detectedLanguages
   }
 
-  public async lintDataset(appId: string, trainInput: TrainInput): Promise<ModelId> {
-    const modelId = modelIdService.makeId({
-      ...trainInput,
-      specifications: this._engine.getSpecifications()
-    })
-
+  private _lint = async (appId: string, modelId: ModelId, trainInput: TrainInput): Promise<void> => {
     const stringId = modelIdService.toString(modelId)
     const key = `${appId}/${stringId}`
 
-    // unhandled promise to return asap
-    void this._engine.lint(key, trainInput, {
+    await this._engine.lint(key, trainInput, {
       minSpeed: 'slow',
       progressCallback: (current: number, total: number, issues: DatasetIssue<IssueCode>[]) => {
         return this._lintingRepo.set(appId, modelId, {
@@ -262,6 +257,20 @@ You can increase your cache size by the CLI or config.
         })
       }
     })
+
+    return this._lintingRepo.update(appId, modelId, {
+      status: 'done'
+    })
+  }
+
+  public async lintDataset(appId: string, trainInput: TrainInput): Promise<ModelId> {
+    const modelId = modelIdService.makeId({
+      ...trainInput,
+      specifications: this._engine.getSpecifications()
+    })
+
+    // unhandled promise to return asap
+    void this._lint(appId, modelId, trainInput)
 
     return modelId
   }

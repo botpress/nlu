@@ -26,7 +26,7 @@ export const lintingPipeline = async (ts: TrainInput, tools: Tools, opts: Partia
 
   for (const linter of targetLinters) {
     const issues = await linter.lint(ts, tools)
-    options.progressCallback(++idx, targetLinters.length, issues)
+    await options.progressCallback(++idx, targetLinters.length, issues)
     allIssues = [...allIssues, ...issues]
   }
 

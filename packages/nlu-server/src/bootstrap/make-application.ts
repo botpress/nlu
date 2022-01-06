@@ -15,7 +15,7 @@ import {
   DbModelRepository,
   ModelRepository
 } from '../infrastructure'
-import { InMemoryLintingRepo } from '../infrastructure/linting-repo'
+import { InMemoryLintingRepo, LintingRepository, DatabaseLintingRepo } from '../infrastructure/linting-repo'
 import { NLUServerOptions } from '../typings'
 import { Broadcaster } from '../utils/broadcast'
 import { makeEngine } from './make-engine'
@@ -24,6 +24,7 @@ type Services = {
   modelRepo: ModelRepository
   trainRepo: TrainingRepository
   trainingQueue: TrainingQueue
+  lintingRepo: LintingRepository
 }
 
 const CLUSTER_ID = nanoid()
@@ -44,10 +45,12 @@ const makeServicesWithoutDb = (modelDir: string) => async (
   const modelRepo = new FileSystemModelRepository(modelDir, logger)
   const trainRepo = new InMemoryTrainingRepo(logger)
   const trainingQueue = new TrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, logger, queueOptions)
+  const lintingRepo = new InMemoryLintingRepo(logger)
   return {
     modelRepo,
     trainRepo,
-    trainingQueue
+    trainingQueue,
+    lintingRepo
   }
 }
 
@@ -71,10 +74,12 @@ const makeServicesWithDb = (dbURL: string) => async (
     broadcaster,
     queueOptions
   )
+  const lintingRepo = new DatabaseLintingRepo(knexDb, logger, engine)
   return {
     modelRepo,
     trainRepo,
-    trainingQueue
+    trainingQueue,
+    lintingRepo
   }
 }
 
@@ -86,13 +91,12 @@ export const makeApplication = async (
   const engine = await makeEngine(options, baseLogger.sub('Engine'))
   const { dbURL, modelDir } = options
   const serviceMaker = dbURL ? makeServicesWithDb(dbURL) : makeServicesWithoutDb(modelDir)
-  const { modelRepo, trainRepo, trainingQueue } = await serviceMaker(engine, baseLogger, options)
+  const { modelRepo, trainRepo, trainingQueue, lintingRepo } = await serviceMaker(engine, baseLogger, options)
 
-  const inMemoryLintingRepo = new InMemoryLintingRepo(baseLogger, engine)
   const application = new Application(
     modelRepo,
     trainRepo,
-    inMemoryLintingRepo,
+    lintingRepo,
     trainingQueue,
     engine,
     serverVersion,
