@@ -21,6 +21,6 @@
   "scripts": {
     "start": "node ./dist/index.js",
     "build": "tsc --build",
-    "clean": "rm -rf ./dist && rm -rf ./node_modules"
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   }
 }

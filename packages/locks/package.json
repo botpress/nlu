@@ -5,7 +5,7 @@
   "license": "AGPL-3.0",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf ./dist && rm -rf ./node_modules"
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   },
   "dependencies": {
     "lodash": "^4.17.19",

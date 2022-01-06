@@ -98,6 +98,6 @@
     "postbuild": "cross-env node ./scripts/buildinfo.js ./.buildinfo.json",
     "start": "cross-env node ./dist/index.js",
     "test": "jest --roots ./dist",
-    "clean": "rm -rf ./dist && rm -rf ./node_modules"
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   }
 }
