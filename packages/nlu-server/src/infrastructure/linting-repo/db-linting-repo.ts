@@ -52,7 +52,7 @@ export class DatabaseLintingRepo implements LintingRepository {
 
   public async initialize() {
     await createTableIfNotExists(this._database, ISSUES_TABLE_NAME, (table: Knex.CreateTableBuilder) => {
-      table.uuid('id').primary()
+      table.string('id').primary()
       table.string('appId').notNullable()
       table.string('modelId').notNullable()
       table.string('code').notNullable()
@@ -169,7 +169,9 @@ export class DatabaseLintingRepo implements LintingRepository {
       error_message,
       updatedOn: new Date().toISOString()
     }
-    await this._lintings.update(lintingTaskRow)
+
+    const lintingId: LintingId = { appId, modelId: stringId }
+    await this._lintings.where(lintingId).update(lintingTaskRow)
 
     if (issues) {
       const issueRows = issues.map(this._issueToRow.bind(this)).map((r) => ({ appId, modelId: stringId, ...r }))
