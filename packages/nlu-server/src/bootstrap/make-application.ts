@@ -45,7 +45,7 @@ const makeServicesWithoutDb = (modelDir: string) => async (
   const modelRepo = new FileSystemModelRepository(modelDir, logger)
   const trainRepo = new InMemoryTrainingRepo(logger)
   const trainingQueue = new TrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, logger, queueOptions)
-  const lintingRepo = new InMemoryLintingRepo(logger, engine)
+  const lintingRepo = new InMemoryLintingRepo(logger)
   return {
     modelRepo,
     trainRepo,
