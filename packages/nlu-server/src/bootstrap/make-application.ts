@@ -15,8 +15,7 @@ import {
   DbModelRepository,
   ModelRepository
 } from '../infrastructure'
-import { InMemoryLintingRepo, LintingRepository } from '../infrastructure/linting-repo'
-import { DatabaseLintingRepo } from '../infrastructure/linting-repo/db-model-repo'
+import { InMemoryLintingRepo, LintingRepository, DatabaseLintingRepo } from '../infrastructure/linting-repo'
 import { NLUServerOptions } from '../typings'
 import { Broadcaster } from '../utils/broadcast'
 import { makeEngine } from './make-engine'

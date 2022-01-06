@@ -6,7 +6,8 @@ import {
   DatasetIssue,
   IssueCode,
   IssueData,
-  IssueDefinition
+  IssueDefinition,
+  LintingError
 } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Knex from 'knex'
@@ -35,6 +36,8 @@ type LintingRow = LintingId & {
   error_type?: LintingErrorType
   error_message?: string
   error_stack?: string
+  startedOn: string
+  updatedOn: string
 }
 
 const ISSUES_TABLE_NAME = 'nlu_dataset_issues'
@@ -87,7 +90,8 @@ export class DatabaseLintingRepo implements LintingRepository {
   public async has(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
     const stringId = NLUEngine.modelIdService.toString(modelId)
     const lintingId: LintingId = { appId, modelId: stringId }
-    return !!(await this._lintings.select('*').where(lintingId).first())
+    const linting = await this._lintings.select('*').where(lintingId).first()
+    return !!linting
   }
 
   public async get(appId: string, modelId: NLUEngine.ModelId): Promise<LintingState | undefined> {
@@ -102,15 +106,26 @@ export class DatabaseLintingRepo implements LintingRepository {
     const issues = issueRows.map(this._rowToIssue.bind(this))
 
     const { status, currentCount, totalCount, error_message, error_stack, error_type } = linting
-    const error = error_type && { message: error_message!, stack: error_stack!, type: error_type! }
+    const error = this._toError(error_type, error_message, error_stack)
     const state: LintingState = { status, currentCount, totalCount, error, issues }
     return state
   }
 
-  public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void | void[]> {
+  private _toError = (
+    error_type: LintingErrorType | undefined,
+    error_message: string | undefined,
+    error_stack: string | undefined
+  ): LintingError | undefined => {
+    if (!error_type) {
+      return
+    }
+    return { message: error_message!, stack: error_stack!, type: error_type! }
+  }
+
+  public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
     const alreadyExists = await this.has(appId, modelId)
     if (alreadyExists) {
-      return this._update(appId, modelId, linting)
+      return this.update(appId, modelId, linting)
     }
     return this._insert(appId, modelId, linting)
   }
@@ -128,7 +143,9 @@ export class DatabaseLintingRepo implements LintingRepository {
       status,
       error_type,
       error_stack,
-      error_message
+      error_message,
+      startedOn: new Date().toISOString(),
+      updatedOn: new Date().toISOString()
     }
     await this._lintings.insert(lintingTaskRow)
 
@@ -136,12 +153,12 @@ export class DatabaseLintingRepo implements LintingRepository {
     return this._upsertIssues(issueRows)
   }
 
-  private async _update(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
+  public async update(appId: string, modelId: NLUEngine.ModelId, linting: Partial<LintingState>): Promise<void> {
     const { currentCount, issues, totalCount, status, error } = linting
     const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
     const stringId = NLUEngine.modelIdService.toString(modelId)
 
-    const lintingTaskRow: LintingRow = {
+    const lintingTaskRow: Partial<LintingRow> = {
       appId,
       modelId: stringId,
       currentCount,
@@ -149,12 +166,15 @@ export class DatabaseLintingRepo implements LintingRepository {
       status,
       error_type,
       error_stack,
-      error_message
+      error_message,
+      updatedOn: new Date().toISOString()
     }
     await this._lintings.update(lintingTaskRow)
 
-    const issueRows = issues.map(this._issueToRow.bind(this)).map((r) => ({ appId, modelId: stringId, ...r }))
-    await this._upsertIssues(issueRows)
+    if (issues) {
+      const issueRows = issues.map(this._issueToRow.bind(this)).map((r) => ({ appId, modelId: stringId, ...r }))
+      await this._upsertIssues(issueRows)
+    }
   }
 
   /**

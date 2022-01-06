@@ -74,7 +74,19 @@ export class InMemoryLintingRepo implements LintingRepository {
     return state
   }
 
-  public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void | void[]> {
+  public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
+    return this._set(appId, modelId, linting)
+  }
+
+  public async update(appId: string, modelId: NLUEngine.ModelId, linting: Partial<LintingState>): Promise<void> {
+    const current = await this.get(appId, modelId)
+    if (!current) {
+      throw new Error('Cannot update linting state as it was not created first')
+    }
+    return this._set(appId, modelId, { ...current, ...linting })
+  }
+
+  private async _set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState) {
     const { currentCount, issues, totalCount, status, error } = linting
     const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
 
