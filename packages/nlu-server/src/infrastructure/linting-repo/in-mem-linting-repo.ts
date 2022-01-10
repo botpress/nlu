@@ -38,7 +38,7 @@ export class InMemoryLintingRepo implements LintingRepository {
   public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
     const current = await this.get(appId, modelId)
     const currentIssues = current?.issues ?? []
-    const updatedIssues = [...currentIssues, ...linting.issues]
+    const updatedIssues = _.uniqBy([...currentIssues, ...linting.issues], (i) => i.id)
     return this._set(appId, modelId, { ...linting, issues: updatedIssues })
   }
 
@@ -49,7 +49,7 @@ export class InMemoryLintingRepo implements LintingRepository {
     }
 
     const newIssues = linting.issues ?? []
-    const updatedIssues = [...current.issues, ...newIssues]
+    const updatedIssues = _.uniqBy([...current.issues, ...newIssues], (i) => i.id)
     return this._set(appId, modelId, { ...current, ...linting, issues: updatedIssues })
   }
 
