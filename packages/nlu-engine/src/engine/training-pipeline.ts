@@ -10,13 +10,13 @@ import { computeKmeans, serializeKmeans } from './clustering'
 import { CustomEntityExtractor } from './entities/custom-extractor'
 import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/multi-thread-extractor'
 import { warmEntityCache } from './entities/entity-cache-manager'
+import { makeListEntityModel } from './entities/list-entity-model'
 import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
 import SlotTagger from './slots/slot-tagger'
 import { replaceConsecutiveSpaces } from './tools/strings'
 import tfidf from './tools/tfidf'
-import { convertToRealSpaces } from './tools/token-utils'
 import {
   ColdListEntityModel,
   EntityExtractionResult,
@@ -77,30 +77,14 @@ type progressCB = (p?: number) => void
  * ### Step 1 : Preprocessing ###
  * ##############################
  */
-
-async function makeListEntityModel(entity: ListEntityWithCache, languageCode: string, tools: Tools) {
-  const allValues = _.uniq(Object.keys(entity.synonyms).concat(..._.values(entity.synonyms)))
-  const allTokens = (await tools.tokenize_utterances(allValues, languageCode)).map((toks) =>
-    toks.map(convertToRealSpaces)
-  )
-
+async function makeWarmListEntityModel(
+  entity: ListEntityWithCache,
+  languageCode: string,
+  tools: Tools
+): Promise<WarmedListEntityModel> {
   const cache = warmEntityCache(entity.cache)
-
-  return <WarmedListEntityModel>{
-    type: 'custom.list',
-    id: `custom.list.${entity.name}`,
-    languageCode,
-    entityName: entity.name,
-    fuzzyTolerance: entity.fuzzyTolerance,
-    sensitive: entity.sensitive,
-    mappingsTokens: _.mapValues(entity.synonyms, (synonyms, name) =>
-      [...synonyms, name].map((syn) => {
-        const idx = allValues.indexOf(syn)
-        return allTokens[idx]
-      })
-    ),
-    cache
-  }
+  const model = await makeListEntityModel(entity, languageCode, tools)
+  return { ...model, cache }
 }
 
 async function processIntents(
@@ -129,7 +113,7 @@ function buildVectorsVocab(intents: Intent<Utterance>[]): _.Dictionary<number[]>
 async function preprocessInput(input: TrainInput, tools: Tools): Promise<PreprocessTrainStep> {
   input = _.cloneDeep(input)
   const list_entities = await Bluebird.map(input.list_entities, (list) =>
-    makeListEntityModel(list, input.languageCode, tools)
+    makeWarmListEntityModel(list, input.languageCode, tools)
   )
 
   const intents = await processIntents(input.intents, input.languageCode, tools)
@@ -192,7 +176,7 @@ async function extractEntities(input: ClusterTrainStep, tools: Tools, progress: 
 
   step = 1
   const customEntityExtractor = process.env.TS_NODE_DEV
-    ? new CustomEntityExtractor() // worker_threads do not work with ts-node
+    ? new CustomEntityExtractor() // worker_threads does not work with ts-node
     : new MultiThreadCustomEntityExtractor(tools.logger)
 
   const allListEntities = await customEntityExtractor.extractMultipleListEntities(
