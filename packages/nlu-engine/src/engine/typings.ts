@@ -50,7 +50,6 @@ export type ListEntityWithCache = ListEntity & {
 export type ListEntityModel = {
   type: 'custom.list'
   id: string
-  languageCode: string
   entityName: string
   fuzzyTolerance: number
   sensitive: boolean

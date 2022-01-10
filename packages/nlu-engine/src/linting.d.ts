@@ -33,7 +33,7 @@ export type IssueData<C extends IssueCode> = C extends 'C_000'
       intent: string
       utterance: string
       slot: string
-      entity: string
+      entities: string[]
       source: string
     }
   : C extends 'E_001'
