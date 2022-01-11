@@ -3,6 +3,7 @@ import { LintingState } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import { LintingRepository } from '.'
+import { Linting, LintingId } from './typings'
 
 export class InMemoryLintingRepo implements LintingRepository {
   private _logger: Logger
@@ -21,12 +22,14 @@ export class InMemoryLintingRepo implements LintingRepository {
     this._logger.debug('Linting repo teardown...')
   }
 
-  public async has(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
+  public async has(id: LintingId): Promise<boolean> {
+    const { appId, modelId } = id
     const taskId = this._taskId(appId, modelId)
     return !!this._lintingTable[taskId]
   }
 
-  public async get(appId: string, modelId: NLUEngine.ModelId): Promise<LintingState | undefined> {
+  public async get(id: LintingId): Promise<LintingState | undefined> {
+    const { appId, modelId } = id
     const taskId = this._taskId(appId, modelId)
     const linting = this._lintingTable[taskId]
     if (!linting) {
@@ -35,8 +38,9 @@ export class InMemoryLintingRepo implements LintingRepository {
     return linting
   }
 
-  public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
-    const current = await this.get(appId, modelId)
+  public async set(linting: Linting): Promise<void> {
+    const { appId, modelId } = linting
+    const current = await this.get({ appId, modelId })
     const currentIssues = current?.issues ?? []
     const updatedIssues = _.uniqBy([...currentIssues, ...linting.issues], (i) => i.id)
     return this._set(appId, modelId, { ...linting, issues: updatedIssues })

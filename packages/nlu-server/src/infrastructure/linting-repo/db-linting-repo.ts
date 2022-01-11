@@ -14,6 +14,7 @@ import Knex from 'knex'
 import _ from 'lodash'
 import { createTableIfNotExists } from '../../utils/database'
 import { LintingRepository } from '.'
+import { Linting, LintingId } from './typings'
 
 type IssuesRow = {
   id: string
@@ -24,12 +25,12 @@ type IssuesRow = {
   data: object
 }
 
-type LintingId = {
+type LintingRowId = {
   appId: string
   modelId: string
 }
 
-type LintingRow = LintingId & {
+type LintingRow = LintingRowId & {
   status: LintingStatus
   currentCount: number
   totalCount: number
@@ -87,16 +88,18 @@ export class DatabaseLintingRepo implements LintingRepository {
     this._logger.debug('Linting repo teardown...')
   }
 
-  public async has(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
+  public async has(id: LintingId): Promise<boolean> {
+    const { appId, modelId } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    const lintingId: LintingId = { appId, modelId: stringId }
+    const lintingId: LintingRowId = { appId, modelId: stringId }
     const linting = await this._lintings.select('*').where(lintingId).first()
     return !!linting
   }
 
-  public async get(appId: string, modelId: NLUEngine.ModelId): Promise<LintingState | undefined> {
+  public async get(id: LintingId): Promise<LintingState | undefined> {
+    const { appId, modelId } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    const lintingId: LintingId = { appId, modelId: stringId }
+    const lintingId: LintingRowId = { appId, modelId: stringId }
     const linting = await this._lintings.select('*').where(lintingId).first()
     if (!linting) {
       return
@@ -122,8 +125,10 @@ export class DatabaseLintingRepo implements LintingRepository {
     return { message: error_message!, stack: error_stack!, type: error_type! }
   }
 
-  public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
-    const alreadyExists = await this.has(appId, modelId)
+  public async set(linting: Linting): Promise<void> {
+    const { appId, modelId } = linting
+
+    const alreadyExists = await this.has({ appId, modelId })
     if (alreadyExists) {
       return this._update(appId, modelId, linting)
     }
@@ -170,7 +175,7 @@ export class DatabaseLintingRepo implements LintingRepository {
       updatedOn: new Date().toISOString()
     }
 
-    const lintingId: LintingId = { appId, modelId: stringId }
+    const lintingId: LintingRowId = { appId, modelId: stringId }
     await this._lintings.where(lintingId).update(lintingTaskRow)
 
     if (issues) {

@@ -247,7 +247,7 @@ You can increase your cache size by the CLI or config.
     const stringId = modelIdService.toString(modelId)
     const key = `${appId}/${stringId}`
 
-    let linting: LintingState = {
+    let lintingState: LintingState = {
       currentCount: 0,
       totalCount: -1,
       issues: [],
@@ -258,22 +258,22 @@ You can increase your cache size by the CLI or config.
       await this._engine.lint(key, trainInput, {
         minSpeed: 'slow',
         progressCallback: (currentCount: number, totalCount: number, issues: DatasetIssue<IssueCode>[]) => {
-          linting = {
+          lintingState = {
             currentCount,
             totalCount,
             issues,
             status: 'linting'
           }
-          return this._lintingRepo.set(appId, modelId, linting)
+          return this._lintingRepo.set({ appId, modelId, ...lintingState })
         }
       })
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       const error: LintingError = { message: err.message, stack: err.stack, type: 'internal' }
-      return this._lintingRepo.set(appId, modelId, { ...linting, error })
+      return this._lintingRepo.set({ appId, modelId, ...lintingState, error })
     }
 
-    return this._lintingRepo.set(appId, modelId, { ...linting, status: 'done' })
+    return this._lintingRepo.set({ appId, modelId, ...lintingState, status: 'done' })
   }
 
   public async lintDataset(appId: string, trainInput: TrainInput): Promise<ModelId> {
@@ -289,7 +289,7 @@ You can increase your cache size by the CLI or config.
   }
 
   public async getLintingState(appId: string, modelId: ModelId): Promise<LintingState> {
-    const state = await this._lintingRepo.get(appId, modelId)
+    const state = await this._lintingRepo.get({ appId, modelId })
     if (!state) {
       throw new LintingNotFoundError(modelId)
     }

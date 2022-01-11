@@ -4,7 +4,14 @@ import { ModelId } from '@botpress/nlu-engine'
 export type LintingRepository = {
   initialize(): Promise<void>
   teardown(): Promise<void>
-  get(appId: string, modelId: ModelId): Promise<LintingState | undefined>
-  set(appId: string, modelId: ModelId, state: LintingState): Promise<void>
-  has(appId: string, modelId: ModelId): Promise<boolean>
+  get(id: LintingId): Promise<LintingState | undefined>
+  set(linting: Linting): Promise<void>
+  has(id: LintingId): Promise<boolean>
 }
+
+export type LintingId = {
+  modelId: ModelId
+  appId: string
+}
+
+export type Linting = LintingId & LintingState
