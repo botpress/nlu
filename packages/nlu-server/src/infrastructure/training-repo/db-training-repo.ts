@@ -212,12 +212,13 @@ export class DbTrainingRepository
     private _clusterId: string
   ) {
     super(logger.sub('training-repo'), new DbWrittableTrainingRepo(_database, _clusterId, logger.sub('training-repo')))
-    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
   }
 
   public initialize = async (): Promise<void> => {
     await this._writtableTrainingRepository.initialize()
     await this._trxQueue.initialize()
+
+    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
   }
 
   public async teardown(): Promise<void> {
