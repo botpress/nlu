@@ -35,7 +35,7 @@ export class NLUClient implements IClient {
   }
 
   public async getInfo(): Promise<InfoResponseBody | ErrorResponse> {
-    const ressource = 'data'
+    const ressource = 'info'
     const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const res = await this._get(call)
     return validateResponse<InfoResponseBody>(call, res)
