@@ -106,12 +106,12 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
   }
 
   public deleteOlderThan = async (threshold: Date): Promise<number> => {
-    const iso = this._toISO(threshold)
+    const iso = threshold.toISOString()
     return this.table.where('updatedOn', '<=', iso).delete()
   }
 
   public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
-    const iso = this._toISO(threshold)
+    const iso = threshold.toISOString()
 
     const rowFilters: Partial<TableRow> = this._partialTrainStateToQuery(query)
     const rows: TableRow[] = await this.table.where(rowFilters).where('updatedOn', '<=', iso).select('*')
@@ -162,12 +162,8 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
       error_message,
       error_stack,
       cluster: this._clusterId,
-      updatedOn: this._toISO(new Date())
+      updatedOn: new Date().toISOString()
     }
-  }
-
-  private _toISO(date: Date): string {
-    return date.toISOString()
   }
 
   private _rowToTraining(row: TableRow): Training {

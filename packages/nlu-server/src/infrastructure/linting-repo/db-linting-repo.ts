@@ -125,7 +125,7 @@ export class DatabaseLintingRepo implements LintingRepository {
   public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
     const alreadyExists = await this.has(appId, modelId)
     if (alreadyExists) {
-      return this.update(appId, modelId, linting)
+      return this._update(appId, modelId, linting)
     }
     return this._insert(appId, modelId, linting)
   }
@@ -153,7 +153,7 @@ export class DatabaseLintingRepo implements LintingRepository {
     return this._upsertIssues(issueRows)
   }
 
-  public async update(appId: string, modelId: NLUEngine.ModelId, linting: Partial<LintingState>): Promise<void> {
+  private async _update(appId: string, modelId: NLUEngine.ModelId, linting: Partial<LintingState>): Promise<void> {
     const { currentCount, issues, totalCount, status, error } = linting
     const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
     const stringId = NLUEngine.modelIdService.toString(modelId)

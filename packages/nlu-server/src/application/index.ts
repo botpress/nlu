@@ -7,7 +7,8 @@ import {
   TrainingStatus,
   LintingState,
   DatasetIssue,
-  IssueCode
+  IssueCode,
+  LintingError
 } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
@@ -246,21 +247,33 @@ You can increase your cache size by the CLI or config.
     const stringId = modelIdService.toString(modelId)
     const key = `${appId}/${stringId}`
 
-    await this._engine.lint(key, trainInput, {
-      minSpeed: 'slow',
-      progressCallback: (current: number, total: number, issues: DatasetIssue<IssueCode>[]) => {
-        return this._lintingRepo.set(appId, modelId, {
-          status: 'linting',
-          currentCount: current,
-          totalCount: total,
-          issues
-        })
-      }
-    })
+    let linting: LintingState = {
+      currentCount: 0,
+      totalCount: -1,
+      issues: [],
+      status: 'linting-pending'
+    }
 
-    return this._lintingRepo.update(appId, modelId, {
-      status: 'done'
-    })
+    try {
+      await this._engine.lint(key, trainInput, {
+        minSpeed: 'slow',
+        progressCallback: (currentCount: number, totalCount: number, issues: DatasetIssue<IssueCode>[]) => {
+          linting = {
+            currentCount,
+            totalCount,
+            issues,
+            status: 'linting'
+          }
+          return this._lintingRepo.set(appId, modelId, linting)
+        }
+      })
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      const error: LintingError = { message: err.message, stack: err.stack, type: 'internal' }
+      return this._lintingRepo.set(appId, modelId, { ...linting, error })
+    }
+
+    return this._lintingRepo.set(appId, modelId, { ...linting, status: 'done' })
   }
 
   public async lintDataset(appId: string, trainInput: TrainInput): Promise<ModelId> {
