@@ -126,17 +126,7 @@ export class DatabaseLintingRepo implements LintingRepository {
   }
 
   public async set(linting: Linting): Promise<void> {
-    const { appId, modelId } = linting
-
-    const alreadyExists = await this.has({ appId, modelId })
-    if (alreadyExists) {
-      return this._update(appId, modelId, linting)
-    }
-    return this._insert(appId, modelId, linting)
-  }
-
-  private async _insert(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
-    const { currentCount, issues, totalCount, status, error } = linting
+    const { modelId, appId, currentCount, issues, totalCount, status, error } = linting
     const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
     const stringId = NLUEngine.modelIdService.toString(modelId)
 
@@ -152,48 +142,22 @@ export class DatabaseLintingRepo implements LintingRepository {
       startedOn: new Date().toISOString(),
       updatedOn: new Date().toISOString()
     }
-    await this._lintings.insert(lintingTaskRow)
+
+    await this._lintings
+      .insert(lintingTaskRow)
+      .onConflict(['appId', 'modelId'])
+      .merge(['status', 'currentCount', 'totalCount', 'error_type', 'error_message', 'error_stack', 'updatedOn'])
+
+    if (!issues.length) {
+      return
+    }
 
     const issueRows = issues.map(this._issueToRow.bind(this)).map((r) => ({ appId, modelId: stringId, ...r }))
-    return this._upsertIssues(issueRows)
+    return void this._upsertIssues(issueRows)
   }
 
-  private async _update(appId: string, modelId: NLUEngine.ModelId, linting: Partial<LintingState>): Promise<void> {
-    const { currentCount, issues, totalCount, status, error } = linting
-    const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
-    const stringId = NLUEngine.modelIdService.toString(modelId)
-
-    const lintingTaskRow: Partial<LintingRow> = {
-      appId,
-      modelId: stringId,
-      currentCount,
-      totalCount,
-      status,
-      error_type,
-      error_stack,
-      error_message,
-      updatedOn: new Date().toISOString()
-    }
-
-    const lintingId: LintingRowId = { appId, modelId: stringId }
-    await this._lintings.where(lintingId).update(lintingTaskRow)
-
-    if (issues) {
-      const issueRows = issues.map(this._issueToRow.bind(this)).map((r) => ({ appId, modelId: stringId, ...r }))
-      await this._upsertIssues(issueRows)
-    }
-  }
-
-  /**
-   * TODO: make this a single SQL call
-   */
   private async _upsertIssues(issues: IssuesRow[]) {
-    for (const issue of issues) {
-      const alreadyExists = await this._issues.select('*').where({ id: issue.id }).first()
-      if (!alreadyExists) {
-        await this._issues.insert(issue)
-      }
-    }
+    return this._issues.insert(issues).onConflict('id').merge()
   }
 
   private _rowToIssue = (row: IssuesRow & { id: string }): DatasetIssue<IssueCode> => {
