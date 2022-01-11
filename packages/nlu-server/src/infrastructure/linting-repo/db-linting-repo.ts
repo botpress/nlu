@@ -10,7 +10,7 @@ import {
   LintingError
 } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import _ from 'lodash'
 import { createTableIfNotExists } from '../../utils/database'
 import { LintingRepository } from '.'

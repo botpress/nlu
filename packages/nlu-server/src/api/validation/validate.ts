@@ -1,6 +1,5 @@
 import { IntentDefinition, http } from '@botpress/nlu-client'
 import { ObjectSchema, validate } from 'joi'
-import { Join } from 'knex'
 
 import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema, LintInputSchema } from './schemas'
 
