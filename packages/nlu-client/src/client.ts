@@ -15,7 +15,10 @@ import {
   PredictRequestBody,
   PredictResponseBody,
   ErrorResponse,
-  ListTrainingsResponseBody
+  ListTrainingsResponseBody,
+  LintRequestBody,
+  LintResponseBody,
+  LintProgressResponseBody
 } from './typings/http'
 import { validateResponse, HTTPCall, HTTPVerb, ClientResponseError } from './validation'
 
@@ -35,7 +38,7 @@ export class NLUClient implements IClient {
   }
 
   public async getInfo(): Promise<InfoResponseBody | ErrorResponse> {
-    const ressource = 'data'
+    const ressource = 'info'
     const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const res = await this._get(call)
     return validateResponse<InfoResponseBody>(call, res)
@@ -47,6 +50,14 @@ export class NLUClient implements IClient {
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, body, { headers })
     return validateResponse<TrainResponseBody>(call, res)
+  }
+
+  public async startLinting(appId: string, body: LintRequestBody): Promise<LintResponseBody | ErrorResponse> {
+    const headers = this._appIdHeader(appId)
+    const ressource = 'lint'
+    const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
+    const res = await this._post(call, body, { headers })
+    return validateResponse<LintResponseBody>(call, res)
   }
 
   public async listTrainings(appId: string, lang?: string): Promise<ListTrainingsResponseBody | ErrorResponse> {
@@ -64,6 +75,14 @@ export class NLUClient implements IClient {
     const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const res = await this._get(call, { headers })
     return validateResponse<TrainProgressResponseBody>(call, res)
+  }
+
+  public async getLintingStatus(appId: string, modelId: string): Promise<LintProgressResponseBody | ErrorResponse> {
+    const headers = this._appIdHeader(appId)
+    const ressource = `lint/${modelId}`
+    const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
+    const res = await this._get(call, { headers })
+    return validateResponse<LintProgressResponseBody>(call, res)
   }
 
   public async cancelTraining(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse> {

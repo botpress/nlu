@@ -4,17 +4,10 @@
  * ############
  */
 
-import { DatasetIssue, IssueCode, LintingState } from './linting'
-import {
-  TrainingState,
-  PredictOutput,
-  IntentDefinition,
-  EntityDefinition,
-  Specifications,
-  Health,
-  ServerInfo,
-  Training
-} from './sdk'
+import { ServerInfo } from './info'
+import { LintingState } from './linting'
+import { PredictOutput } from './prediction'
+import { TrainingState, IntentDefinition, EntityDefinition, Training } from './training'
 
 export type TrainRequestBody = {
   language: string

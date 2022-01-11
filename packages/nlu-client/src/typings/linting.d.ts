@@ -73,7 +73,7 @@ export type LintingStatus = 'done' | 'linting-pending' | 'linting' | 'canceled' 
 export type LintingErrorType = 'lang-server' | 'duckling-server' | 'zombie-linting' | 'internal'
 
 export type LintingError = {
-  type: TrainingErrorType
+  type: LintingErrorType
   message: string
   stack?: string
 }
