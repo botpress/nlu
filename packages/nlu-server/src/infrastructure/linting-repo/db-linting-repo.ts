@@ -10,10 +10,13 @@ import {
   LintingError
 } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import _ from 'lodash'
+import moment from 'moment'
+import ms from 'ms'
 import { createTableIfNotExists } from '../../utils/database'
 import { LintingRepository } from '.'
+import { Linting, LintingId } from './typings'
 
 type IssuesRow = {
   id: string
@@ -24,12 +27,12 @@ type IssuesRow = {
   data: object
 }
 
-type LintingId = {
+type LintingRowId = {
   appId: string
   modelId: string
 }
 
-type LintingRow = LintingId & {
+type LintingRow = LintingRowId & {
   status: LintingStatus
   currentCount: number
   totalCount: number
@@ -43,23 +46,26 @@ type LintingRow = LintingId & {
 const ISSUES_TABLE_NAME = 'nlu_dataset_issues'
 const LINTINGS_TABLE_NAME = 'nlu_lintings'
 
+const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
+const MS_BEFORE_PRUNE = ms('1h')
+
 export class DatabaseLintingRepo implements LintingRepository {
   private _logger: Logger
+  private _janitorIntervalId: NodeJS.Timeout | undefined
+
+  private get _issues() {
+    return this._database.table<IssuesRow>(ISSUES_TABLE_NAME)
+  }
+
+  private get _lintings() {
+    return this._database.table<LintingRow>(LINTINGS_TABLE_NAME)
+  }
 
   constructor(protected _database: Knex, logger: Logger, private _engine: NLUEngine.Engine) {
     this._logger = logger.sub('linting-repo')
   }
 
   public async initialize() {
-    await createTableIfNotExists(this._database, ISSUES_TABLE_NAME, (table: Knex.CreateTableBuilder) => {
-      table.string('id').primary()
-      table.string('appId').notNullable()
-      table.string('modelId').notNullable()
-      table.string('code').notNullable()
-      table.text('message').notNullable()
-      table.json('data').notNullable()
-    })
-
     await createTableIfNotExists(this._database, LINTINGS_TABLE_NAME, (table: Knex.CreateTableBuilder) => {
       table.string('appId').notNullable()
       table.string('modelId').notNullable()
@@ -73,30 +79,43 @@ export class DatabaseLintingRepo implements LintingRepository {
       table.timestamp('updatedOn').notNullable()
       table.primary(['appId', 'modelId'])
     })
-  }
 
-  private get _issues() {
-    return this._database.table<IssuesRow>(ISSUES_TABLE_NAME)
-  }
+    await createTableIfNotExists(this._database, ISSUES_TABLE_NAME, (table: Knex.CreateTableBuilder) => {
+      table.string('id').primary()
+      table.string('appId').notNullable()
+      table.string('modelId').notNullable()
+      table.string('code').notNullable()
+      table.text('message').notNullable()
+      table.json('data').notNullable()
 
-  private get _lintings() {
-    return this._database.table<LintingRow>(LINTINGS_TABLE_NAME)
+      table
+        .foreign(['appId', 'modelId'])
+        .references(['appId', 'modelId'])
+        .inTable(LINTINGS_TABLE_NAME)
+        .onDelete('CASCADE')
+    })
+
+    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
   }
 
   public async teardown() {
     this._logger.debug('Linting repo teardown...')
+    this._janitorIntervalId && clearInterval(this._janitorIntervalId)
   }
 
-  public async has(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
+  public async has(id: LintingId): Promise<boolean> {
+    const { appId, modelId } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    const lintingId: LintingId = { appId, modelId: stringId }
+    const lintingId: LintingRowId = { appId, modelId: stringId }
     const linting = await this._lintings.select('*').where(lintingId).first()
     return !!linting
   }
 
-  public async get(appId: string, modelId: NLUEngine.ModelId): Promise<LintingState | undefined> {
+  // TODO: express this method as a single query using a right join
+  public async get(id: LintingId): Promise<LintingState | undefined> {
+    const { appId, modelId } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    const lintingId: LintingId = { appId, modelId: stringId }
+    const lintingId: LintingRowId = { appId, modelId: stringId }
     const linting = await this._lintings.select('*').where(lintingId).first()
     if (!linting) {
       return
@@ -111,27 +130,8 @@ export class DatabaseLintingRepo implements LintingRepository {
     return state
   }
 
-  private _toError = (
-    error_type: LintingErrorType | undefined,
-    error_message: string | undefined,
-    error_stack: string | undefined
-  ): LintingError | undefined => {
-    if (!error_type) {
-      return
-    }
-    return { message: error_message!, stack: error_stack!, type: error_type! }
-  }
-
-  public async set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
-    const alreadyExists = await this.has(appId, modelId)
-    if (alreadyExists) {
-      return this.update(appId, modelId, linting)
-    }
-    return this._insert(appId, modelId, linting)
-  }
-
-  private async _insert(appId: string, modelId: NLUEngine.ModelId, linting: LintingState): Promise<void> {
-    const { currentCount, issues, totalCount, status, error } = linting
+  public async set(linting: Linting): Promise<void> {
+    const { modelId, appId, currentCount, issues, totalCount, status, error } = linting
     const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
     const stringId = NLUEngine.modelIdService.toString(modelId)
 
@@ -147,48 +147,44 @@ export class DatabaseLintingRepo implements LintingRepository {
       startedOn: new Date().toISOString(),
       updatedOn: new Date().toISOString()
     }
-    await this._lintings.insert(lintingTaskRow)
+
+    await this._lintings
+      .insert(lintingTaskRow)
+      .onConflict(['appId', 'modelId'])
+      .merge(['status', 'currentCount', 'totalCount', 'error_type', 'error_message', 'error_stack', 'updatedOn'])
+
+    if (!issues.length) {
+      return
+    }
 
     const issueRows = issues.map(this._issueToRow.bind(this)).map((r) => ({ appId, modelId: stringId, ...r }))
-    return this._upsertIssues(issueRows)
+    await this._issues.insert(issueRows).onConflict('id').merge()
   }
 
-  public async update(appId: string, modelId: NLUEngine.ModelId, linting: Partial<LintingState>): Promise<void> {
-    const { currentCount, issues, totalCount, status, error } = linting
-    const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
-    const stringId = NLUEngine.modelIdService.toString(modelId)
-
-    const lintingTaskRow: Partial<LintingRow> = {
-      appId,
-      modelId: stringId,
-      currentCount,
-      totalCount,
-      status,
-      error_type,
-      error_stack,
-      error_message,
-      updatedOn: new Date().toISOString()
+  private async _janitor() {
+    const now = moment()
+    const before = now.subtract({ milliseconds: MS_BEFORE_PRUNE })
+    const nDeletions = await this._deleteOlderThan(before.toDate())
+    if (nDeletions) {
+      this._logger.debug(`Pruning ${nDeletions} linting state from database`)
     }
-
-    const lintingId: LintingId = { appId, modelId: stringId }
-    await this._lintings.where(lintingId).update(lintingTaskRow)
-
-    if (issues) {
-      const issueRows = issues.map(this._issueToRow.bind(this)).map((r) => ({ appId, modelId: stringId, ...r }))
-      await this._upsertIssues(issueRows)
-    }
+    return
   }
 
-  /**
-   * TODO: make this a single SQL call
-   */
-  private async _upsertIssues(issues: IssuesRow[]) {
-    for (const issue of issues) {
-      const alreadyExists = await this._issues.select('*').where({ id: issue.id }).first()
-      if (!alreadyExists) {
-        await this._issues.insert(issue)
-      }
+  private _deleteOlderThan = async (threshold: Date): Promise<number> => {
+    const iso = threshold.toISOString()
+    return this._lintings.where('updatedOn', '<=', iso).delete()
+  }
+
+  private _toError = (
+    error_type: LintingErrorType | undefined,
+    error_message: string | undefined,
+    error_stack: string | undefined
+  ): LintingError | undefined => {
+    if (!error_type) {
+      return
     }
+    return { message: error_message!, stack: error_stack!, type: error_type! }
   }
 
   private _rowToIssue = (row: IssuesRow & { id: string }): DatasetIssue<IssueCode> => {

@@ -3,7 +3,7 @@ import { Logger } from '@botpress/logger'
 import { TrainingError, TrainingErrorType, TrainingStatus, TrainInput } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
 import jsonpack from 'jsonpack'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
@@ -106,12 +106,12 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
   }
 
   public deleteOlderThan = async (threshold: Date): Promise<number> => {
-    const iso = this._toISO(threshold)
+    const iso = threshold.toISOString()
     return this.table.where('updatedOn', '<=', iso).delete()
   }
 
   public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
-    const iso = this._toISO(threshold)
+    const iso = threshold.toISOString()
 
     const rowFilters: Partial<TableRow> = this._partialTrainStateToQuery(query)
     const rows: TableRow[] = await this.table.where(rowFilters).where('updatedOn', '<=', iso).select('*')
@@ -162,12 +162,8 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
       error_message,
       error_stack,
       cluster: this._clusterId,
-      updatedOn: this._toISO(new Date())
+      updatedOn: new Date().toISOString()
     }
-  }
-
-  private _toISO(date: Date): string {
-    return date.toISOString()
   }
 
   private _rowToTraining(row: TableRow): Training {
@@ -216,12 +212,13 @@ export class DbTrainingRepository
     private _clusterId: string
   ) {
     super(logger.sub('training-repo'), new DbWrittableTrainingRepo(_database, _clusterId, logger.sub('training-repo')))
-    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
   }
 
   public initialize = async (): Promise<void> => {
     await this._writtableTrainingRepository.initialize()
     await this._trxQueue.initialize()
+
+    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
   }
 
   public async teardown(): Promise<void> {

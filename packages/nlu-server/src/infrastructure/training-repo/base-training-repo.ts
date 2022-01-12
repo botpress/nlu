@@ -31,7 +31,7 @@ export abstract class BaseWritableTrainingRepo implements WrittableTrainingRepos
     _.remove(this._listeners, (listener) => listener === listenerToRemove)
   }
 
-  async set(training: Training): Promise<void> {
+  public async set(training: Training): Promise<void> {
     this._onTrainingEvent(training)
   }
 
