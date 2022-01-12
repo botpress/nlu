@@ -166,7 +166,7 @@ export class DatabaseLintingRepo implements LintingRepository {
     const before = now.subtract({ milliseconds: MS_BEFORE_PRUNE })
     const nDeletions = await this._deleteOlderThan(before.toDate())
     if (nDeletions) {
-      this._logger.debug(`Pruning ${nDeletions} training state from database`)
+      this._logger.debug(`Pruning ${nDeletions} linting state from database`)
     }
     return
   }
