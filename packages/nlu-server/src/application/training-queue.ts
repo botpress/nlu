@@ -26,6 +26,7 @@ const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * TRAINING_HEARTBEAT_SECUR
 export type QueueOptions = {
   maxTraining: number
 }
+
 const DEFAULT_OPTIONS: QueueOptions = {
   maxTraining: 2
 }
@@ -182,12 +183,7 @@ export default class TrainingQueue {
 
   private _train = async (training: Training) => {
     const trainKey = this._toKey(training)
-
     this.logger.debug(`training "${trainKey}" is about to start.`)
-
-    if (!training) {
-      throw new Error("Invalid state: training state can't be found")
-    }
 
     const startTime = new Date()
 
@@ -215,13 +211,13 @@ export default class TrainingQueue {
       await this.modelRepo.pruneModels(appId, { keep }, { languageCode })
       await this.modelRepo.saveModel(appId, model)
 
-      this.logger.info(`[${trainKey}] Training Done.`)
-
       training.trainingTime = this._getTrainingTime(startTime)
       training.status = 'done'
       await this.trainingRepo.inTransaction(async (repo) => {
         return repo.set(training)
       }, '_train_done')
+
+      this.logger.info(`[${trainKey}] Training Done.`)
     } catch (thrownObject) {
       throttledCb.cancel()
 
