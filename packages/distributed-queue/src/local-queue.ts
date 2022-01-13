@@ -7,6 +7,7 @@ import ms from 'ms'
 import { TaskAlreadyStartedError, TaskNotFoundError } from './errors'
 import { createTimer, InterruptTimer } from './interrupt'
 import {
+  Task,
   TaskError,
   TaskHandler,
   TaskProgress,
@@ -17,7 +18,7 @@ import {
   WrittableTaskRepository
 } from './typings'
 
-// TODO: make these configurable
+// TODO: make these configurable by options
 const TASK_HEARTBEAT_SECURITY_FACTOR = 3
 const MIN_TASK_HEARTBEAT = ms('10s')
 const MAX_TASK_HEARTBEAT = MIN_TASK_HEARTBEAT * TASK_HEARTBEAT_SECURITY_FACTOR
@@ -130,48 +131,65 @@ export class LocalTaskQueue<TaskInput, TaskData> {
   }
 
   private _runSchedulerInterrupt = async () => {
-    return this._taskRepo
-      .inTransaction(async (repo) => {
-        const localTasks = await repo.query({ cluster: this._clusterId, status: 'running' })
-        if (localTasks.length >= this._options.maxTasks) {
-          return
+    return this._taskRepo.inTransaction(async (repo) => {
+      const localTasks = await repo.query({ cluster: this._clusterId, status: 'running' })
+      if (localTasks.length >= this._options.maxTasks) {
+        return
+      }
+
+      const zombieTasks = await this._getZombies(repo)
+      if (zombieTasks.length) {
+        this._logger.debug(`Queuing back ${zombieTasks.length} tasks because they seem to be zombies.`)
+        const error: TaskError = {
+          type: 'zombie-task',
+          message: `Zombie Task: Task had not been updated in more than ${MAX_TASK_HEARTBEAT} ms.`
         }
+        const progress = this._options.initialProgress
+        const newState: TaskState = { status: 'errored', cluster: this._clusterId, error, progress }
+        await Bluebird.each(zombieTasks, (z) => repo.set({ ...z, ...newState }))
+      }
 
-        const zombieTasks = await this._getZombies(repo)
-        if (zombieTasks.length) {
-          this._logger.debug(`Queuing back ${zombieTasks.length} tasks because they seem to be zombies.`)
-          const error: TaskError = {
-            type: 'zombie-task',
-            message: `Zombie Task: Task had not been updated in more than ${MAX_TASK_HEARTBEAT} ms.`
-          }
-          const progress = this._options.initialProgress
-          const newState: TaskState = { status: 'errored', cluster: this._clusterId, error, progress }
-          await Bluebird.each(zombieTasks, (z) => repo.set({ ...z, ...newState }))
-        }
+      const pendings = await repo.query({ status: 'pending' })
+      if (pendings.length <= 0) {
+        return
+      }
 
-        const pendings = await repo.query({ status: 'pending' })
-        if (pendings.length <= 0) {
-          return
-        }
+      const task = pendings[0]
+      task.status = 'running'
 
-        const task = pendings[0]
-        task.status = 'running'
+      await repo.set(task)
 
-        await repo.set(task)
+      // floating promise to return fast from scheduler interrupt
+      void this._runTask(task)
+    }, '_runSchedulerInterrupt')
+  }
 
-        // floating promise to return fast from scheduler interrupt
-        void this._taskRunner(task, async (p) => {
-          task.status = 'running'
-          task.progress = p
-          await this._taskRepo.inTransaction(async (repo) => {
-            return repo.set(task)
-          }, 'progressCallback')
-        })
-      }, '_runSchedulerInterrupt')
-      .finally(() => {
-        // to return asap
-        void this.runSchedulerInterrupt()
-      })
+  private _runTask = async (task: Task<TaskInput, TaskData>) => {
+    this._logger.debug(`task "${task.id}" is about to start.`)
+
+    const progressCb = async (progress: TaskProgress) => {
+      task.status = 'running'
+      task.progress = progress
+      await this._taskRepo.inTransaction(async (repo) => {
+        return repo.set(task)
+      }, 'progressCallback')
+    }
+    const throttledCb = _.throttle(progressCb, MIN_TASK_HEARTBEAT / 2)
+
+    try {
+      const terminatedTask = await this._taskRunner(task, throttledCb)
+
+      throttledCb.flush()
+      await this._taskRepo.inTransaction(async (repo) => {
+        return repo.set(terminatedTask)
+      }, '_task_terminated')
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      this._logger.attachError(err).error(`Unhandled error when running task "${task.id}"`)
+    } finally {
+      // to return asap
+      void this.runSchedulerInterrupt()
+    }
   }
 
   private _getZombies = (repo: WrittableTaskRepository<TaskInput, TaskData>) => {

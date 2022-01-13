@@ -1,8 +1,15 @@
+type _Override<T, K> = Omit<T, keyof K> & K
+type _Func<X extends any[], Y extends any> = (...x: X) => Y
+
 export type TaskTrx<TaskInput, TaskData> = (repo: WrittableTaskRepository<TaskInput, TaskData>) => Promise<void>
 
 export type TaskHandler<TaskInput, TaskData> = (task: Task<TaskInput, TaskData>) => Promise<void>
 export type ProgressCb = (progress: TaskProgress) => void
-export type TaskRunner<TaskInput, TaskData> = (task: Task<TaskInput, TaskData>, progress: ProgressCb) => Promise<void>
+
+export type TaskRunner<TaskInput, TaskData> = (
+  task: Task<TaskInput, TaskData>,
+  progress: ProgressCb
+) => Promise<TerminatedTask<TaskInput, TaskData>>
 
 export type TaskErrorType = 'zombie-task' | 'internal'
 export type TaskError = {
@@ -11,7 +18,8 @@ export type TaskError = {
   stack?: string
 }
 
-export type TaskStatus = 'done' | 'pending' | 'running' | 'canceled' | 'errored'
+export type TaskTerminatedStatus = 'done' | 'running' | 'errored'
+export type TaskStatus = TaskTerminatedStatus | 'pending' | 'running'
 export type TaskState = {
   status: TaskStatus
   cluster: string
@@ -20,6 +28,7 @@ export type TaskState = {
 }
 
 export type Task<TaskInput, TaskData> = TaskState & { id: string; input: TaskInput; data: Partial<TaskData> }
+export type TerminatedTask<TaskInput, TaskData> = _Override<Task<TaskInput, TaskData>, { status: TaskTerminatedStatus }>
 
 export type ReadonlyTaskRepository<TaskInput, TaskData> = {
   addListener: (listener: TaskHandler<TaskInput, TaskData>) => void
@@ -47,8 +56,10 @@ export type TaskProgress = {
   current: number
 }
 
-type Func<X extends any[], Y extends any> = (...x: X) => Y
-export type Broadcaster = <X extends any[]>(name: string, f: Func<X, Promise<void>>) => Promise<Func<X, Promise<void>>>
+export type Broadcaster = <X extends any[]>(
+  name: string,
+  f: _Func<X, Promise<void>>
+) => Promise<_Func<X, Promise<void>>>
 
 export class DistributedTaskQueue<TaskInput, TaskData> {
   public readonly taskRepo: TaskRepository<TaskInput, TaskData>
