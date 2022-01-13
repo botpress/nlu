@@ -1,14 +1,17 @@
 import crypto from 'crypto'
 import _ from 'lodash'
 import { Client } from 'pg'
-import { InMemoryTransactionQueue } from './in-mem-trx-queue'
-import { LockedTransactionQueue, Task, Logger } from './typings'
+import { InMemoryTransactionLocker } from './in-mem-trx-locker'
+import { TransactionLocker, Transaction, Logger } from './typings'
 
 const TRX_LOCK_KEY = 'trx_lock'
 
-export class PGTransactionQueue<T> implements LockedTransactionQueue<T> {
+/**
+ * For race conditions occuring in distributed applications
+ */
+export class PGTransactionLocker<T> implements TransactionLocker<T> {
   private client: Client
-  private _memQueue = new InMemoryTransactionQueue<T>()
+  private _memQueue = new InMemoryTransactionLocker<T>()
 
   constructor(dbURL: string, private _logger?: Logger) {
     this.client = new Client(dbURL)
@@ -22,8 +25,8 @@ export class PGTransactionQueue<T> implements LockedTransactionQueue<T> {
     return this.client.end()
   }
 
-  public async runInLock(t: Task<T>): Promise<T> {
-    this._logger?.(`Task "${t.name}" waiting.`)
+  public async runInLock(t: Transaction<T>): Promise<T> {
+    this._logger?.(`Trx "${t.name}" waiting.`)
 
     return this._memQueue.runInLock({
       name: t.name,
@@ -32,9 +35,9 @@ export class PGTransactionQueue<T> implements LockedTransactionQueue<T> {
 
         try {
           await this._waitForLock(TRX_LOCK_KEY)
-          this._logger?.(`Task "${t.name}" started.`)
+          this._logger?.(`Trx "${t.name}" started.`)
           x = await t.cb()
-          this._logger?.(`Task "${t.name}" done.`)
+          this._logger?.(`Trx "${t.name}" done.`)
         } finally {
           await this._releaseLock(TRX_LOCK_KEY)
         }

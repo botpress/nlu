@@ -1,4 +1,4 @@
-import { makePostgresTrxQueue } from '@botpress/locks'
+import { locks } from '@botpress/distributed'
 import { Logger } from '@botpress/logger'
 import { Engine } from '@botpress/nlu-engine'
 import Knex from 'knex'
@@ -63,7 +63,9 @@ const makeServicesWithDb = (dbURL: string) => async (
 
   const modelRepo = new DbModelRepository(knexDb, logger)
   const loggingCb = (msg: string) => logger.sub('trx-queue').debug(msg)
-  const trainRepo = new DbTrainingRepository(knexDb, makePostgresTrxQueue(dbURL, loggingCb), logger, CLUSTER_ID)
+
+  const pgLocker = new locks.PGTransactionLocker<void>(dbURL, loggingCb)
+  const trainRepo = new DbTrainingRepository(knexDb, pgLocker, logger, CLUSTER_ID)
   const broadcaster = makeBroadcaster(dbURL)
   const trainingQueue = new DistributedTrainingQueue(
     engine,

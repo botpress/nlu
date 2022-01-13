@@ -4,8 +4,7 @@
     { "path": "../nlu-client" },
     { "path": "../nlu-engine" },
     { "path": "../logger" },
-    { "path": "../locks" },
-    { "path": "../distributed-queue" }
+    { "path": "../distributed" }
   ],
   "compilerOptions": {
     "outDir": "./dist" /* Redirect output structure to the directory. */,

@@ -1,4 +1,4 @@
-import { makeInMemoryTrxQueue, LockedTransactionQueue } from '@botpress/locks'
+import { locks } from '@botpress/distributed'
 import { Logger } from '@botpress/logger'
 import { TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
@@ -122,12 +122,12 @@ class WrittableTrainingRepo extends BaseWritableTrainingRepo implements Writtabl
 }
 
 export class InMemoryTrainingRepo extends BaseTrainingRepository<WrittableTrainingRepo> implements TrainingRepository {
-  private _trxQueue: LockedTransactionQueue<void>
+  private _trxQueue: locks.TransactionLocker<void>
 
   constructor(logger: Logger) {
     super(logger, new WrittableTrainingRepo(logger))
     const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)
-    this._trxQueue = makeInMemoryTrxQueue(logCb)
+    this._trxQueue = new locks.InMemoryTransactionLocker(logCb)
   }
 
   public async initialize(): Promise<void> {

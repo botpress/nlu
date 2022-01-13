@@ -3,6 +3,7 @@ import Bluebird from 'bluebird'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
+import { nanoid } from 'nanoid'
 
 import { TaskAlreadyStartedError, TaskNotFoundError } from './errors'
 import { createTimer, InterruptTimer } from './interrupt'
@@ -11,11 +12,11 @@ import {
   TaskError,
   TaskHandler,
   TaskProgress,
-  TaskRepository,
+  SafeTaskRepository,
   TaskRunner,
   TaskState,
   TaskStatus,
-  WrittableTaskRepository
+  TaskRepository
 } from './typings'
 
 // TODO: make these configurable by options
@@ -35,14 +36,14 @@ const DEFAULT_OPTIONS: QueueOptions<{}> = {
   initialData: {}
 }
 
-export class LocalTaskQueue<TaskInput, TaskData> {
+export class BaseTaskQueue<TaskInput, TaskData> {
   private _logger: Logger
   private _options: QueueOptions<TaskData>
   private _schedulingTimmer!: InterruptTimer<[]>
+  protected _clusterId: string = nanoid()
 
   constructor(
-    private _taskRepo: TaskRepository<TaskInput, TaskData>,
-    private _clusterId: string,
+    protected _taskRepo: SafeTaskRepository<TaskInput, TaskData>,
     private _taskRunner: TaskRunner<TaskInput, TaskData>,
     private _taskCanceler: TaskHandler<TaskInput, TaskData>,
     logger: Logger,
@@ -50,14 +51,6 @@ export class LocalTaskQueue<TaskInput, TaskData> {
   ) {
     this._logger = logger.sub('task-queue')
     this._options = { ...DEFAULT_OPTIONS, ...opt }
-  }
-
-  public addListener(listener: TaskHandler<TaskInput, TaskData>) {
-    this._taskRepo.addListener(listener)
-  }
-
-  public removeListener(listener: TaskHandler<TaskInput, TaskData>) {
-    this._taskRepo.removeListener(listener)
   }
 
   public async initialize() {
@@ -192,7 +185,7 @@ export class LocalTaskQueue<TaskInput, TaskData> {
     }
   }
 
-  private _getZombies = (repo: WrittableTaskRepository<TaskInput, TaskData>) => {
+  private _getZombies = (repo: TaskRepository<TaskInput, TaskData>) => {
     const zombieThreshold = moment().subtract(MAX_TASK_HEARTBEAT, 'ms').toDate()
     return repo.queryOlderThan({ status: 'running' }, zombieThreshold)
   }

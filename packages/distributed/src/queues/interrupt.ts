@@ -30,7 +30,7 @@ export type InterruptTimer<X extends any[]> = {
  *
  * @param f Function to run
  * @param ms Max allowed time beetween function invocation
- * @returns a watchdog object that can be ran or stopped
+ * @returns a timer object that can be ran or stopped
  */
 export const createTimer = <X extends any[]>(f: Func<X, Promise<void>>, ms: number): InterruptTimer<X> => {
   const interval = new Interval(f, ms)

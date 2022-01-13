@@ -1,4 +1,4 @@
-import { LockedTransactionQueue } from '@botpress/locks'
+import { locks } from '@botpress/distributed'
 import { Logger } from '@botpress/logger'
 import { TrainingError, TrainingErrorType, TrainingStatus, TrainInput } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
@@ -207,7 +207,7 @@ export class DbTrainingRepository
 
   constructor(
     private _database: Knex,
-    private _trxQueue: LockedTransactionQueue<void>,
+    private _trxQueue: locks.TransactionLocker<void>,
     logger: Logger,
     private _clusterId: string
   ) {

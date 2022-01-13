@@ -1,19 +1,22 @@
 import _ from 'lodash'
-import { LockedTransactionQueue, Logger, Task } from './typings'
+import { TransactionLocker, Logger, Transaction } from './typings'
 
-export class InMemoryTransactionQueue<T> implements LockedTransactionQueue<T> {
-  private _tasks: Task<void>[] = []
+/**
+ * For race conditions occuring because of the event loop in a single-threaded application
+ */
+export class InMemoryTransactionLocker<T> implements TransactionLocker<T> {
+  private _tasks: Transaction<void>[] = []
 
   constructor(private _logger?: Logger) {}
 
   public async initialize() {}
   public async teardown() {}
 
-  public runInLock(t: Task<T>): Promise<T> {
+  public runInLock(t: Transaction<T>): Promise<T> {
     this._logger?.(`Task "${t.name}" waiting.`)
 
     return new Promise<T>((resolve, reject) => {
-      const mockTask: Task<void> = {
+      const mockTask: Transaction<void> = {
         name: t.name,
         cb: async () => {
           try {
@@ -32,7 +35,7 @@ export class InMemoryTransactionQueue<T> implements LockedTransactionQueue<T> {
     })
   }
 
-  private _push(t: Task<void>) {
+  private _push(t: Transaction<void>) {
     const first = !this._tasks.length
     this._tasks.unshift(t)
 
