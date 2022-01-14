@@ -15,7 +15,7 @@ import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { LintingRepository } from '../infrastructure/linting-repo'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { ReadonlyTrainingRepository, TrainingListener } from '../infrastructure/training-repo/typings'
+import { TrainingRepository, TrainingListener } from '../infrastructure/training-repo/typings'
 import {
   ModelDoesNotExistError,
   TrainingNotFoundError,
@@ -25,14 +25,14 @@ import {
   DatasetValidationError,
   LintingNotFoundError
 } from './errors'
-import TrainingQueue from './training-queue'
+import { TrainingQueue } from './training-queue'
 
 export class Application {
   private _logger: Logger
 
   constructor(
     private _modelRepo: ModelRepository,
-    private _trainingRepo: ReadonlyTrainingRepository,
+    private _trainingRepo: TrainingRepository,
     private _lintingRepo: LintingRepository,
     private _trainingQueue: TrainingQueue,
     private _engine: Engine,

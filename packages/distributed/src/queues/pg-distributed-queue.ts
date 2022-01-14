@@ -1,10 +1,10 @@
 import { Logger } from '@botpress/logger'
 import PGPubSub from 'pg-pubsub'
 import { PGTransactionLocker } from '../locks'
-import { BaseTaskQueue, QueueOptions } from './base-queue'
+import { BaseTaskQueue } from './base-queue'
 import { LocalTaskQueue } from './local-queue'
 import { SafeTaskRepo } from './safe-repo'
-import { TaskHandler, TaskRunner, TaskRepository } from './typings'
+import { TaskRunner, TaskRepository, QueueOptions } from './typings'
 
 type Func<X extends any[], Y extends any> = (...x: X) => Y
 
@@ -18,11 +18,10 @@ export class PGDistributedTaskQueue<TaskInput, TaskData> extends BaseTaskQueue<T
     pgURL: string,
     taskRepo: TaskRepository<TaskInput, TaskData>,
     taskRunner: TaskRunner<TaskInput, TaskData>,
-    taskCanceler: TaskHandler<TaskInput, TaskData>,
     logger: Logger,
-    opt: Partial<QueueOptions<TaskData>> = {}
+    opt: Partial<QueueOptions<TaskInput, TaskData>> = {}
   ) {
-    super(PGDistributedTaskQueue._makeSafeRepo(pgURL, taskRepo, logger), taskRunner, taskCanceler, logger, opt)
+    super(PGDistributedTaskQueue._makeSafeRepo(pgURL, taskRepo, logger), taskRunner, logger, opt)
     this._pubsub = new PGPubSub(pgURL, {
       log: () => {}
     })

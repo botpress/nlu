@@ -1,12 +1,8 @@
-import { locks } from '@botpress/distributed'
 import { Logger } from '@botpress/logger'
 import { Engine } from '@botpress/nlu-engine'
 import Knex from 'knex'
-import { nanoid } from 'nanoid'
-import PGPubsub from 'pg-pubsub'
 import { Application } from '../application'
-import { DistributedTrainingQueue } from '../application/distributed-training-queue'
-import TrainingQueue, { QueueOptions } from '../application/training-queue'
+import { TrainQueueOptions, TrainingQueue, PgTrainingQueue, LocalTrainingQueue } from '../application/training-queue'
 import {
   DbTrainingRepository,
   InMemoryTrainingRepo,
@@ -17,7 +13,6 @@ import {
 } from '../infrastructure'
 import { InMemoryLintingRepo, LintingRepository, DatabaseLintingRepo } from '../infrastructure/linting-repo'
 import { NLUServerOptions } from '../typings'
-import { Broadcaster } from '../utils/broadcast'
 import { makeEngine } from './make-engine'
 
 type Services = {
@@ -27,24 +22,14 @@ type Services = {
   lintingRepo: LintingRepository
 }
 
-const CLUSTER_ID = nanoid()
-
-const makeBroadcaster = (dbURL: string) => {
-  const dummyLogger = () => {}
-  const pubsub = new PGPubsub(dbURL, {
-    log: dummyLogger
-  })
-  return new Broadcaster(pubsub)
-}
-
 const makeServicesWithoutDb = (modelDir: string) => async (
   engine: Engine,
   logger: Logger,
-  queueOptions?: Partial<QueueOptions>
+  queueOptions?: Partial<TrainQueueOptions>
 ): Promise<Services> => {
   const modelRepo = new FileSystemModelRepository(modelDir, logger)
   const trainRepo = new InMemoryTrainingRepo(logger)
-  const trainingQueue = new TrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, logger, queueOptions)
+  const trainingQueue = new LocalTrainingQueue(trainRepo, engine, modelRepo, logger, queueOptions)
   const lintingRepo = new InMemoryLintingRepo(logger)
   return {
     modelRepo,
@@ -57,25 +42,13 @@ const makeServicesWithoutDb = (modelDir: string) => async (
 const makeServicesWithDb = (dbURL: string) => async (
   engine: Engine,
   logger: Logger,
-  queueOptions?: Partial<QueueOptions>
+  queueOptions?: Partial<TrainQueueOptions>
 ): Promise<Services> => {
   const knexDb = Knex({ connection: dbURL, client: 'pg' })
 
   const modelRepo = new DbModelRepository(knexDb, logger)
-  const loggingCb = (msg: string) => logger.sub('trx-queue').debug(msg)
-
-  const pgLocker = new locks.PGTransactionLocker<void>(dbURL, loggingCb)
-  const trainRepo = new DbTrainingRepository(knexDb, pgLocker, logger, CLUSTER_ID)
-  const broadcaster = makeBroadcaster(dbURL)
-  const trainingQueue = new DistributedTrainingQueue(
-    engine,
-    modelRepo,
-    trainRepo,
-    CLUSTER_ID,
-    logger,
-    broadcaster,
-    queueOptions
-  )
+  const trainRepo = new DbTrainingRepository(knexDb, logger)
+  const trainingQueue = new PgTrainingQueue(dbURL, trainRepo, engine, modelRepo, logger, queueOptions)
   const lintingRepo = new DatabaseLintingRepo(knexDb, logger, engine)
   return {
     modelRepo,

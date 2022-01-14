@@ -10,13 +10,13 @@ import { createTimer, InterruptTimer } from './interrupt'
 import {
   Task,
   TaskError,
-  TaskHandler,
   TaskProgress,
   SafeTaskRepository,
   TaskRunner,
   TaskState,
   TaskStatus,
-  TaskRepository
+  TaskRepository,
+  QueueOptions
 } from './typings'
 
 // TODO: make these configurable by options
@@ -24,13 +24,7 @@ const TASK_HEARTBEAT_SECURITY_FACTOR = 3
 const MIN_TASK_HEARTBEAT = ms('10s')
 const MAX_TASK_HEARTBEAT = MIN_TASK_HEARTBEAT * TASK_HEARTBEAT_SECURITY_FACTOR
 
-export type QueueOptions<TaskData> = {
-  maxTasks: number
-  initialProgress: TaskProgress
-  initialData: Partial<TaskData>
-}
-
-const DEFAULT_OPTIONS: QueueOptions<{}> = {
+const DEFAULT_OPTIONS: QueueOptions<any, any> = {
   maxTasks: 2,
   initialProgress: { start: 0, end: 100, current: 0 },
   initialData: {}
@@ -38,16 +32,15 @@ const DEFAULT_OPTIONS: QueueOptions<{}> = {
 
 export class BaseTaskQueue<TaskInput, TaskData> {
   private _logger: Logger
-  private _options: QueueOptions<TaskData>
+  private _options: QueueOptions<TaskInput, TaskData>
   private _schedulingTimmer!: InterruptTimer<[]>
   protected _clusterId: string = nanoid()
 
   constructor(
     protected _taskRepo: SafeTaskRepository<TaskInput, TaskData>,
     private _taskRunner: TaskRunner<TaskInput, TaskData>,
-    private _taskCanceler: TaskHandler<TaskInput, TaskData>,
     logger: Logger,
-    opt: Partial<QueueOptions<TaskData>> = {}
+    opt: Partial<QueueOptions<TaskInput, TaskData>> = {}
   ) {
     this._logger = logger.sub('task-queue')
     this._options = { ...DEFAULT_OPTIONS, ...opt }
@@ -79,7 +72,6 @@ export class BaseTaskQueue<TaskInput, TaskData> {
         progress: this._options.initialProgress
       }
 
-      this._logger.debug(`Queuing "${taskId}"`)
       return repo.set({
         ...state,
         id: taskId,
@@ -87,7 +79,6 @@ export class BaseTaskQueue<TaskInput, TaskData> {
         data: this._options.initialData
       })
     }, 'queueTask')
-    this._logger.info(`[${taskId}] Task Queued.`)
 
     // to return asap from queuing
     void this.runSchedulerInterrupt()
@@ -114,7 +105,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
       }
 
       if (currentTask.status === 'running') {
-        return this._taskCanceler(currentTask)
+        return this._taskRunner.cancel(currentTask)
       }
     }, 'cancelTask')
   }
@@ -170,7 +161,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
     const throttledCb = _.throttle(progressCb, MIN_TASK_HEARTBEAT / 2)
 
     try {
-      const terminatedTask = await this._taskRunner(task, throttledCb)
+      const terminatedTask = await this._taskRunner.run(task, throttledCb)
 
       throttledCb.flush()
       await this._taskRepo.inTransaction(async (repo) => {

@@ -3,10 +3,10 @@ export type TaskTrx<TaskInput, TaskData> = (repo: TaskRepository<TaskInput, Task
 export type TaskHandler<TaskInput, TaskData> = (task: Task<TaskInput, TaskData>) => Promise<void>
 export type ProgressCb = (progress: TaskProgress) => void
 
-export type TaskRunner<TaskInput, TaskData> = (
-  task: Task<TaskInput, TaskData>,
-  progress: ProgressCb
-) => Promise<TerminatedTask<TaskInput, TaskData>>
+export type TaskRunner<TaskInput, TaskData> = {
+  run: (task: Task<TaskInput, TaskData>, progress: ProgressCb) => Promise<TerminatedTask<TaskInput, TaskData>>
+  cancel: (task: Task<TaskInput, TaskData>) => Promise<void>
+}
 
 export type TaskErrorType = 'zombie-task' | 'internal'
 export type TaskError = {
@@ -15,7 +15,7 @@ export type TaskError = {
   stack?: string
 }
 
-export type TaskTerminatedStatus = 'done' | 'running' | 'errored'
+export type TaskTerminatedStatus = 'done' | 'canceled' | 'errored'
 export type TaskStatus = TaskTerminatedStatus | 'pending' | 'running'
 export type TaskState = {
   status: TaskStatus
@@ -50,4 +50,18 @@ export type TaskProgress = {
   start: number
   end: number
   current: number
+}
+
+export type QueueOptions<_TaskInput, TaskData> = {
+  maxTasks: number
+  initialProgress: TaskProgress
+  initialData: Partial<TaskData>
+}
+
+export type TaskQueue<TaskInput, _TaskData> = {
+  initialize(): Promise<void>
+  teardown(): Promise<void>
+  getLocalTaskCount(): Promise<number>
+  queueTask(taskId: string, input: TaskInput): Promise<void>
+  cancelTask(taskId: string): Promise<void>
 }
