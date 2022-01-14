@@ -3,12 +3,21 @@ import { Logger } from '@botpress/logger'
 import { TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
+import ms from 'ms'
 
 import { ModelRepository, TrainingId, TrainingRepository, TrainingListener } from '../../infrastructure'
 import { TrainHandler } from './train-handler'
 import { mapTrainIdtoTaskId } from './train-task-mapper'
 import { TrainTaskRepo } from './train-task-repo'
 import { TrainData } from './typings'
+
+export const MIN_TRAINING_HEARTBEAT = ms('10s')
+export const PROGRESS_THROTTLE = MIN_TRAINING_HEARTBEAT / 2
+export const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * 3
+const TASK_OPTIONS: Partial<queues.QueueOptions<TrainInput, TrainData>> = {
+  maxProgressDelay: MAX_TRAINING_HEARTBEAT,
+  progressThrottle: PROGRESS_THROTTLE
+}
 
 export type TrainQueueOptions = {
   maxTraining?: number
@@ -67,6 +76,7 @@ export class PgTrainingQueue extends TrainingQueue {
     const trainTaskRepo = new TrainTaskRepo(trainingRepo)
     const trainHandler = new TrainHandler(engine, modelRepo, logger.sub('training-queue'))
     const taskQueue = new queues.PGDistributedTaskQueue(pgURL, trainTaskRepo, trainHandler, logger, {
+      ...TASK_OPTIONS,
       maxTasks: opt.maxTraining
     })
     super(trainingRepo, taskQueue, logger)
@@ -85,6 +95,7 @@ export class LocalTrainingQueue extends TrainingQueue {
     const logger = baseLogger.sub('training-queue')
     const trainHandler = new TrainHandler(engine, modelRepo, logger)
     const taskQueue = new queues.LocalTaskQueue(trainTaskRepo, trainHandler, logger, {
+      ...TASK_OPTIONS,
       maxTasks: opt.maxTraining
     })
     super(trainingRepo, taskQueue, logger)

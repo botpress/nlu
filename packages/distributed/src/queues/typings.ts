@@ -56,6 +56,8 @@ export type QueueOptions<_TaskInput, TaskData> = {
   maxTasks: number
   initialProgress: TaskProgress
   initialData: Partial<TaskData>
+  maxProgressDelay: number
+  progressThrottle: number
 }
 
 export type TaskQueue<TaskInput, _TaskData> = {

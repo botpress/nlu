@@ -2,13 +2,12 @@ import { queues } from '@botpress/distributed'
 import { Logger } from '@botpress/logger'
 import { TrainingErrorType, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
-import ms from 'ms'
 import { ModelRepository } from '../../infrastructure'
+import { MIN_TRAINING_HEARTBEAT } from '.'
 import { mapTaskToTraining, mapTrainingToTask } from './train-task-mapper'
 import { TrainData } from './typings'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
-const MIN_TRAINING_HEARTBEAT = ms('10s') // TODO: rm dupplication
 
 export class TrainHandler implements queues.TaskRunner<TrainInput, TrainData> {
   constructor(private engine: NLUEngine.Engine, private modelRepo: ModelRepository, private logger: Logger) {}

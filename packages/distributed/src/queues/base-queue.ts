@@ -19,15 +19,12 @@ import {
   QueueOptions
 } from './typings'
 
-// TODO: make these configurable by options
-const TASK_HEARTBEAT_SECURITY_FACTOR = 3
-const MIN_TASK_HEARTBEAT = ms('10s')
-const MAX_TASK_HEARTBEAT = MIN_TASK_HEARTBEAT * TASK_HEARTBEAT_SECURITY_FACTOR
-
 const DEFAULT_OPTIONS: QueueOptions<any, any> = {
   maxTasks: 2,
   initialProgress: { start: 0, end: 100, current: 0 },
-  initialData: {}
+  initialData: {},
+  progressThrottle: ms('5s'),
+  maxProgressDelay: ms('30s')
 }
 
 export class BaseTaskQueue<TaskInput, TaskData> {
@@ -47,7 +44,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
   }
 
   public async initialize() {
-    this._schedulingTimmer = createTimer(this._runSchedulerInterrupt.bind(this), MAX_TASK_HEARTBEAT * 2)
+    this._schedulingTimmer = createTimer(this._runSchedulerInterrupt.bind(this), this._options.maxProgressDelay * 2)
   }
 
   public async teardown() {
@@ -126,7 +123,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
         this._logger.debug(`Queuing back ${zombieTasks.length} tasks because they seem to be zombies.`)
         const error: TaskError = {
           type: 'zombie-task',
-          message: `Zombie Task: Task had not been updated in more than ${MAX_TASK_HEARTBEAT} ms.`
+          message: `Zombie Task: Task had not been updated in more than ${this._options.maxProgressDelay} ms.`
         }
         const progress = this._options.initialProgress
         const newState: TaskState = { status: 'errored', cluster: this._clusterId, error, progress }
@@ -158,7 +155,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
         return repo.set(task)
       }, 'progressCallback')
     }
-    const throttledCb = _.throttle(progressCb, MIN_TASK_HEARTBEAT / 2)
+    const throttledCb = _.throttle(progressCb, this._options.progressThrottle)
 
     try {
       const terminatedTask = await this._taskRunner.run(task, throttledCb)
@@ -177,7 +174,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
   }
 
   private _getZombies = (repo: TaskRepository<TaskInput, TaskData>) => {
-    const zombieThreshold = moment().subtract(MAX_TASK_HEARTBEAT, 'ms').toDate()
+    const zombieThreshold = moment().subtract(this._options.maxProgressDelay, 'ms').toDate()
     return repo.queryOlderThan({ status: 'running' }, zombieThreshold)
   }
 }
