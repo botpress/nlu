@@ -16,10 +16,11 @@ import {
   TaskState,
   TaskStatus,
   TaskRepository,
-  QueueOptions
+  QueueOptions,
+  TaskQueue as ITaskQueue
 } from './typings'
 
-const DEFAULT_OPTIONS: QueueOptions<any, any> = {
+const DEFAULT_OPTIONS: QueueOptions<any, any, any> = {
   maxTasks: 2,
   initialProgress: { start: 0, end: 100, current: 0 },
   initialData: {},
@@ -27,17 +28,17 @@ const DEFAULT_OPTIONS: QueueOptions<any, any> = {
   maxProgressDelay: ms('30s')
 }
 
-export class BaseTaskQueue<TaskInput, TaskData> {
+export class BaseTaskQueue<TInput, TData, TError> implements ITaskQueue<TInput, TData, TError> {
   private _logger: Logger
-  private _options: QueueOptions<TaskInput, TaskData>
+  private _options: QueueOptions<TInput, TData, TError>
   private _schedulingTimmer!: InterruptTimer<[]>
   protected _clusterId: string = nanoid()
 
   constructor(
-    protected _taskRepo: SafeTaskRepository<TaskInput, TaskData>,
-    private _taskRunner: TaskRunner<TaskInput, TaskData>,
+    protected _taskRepo: SafeTaskRepository<TInput, TData, TError>,
+    private _taskRunner: TaskRunner<TInput, TData, TError>,
     logger: Logger,
-    opt: Partial<QueueOptions<TaskInput, TaskData>> = {}
+    opt: Partial<QueueOptions<TInput, TData, TError>> = {}
   ) {
     this._logger = logger.sub('task-queue')
     this._options = { ...DEFAULT_OPTIONS, ...opt }
@@ -56,7 +57,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
     return localTasks.length
   }
 
-  public queueTask = async (taskId: string, input: TaskInput) => {
+  public queueTask = async (taskId: string, input: TInput) => {
     await this._taskRepo.inTransaction(async (repo) => {
       const currentTask = await repo.get(taskId)
       if (currentTask && (currentTask.status === 'running' || currentTask.status === 'pending')) {
@@ -121,13 +122,15 @@ export class BaseTaskQueue<TaskInput, TaskData> {
       const zombieTasks = await this._getZombies(repo)
       if (zombieTasks.length) {
         this._logger.debug(`Queuing back ${zombieTasks.length} tasks because they seem to be zombies.`)
-        const error: TaskError = {
+
+        const error: TaskError<TData, TInput, TError> = {
           type: 'zombie-task',
           message: `Zombie Task: Task had not been updated in more than ${this._options.maxProgressDelay} ms.`
         }
+
         const progress = this._options.initialProgress
-        const newState: TaskState = { status: 'errored', cluster: this._clusterId, error, progress }
-        await Bluebird.each(zombieTasks, (z) => repo.set({ ...z, ...newState }))
+        const newState: TaskState = { status: 'errored', cluster: this._clusterId, progress }
+        await Bluebird.each(zombieTasks, (z) => repo.set({ ...z, ...newState, error }))
       }
 
       const pendings = await repo.query({ status: 'pending' })
@@ -145,7 +148,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
     }, '_runSchedulerInterrupt')
   }
 
-  private _runTask = async (task: Task<TaskInput, TaskData>) => {
+  private _runTask = async (task: Task<TInput, TData, TError>) => {
     this._logger.debug(`task "${task.id}" is about to start.`)
 
     const progressCb = async (progress: TaskProgress) => {
@@ -161,6 +164,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
       const terminatedTask = await this._taskRunner.run(task, throttledCb)
 
       throttledCb.flush()
+
       await this._taskRepo.inTransaction(async (repo) => {
         return repo.set(terminatedTask)
       }, '_task_terminated')
@@ -173,7 +177,7 @@ export class BaseTaskQueue<TaskInput, TaskData> {
     }
   }
 
-  private _getZombies = (repo: TaskRepository<TaskInput, TaskData>) => {
+  private _getZombies = (repo: TaskRepository<TInput, TData, TError>) => {
     const zombieThreshold = moment().subtract(this._options.maxProgressDelay, 'ms').toDate()
     return repo.queryOlderThan({ status: 'running' }, zombieThreshold)
   }

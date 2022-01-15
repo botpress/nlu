@@ -1,34 +1,17 @@
 import { TransactionLocker } from '../locks'
-import { SafeTaskRepository as ISafeTaskRepository, Task, TaskRepository, TaskState, TaskTrx } from './typings'
+import { SafeTaskRepository as ISafeTaskRepository, TaskRepository, TaskTrx } from './typings'
 
-export class SafeTaskRepo<TaskInput, TaskData> implements ISafeTaskRepository<TaskInput, TaskData> {
-  constructor(private _taskRepo: TaskRepository<TaskInput, TaskData>, private _trxLock: TransactionLocker<void>) {}
+export class SafeTaskRepo<TInput, TData, TError> implements ISafeTaskRepository<TInput, TData, TError> {
+  constructor(private _taskRepo: TaskRepository<TInput, TData, TError>, private _trxLock: TransactionLocker<void>) {}
 
-  public async initialize(): Promise<void> {
-    return this._taskRepo.initialize()
-  }
+  public initialize = this._taskRepo.initialize.bind(this._taskRepo)
+  public get = this._taskRepo.get.bind(this._taskRepo)
+  public has = this._taskRepo.has.bind(this._taskRepo)
+  public query = this._taskRepo.query.bind(this._taskRepo)
+  public queryOlderThan = this._taskRepo.queryOlderThan.bind(this._taskRepo)
+  public teardown = this._taskRepo.teardown.bind(this._taskRepo)
 
-  public async get(id: string): Promise<Task<TaskInput, TaskData> | undefined> {
-    return this._taskRepo.get(id)
-  }
-
-  public async has(id: string): Promise<boolean> {
-    return this._taskRepo.has(id)
-  }
-
-  public async query(query: Partial<TaskState>): Promise<Task<TaskInput, TaskData>[]> {
-    return this._taskRepo.query(query)
-  }
-
-  public async queryOlderThan(query: Partial<TaskState>, threshold: Date): Promise<Task<TaskInput, TaskData>[]> {
-    return this._taskRepo.queryOlderThan(query, threshold)
-  }
-
-  public async teardown() {
-    return this._taskRepo.teardown()
-  }
-
-  public async inTransaction(trx: TaskTrx<TaskInput, TaskData>, name: string): Promise<void> {
+  public inTransaction(trx: TaskTrx<TInput, TData, TError>, name: string): Promise<void> {
     return this._trxLock.runInLock({
       name,
       cb: () => trx(this._taskRepo)

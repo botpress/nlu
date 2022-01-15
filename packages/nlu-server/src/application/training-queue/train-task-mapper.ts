@@ -1,9 +1,9 @@
 import { queues } from '@botpress/distributed'
-import { TrainingError, TrainingErrorType, TrainingStatus, TrainInput } from '@botpress/nlu-client'
+import { TrainingError, TrainingStatus, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import { Training, TrainingId } from '../../infrastructure'
-import { TrainData } from './typings'
+import { TrainTaskData, TrainTaskError } from './typings'
 
 export const mapTrainIdtoTaskId = (trainId: TrainingId): string => {
   const { appId, modelId } = trainId
@@ -54,34 +54,28 @@ export const mapTaskStatusToTrainStatus = (taskStatus: queues.TaskStatus): Train
   throw new Error(`Unsuported task status: "${taskStatus}"`)
 }
 
-// TODO: there is more error type than task type
-export const mapTaskErrorTypeToTrainErrorType = (taskErrorType: queues.TaskErrorType): TrainingErrorType => {
-  if (taskErrorType === 'zombie-task') {
-    return 'zombie-training'
-  }
-  return 'internal'
-}
-
-export const mapTrainErrorTypeToTaskErrorType = (trainErrorType: TrainingErrorType): queues.TaskErrorType => {
-  if (trainErrorType === 'zombie-training') {
-    return 'zombie-task'
-  }
-  return 'internal'
-}
-
-export const mapTaskErrorToTrainError = (taskError: queues.TaskError): TrainingError => {
+export const mapTaskErrorToTrainError = (
+  taskError: queues.TaskError<TrainInput, TrainTaskData, TrainTaskError>
+): TrainingError => {
   const { type: taskType, message, stack } = taskError
-  const type = mapTaskErrorTypeToTrainErrorType(taskType)
-  return { type, message, stack }
+  if (taskType === 'zombie-task') {
+    return { type: 'zombie-training', message, stack }
+  }
+  const { data } = taskError
+  return { type: data.actualErrorType, message, stack }
 }
 
-export const mapTrainErrorToTaskError = (trainError: TrainingError): queues.TaskError => {
+export const mapTrainErrorToTaskError = (
+  trainError: TrainingError
+): queues.TaskError<TrainInput, TrainTaskData, TrainTaskError> => {
   const { type: trainType, message, stack } = trainError
-  const type = mapTrainErrorTypeToTaskErrorType(trainType)
-  return { type, message, stack }
+  if (trainType === 'zombie-training') {
+    return { type: 'zombie-task', message, stack }
+  }
+  return { type: 'internal', message, stack, data: { actualErrorType: trainType } }
 }
 
-export const mapTrainingToTask = (training: Training): queues.Task<TrainInput, TrainData> => {
+export const mapTrainingToTask = (training: Training): queues.Task<TrainInput, TrainTaskData, TrainTaskError> => {
   const { appId, modelId, status, cluster, progress, dataset, trainingTime, error } = training
   return {
     id: mapTrainIdtoTaskId({ appId, modelId }),
@@ -94,7 +88,9 @@ export const mapTrainingToTask = (training: Training): queues.Task<TrainInput, T
   }
 }
 
-export const mapTaskQueryToTrainingQuery = (task: Partial<queues.Task<TrainInput, TrainData>>): Partial<Training> => {
+export const mapTaskQueryToTrainingQuery = (
+  task: Partial<queues.Task<TrainInput, TrainTaskData, TrainTaskError>>
+): Partial<Training> => {
   const { id, status, cluster, progress, input, data, error } = task
   const { trainingTime } = data ?? {}
   const { appId, modelId } = id ? mapTaskIdToTrainId(id) : <Partial<TrainingId>>{}
@@ -113,7 +109,7 @@ export const mapTaskQueryToTrainingQuery = (task: Partial<queues.Task<TrainInput
   )
 }
 
-export const mapTaskToTraining = (task: queues.Task<TrainInput, TrainData>): Training => {
+export const mapTaskToTraining = (task: queues.Task<TrainInput, TrainTaskData, TrainTaskError>): Training => {
   const { id, status, cluster, progress, input, data, error } = task
   const { trainingTime } = data
   const { appId, modelId } = mapTaskIdToTrainId(id)

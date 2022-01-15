@@ -4,22 +4,24 @@ import { PGTransactionLocker } from '../locks'
 import { BaseTaskQueue } from './base-queue'
 import { LocalTaskQueue } from './local-queue'
 import { SafeTaskRepo } from './safe-repo'
-import { TaskRunner, TaskRepository, QueueOptions } from './typings'
+import { TaskRunner, TaskRepository, QueueOptions, TaskQueue as ITaskQueue } from './typings'
 
 type Func<X extends any[], Y extends any> = (...x: X) => Y
 
-export class PGDistributedTaskQueue<TaskInput, TaskData> extends BaseTaskQueue<TaskInput, TaskData> {
+export class PGDistributedTaskQueue<TInput, TData, TError>
+  extends BaseTaskQueue<TInput, TData, TError>
+  implements ITaskQueue<TInput, TData, TError> {
   private _pubsub: PGPubSub
 
-  private _broadcastCancelTask!: LocalTaskQueue<TaskInput, TaskData>['cancelTask']
+  private _broadcastCancelTask!: LocalTaskQueue<TInput, TData, TError>['cancelTask']
   private _broadcastSchedulerInterrupt!: () => Promise<void>
 
   constructor(
     pgURL: string,
-    taskRepo: TaskRepository<TaskInput, TaskData>,
-    taskRunner: TaskRunner<TaskInput, TaskData>,
+    taskRepo: TaskRepository<TInput, TData, TError>,
+    taskRunner: TaskRunner<TInput, TData, TError>,
     logger: Logger,
-    opt: Partial<QueueOptions<TaskInput, TaskData>> = {}
+    opt: Partial<QueueOptions<TInput, TData, TError>> = {}
   ) {
     super(PGDistributedTaskQueue._makeSafeRepo(pgURL, taskRepo, logger), taskRunner, logger, opt)
     this._pubsub = new PGPubSub(pgURL, {
@@ -27,9 +29,9 @@ export class PGDistributedTaskQueue<TaskInput, TaskData> extends BaseTaskQueue<T
     })
   }
 
-  private static _makeSafeRepo<TaskInput, TaskData>(
+  private static _makeSafeRepo<TInput, TData, TError>(
     pgURL: string,
-    taskRepo: TaskRepository<TaskInput, TaskData>,
+    taskRepo: TaskRepository<TInput, TData, TError>,
     logger: Logger
   ) {
     const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)

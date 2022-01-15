@@ -7,15 +7,15 @@ import {
   mapTaskToTraining,
   mapTrainingToTask
 } from './train-task-mapper'
-import { TrainData } from './typings'
+import { TrainTaskData, TrainTaskError } from './typings'
 
 /** Maps target interface to actual training repository */
-export class TrainTaskRepo implements queues.TaskRepository<TrainInput, TrainData> {
+export class TrainTaskRepo implements queues.TaskRepository<TrainInput, TrainTaskData, TrainTaskError> {
   constructor(private _trainRepo: TrainingRepository) {}
   public initialize = this._trainRepo.initialize
   public teardown = this._trainRepo.teardown
 
-  public async get(taskId: string): Promise<queues.Task<TrainInput, TrainData> | undefined> {
+  public async get(taskId: string): Promise<queues.Task<TrainInput, TrainTaskData, TrainTaskError> | undefined> {
     const trainId = mapTaskIdToTrainId(taskId)
     const training = await this._trainRepo.get(trainId)
     return training && mapTrainingToTask(training)
@@ -26,7 +26,9 @@ export class TrainTaskRepo implements queues.TaskRepository<TrainInput, TrainDat
     return this._trainRepo.has(trainId)
   }
 
-  public async query(taskQuery: Partial<queues.TaskState>): Promise<queues.Task<TrainInput, TrainData>[]> {
+  public async query(
+    taskQuery: Partial<queues.TaskState>
+  ): Promise<queues.Task<TrainInput, TrainTaskData, TrainTaskError>[]> {
     const trainQuery = mapTaskQueryToTrainingQuery(taskQuery)
     const trainings = await this._trainRepo.query(trainQuery)
     return trainings.map(mapTrainingToTask)
@@ -35,13 +37,13 @@ export class TrainTaskRepo implements queues.TaskRepository<TrainInput, TrainDat
   public async queryOlderThan(
     taskQuery: Partial<queues.TaskState>,
     threshold: Date
-  ): Promise<queues.Task<TrainInput, TrainData>[]> {
+  ): Promise<queues.Task<TrainInput, TrainTaskData, TrainTaskError>[]> {
     const trainQuery = mapTaskQueryToTrainingQuery(taskQuery)
     const trainings = await this._trainRepo.queryOlderThan(trainQuery, threshold)
     return trainings.map(mapTrainingToTask)
   }
 
-  public async set(task: queues.Task<TrainInput, TrainData>): Promise<void> {
+  public async set(task: queues.Task<TrainInput, TrainTaskData, TrainTaskError>): Promise<void> {
     const training = mapTaskToTraining(task)
     return this._trainRepo.set(training)
   }

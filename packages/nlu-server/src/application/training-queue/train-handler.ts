@@ -5,17 +5,17 @@ import * as NLUEngine from '@botpress/nlu-engine'
 import { ModelRepository } from '../../infrastructure'
 import { MIN_TRAINING_HEARTBEAT } from '.'
 import { mapTaskToTraining, mapTrainingToTask } from './train-task-mapper'
-import { TrainData } from './typings'
+import { TrainTaskData, TrainTaskError } from './typings'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
 
-export class TrainHandler implements queues.TaskRunner<TrainInput, TrainData> {
+export class TrainHandler implements queues.TaskRunner<TrainInput, TrainTaskData, TrainTaskError> {
   constructor(private engine: NLUEngine.Engine, private modelRepo: ModelRepository, private logger: Logger) {}
 
   public run = async (
-    task: queues.Task<TrainInput, TrainData>,
+    task: queues.Task<TrainInput, TrainTaskData, TrainTaskError>,
     progressCb: queues.ProgressCb
-  ): Promise<queues.TerminatedTask<TrainInput, TrainData>> => {
+  ): Promise<queues.TerminatedTask<TrainInput, TrainTaskData, TrainTaskError>> => {
     const training = mapTaskToTraining(task)
 
     const trainKey = task.id
@@ -41,7 +41,7 @@ export class TrainHandler implements queues.TaskRunner<TrainInput, TrainData> {
       training.status = 'done'
 
       this.logger.info(`[${trainKey}] Training Done.`)
-      return mapTrainingToTask(training) as queues.TerminatedTask<TrainInput, TrainData>
+      return mapTrainingToTask(training) as queues.TerminatedTask<TrainInput, TrainTaskData, TrainTaskError>
     } catch (thrownObject) {
       const err = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
 
@@ -50,12 +50,12 @@ export class TrainHandler implements queues.TaskRunner<TrainInput, TrainData> {
 
         training.trainingTime = this._getTrainingTime(startTime)
         training.status = 'canceled'
-        return mapTrainingToTask(training) as queues.TerminatedTask<TrainInput, TrainData>
+        return mapTrainingToTask(training) as queues.TerminatedTask<TrainInput, TrainTaskData, TrainTaskError>
       }
 
       if (NLUEngine.errors.isTrainingAlreadyStarted(err)) {
         this.logger.warn(`[${trainKey}] Training Already Started.`) // This should never occur.
-        return mapTrainingToTask(training) as queues.TerminatedTask<TrainInput, TrainData>
+        return mapTrainingToTask(training) as queues.TerminatedTask<TrainInput, TrainTaskData, TrainTaskError>
       }
 
       let type: TrainingErrorType = 'internal'
@@ -78,11 +78,11 @@ export class TrainHandler implements queues.TaskRunner<TrainInput, TrainData> {
         this.logger.attachError(err as Error).error(`[${trainKey}] Error occured during training.`)
       }
 
-      return mapTrainingToTask(training) as queues.TerminatedTask<TrainInput, TrainData>
+      return mapTrainingToTask(training) as queues.TerminatedTask<TrainInput, TrainTaskData, TrainTaskError>
     }
   }
 
-  public cancel(task: queues.Task<TrainInput, TrainData>): Promise<void> {
+  public cancel(task: queues.Task<TrainInput, TrainTaskData, TrainTaskError>): Promise<void> {
     return this.engine.cancelTraining(task.id)
   }
 
