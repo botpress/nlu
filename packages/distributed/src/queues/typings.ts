@@ -27,7 +27,7 @@ export type TaskState = {
 export type Task<TInput, TData, TError> = TaskState & {
   id: string
   input: TInput
-  data: Partial<TData>
+  data: TData
   error?: TaskError<TInput, TData, TError>
 }
 
@@ -63,7 +63,7 @@ export type TaskProgress = {
 export type QueueOptions<_TInput, TData, _TError> = {
   maxTasks: number
   initialProgress: TaskProgress
-  initialData: Partial<TData>
+  initialData: TData
   maxProgressDelay: number
   progressThrottle: number
 }

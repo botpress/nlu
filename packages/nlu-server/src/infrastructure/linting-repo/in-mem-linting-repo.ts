@@ -7,7 +7,7 @@ import ms from 'ms'
 import { LintingRepository } from '.'
 import { Linting, LintingId } from './typings'
 
-type LintEntry = LintingState & { updatedOn: Date }
+type LintEntry = Linting & { updatedOn: Date }
 
 const KEY_JOIN_CHAR = '\u2581'
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
@@ -38,7 +38,7 @@ export class InMemoryLintingRepo implements LintingRepository {
     return !!this._lintingTable[taskId]
   }
 
-  public async get(id: LintingId): Promise<LintingState | undefined> {
+  public async get(id: LintingId): Promise<Linting | undefined> {
     const { appId, modelId } = id
     const taskId = this._makeLintingKey({ appId, modelId })
     const linting = this._lintingTable[taskId]
@@ -54,6 +54,14 @@ export class InMemoryLintingRepo implements LintingRepository {
     const currentIssues = current?.issues ?? []
     const updatedIssues = _.uniqBy([...currentIssues, ...linting.issues], (i) => i.id)
     return this._set(appId, modelId, { ...linting, issues: updatedIssues })
+  }
+
+  public async query(query: Partial<LintingState>): Promise<Linting[]> {
+    throw new Error('Method not implemented.')
+  }
+
+  public async queryOlderThan(query: Partial<LintingState>, treshold: Date): Promise<Linting[]> {
+    throw new Error('Method not implemented.')
   }
 
   private _janitor() {
@@ -86,7 +94,7 @@ export class InMemoryLintingRepo implements LintingRepository {
       .value()
   }
 
-  private async _set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState) {
+  private async _set(appId: string, modelId: NLUEngine.ModelId, linting: Linting) {
     const taskId = this._makeLintingKey({ appId, modelId })
     this._lintingTable[taskId] = { ...linting, updatedOn: new Date() }
   }

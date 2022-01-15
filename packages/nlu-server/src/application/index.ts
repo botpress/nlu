@@ -13,9 +13,9 @@ import {
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { TrainingRepository, TrainingListener } from '../infrastructure'
 import { LintingRepository } from '../infrastructure/linting-repo'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { TrainingRepository, TrainingListener } from '../infrastructure/training-repo/typings'
 import {
   ModelDoesNotExistError,
   TrainingNotFoundError,
@@ -264,19 +264,26 @@ You can increase your cache size by the CLI or config.
             issues,
             status: 'linting'
           }
-          return this._lintingRepo.set({ appId, modelId, ...lintingState })
+          return this._lintingRepo.set({ appId, modelId, ...lintingState, dataset: trainInput, cluster: 'tmp-id' })
         }
       })
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       const error: LintingError = { message: err.message, stack: err.stack, type: 'internal' }
-      return this._lintingRepo.set({ appId, modelId, ...lintingState, error })
+      return this._lintingRepo.set({ appId, modelId, ...lintingState, error, dataset: trainInput, cluster: 'tmp-id' })
     }
 
-    return this._lintingRepo.set({ appId, modelId, ...lintingState, status: 'done' })
+    return this._lintingRepo.set({
+      appId,
+      modelId,
+      ...lintingState,
+      status: 'done',
+      dataset: trainInput,
+      cluster: 'tmp-id'
+    })
   }
 
-  public async lintDataset(appId: string, trainInput: TrainInput): Promise<ModelId> {
+  public async startLinting(appId: string, trainInput: TrainInput): Promise<ModelId> {
     const modelId = modelIdService.makeId({
       ...trainInput,
       specifications: this._engine.getSpecifications()
