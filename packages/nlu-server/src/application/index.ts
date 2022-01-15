@@ -5,10 +5,7 @@ import {
   TrainInput,
   ServerInfo,
   TrainingStatus,
-  LintingState,
-  DatasetIssue,
-  IssueCode,
-  LintingError
+  LintingState
 } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
@@ -25,6 +22,7 @@ import {
   DatasetValidationError,
   LintingNotFoundError
 } from './errors'
+import { LintingQueue } from './linting-queue'
 import { TrainingQueue } from './training-queue'
 
 export class Application {
@@ -35,6 +33,7 @@ export class Application {
     private _trainingRepo: TrainingRepository,
     private _lintingRepo: LintingRepository,
     private _trainingQueue: TrainingQueue,
+    private _lintingQueue: LintingQueue,
     private _engine: Engine,
     private _serverVersion: string,
     baseLogger: Logger
@@ -55,6 +54,7 @@ export class Application {
     await this._trainingRepo.initialize()
     await this._trainingQueue.initialize()
     await this._lintingRepo.initialize()
+    await this._lintingQueue.initialize()
   }
 
   public async teardown() {
@@ -243,46 +243,6 @@ You can increase your cache size by the CLI or config.
     return detectedLanguages
   }
 
-  private _lint = async (appId: string, modelId: ModelId, trainInput: TrainInput): Promise<void> => {
-    const stringId = modelIdService.toString(modelId)
-    const key = `${appId}/${stringId}`
-
-    let lintingState: LintingState = {
-      currentCount: 0,
-      totalCount: -1,
-      issues: [],
-      status: 'linting-pending'
-    }
-
-    try {
-      await this._engine.lint(key, trainInput, {
-        minSpeed: 'slow',
-        progressCallback: (currentCount: number, totalCount: number, issues: DatasetIssue<IssueCode>[]) => {
-          lintingState = {
-            currentCount,
-            totalCount,
-            issues,
-            status: 'linting'
-          }
-          return this._lintingRepo.set({ appId, modelId, ...lintingState, dataset: trainInput, cluster: 'tmp-id' })
-        }
-      })
-    } catch (thrown) {
-      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      const error: LintingError = { message: err.message, stack: err.stack, type: 'internal' }
-      return this._lintingRepo.set({ appId, modelId, ...lintingState, error, dataset: trainInput, cluster: 'tmp-id' })
-    }
-
-    return this._lintingRepo.set({
-      appId,
-      modelId,
-      ...lintingState,
-      status: 'done',
-      dataset: trainInput,
-      cluster: 'tmp-id'
-    })
-  }
-
   public async startLinting(appId: string, trainInput: TrainInput): Promise<ModelId> {
     const modelId = modelIdService.makeId({
       ...trainInput,
@@ -290,17 +250,24 @@ You can increase your cache size by the CLI or config.
     })
 
     // unhandled promise to return asap
-    void this._lint(appId, modelId, trainInput)
+    await this._lintingQueue.queueLinting(appId, modelId, trainInput)
 
     return modelId
   }
 
   public async getLintingState(appId: string, modelId: ModelId): Promise<LintingState> {
-    const state = await this._lintingRepo.get({ appId, modelId })
-    if (!state) {
-      throw new LintingNotFoundError(appId, modelId)
+    const linting = await this._lintingRepo.get({ appId, modelId })
+    if (linting) {
+      const { status, error, currentCount, totalCount, issues } = linting
+      return { status, error, currentCount, totalCount, issues }
     }
-    return state
+
+    const { specificationHash: currentSpec } = this._getSpecFilter()
+    if (modelId.specificationHash !== currentSpec) {
+      throw new InvalidModelSpecError(modelId, currentSpec)
+    }
+
+    throw new LintingNotFoundError(appId, modelId)
   }
 
   private _getSpecFilter = (): { specificationHash: string } => {

@@ -2,8 +2,9 @@ import { queues } from '@botpress/distributed'
 import { Logger } from '@botpress/logger'
 import { TrainingErrorType, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import _ from 'lodash'
 import { ModelRepository } from '../../infrastructure'
-import { MIN_TRAINING_HEARTBEAT } from '.'
+import { MIN_TRAINING_HEARTBEAT, PROGRESS_THROTTLE } from '.'
 import { mapTaskToTraining, mapTrainingToTask } from './train-task-mapper'
 import { TrainTaskData, TrainTaskError } from './typings'
 
@@ -14,8 +15,10 @@ export class TrainHandler implements queues.TaskRunner<TrainInput, TrainTaskData
 
   public run = async (
     task: queues.Task<TrainInput, TrainTaskData, TrainTaskError>,
-    progressCb: queues.ProgressCb
+    progressCb: queues.ProgressCb<TrainInput, TrainTaskData, TrainTaskError>
   ): Promise<queues.TerminatedTask<TrainInput, TrainTaskData, TrainTaskError>> => {
+    const throttledProgress = _.throttle(progressCb, PROGRESS_THROTTLE)
+
     const training = mapTaskToTraining(task)
 
     const trainKey = task.id
@@ -26,9 +29,10 @@ export class TrainHandler implements queues.TaskRunner<TrainInput, TrainTaskData
     const { dataset } = training
     try {
       const model = await this.engine.train(trainKey, dataset, {
-        progressCallback: (p: number) => progressCb({ start: 0, end: 100, current: p }),
+        progressCallback: (p: number) => throttledProgress({ start: 0, end: 100, current: p }),
         minProgressHeartbeat: MIN_TRAINING_HEARTBEAT
       })
+      throttledProgress.flush()
 
       const { language: languageCode } = dataset
       const { appId } = training
@@ -43,6 +47,8 @@ export class TrainHandler implements queues.TaskRunner<TrainInput, TrainTaskData
       this.logger.info(`[${trainKey}] Training Done.`)
       return mapTrainingToTask(training) as queues.TerminatedTask<TrainInput, TrainTaskData, TrainTaskError>
     } catch (thrownObject) {
+      throttledProgress.flush()
+
       const err = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
 
       if (NLUEngine.errors.isTrainingCanceled(err)) {

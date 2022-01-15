@@ -5,7 +5,7 @@ import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import ms from 'ms'
 
-import { ModelRepository, LintingRepository } from '../../infrastructure'
+import { LintingRepository } from '../../infrastructure'
 import { LintingAlreadyStartedError, LintingNotFoundError } from '../errors'
 import { LintHandler } from './lint-handler'
 import { mapLintIdtoTaskId } from './lint-task-mapper'
@@ -15,9 +15,11 @@ import { LintTaskData, LintTaskError } from './typings'
 export const MIN_LINTING_HEARTBEAT = ms('10s')
 export const PROGRESS_THROTTLE = MIN_LINTING_HEARTBEAT / 2
 export const MAX_LINTING_HEARTBEAT = MIN_LINTING_HEARTBEAT * 3
+
 const TASK_OPTIONS: Partial<queues.QueueOptions<TrainInput, LintTaskData, LintTaskError>> = {
   maxProgressDelay: MAX_LINTING_HEARTBEAT,
-  progressThrottle: PROGRESS_THROTTLE
+  initialProgress: { start: 0, end: -1, current: 0 },
+  initialData: { issues: [] }
 }
 
 export type LintQueueOptions = {
@@ -62,12 +64,11 @@ export class PgLintingQueue extends LintingQueue {
     pgURL: string,
     lintingRepo: LintingRepository,
     engine: NLUEngine.Engine,
-    modelRepo: ModelRepository,
     logger: Logger,
     opt: LintQueueOptions = {}
   ) {
     const lintTaskRepo = new LintTaskRepo(lintingRepo)
-    const lintHandler = new LintHandler(engine, modelRepo, logger.sub('training-queue'))
+    const lintHandler = new LintHandler(engine, logger.sub('linting-queue'))
     const taskQueue = new queues.PGDistributedTaskQueue(pgURL, lintTaskRepo, lintHandler, logger, {
       ...TASK_OPTIONS,
       maxTasks: opt.maxLinting
@@ -80,13 +81,12 @@ export class LocalLintingQueue extends LintingQueue {
   constructor(
     lintingRepo: LintingRepository,
     engine: NLUEngine.Engine,
-    modelRepo: ModelRepository,
     baseLogger: Logger,
     opt: LintQueueOptions = {}
   ) {
     const lintTaskRepo = new LintTaskRepo(lintingRepo)
-    const logger = baseLogger.sub('training-queue')
-    const lintHandler = new LintHandler(engine, modelRepo, logger)
+    const logger = baseLogger.sub('linting-queue')
+    const lintHandler = new LintHandler(engine, logger)
     const taskQueue = new queues.LocalTaskQueue(lintTaskRepo, lintHandler, logger, {
       ...TASK_OPTIONS,
       maxTasks: opt.maxLinting

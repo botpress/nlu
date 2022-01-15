@@ -9,6 +9,7 @@ import {
   LintingError
 } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import Bluebird from 'bluebird'
 import { Knex } from 'knex'
 import _ from 'lodash'
 import moment from 'moment'
@@ -115,33 +116,15 @@ export class DatabaseLintingRepo implements LintingRepository {
     return !!linting
   }
 
-  // TODO: express this method as a single query using a right join
   public async get(id: LintingId): Promise<Linting | undefined> {
     const { appId, modelId } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
     const lintingId: LintingRowId = { appId, modelId: stringId }
-    const linting = await this._lintings.select('*').where(lintingId).first()
-    if (!linting) {
+    const lintingRow = await this._lintings.select('*').where(lintingId).first()
+    if (!lintingRow) {
       return
     }
-
-    const issueRows = await this._issues.select('*').where(lintingId)
-    const issues = issueRows.map(this._rowToIssue.bind(this))
-
-    const { status, currentCount, cluster, dataset, totalCount, error_message, error_stack, error_type } = linting
-    const error = this._toError(error_type, error_message, error_stack)
-    const state: Linting = {
-      appId,
-      modelId,
-      status,
-      currentCount,
-      totalCount,
-      cluster,
-      dataset: unpackTrainSet(dataset),
-      error,
-      issues
-    }
-    return state
+    return this._fromLintingRow(lintingRow)
   }
 
   public async set(linting: Linting): Promise<void> {
@@ -188,11 +171,50 @@ export class DatabaseLintingRepo implements LintingRepository {
   }
 
   public async query(query: Partial<LintingState>): Promise<Linting[]> {
-    throw new Error('Method not implemented.')
+    const { status, currentCount, totalCount } = query
+    const rowFilters: Partial<LintingRow> = { status, currentCount, totalCount }
+    const rows: LintingRow[] = await this._lintings.where(rowFilters).select('*')
+    return Bluebird.map(rows, this._fromLintingRow.bind(this))
   }
 
   public async queryOlderThan(query: Partial<LintingState>, treshold: Date): Promise<Linting[]> {
-    throw new Error('Method not implemented.')
+    const iso = treshold.toISOString()
+    const { status, currentCount, totalCount } = query
+    const rowFilters: Partial<LintingRow> = { status, currentCount, totalCount }
+    const rows: LintingRow[] = await this._lintings.where(rowFilters).where('updatedOn', '<=', iso).select('*')
+    return Bluebird.map(rows, this._fromLintingRow.bind(this))
+  }
+
+  private _fromLintingRow = async (row: LintingRow): Promise<Linting> => {
+    const {
+      appId,
+      modelId,
+      status,
+      currentCount,
+      cluster,
+      dataset,
+      totalCount,
+      error_message,
+      error_stack,
+      error_type
+    } = row
+
+    const issueRows = await this._issues.select('*').where({ appId, modelId })
+    const issues = issueRows.map(this._rowToIssue.bind(this))
+
+    const error = this._toError(error_type, error_message, error_stack)
+    const state: Linting = {
+      appId,
+      modelId: NLUEngine.modelIdService.fromString(modelId),
+      status,
+      currentCount,
+      totalCount,
+      cluster,
+      dataset: unpackTrainSet(dataset),
+      error,
+      issues
+    }
+    return state
   }
 
   private async _janitor() {

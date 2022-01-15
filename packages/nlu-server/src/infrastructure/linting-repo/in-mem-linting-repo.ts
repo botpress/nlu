@@ -57,17 +57,28 @@ export class InMemoryLintingRepo implements LintingRepository {
   }
 
   public async query(query: Partial<LintingState>): Promise<Linting[]> {
-    throw new Error('Method not implemented.')
+    const allLintings = this._getAllLintings()
+    return this._filter(allLintings, query)
   }
 
-  public async queryOlderThan(query: Partial<LintingState>, treshold: Date): Promise<Linting[]> {
-    throw new Error('Method not implemented.')
+  public queryOlderThan = async (query: Partial<LintingState>, threshold: Date): Promise<Linting[]> => {
+    const allLintings = this._getAllLintings()
+    const olderThan = allLintings.filter((t) => moment(t.updatedOn).isBefore(threshold))
+    return this._filter(olderThan, query)
   }
 
-  private _janitor() {
+  private _filter = (trainings: Linting[], filters: Partial<LintingState>) => {
+    let queryResult: Linting[] = trainings
+    for (const field in filters) {
+      queryResult = queryResult.filter((t) => t[field] === filters[field])
+    }
+    return queryResult
+  }
+
+  private async _janitor() {
     const threshold = moment().subtract(MS_BEFORE_PRUNE, 'ms').toDate()
 
-    const trainingsToPrune = this._queryOlderThan(threshold)
+    const trainingsToPrune = await this.queryOlderThan({}, threshold)
     if (trainingsToPrune.length) {
       this._logger.debug(`Pruning ${trainingsToPrune.length} linting state from memory`)
     }
@@ -80,11 +91,6 @@ export class InMemoryLintingRepo implements LintingRepository {
   private _delete = (id: LintingId) => {
     const key = this._makeLintingKey(id)
     delete this._lintingTable[key]
-  }
-
-  private _queryOlderThan = (threshold: Date): Linting[] => {
-    const allLintings = this._getAllLintings()
-    return allLintings.filter((t) => moment(t.updatedOn).isBefore(threshold))
   }
 
   private _getAllLintings = (): (Linting & { updatedOn: Date })[] => {

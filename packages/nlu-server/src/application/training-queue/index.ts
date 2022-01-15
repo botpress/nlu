@@ -16,8 +16,7 @@ export const MIN_TRAINING_HEARTBEAT = ms('10s')
 export const PROGRESS_THROTTLE = MIN_TRAINING_HEARTBEAT / 2
 export const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * 3
 const TASK_OPTIONS: Partial<queues.QueueOptions<TrainInput, TrainTaskData, TrainTaskError>> = {
-  maxProgressDelay: MAX_TRAINING_HEARTBEAT,
-  progressThrottle: PROGRESS_THROTTLE
+  maxProgressDelay: MAX_TRAINING_HEARTBEAT
 }
 
 export type TrainQueueOptions = {
