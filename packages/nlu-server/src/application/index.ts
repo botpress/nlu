@@ -149,7 +149,7 @@ export class Application {
 
     const model = await this._modelRepo.getModel(appId, modelId)
     if (!model) {
-      throw new TrainingNotFoundError(modelId)
+      throw new TrainingNotFoundError(appId, modelId)
     }
 
     return {
@@ -165,7 +165,7 @@ export class Application {
   public async predict(appId: string, modelId: ModelId, utterances: string[]): Promise<PredictOutput[]> {
     const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
     if (!modelExists) {
-      throw new ModelDoesNotExistError(modelId)
+      throw new ModelDoesNotExistError(appId, modelId)
     }
 
     const { specificationHash: currentSpec } = this._getSpecFilter()
@@ -176,7 +176,7 @@ export class Application {
     if (!this._engine.hasModel(modelId)) {
       const model = await this._modelRepo.getModel(appId, modelId)
       if (!model) {
-        throw new ModelDoesNotExistError(modelId)
+        throw new ModelDoesNotExistError(appId, modelId)
       }
 
       await this._engine.loadModel(model)
@@ -201,7 +201,7 @@ export class Application {
     for (const modelId of modelIds) {
       const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
       if (!modelExists) {
-        throw new ModelDoesNotExistError(modelId)
+        throw new ModelDoesNotExistError(appId, modelId)
       }
 
       const { specificationHash: currentSpec } = this._getSpecFilter()
@@ -212,7 +212,7 @@ export class Application {
       if (!this._engine.hasModel(modelId)) {
         const model = await this._modelRepo.getModel(appId, modelId)
         if (!model) {
-          throw new ModelDoesNotExistError(modelId)
+          throw new ModelDoesNotExistError(appId, modelId)
         }
         await this._engine.loadModel(model)
       }
@@ -291,7 +291,7 @@ You can increase your cache size by the CLI or config.
   public async getLintingState(appId: string, modelId: ModelId): Promise<LintingState> {
     const state = await this._lintingRepo.get({ appId, modelId })
     if (!state) {
-      throw new LintingNotFoundError(modelId)
+      throw new LintingNotFoundError(appId, modelId)
     }
     return state
   }

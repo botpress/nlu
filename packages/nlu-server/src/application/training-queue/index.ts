@@ -6,6 +6,7 @@ import _ from 'lodash'
 import ms from 'ms'
 
 import { ModelRepository, TrainingRepository } from '../../infrastructure'
+import { TrainingAlreadyStartedError, TrainingNotFoundError } from '../errors'
 import { TrainHandler } from './train-handler'
 import { mapTrainIdtoTaskId } from './train-task-mapper'
 import { TrainTaskRepo } from './train-task-repo'
@@ -37,14 +38,28 @@ export abstract class TrainingQueue {
   public getLocalTrainingCount = this.taskQueue.getLocalTaskCount.bind(this.taskQueue)
 
   public queueTraining = async (appId: string, modelId: NLUEngine.ModelId, trainInput: TrainInput) => {
-    const taskId = mapTrainIdtoTaskId({ modelId, appId })
-    await this.taskQueue.queueTask(taskId, trainInput)
-    this.logger.info(`[${taskId}] Training Queued.`)
+    try {
+      const taskId = mapTrainIdtoTaskId({ modelId, appId })
+      await this.taskQueue.queueTask(taskId, trainInput)
+      this.logger.info(`[${taskId}] Training Queued.`)
+    } catch (thrown) {
+      if (thrown instanceof queues.TaskAlreadyStartedError) {
+        throw new TrainingAlreadyStartedError(appId, modelId)
+      }
+      throw thrown
+    }
   }
 
   public async cancelTraining(appId: string, modelId: NLUEngine.ModelId): Promise<void> {
-    const taskId = mapTrainIdtoTaskId({ modelId, appId })
-    return this.taskQueue.cancelTask(taskId)
+    try {
+      const taskId = mapTrainIdtoTaskId({ modelId, appId })
+      await this.taskQueue.cancelTask(taskId)
+    } catch (thrown) {
+      if (thrown instanceof queues.TaskNotFoundError) {
+        throw new TrainingNotFoundError(appId, modelId)
+      }
+      throw thrown
+    }
   }
 }
 
