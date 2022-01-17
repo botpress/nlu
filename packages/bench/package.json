@@ -1,7 +1,7 @@
 {
-  "name": "e2e",
+  "name": "bench",
   "version": "0.0.1",
-  "description": "nlu e2e regression checker",
+  "description": "nlu benchmarks",
   "main": "./dist/index.js",
   "license": "MIT",
   "dependencies": {

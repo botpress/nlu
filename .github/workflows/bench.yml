@@ -1,8 +1,8 @@
-name: Bitfan
+name: Bench
 on: [pull_request]
 jobs:
   nlu:
-    name: Run regression benchmark
+    name: Run benchmark
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,4 +24,4 @@ jobs:
         run: |
           yarn start lang --dim 100 &
           sleep 15s && yarn start nlu --doc false --verbose 0 --ducklingEnabled false --languageURL http://localhost:3100 &
-          sleep 25s && yarn e2e --skip="clinc150"
+          sleep 25s && yarn bench --skip="clinc150"
