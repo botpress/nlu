@@ -1,12 +1,12 @@
 import { Logger } from '@botpress/logger'
-import { TrainingError, TrainingErrorType, TrainingStatus, TrainInput } from '@botpress/nlu-client'
+import { TrainingError, TrainingErrorType, TrainingStatus } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
-import jsonpack from 'jsonpack'
 import { Knex } from 'knex'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
 import { createTableIfNotExists } from '../../utils/database'
+import { packTrainSet, unpackTrainSet } from '../dataset-serializer'
 import { BaseTrainingRepository } from './base-training-repo'
 import { Training, TrainingId, TrainingState, TrainingRepository } from './typings'
 
@@ -122,7 +122,7 @@ export class DbTrainingRepository extends BaseTrainingRepository implements Trai
   private _trainingToRow(train: Training): TableRow {
     const id = this._trainIdToRow(train)
     const state = this._trainStateToRow(train)
-    const dataset = this.packTrainSet(train.dataset)
+    const dataset = packTrainSet(train.dataset)
     return {
       ...id,
       ...state,
@@ -187,15 +187,7 @@ export class DbTrainingRepository extends BaseTrainingRepository implements Trai
       progress,
       error,
       cluster,
-      dataset: this.unpackTrainSet(dataset)
+      dataset: unpackTrainSet(dataset)
     }
-  }
-
-  private packTrainSet(ts: TrainInput): string {
-    return jsonpack.pack(ts)
-  }
-
-  private unpackTrainSet(compressed: string): TrainInput {
-    return jsonpack.unpack<TrainInput>(compressed)
   }
 }

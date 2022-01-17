@@ -1,12 +1,14 @@
-import { LintingState } from '@botpress/nlu-client'
+import { LintingState as ClientLintingState, TrainInput } from '@botpress/nlu-client'
 import { ModelId } from '@botpress/nlu-engine'
 
 export type LintingRepository = {
   initialize(): Promise<void>
   teardown(): Promise<void>
-  get(id: LintingId): Promise<LintingState | undefined>
+  get(id: LintingId): Promise<Linting | undefined>
   set(linting: Linting): Promise<void>
   has(id: LintingId): Promise<boolean>
+  query(query: Partial<LintingState>): Promise<Linting[]>
+  queryOlderThan(query: Partial<LintingState>, treshold: Date): Promise<Linting[]>
 }
 
 export type LintingId = {
@@ -14,4 +16,11 @@ export type LintingId = {
   appId: string
 }
 
-export type Linting = LintingId & LintingState
+export type LintingState = ClientLintingState & {
+  cluster: string
+}
+
+export type Linting = LintingId &
+  LintingState & {
+    dataset: TrainInput
+  }

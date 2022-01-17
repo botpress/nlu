@@ -1,7 +1,7 @@
 import { TrainingErrorType } from '@botpress/nlu-client'
 
 export type TrainTaskData = {
-  trainingTime: number
+  trainingTime?: number
 }
 
 export type TrainTaskError = {

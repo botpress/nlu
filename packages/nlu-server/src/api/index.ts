@@ -297,7 +297,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         seed: 0
       }
 
-      const modelId = await app.lintDataset(appId, trainInput)
+      const modelId = await app.startLinting(appId, trainInput)
 
       const resp: http.LintResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
       return res.send(resp)

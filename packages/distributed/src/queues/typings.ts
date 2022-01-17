@@ -1,10 +1,13 @@
 export type TaskTrx<TInput, TData, TError> = (repo: TaskRepository<TInput, TData, TError>) => Promise<void>
 
 export type TaskHandler<TInput, TData, TError> = (task: Task<TInput, TData, TError>) => Promise<void>
-export type ProgressCb = (progress: TaskProgress) => void
+export type ProgressCb<_TInput, TData, _TError> = (progress: TaskProgress, data?: TData) => void
 
 export type TaskRunner<TInput, TData, TError> = {
-  run: (task: Task<TInput, TData, TError>, progress: ProgressCb) => Promise<TerminatedTask<TInput, TData, TError>>
+  run: (
+    task: Task<TInput, TData, TError>,
+    progress: ProgressCb<TInput, TData, TError>
+  ) => Promise<TerminatedTask<TInput, TData, TError>>
   cancel: (task: Task<TInput, TData, TError>) => Promise<void>
 }
 
@@ -27,7 +30,7 @@ export type TaskState = {
 export type Task<TInput, TData, TError> = TaskState & {
   id: string
   input: TInput
-  data: Partial<TData>
+  data: TData
   error?: TaskError<TInput, TData, TError>
 }
 
@@ -63,9 +66,8 @@ export type TaskProgress = {
 export type QueueOptions<_TInput, TData, _TError> = {
   maxTasks: number
   initialProgress: TaskProgress
-  initialData: Partial<TData>
+  initialData: TData
   maxProgressDelay: number
-  progressThrottle: number
 }
 
 export type TaskQueue<TInput, _TData, _TError> = {

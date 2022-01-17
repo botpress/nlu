@@ -24,7 +24,6 @@ const DEFAULT_OPTIONS: QueueOptions<any, any, any> = {
   maxTasks: 2,
   initialProgress: { start: 0, end: 100, current: 0 },
   initialData: {},
-  progressThrottle: ms('5s'),
   maxProgressDelay: ms('30s')
 }
 
@@ -151,19 +150,19 @@ export class BaseTaskQueue<TInput, TData, TError> implements ITaskQueue<TInput, 
   private _runTask = async (task: Task<TInput, TData, TError>) => {
     this._logger.debug(`task "${task.id}" is about to start.`)
 
-    const progressCb = async (progress: TaskProgress) => {
+    const progressCb = async (progress: TaskProgress, data?: TData) => {
       task.status = 'running'
       task.progress = progress
+      if (data) {
+        task.data = data
+      }
       await this._taskRepo.inTransaction(async (repo) => {
         return repo.set(task)
       }, 'progressCallback')
     }
-    const throttledCb = _.throttle(progressCb, this._options.progressThrottle)
 
     try {
-      const terminatedTask = await this._taskRunner.run(task, throttledCb)
-
-      throttledCb.flush()
+      const terminatedTask = await this._taskRunner.run(task, progressCb)
 
       await this._taskRepo.inTransaction(async (repo) => {
         return repo.set(terminatedTask)

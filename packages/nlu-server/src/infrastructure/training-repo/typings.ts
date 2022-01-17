@@ -1,4 +1,4 @@
-import { TrainingState as TrainingStateDto, TrainInput } from '@botpress/nlu-client'
+import { TrainingState as ClientTrainingState, TrainInput } from '@botpress/nlu-client'
 import { ModelId } from '@botpress/nlu-engine'
 
 export type TrainingListener = (training: Training) => Promise<void>
@@ -21,7 +21,7 @@ export type TrainingId = {
   appId: string
 }
 
-export type TrainingState = TrainingStateDto & {
+export type TrainingState = ClientTrainingState & {
   cluster: string
   trainingTime?: number
 }

@@ -40,6 +40,14 @@ export class TrainingAlreadyStartedError extends ResponseError {
   }
 }
 
+export class LintingAlreadyStartedError extends ResponseError {
+  constructor(appId: string, modelId: ModelId) {
+    const stringId = modelIdService.toString(modelId)
+    const lintKey = `${appId}/${stringId}`
+    super(`Linting "${lintKey}" already started...`, 409)
+  }
+}
+
 export class LangServerCommError extends ResponseError {
   constructor(err: Error) {
     const { message } = err

@@ -2,6 +2,7 @@ import { Logger } from '@botpress/logger'
 import { Engine } from '@botpress/nlu-engine'
 import Knex from 'knex'
 import { Application } from '../application'
+import { LintingQueue, LocalLintingQueue, PgLintingQueue } from '../application/linting-queue'
 import { TrainQueueOptions, TrainingQueue, PgTrainingQueue, LocalTrainingQueue } from '../application/training-queue'
 import {
   DbTrainingRepository,
@@ -20,6 +21,7 @@ type Services = {
   trainRepo: TrainingRepository
   trainingQueue: TrainingQueue
   lintingRepo: LintingRepository
+  lintingQueue: LintingQueue
 }
 
 const makeServicesWithoutDb = (modelDir: string) => async (
@@ -31,11 +33,13 @@ const makeServicesWithoutDb = (modelDir: string) => async (
   const trainRepo = new InMemoryTrainingRepo(logger)
   const trainingQueue = new LocalTrainingQueue(trainRepo, engine, modelRepo, logger, queueOptions)
   const lintingRepo = new InMemoryLintingRepo(logger)
+  const lintingQueue = new LocalLintingQueue(lintingRepo, engine, logger)
   return {
     modelRepo,
     trainRepo,
     trainingQueue,
-    lintingRepo
+    lintingRepo,
+    lintingQueue
   }
 }
 
@@ -50,11 +54,13 @@ const makeServicesWithDb = (dbURL: string) => async (
   const trainRepo = new DbTrainingRepository(knexDb, logger)
   const trainingQueue = new PgTrainingQueue(dbURL, trainRepo, engine, modelRepo, logger, queueOptions)
   const lintingRepo = new DatabaseLintingRepo(knexDb, logger, engine)
+  const lintingQueue = new PgLintingQueue(dbURL, lintingRepo, engine, logger)
   return {
     modelRepo,
     trainRepo,
     trainingQueue,
-    lintingRepo
+    lintingRepo,
+    lintingQueue
   }
 }
 
@@ -66,13 +72,18 @@ export const makeApplication = async (
   const engine = await makeEngine(options, baseLogger.sub('Engine'))
   const { dbURL, modelDir } = options
   const serviceMaker = dbURL ? makeServicesWithDb(dbURL) : makeServicesWithoutDb(modelDir)
-  const { modelRepo, trainRepo, trainingQueue, lintingRepo } = await serviceMaker(engine, baseLogger, options)
+  const { modelRepo, trainRepo, trainingQueue, lintingRepo, lintingQueue } = await serviceMaker(
+    engine,
+    baseLogger,
+    options
+  )
 
   const application = new Application(
     modelRepo,
     trainRepo,
     lintingRepo,
     trainingQueue,
+    lintingQueue,
     engine,
     serverVersion,
     baseLogger
