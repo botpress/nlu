@@ -12,6 +12,8 @@ export type PollingArgs = {
   maxTime: number
 }
 
+const DEFAULT_POLLING_INTERVAL = 500
+
 const timeout = (ms: number) =>
   new Promise<never>((_resolve, reject) =>
     setTimeout(() => {
@@ -21,7 +23,7 @@ const timeout = (ms: number) =>
 
 export const pollTrainingUntil = async (args: PollingArgs): Promise<TrainingState> => {
   const { appId, condition, maxTime, modelId, nluClient } = args
-  const interval = maxTime / 10
+  const interval = maxTime < 0 ? DEFAULT_POLLING_INTERVAL : maxTime / 10
 
   const trainUntilPromise = new Promise<TrainingState>((resolve, reject) => {
     const int = setInterval(async () => {
@@ -46,5 +48,8 @@ export const pollTrainingUntil = async (args: PollingArgs): Promise<TrainingStat
     }, interval)
   })
 
+  if (maxTime < 0) {
+    return trainUntilPromise
+  }
   return Bluebird.race([timeout(maxTime), trainUntilPromise])
 }

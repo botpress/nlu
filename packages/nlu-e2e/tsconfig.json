@@ -3,6 +3,9 @@
   "references": [
     {
       "path": "../nlu-client"
+    },
+    {
+      "path": "../logger"
     }
   ],
   "compilerOptions": {
