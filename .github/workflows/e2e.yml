@@ -62,5 +62,5 @@ jobs:
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3200 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress &
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu &
           sleep 25s && yarn e2e --nlu-endpoint http://localhost:3200
