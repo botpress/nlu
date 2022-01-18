@@ -48,19 +48,27 @@ jobs:
       - name: Run Tests on File System
         run: |
           ./nlu lang --dim 25 &
+          lang_pid=$!
           sleep 15s && ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3200 &
+          nlu_pid=$!
           sleep 25s && yarn e2e --nlu-endpoint http://localhost:3200
+          kill -9 $lang_pid
+          kill -9 $nlu_pid
       - name: Run Tests on Database
         run: |
           ./nlu lang --dim 25 &
+          lang_pid=$!
           sleep 15s && ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3200 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu &
+          nlu_pid=$!
           sleep 25s && yarn e2e --nlu-endpoint http://localhost:3200
+          kill -9 $lang_pid
+          kill -9 $nlu_pid
