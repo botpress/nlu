@@ -54,6 +54,7 @@ export class DbModelRepository implements ModelRepository {
   }
 
   public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<NLUEngine.Model | undefined> {
+    throw new Error('lololololol')
     const stringId = modelIdService.toString(modelId)
     const filter: Partial<TableRow> = { appId, modelId: stringId }
     const row = await this.table.select('*').where(filter).first()
