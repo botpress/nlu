@@ -48,7 +48,7 @@ jobs:
       - name: Run Tests on File System
         run: |
           ./nlu lang --dim 25 &
-          sleep 15s && ./nlu \ 
+          sleep 15s && ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
@@ -57,7 +57,7 @@ jobs:
       - name: Run Tests on Database
         run: |
           ./nlu lang --dim 25 &
-          sleep 15s && ./nlu \ 
+          sleep 15s && ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
