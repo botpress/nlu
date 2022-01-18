@@ -45,39 +45,39 @@ jobs:
       - name: Download language models
         run: |
           ./nlu lang download --lang en --dim 25
-      - name: Run Tests on File System
+      - name: Start Language Server
         run: |
           ./nlu lang --dim 25 &
-          lang_pid=$!
-          echo "Language Server running on pid $lang_pid"
-
-          sleep 15s && ./nlu \
+          echo "Lang Server started on pid $!"
+      - name: Sleep
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '15s'
+      - name: Run Tests on File System
+        run: |
+          ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3200 &
           nlu_pid=$!
-          echo "NLU Server running on pid $nlu_pid"
+          echo "NLU Server started on pid $nlu_pid"
 
-          sleep 25s && yarn e2e --nlu-endpoint http://localhost:3200
-          kill -9 $lang_pid
+          sleep 10s && \
+          yarn e2e --nlu-endpoint http://localhost:3200 && \
           kill -9 $nlu_pid
 
       - name: Run Tests on Database
         run: |
-          ./nlu lang --dim 25 &
-          lang_pid=$!
-          echo "Language Server running on pid $lang_pid"
-
-          sleep 15s && ./nlu \
+          ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3200 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu &
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu & \
           nlu_pid=$!
-          echo "NLU Server running on pid $nlu_pid"
+          echo "NLU Server started on pid $nlu_pid"
 
-          sleep 25s && yarn e2e --nlu-endpoint http://localhost:3200
-          kill -9 $lang_pid
+          sleep 10s && \
+          yarn e2e --nlu-endpoint http://localhost:3200 && \
           kill -9 $nlu_pid
