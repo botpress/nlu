@@ -1,7 +1,7 @@
 name: Bench
 on: [pull_request]
 jobs:
-  nlu:
+  benchmark:
     name: Run benchmark
     runs-on: ubuntu-latest
     steps:
