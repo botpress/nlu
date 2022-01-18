@@ -1,5 +1,5 @@
 {
-  "name": "bench",
+  "name": "@botpress/nlu-bench",
   "version": "0.0.1",
   "description": "nlu benchmarks",
   "main": "./dist/index.js",

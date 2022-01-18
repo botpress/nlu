@@ -4,7 +4,10 @@
       "path": "./packages/nlu-cli"
     },
     {
-      "path": "./packages/bench"
+      "path": "./packages/nlu-bench"
+    },
+    {
+      "path": "./packages/nlu-e2e"
     }
   ],
   "files": [],
