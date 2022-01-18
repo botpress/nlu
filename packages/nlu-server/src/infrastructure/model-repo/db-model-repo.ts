@@ -55,24 +55,24 @@ export class DbModelRepository implements ModelRepository {
 
   public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<NLUEngine.Model | undefined> {
     throw new Error('lololololol')
-    const stringId = modelIdService.toString(modelId)
-    const filter: Partial<TableRow> = { appId, modelId: stringId }
-    const row = await this.table.select('*').where(filter).first()
-    if (!row) {
-      return
-    }
+    // const stringId = modelIdService.toString(modelId)
+    // const filter: Partial<TableRow> = { appId, modelId: stringId }
+    // const row = await this.table.select('*').where(filter).first()
+    // if (!row) {
+    //   return
+    // }
 
-    const { content } = row
-    const buffer = Buffer.from(content)
+    // const { content } = row
+    // const buffer = Buffer.from(content)
 
-    let mod
-    try {
-      mod = await decompressModel(buffer)
-    } catch (err) {
-      return
-    }
+    // let mod
+    // try {
+    //   mod = await decompressModel(buffer)
+    // } catch (err) {
+    //   return
+    // }
 
-    return mod
+    // return mod
   }
 
   public async saveModel(appId: string, model: NLUEngine.Model): Promise<void | void[]> {
