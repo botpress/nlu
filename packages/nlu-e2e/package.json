@@ -1,5 +1,5 @@
 {
-  "name": "nlu-e2e",
+  "name": "@botpress/nlu-e2e",
   "version": "0.0.1",
   "description": "Small e2e test suite for the NLU Server. It's main purpose is to make sure happy paths work well for multiple server configuration.",
   "main": "./dist/index.js",

@@ -1,6 +1,6 @@
 import { Client as NLUClient, TrainingState } from '@botpress/nlu-client'
 import Bluebird from 'bluebird'
-import { UnsuccessfullAPICall } from '../errors'
+import { UnsuccessfullAPICall } from './errors'
 
 export type TrainPredicate = (ts: TrainingState) => boolean
 
@@ -53,3 +53,5 @@ export const pollTrainingUntil = async (args: PollingArgs): Promise<TrainingStat
   }
   return Bluebird.race([timeout(maxTime), trainUntilPromise])
 }
+
+export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
