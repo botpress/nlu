@@ -119,7 +119,7 @@ export const assertTrainingFails = async (
     modelId,
     appId,
     maxTime: ms('5s'),
-    condition: (ts: TrainingState) => ts.status !== 'training-pending'
+    condition: (ts: TrainingState) => ts.status !== 'training-pending' && ts.status !== 'training'
   })
 
   chai.expect(ts.status).to.equal(<TrainingStatus>'errored')
