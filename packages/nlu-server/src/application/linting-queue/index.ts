@@ -13,14 +13,13 @@ import { LintTaskRepo } from './lint-task-repo'
 import { LintTaskQueue, LintTaskQueueOptions } from './typings'
 
 export const MIN_LINTING_HEARTBEAT = ms('10s')
-export const PROGRESS_THROTTLE = MIN_LINTING_HEARTBEAT / 2
-export const MAX_LINTING_HEARTBEAT = MIN_LINTING_HEARTBEAT * 3
 
 const TASK_OPTIONS: LintTaskQueueOptions = {
-  maxProgressDelay: MAX_LINTING_HEARTBEAT,
   initialProgress: { start: 0, end: -1, current: 0 },
   initialData: { issues: [] },
-  maxTasks: 2
+  maxTasks: 2,
+  maxProgressDelay: MIN_LINTING_HEARTBEAT * 3,
+  progressThrottle: MIN_LINTING_HEARTBEAT / 2
 }
 
 export type LintQueueOptions = {

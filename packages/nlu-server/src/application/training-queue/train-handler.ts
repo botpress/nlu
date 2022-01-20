@@ -3,7 +3,7 @@ import { TrainingErrorType } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import { ModelRepository } from '../../infrastructure'
-import { MIN_TRAINING_HEARTBEAT, PROGRESS_THROTTLE } from '.'
+import { MIN_TRAINING_HEARTBEAT } from '.'
 import { TrainIdUtil } from './train-id-utils'
 import { TerminatedTrainTask, TrainTask, TrainTaskProgress, TrainTaskRunner } from './typings'
 
@@ -13,8 +13,6 @@ export class TrainHandler implements TrainTaskRunner {
   constructor(private engine: NLUEngine.Engine, private modelRepo: ModelRepository, private logger: Logger) {}
 
   public run = async (task: TrainTask, progressCb: TrainTaskProgress): Promise<TerminatedTrainTask | undefined> => {
-    const throttledProgress = _.throttle(progressCb, PROGRESS_THROTTLE)
-
     const trainKey = TrainIdUtil.toString(task)
 
     this.logger.debug(`training "${trainKey}" is about to start.`)
@@ -24,10 +22,9 @@ export class TrainHandler implements TrainTaskRunner {
     const { input, appId } = task
     try {
       const model = await this.engine.train(trainKey, input, {
-        progressCallback: (p: number) => throttledProgress({ start: 0, end: 100, current: p }),
+        progressCallback: (p: number) => progressCb({ start: 0, end: 100, current: p }),
         minProgressHeartbeat: MIN_TRAINING_HEARTBEAT
       })
-      throttledProgress.flush()
 
       const { language: languageCode } = input
 
@@ -40,8 +37,6 @@ export class TrainHandler implements TrainTaskRunner {
       this.logger.info(`[${trainKey}] Training Done.`)
       return { ...task, status: 'done' }
     } catch (thrownObject) {
-      throttledProgress.flush()
-
       const err = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
 
       if (NLUEngine.errors.isTrainingCanceled(err)) {

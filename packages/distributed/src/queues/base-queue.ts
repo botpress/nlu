@@ -133,25 +133,32 @@ export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId
     const taskKey = this._taskIdUtils.toString(task)
     this._logger.debug(`task "${taskKey}" is about to start.`)
 
-    const progressCb = async (progress: TaskProgress, data?: TData) => {
-      task.status = 'running'
-      task.progress = progress
-      if (data) {
-        task.data = data
-      }
+    const updateTask = _.throttle(async () => {
       await this._taskRepo.inTransaction(async (repo) => {
         return repo.set(task)
       }, 'progressCallback')
-    }
+    }, this._options.progressThrottle)
 
     try {
-      const terminatedTask = await this._taskRunner.run(task, progressCb)
+      const terminatedTask = await this._taskRunner.run(task, async (progress: TaskProgress, data?: TData) => {
+        task.status = 'running'
+        task.progress = progress
+        if (data) {
+          task.data = data
+        }
+        void updateTask()
+      })
+
+      updateTask.flush()
+
       if (terminatedTask) {
         await this._taskRepo.inTransaction(async (repo) => {
           return repo.set(terminatedTask)
         }, '_task_terminated')
       }
     } catch (thrown) {
+      updateTask.flush()
+
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this._logger.attachError(err).error(`Unhandled error when running task "${taskKey}"`)
     } finally {

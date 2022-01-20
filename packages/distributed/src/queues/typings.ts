@@ -59,6 +59,7 @@ export type QueueOptions<_TId, _TInput, TData, _TError> = {
   initialProgress: TaskProgress
   initialData: TData
   maxProgressDelay: number
+  progressThrottle: number
 }
 
 export type TaskIdUtil<TId, _TInput, _TData, _TError> = {

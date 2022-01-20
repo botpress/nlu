@@ -13,14 +13,13 @@ import { TrainTaskRepo } from './train-task-repo'
 import { TrainTaskQueue, TrainTaskQueueOptions } from './typings'
 
 export const MIN_TRAINING_HEARTBEAT = ms('10s')
-export const PROGRESS_THROTTLE = MIN_TRAINING_HEARTBEAT / 2
-export const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * 3
 
 const TASK_OPTIONS: TrainTaskQueueOptions = {
-  maxProgressDelay: MAX_TRAINING_HEARTBEAT,
   maxTasks: 2,
   initialData: {},
-  initialProgress: { start: 0, end: 100, current: 0 }
+  initialProgress: { start: 0, end: 100, current: 0 },
+  maxProgressDelay: MIN_TRAINING_HEARTBEAT * 3,
+  progressThrottle: MIN_TRAINING_HEARTBEAT / 2
 }
 
 export type TrainQueueOptions = {
