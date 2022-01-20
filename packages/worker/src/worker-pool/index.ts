@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { ErrorHandler } from '../error-handler'
 import { TaskAlreadyStartedError, TaskCanceledError, TaskExitedUnexpectedlyError } from '../errors'
 import { SIG_KILL } from '../signals'
-import { Logger, PoolOptions, WorkerPool as IWorkerPool, ErrorDeserializer, errors } from '../typings'
+import { Logger, PoolOptions, WorkerPool as IWorkerPool, ErrorDeserializer, errors, TaskProgress } from '../typings'
 
 import {
   AllIncomingMessages,
@@ -18,7 +18,7 @@ import {
 import { Scheduler } from './scheduler'
 import { Worker } from './worker'
 
-export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
+export abstract class WorkerPool<I, O, P = void> implements IWorkerPool<I, O, P> {
   protected _scheduler: Scheduler
 
   private errorHandler: ErrorDeserializer
@@ -31,7 +31,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
   abstract createWorker: (entryPoint: string, env: NodeJS.ProcessEnv) => Promise<Worker>
   abstract isMainWorker: () => boolean
 
-  public async run(taskId: string, input: I, progress: (x: number) => void): Promise<O> {
+  public async run(taskId: string, input: I, progress: TaskProgress<I, O, P>): Promise<O> {
     if (!this.isMainWorker()) {
       throw new Error("Can't create a worker pool inside a child worker.")
     }
@@ -61,7 +61,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
     return this._scheduler.cancel(id)
   }
 
-  private async _startTask(worker: Worker, input: I, progress: (x: number) => void): Promise<O> {
+  private async _startTask(worker: Worker, input: I, progress: TaskProgress<I, O, P>): Promise<O> {
     const msg: OutgoingMessage<'start_task', I> = {
       type: 'start_task',
       payload: { input }
@@ -80,7 +80,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
         worker.on('exit', exitHandler)
       }
 
-      const messageHandler = (msg: AllIncomingMessages<O>) => {
+      const messageHandler = (msg: AllIncomingMessages<O, P>) => {
         if (isTrainingDone(msg)) {
           removeHandlers()
           resolve(msg.payload.output)
@@ -92,7 +92,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
           reject(deserializedError)
         }
         if (isTrainingProgress(msg)) {
-          progress(msg.payload.progress)
+          progress(msg.payload.progress, msg.payload.data)
         }
         if (isLog(msg)) {
           this._logMessage(msg)
@@ -136,7 +136,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
         worker.on('exit', exitHandler)
       }
 
-      const messageHandler = (msg: AllIncomingMessages<O>) => {
+      const messageHandler = (msg: AllIncomingMessages<O, P>) => {
         if (isLog(msg)) {
           this._logMessage(msg)
         }
@@ -165,7 +165,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
     return new TaskExitedUnexpectedlyError({ wType: worker.innerWorker.type, wid: worker.wid, exitCode, signal })
   }
 
-  private _logMessage(msg: IncomingMessage<'log', O>) {
+  private _logMessage(msg: IncomingMessage<'log', O, P>) {
     const { log } = msg.payload
     log.debug && this.logger.debug(log.debug)
     log.info && this.logger.info(log.info)

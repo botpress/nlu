@@ -27,6 +27,7 @@ export class LintHandler implements LintTaskRunner {
   }
 
   public async cancel(task: LintTask): Promise<void> {
-    // TODO: make sure linting is cancellable
+    const trainKey = idToString(task)
+    return this._engine.cancelTraining(trainKey)
   }
 }

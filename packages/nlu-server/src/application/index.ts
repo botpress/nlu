@@ -162,6 +162,10 @@ export class Application {
     return this._trainingQueue.cancelTraining(appId, modelId)
   }
 
+  public async cancelLinting(appId: string, modelId: ModelId): Promise<void> {
+    return this._lintingQueue.cancelLinting(appId, modelId)
+  }
+
   public async predict(appId: string, modelId: ModelId, utterances: string[]): Promise<PredictOutput[]> {
     const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
     if (!modelExists) {

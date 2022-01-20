@@ -20,13 +20,14 @@ export type ErrorDeserializer = {
   deserializeError(err: SerializedError): Error
 }
 
-export type TaskDefinition<I> = {
+export type TaskProgress<I, O, P = void> = P extends void ? (p: number) => void : (p: number, data: P) => void
+export type TaskDefinition<I, O, P = void> = {
   input: I
   logger: Logger
-  progress: (p: number) => void
+  progress: TaskProgress<I, O, P>
 }
 
-export type TaskHandler<I, O> = (def: TaskDefinition<I>) => Promise<O>
+export type TaskHandler<I, O, P = void> = (def: TaskDefinition<I, O, P>) => Promise<O>
 
 export namespace errors {
   export class TaskAlreadyStartedError extends Error {}
@@ -54,29 +55,31 @@ export type PoolOptions = {
   errorHandler?: ErrorDeserializer
 }
 
-export type WorkerPool<I, O> = {
-  run(taskId: string, input: I, progress: (x: number) => void): Promise<O>
+export type WorkerPool<I, O, P = void> = {
+  run(taskId: string, input: I, progress: TaskProgress<I, O, P>): Promise<O>
 }
 
 export type EntryPointOptions = {
   errorHandler?: ErrorSerializer
 }
 
-export type WorkerEntryPoint<I, O> = {
+export type WorkerEntryPoint<I, O, P = void> = {
   initialize(): Promise<void>
-  listenForTask(handler: TaskHandler<I, O>): void
+  listenForTask(handler: TaskHandler<I, O, P>): void
   isMainWorker: () => boolean
   logger: Logger
 }
-export type ProcessPool<I, O> = WorkerPool<I, O> & {
+
+export type ProcessPool<I, O, P = void> = WorkerPool<I, O, P> & {
   cancel(id: string)
 }
-export type ProcessEntyPoint<I, O> = {} & WorkerEntryPoint<I, O>
 
-export type ThreadPool<I, O> = {} & WorkerPool<I, O>
-export type ThreadEntyPoint<I, O> = {} & WorkerEntryPoint<I, O>
+export type ProcessEntyPoint<I, O, P = void> = {} & WorkerEntryPoint<I, O, P>
 
-export const makeProcessPool: <I, O>(logger: Logger, config: PoolOptions) => ProcessPool<I, O>
-export const makeProcessEntryPoint: <I, O>(config?: EntryPointOptions) => ProcessEntyPoint<I, O>
-export const makeThreadPool: <I, O>(logger: Logger, config: PoolOptions) => ThreadPool<I, O>
-export const makeThreadEntryPoint: <I, O>(config?: EntryPointOptions) => ThreadEntyPoint<I, O>
+export type ThreadPool<I, O, P = void> = {} & WorkerPool<I, O, P>
+export type ThreadEntyPoint<I, O, P = void> = {} & WorkerEntryPoint<I, O, P>
+
+export const makeProcessPool: <I, O, P = void>(logger: Logger, config: PoolOptions) => ProcessPool<I, O, P>
+export const makeProcessEntryPoint: <I, O, P = void>(config?: EntryPointOptions) => ProcessEntyPoint<I, O, P>
+export const makeThreadPool: <I, O, P = void>(logger: Logger, config: PoolOptions) => ThreadPool<I, O, P>
+export const makeThreadEntryPoint: <I, O, P = void>(config?: EntryPointOptions) => ThreadEntyPoint<I, O, P>

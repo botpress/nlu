@@ -8,7 +8,7 @@ const threadEntryPoint = makeThreadEntryPoint<TaskInput, TaskOutput>()
 
 const main = async () => {
   try {
-    threadEntryPoint.listenForTask(async (taskDef: TaskDefinition<TaskInput>) => {
+    threadEntryPoint.listenForTask(async (taskDef: TaskDefinition<TaskInput, TaskOutput>) => {
       const { input, progress } = taskDef
       let i = 0
       const N = input.units.length

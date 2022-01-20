@@ -69,14 +69,14 @@ export type TrainingOptions = {
   minProgressHeartbeat: number
 }
 
-export type LintingProgress = (
+export type LintingProgressCb = (
   current: number,
   total: number,
   issues: linting.DatasetIssue<linting.IssueCode>[]
 ) => void | Promise<void>
 
 export type LintingOptions = {
-  progressCallback: LintingProgress
+  progressCallback: LintingProgressCb
   minSpeed: linting.IssueComputationSpeed
 }
 

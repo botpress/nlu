@@ -1,13 +1,20 @@
 import { LangError as SerializedError, ErrorType as LangServerErrorType } from '@botpress/lang-client'
-import { errors } from '../typings'
 
-export class TrainingCanceledError extends Error implements errors.TrainingCanceledError {}
-export class TrainingAlreadyStartedError extends Error implements errors.TrainingAlreadyStartedError {}
-
+export class TrainingCanceledError extends Error {}
+export class TrainingAlreadyStartedError extends Error {}
 export class TrainingExitedUnexpectedlyError extends Error {
   constructor(srcWorkerId: number, info: { exitCode: number; signal: string }) {
     const { exitCode, signal } = info
     super(`Training worker ${srcWorkerId} exited with exit code ${exitCode} and signal ${signal}.`)
+  }
+}
+
+export class LintingCanceledError extends Error {}
+export class LintingAlreadyStartedError extends Error {}
+export class LintingExitedUnexpectedlyError extends Error {
+  constructor(srcWorkerId: number, info: { exitCode: number; signal: string }) {
+    const { exitCode, signal } = info
+    super(`Linting worker ${srcWorkerId} exited with exit code ${exitCode} and signal ${signal}.`)
   }
 }
 
@@ -17,7 +24,7 @@ export class ModelLoadingError extends Error {
   }
 }
 
-export class LangServerError extends Error implements errors.LangServerError {
+export class LangServerError extends Error {
   public code: number
   public type: LangServerErrorType
 
@@ -30,7 +37,7 @@ export class LangServerError extends Error implements errors.LangServerError {
   }
 }
 
-export class DucklingServerError extends Error implements errors.DucklingServerError {
+export class DucklingServerError extends Error {
   constructor(message: string, stack?: string) {
     super(message)
     this.stack = stack

@@ -327,5 +327,22 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     }
   })
 
+  router.post('/lint/:modelId/cancel', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+
+      const { modelId: stringId } = req.params
+
+      const modelId = NLUEngine.modelIdService.fromString(stringId)
+
+      await app.cancelLinting(appId, modelId)
+
+      const resp: http.SuccessReponse = { success: true }
+      return res.send(resp)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
   return expressApp
 }
