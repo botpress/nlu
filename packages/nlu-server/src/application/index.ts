@@ -99,7 +99,7 @@ export class Application {
 
     const stringId = modelIdService.toString(modelId)
     const key = `${appId}/${stringId}`
-    const { issues } = await this._engine.lint(key, trainInput, { minSpeed: 'fastest' })
+    const { issues } = await this._engine.lint(key, trainInput, { minSpeed: 'fastest', runInMainProcess: true })
 
     const criticalErrors = issues.filter((i) => i.severity === 'critical')
     if (!!criticalErrors.length) {

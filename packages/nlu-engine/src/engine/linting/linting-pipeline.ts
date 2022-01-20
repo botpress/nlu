@@ -1,13 +1,13 @@
 import _ from 'lodash'
 import { DatasetIssue, IssueCode } from '../../linting'
-import { LintingOptions, TrainInput } from '../../typings'
+import { TrainInput } from '../../typings'
 import { Tools } from '../typings'
 import { C_000_Linter } from './c_000'
 import { C_001_Linter } from './c_001'
 import { C_002_Linter } from './c_002'
 import { E_000_Linter } from './e_000'
 import * as speed from './speed'
-import { IssueLinter } from './typings'
+import { IssueLinter, LintingOptions } from './typings'
 
 const allLinters: IssueLinter<IssueCode>[] = [C_000_Linter, C_001_Linter, C_002_Linter, E_000_Linter]
 

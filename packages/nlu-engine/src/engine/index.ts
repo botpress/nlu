@@ -4,14 +4,24 @@ import _ from 'lodash'
 import LRUCache from 'lru-cache'
 import ms from 'ms'
 import sizeof from 'object-sizeof'
-import { PredictOutput, TrainInput, Specifications, LintingOptions } from 'src/typings'
 import v8 from 'v8'
 import { isListEntity, isPatternEntity } from '../guards'
-import { IssueCode } from '../linting'
+import { DatasetIssue, IssueCode } from '../linting'
 
 import modelIdService from '../model-id-service'
 
-import { TrainingOptions, LanguageConfig, Logger, ModelId, Model, Engine as IEngine } from '../typings'
+import {
+  TrainingOptions,
+  LanguageConfig,
+  Logger,
+  ModelId,
+  Model,
+  Engine as IEngine,
+  PredictOutput,
+  TrainInput,
+  Specifications,
+  LintingOptions
+} from '../typings'
 import { deserializeKmeans } from './clustering'
 import { EntityCacheManager } from './entities/entity-cache-manager'
 import { initializeTools } from './initialize-tools'
@@ -20,6 +30,7 @@ import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
 import { LintingProcessPool } from './linting-process-pool'
 import { allIssues } from './linting/definitions'
+import { lintingPipeline } from './linting/linting-pipeline'
 import { deserializeModel, PredictableModel, serializeModel } from './model-serializer'
 import { Predict, Predictors } from './predict-pipeline'
 import SlotTagger from './slots/slot-tagger'
@@ -48,7 +59,8 @@ const DEFAULT_TRAINING_OPTIONS: TrainingOptions = {
 
 const DEFAULT_LINTING_OPTIONS: LintingOptions = {
   progressCallback: () => {},
-  minSpeed: 'slow'
+  minSpeed: 'slow',
+  runInMainProcess: false
 }
 
 type EngineOptions = {
@@ -289,14 +301,21 @@ export default class Engine implements IEngine {
 
   public lint = async (lintingId: string, trainSet: TrainInput, opts?: Partial<LintingOptions>) => {
     const options = { ...DEFAULT_LINTING_OPTIONS, ...opts }
-    const lintOutput = await this._lintingWorkerQueue.startLinting(
-      {
-        lintId: lintingId,
-        trainSet,
-        minSpeed: options.minSpeed
-      },
-      options.progressCallback
-    )
+
+    let lintOutput: { issues: DatasetIssue<IssueCode>[] }
+    if (!options.runInMainProcess) {
+      lintOutput = await this._lintingWorkerQueue.startLinting(
+        {
+          lintId: lintingId,
+          trainSet,
+          minSpeed: options.minSpeed
+        },
+        options.progressCallback
+      )
+    } else {
+      const issues = await lintingPipeline(trainSet, this._tools, options)
+      lintOutput = { issues }
+    }
     return lintOutput
   }
 

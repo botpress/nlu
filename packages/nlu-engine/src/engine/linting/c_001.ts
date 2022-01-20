@@ -6,7 +6,7 @@ import {
   SlotDefinition,
   TrainInput
 } from 'src/typings'
-import { SLOT_ANY, SYSTEM_ENTITIES } from '../..'
+import { SLOT_ANY, SYSTEM_ENTITIES } from '../../constants'
 import { isListEntity, isPatternEntity } from '../../guards'
 import { DatasetIssue, IssueDefinition } from '../../linting'
 import { computeId } from './id'

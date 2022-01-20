@@ -78,6 +78,7 @@ export type LintingProgressCb = (
 export type LintingOptions = {
   progressCallback: LintingProgressCb
   minSpeed: linting.IssueComputationSpeed
+  runInMainProcess: boolean
 }
 
 export type Engine = {

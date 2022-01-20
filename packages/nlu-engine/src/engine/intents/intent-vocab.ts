@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { SLOT_ANY } from '../..'
+import { SLOT_ANY } from '../../constants'
 import { SPACE } from '../tools/token-utils'
 import { Intent, ListEntityModel } from '../typings'
 import Utterance from '../utterance/utterance'
