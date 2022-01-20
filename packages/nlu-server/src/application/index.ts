@@ -187,10 +187,10 @@ export class Application {
       return predictions
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      if (engineErrors.isLangServerError(err)) {
+      if (err instanceof engineErrors.LangServerError) {
         throw new LangServerCommError(err)
       }
-      if (engineErrors.isDucklingServerError(err)) {
+      if (err instanceof engineErrors.DucklingServerError) {
         throw new DucklingCommError(err)
       }
       throw thrown

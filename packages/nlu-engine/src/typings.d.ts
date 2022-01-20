@@ -1,12 +1,19 @@
+import { LangServerErrorType, SerializedError } from '@botpress/lang-client'
 import * as linting from './linting'
 
 export const SYSTEM_ENTITIES: string[]
 
-export const errors: {
-  isTrainingAlreadyStarted: (err: Error) => boolean
-  isTrainingCanceled: (err: Error) => boolean
-  isLangServerError: (err: Error) => boolean
-  isDucklingServerError: (err: Error) => boolean
+export namespace errors {
+  export class TrainingAlreadyStartedError extends Error {}
+  export class TrainingCanceledError extends Error {}
+  export class LangServerError extends Error {
+    public code: number
+    public type: LangServerErrorType
+    constructor(serializedError: SerializedError)
+  }
+  export class DucklingServerError extends Error {
+    constructor(message: string, stack?: string)
+  }
 }
 
 export const makeEngine: (config: Config, logger: Logger) => Promise<Engine>

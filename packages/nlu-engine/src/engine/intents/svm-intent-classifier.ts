@@ -1,8 +1,8 @@
 import Joi, { validate } from 'joi'
 import _ from 'lodash'
-import { ModelLoadingError } from '../../errors'
 import { MLToolkit } from '../../ml/typings'
 import { Logger } from '../../typings'
+import { ModelLoadingError } from '../errors'
 import { ListEntityModel, PatternEntity, Tools } from '../typings'
 import Utterance from '../utterance/utterance'
 

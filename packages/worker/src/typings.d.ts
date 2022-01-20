@@ -32,11 +32,18 @@ export namespace errors {
   export class TaskAlreadyStartedError extends Error {}
   export class TaskCanceledError extends Error {}
 
-  export type ExitInfo = { exitCode: number; signal: string }
+  export type TaskExitedUnexpectedlyErrorArgs = {
+    wType: 'thread' | 'process'
+    wid: number | undefined
+    exitCode: number
+    signal: string
+  }
+
   export class TaskExitedUnexpectedlyError extends Error {
     public wid: number | undefined
-    public info: errors.ExitInfo
-    constructor(worker: Worker, info: ExitInfo) {}
+    public exitCode: number
+    public signal: string
+    constructor(worker: TaskExitedUnexpectedlyErrorArgs)
   }
 }
 

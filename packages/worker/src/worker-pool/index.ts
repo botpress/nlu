@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { ErrorHandler } from '../error-handler'
 import { TaskAlreadyStartedError, TaskCanceledError, TaskExitedUnexpectedlyError } from '../errors'
 import { SIG_KILL } from '../signals'
-import { Logger, PoolOptions, WorkerPool as IWorkerPool, ErrorDeserializer } from '../typings'
+import { Logger, PoolOptions, WorkerPool as IWorkerPool, ErrorDeserializer, errors } from '../typings'
 
 import {
   AllIncomingMessages,
@@ -106,7 +106,7 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
           reject(new TaskCanceledError())
           return
         }
-        reject(new TaskExitedUnexpectedlyError(worker, { exitCode, signal }))
+        reject(this._taskExitedUnexpectedlyError(worker, exitCode, signal))
         return
       }
 
@@ -154,11 +154,15 @@ export abstract class WorkerPool<I, O> implements IWorkerPool<I, O> {
 
       const exitHandler = (exitCode: number, signal: string) => {
         removeHandlers()
-        reject(new TaskExitedUnexpectedlyError(worker, { exitCode, signal }))
+        reject(this._taskExitedUnexpectedlyError(worker, exitCode, signal))
       }
 
       addHandlers()
     })
+  }
+
+  private _taskExitedUnexpectedlyError(worker: Worker, exitCode: number, signal: string): TaskExitedUnexpectedlyError {
+    return new TaskExitedUnexpectedlyError({ wType: worker.innerWorker.type, wid: worker.wid, exitCode, signal })
   }
 
   private _logMessage(msg: IncomingMessage<'log', O>) {

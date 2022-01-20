@@ -38,25 +38,25 @@ export class TrainHandler implements TrainTaskRunner {
     } catch (thrownObject) {
       const err = thrownObject instanceof Error ? thrownObject : new Error(`${thrownObject}`)
 
-      if (NLUEngine.errors.isTrainingCanceled(err)) {
+      if (err instanceof NLUEngine.errors.TrainingCanceledError) {
         this.logger.info(`[${trainKey}] Training Canceled.`)
 
         task.data.trainingTime = this._getTrainingTime(startTime)
         return { ...task, status: 'canceled' }
       }
 
-      if (NLUEngine.errors.isTrainingAlreadyStarted(err)) {
+      if (err instanceof NLUEngine.errors.TrainingAlreadyStartedError) {
         this.logger.warn(`[${trainKey}] Training Already Started.`) // This should never occur.
         return
       }
 
       let type: TrainingErrorType = 'internal'
-      if (NLUEngine.errors.isLangServerError(err)) {
+      if (err instanceof NLUEngine.errors.LangServerError) {
         type = 'lang-server'
         this.logger.attachError(err).error(`[${trainKey}] Error occured with Language Server.`)
       }
 
-      if (NLUEngine.errors.isDucklingServerError(err)) {
+      if (err instanceof NLUEngine.errors.DucklingServerError) {
         type = 'duckling-server'
         this.logger.attachError(err).error(`[${trainKey}] Error occured with Duckling Server.`)
       }

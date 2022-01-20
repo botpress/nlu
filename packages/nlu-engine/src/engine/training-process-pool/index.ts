@@ -1,8 +1,8 @@
 import { errors, makeProcessPool, ProcessPool } from '@botpress/worker'
 import _ from 'lodash'
-import { TrainingAlreadyStarted, TrainingCanceled, TrainingExitedUnexpectedly } from '../../errors'
-
 import { LanguageConfig, Logger } from '../../typings'
+import { TrainingAlreadyStartedError, TrainingCanceledError, TrainingExitedUnexpectedlyError } from '../errors'
+
 import { TrainInput, TrainOutput } from '../training-pipeline'
 import { ErrorHandler } from './error-handler'
 import { ENTRY_POINT } from './process-entry-point'
@@ -35,13 +35,13 @@ export class TrainingProcessPool {
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       if (err instanceof errors.TaskCanceledError) {
-        throw new TrainingCanceled()
+        throw new TrainingCanceledError()
       }
       if (err instanceof errors.TaskAlreadyStartedError) {
-        throw new TrainingAlreadyStarted()
+        throw new TrainingAlreadyStartedError()
       }
       if (err instanceof errors.TaskExitedUnexpectedlyError) {
-        throw new TrainingExitedUnexpectedly(err.wid!, err.info)
+        throw new TrainingExitedUnexpectedlyError(err.wid!, err)
       }
       throw err
     }

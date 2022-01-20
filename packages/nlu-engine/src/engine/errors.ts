@@ -1,16 +1,10 @@
 import { LangError as SerializedError, ErrorType as LangServerErrorType } from '@botpress/lang-client'
+import { errors } from '../typings'
 
-export class TrainingCanceled extends Error {}
-export function isTrainingCanceled(err: Error): err is TrainingCanceled {
-  return err instanceof TrainingCanceled
-}
+export class TrainingCanceledError extends Error implements errors.TrainingCanceledError {}
+export class TrainingAlreadyStartedError extends Error implements errors.TrainingAlreadyStartedError {}
 
-export class TrainingAlreadyStarted extends Error {}
-export function isTrainingAlreadyStarted(err: Error): err is TrainingAlreadyStarted {
-  return err instanceof TrainingAlreadyStarted
-}
-
-export class TrainingExitedUnexpectedly extends Error {
+export class TrainingExitedUnexpectedlyError extends Error {
   constructor(srcWorkerId: number, info: { exitCode: number; signal: string }) {
     const { exitCode, signal } = info
     super(`Training worker ${srcWorkerId} exited with exit code ${exitCode} and signal ${signal}.`)
@@ -23,7 +17,7 @@ export class ModelLoadingError extends Error {
   }
 }
 
-export class LangServerError extends Error {
+export class LangServerError extends Error implements errors.LangServerError {
   public code: number
   public type: LangServerErrorType
 
@@ -35,16 +29,10 @@ export class LangServerError extends Error {
     this.type = type
   }
 }
-export function isLangServerError(err: Error): err is LangServerError {
-  return err instanceof LangServerError
-}
 
-export class DucklingServerError extends Error {
+export class DucklingServerError extends Error implements errors.DucklingServerError {
   constructor(message: string, stack?: string) {
     super(message)
     this.stack = stack
   }
-}
-export function isDucklingServerError(err: DucklingServerError): err is DucklingServerError {
-  return err instanceof DucklingServerError
 }
