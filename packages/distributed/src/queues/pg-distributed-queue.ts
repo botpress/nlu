@@ -4,7 +4,7 @@ import { PGTransactionLocker } from '../locks'
 import { BaseTaskQueue } from './base-queue'
 import { LocalTaskQueue } from './local-queue'
 import { SafeTaskRepo } from './safe-repo'
-import { TaskRunner, TaskRepository, QueueOptions, TaskQueue as ITaskQueue, TaskIdUtil } from './typings'
+import { TaskRunner, TaskRepository, QueueOptions, TaskQueue as ITaskQueue } from './typings'
 
 type Func<X extends any[], Y extends any> = (...x: X) => Y
 
@@ -21,10 +21,10 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
     taskRepo: TaskRepository<TId, TInput, TData, TError>,
     taskRunner: TaskRunner<TId, TInput, TData, TError>,
     logger: Logger,
-    taskIdUtils: TaskIdUtil<TId, TInput, TData, TError>,
+    idToString: (id: TId) => string,
     opt: QueueOptions<TId, TInput, TData, TError>
   ) {
-    super(PGDistributedTaskQueue._makeSafeRepo(pgURL, taskRepo, logger), taskRunner, logger, taskIdUtils, opt)
+    super(PGDistributedTaskQueue._makeSafeRepo(pgURL, taskRepo, logger), taskRunner, logger, idToString, opt)
     this._pubsub = new PGPubSub(pgURL, {
       log: () => {}
     })

@@ -2,14 +2,14 @@ import { Logger } from '@botpress/logger'
 import { DatasetIssue, IssueCode, LintingError } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
-import { LintIdUtil } from './lint-id-utils'
+import { idToString } from '../training-queue'
 import { LintTask, LintTaskProgress, LintTaskRunner, TerminatedLintTask } from './typings'
 
 export class LintHandler implements LintTaskRunner {
   constructor(private _engine: NLUEngine.Engine, private _logger: Logger) {}
 
   public run = async (task: LintTask, progressCb: LintTaskProgress): Promise<TerminatedLintTask | undefined> => {
-    const lintKey = LintIdUtil.toString(task)
+    const lintKey = idToString(task)
     try {
       await this._engine.lint(lintKey, task.input, {
         minSpeed: 'slow',

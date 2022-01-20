@@ -1,4 +1,4 @@
-import { queues } from '@botpress/distributed'
+import * as q from '@botpress/distributed'
 import { Logger } from '@botpress/logger'
 import { TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
@@ -8,22 +8,31 @@ import ms from 'ms'
 import { LintingId, LintingRepository } from '../../infrastructure'
 import { LintingAlreadyStartedError, LintingNotFoundError } from '../errors'
 import { LintHandler } from './lint-handler'
-import { LintIdUtil } from './lint-id-utils'
 import { LintTaskRepo } from './lint-task-repo'
 import { LintTaskQueue, LintTaskQueueOptions } from './typings'
 
 export const MIN_LINTING_HEARTBEAT = ms('10s')
+export const MAX_LINTING_HEARTBEAT = MIN_LINTING_HEARTBEAT * 3
+export const LINTING_PROGRESS_THROTTLE = MIN_LINTING_HEARTBEAT / 2
 
 const TASK_OPTIONS: LintTaskQueueOptions = {
   initialProgress: { start: 0, end: -1, current: 0 },
   initialData: { issues: [] },
   maxTasks: 2,
-  maxProgressDelay: MIN_LINTING_HEARTBEAT * 3,
-  progressThrottle: MIN_LINTING_HEARTBEAT / 2
+  maxProgressDelay: MAX_LINTING_HEARTBEAT,
+  progressThrottle: LINTING_PROGRESS_THROTTLE
 }
+
+const LINTING_PREFIX = 'linting-queue'
 
 export type LintQueueOptions = {
   maxLinting?: number
+}
+
+const idToString = (id: LintingId) => {
+  const { appId, modelId } = id
+  const stringModelId = NLUEngine.modelIdService.toString(modelId)
+  return `${appId}/${stringModelId}`
 }
 
 export abstract class LintingQueue {
@@ -36,11 +45,11 @@ export abstract class LintingQueue {
   public queueLinting = async (appId: string, modelId: NLUEngine.ModelId, trainInput: TrainInput) => {
     try {
       const lintId: LintingId = { appId, modelId }
-      const lintKey = LintIdUtil.toString(lintId)
+      const lintKey = idToString(lintId)
       await this.taskQueue.queueTask(lintId, trainInput)
       this.logger.info(`[${lintKey}] Linting Queued.`)
     } catch (thrown) {
-      if (thrown instanceof queues.TaskAlreadyStartedError) {
+      if (thrown instanceof q.TaskAlreadyStartedError) {
         throw new LintingAlreadyStartedError(appId, modelId)
       }
       throw thrown
@@ -52,7 +61,7 @@ export abstract class LintingQueue {
       const lintId: LintingId = { appId, modelId }
       await this.taskQueue.cancelTask(lintId)
     } catch (thrown) {
-      if (thrown instanceof queues.TaskNotFoundError) {
+      if (thrown instanceof q.TaskNotFoundError) {
         throw new LintingNotFoundError(appId, modelId)
       }
       throw thrown
@@ -65,11 +74,12 @@ export class PgLintingQueue extends LintingQueue {
     pgURL: string,
     lintingRepo: LintingRepository,
     engine: NLUEngine.Engine,
-    logger: Logger,
+    baseLogger: Logger,
     opt: LintQueueOptions = {}
   ) {
+    const lintingLoger = baseLogger.sub(LINTING_PREFIX)
     const lintTaskRepo = new LintTaskRepo(lintingRepo)
-    const lintHandler = new LintHandler(engine, logger.sub('linting-queue'))
+    const lintHandler = new LintHandler(engine, lintingLoger)
     const options = opt.maxLinting
       ? {
           ...TASK_OPTIONS,
@@ -77,8 +87,8 @@ export class PgLintingQueue extends LintingQueue {
         }
       : TASK_OPTIONS
 
-    const taskQueue = new queues.PGDistributedTaskQueue(pgURL, lintTaskRepo, lintHandler, logger, LintIdUtil, options)
-    super(taskQueue, logger)
+    const taskQueue = new q.PGDistributedTaskQueue(pgURL, lintTaskRepo, lintHandler, lintingLoger, idToString, options)
+    super(taskQueue, lintingLoger)
   }
 }
 
@@ -90,8 +100,8 @@ export class LocalLintingQueue extends LintingQueue {
     opt: LintQueueOptions = {}
   ) {
     const lintTaskRepo = new LintTaskRepo(lintingRepo)
-    const logger = baseLogger.sub('linting-queue')
-    const lintHandler = new LintHandler(engine, logger)
+    const lintingLogger = baseLogger.sub(LINTING_PREFIX)
+    const lintHandler = new LintHandler(engine, lintingLogger)
 
     const options = opt.maxLinting
       ? {
@@ -100,7 +110,7 @@ export class LocalLintingQueue extends LintingQueue {
         }
       : TASK_OPTIONS
 
-    const taskQueue = new queues.LocalTaskQueue(lintTaskRepo, lintHandler, logger, LintIdUtil, options)
-    super(taskQueue, logger)
+    const taskQueue = new q.LocalTaskQueue(lintTaskRepo, lintHandler, lintingLogger, idToString, options)
+    super(taskQueue, lintingLogger)
   }
 }

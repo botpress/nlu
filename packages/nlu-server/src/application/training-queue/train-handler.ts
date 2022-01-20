@@ -3,8 +3,7 @@ import { TrainingErrorType } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import { ModelRepository } from '../../infrastructure'
-import { MIN_TRAINING_HEARTBEAT } from '.'
-import { TrainIdUtil } from './train-id-utils'
+import { idToString, MIN_TRAINING_HEARTBEAT } from '.'
 import { TerminatedTrainTask, TrainTask, TrainTaskProgress, TrainTaskRunner } from './typings'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
@@ -13,7 +12,7 @@ export class TrainHandler implements TrainTaskRunner {
   constructor(private engine: NLUEngine.Engine, private modelRepo: ModelRepository, private logger: Logger) {}
 
   public run = async (task: TrainTask, progressCb: TrainTaskProgress): Promise<TerminatedTrainTask | undefined> => {
-    const trainKey = TrainIdUtil.toString(task)
+    const trainKey = idToString(task)
 
     this.logger.debug(`training "${trainKey}" is about to start.`)
 
@@ -75,7 +74,7 @@ export class TrainHandler implements TrainTaskRunner {
   }
 
   public cancel(task: TrainTask): Promise<void> {
-    const trainKey = TrainIdUtil.toString(task)
+    const trainKey = idToString(task)
     return this.engine.cancelTraining(trainKey)
   }
 

@@ -15,8 +15,7 @@ import {
   TaskStatus,
   TaskRepository,
   QueueOptions,
-  TaskQueue as ITaskQueue,
-  TaskIdUtil
+  TaskQueue as ITaskQueue
 } from './typings'
 
 export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId, TInput, TData, TError> {
@@ -27,7 +26,7 @@ export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId
     protected _taskRepo: SafeTaskRepository<TId, TInput, TData, TError>,
     private _taskRunner: TaskRunner<TId, TInput, TData, TError>,
     private _logger: Logger,
-    private _taskIdUtils: TaskIdUtil<TId, TInput, TData, TError>,
+    private _idToString: (id: TId) => string,
     private _options: QueueOptions<TId, TInput, TData, TError>
   ) {}
 
@@ -45,7 +44,7 @@ export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId
   }
 
   public queueTask = async (taskId: TId, input: TInput) => {
-    const taskKey = this._taskIdUtils.toString(taskId)
+    const taskKey = this._idToString(taskId)
     await this._taskRepo.inTransaction(async (repo) => {
       const currentTask = await repo.get(taskId)
       if (currentTask && (currentTask.status === 'running' || currentTask.status === 'pending')) {
@@ -68,7 +67,7 @@ export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId
   }
 
   public async cancelTask(taskId: TId): Promise<void> {
-    const taskKey = this._taskIdUtils.toString(taskId)
+    const taskKey = this._idToString(taskId)
     return this._taskRepo.inTransaction(async (repo) => {
       const currentTask = await repo.get(taskId)
       if (!currentTask) {
@@ -76,7 +75,7 @@ export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId
       }
 
       const zombieTasks = await this._getZombies(repo)
-      const isZombie = !!zombieTasks.find((t) => this._taskIdUtils.areEqual(t, taskId))
+      const isZombie = !!zombieTasks.find((t) => this._idToString(t) === taskKey)
 
       if (currentTask.status === 'pending' || isZombie) {
         const newTask = { ...currentTask, status: <TaskStatus>'canceled' }
@@ -130,7 +129,7 @@ export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId
   }
 
   private _runTask = async (task: Task<TId, TInput, TData, TError>) => {
-    const taskKey = this._taskIdUtils.toString(task)
+    const taskKey = this._idToString(task)
     this._logger.debug(`task "${taskKey}" is about to start.`)
 
     const updateTask = _.throttle(async () => {

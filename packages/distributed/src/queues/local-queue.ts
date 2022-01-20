@@ -4,7 +4,7 @@ import { InMemoryTransactionLocker } from '../locks'
 import { BaseTaskQueue } from './base-queue'
 
 import { SafeTaskRepo } from './safe-repo'
-import { TaskRunner, TaskRepository, QueueOptions, TaskQueue as ITaskQueue, TaskIdUtil } from './typings'
+import { TaskRunner, TaskRepository, QueueOptions, TaskQueue as ITaskQueue } from './typings'
 
 export class LocalTaskQueue<TId, TInput, TData, TError>
   extends BaseTaskQueue<TId, TInput, TData, TError>
@@ -13,11 +13,11 @@ export class LocalTaskQueue<TId, TInput, TData, TError>
     taskRepo: TaskRepository<TId, TInput, TData, TError>,
     taskRunner: TaskRunner<TId, TInput, TData, TError>,
     logger: Logger,
-    taskIdUtils: TaskIdUtil<TId, TInput, TData, TError>,
+    idToString: (id: TId) => string,
     opt: QueueOptions<TId, TInput, TData, TError>
   ) {
     const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)
     const safeRepo = new SafeTaskRepo(taskRepo, new InMemoryTransactionLocker(logCb))
-    super(safeRepo, taskRunner, logger, taskIdUtils, opt)
+    super(safeRepo, taskRunner, logger, idToString, opt)
   }
 }

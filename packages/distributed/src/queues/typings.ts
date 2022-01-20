@@ -62,11 +62,6 @@ export type QueueOptions<_TId, _TInput, TData, _TError> = {
   progressThrottle: number
 }
 
-export type TaskIdUtil<TId, _TInput, _TData, _TError> = {
-  toString(id: TId): string
-  areEqual(id1: TId, id2: TId): boolean
-}
-
 export type TaskQueue<TId, TInput, _TData, _TError> = {
   initialize(): Promise<void>
   teardown(): Promise<void>
