@@ -1,20 +1,15 @@
+import { errors } from './typings'
 import { Worker } from './worker-pool/worker'
 
-export class TaskCanceledError extends Error {}
-export function isTaskCanceled(err: Error): err is TaskCanceledError {
-  return err instanceof TaskCanceledError
-}
+export class TaskCanceledError extends Error implements errors.TaskCanceledError {}
 
-export class TaskAlreadyStartedError extends Error {}
-export function isTaskAlreadyStarted(err: Error): err is TaskAlreadyStartedError {
-  return err instanceof TaskAlreadyStartedError
-}
+export class TaskAlreadyStartedError extends Error implements errors.TaskAlreadyStartedError {}
 
-export class TaskExitedUnexpectedlyError extends Error {
+export class TaskExitedUnexpectedlyError extends Error implements errors.TaskExitedUnexpectedlyError {
   public wid: number | undefined
-  public info: { exitCode: number; signal: string }
+  public info: errors.ExitInfo
 
-  constructor(worker: Worker, info: { exitCode: number; signal: string }) {
+  constructor(worker: Worker, info: errors.ExitInfo) {
     const { exitCode, signal } = info
     const { type } = worker.innerWorker
     const workerType = type === 'process' ? 'Process' : 'Thread'
@@ -23,7 +18,4 @@ export class TaskExitedUnexpectedlyError extends Error {
     this.wid = worker.wid
     this.info = info
   }
-}
-export function isTaskExitedUnexpectedly(err: Error): err is TaskExitedUnexpectedlyError {
-  return err instanceof TaskExitedUnexpectedlyError
 }

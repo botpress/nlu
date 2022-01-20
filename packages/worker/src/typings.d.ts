@@ -22,16 +22,22 @@ export type ErrorDeserializer = {
 
 export type TaskDefinition<I> = {
   input: I
-  logger: Logger // TODO use the actual logger implementation with a custom LogTransporter
+  logger: Logger
   progress: (p: number) => void
 }
 
 export type TaskHandler<I, O> = (def: TaskDefinition<I>) => Promise<O>
 
-export const errors: {
-  isTaskAlreadyStarted: (err: Error) => boolean
-  isTaskCanceled: (err: Error) => boolean
-  isTaskExitedUnexpectedly: (err: Error) => boolean
+export namespace errors {
+  export class TaskAlreadyStartedError extends Error {}
+  export class TaskCanceledError extends Error {}
+
+  export type ExitInfo = { exitCode: number; signal: string }
+  export class TaskExitedUnexpectedlyError extends Error {
+    public wid: number | undefined
+    public info: errors.ExitInfo
+    constructor(worker: Worker, info: ExitInfo) {}
+  }
 }
 
 export type PoolOptions = {
@@ -55,9 +61,9 @@ export type WorkerEntryPoint<I, O> = {
   isMainWorker: () => boolean
   logger: Logger
 }
-export type ProcessPool<I, O> = {
+export type ProcessPool<I, O> = WorkerPool<I, O> & {
   cancel(id: string)
-} & WorkerPool<I, O>
+}
 export type ProcessEntyPoint<I, O> = {} & WorkerEntryPoint<I, O>
 
 export type ThreadPool<I, O> = {} & WorkerPool<I, O>

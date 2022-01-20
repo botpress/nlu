@@ -34,15 +34,14 @@ export class TrainingProcessPool {
       return output
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      if (errors.isTaskCanceled(err)) {
+      if (err instanceof errors.TaskCanceledError) {
         throw new TrainingCanceled()
       }
-      if (errors.isTaskAlreadyStarted(err)) {
+      if (err instanceof errors.TaskAlreadyStartedError) {
         throw new TrainingAlreadyStarted()
       }
-      if (errors.isTaskExitedUnexpectedly(err)) {
-        // TODO: fix the any casting
-        throw new TrainingExitedUnexpectedly((err as any).wid, (err as any).info)
+      if (err instanceof errors.TaskExitedUnexpectedlyError) {
+        throw new TrainingExitedUnexpectedly(err.wid!, err.info)
       }
       throw err
     }
