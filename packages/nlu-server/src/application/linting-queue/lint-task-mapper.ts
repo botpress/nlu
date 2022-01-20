@@ -1,20 +1,8 @@
 import { queues } from '@botpress/distributed'
-import { LintingError, LintingStatus, TrainInput } from '@botpress/nlu-client'
-import * as NLUEngine from '@botpress/nlu-engine'
+import { LintingStatus } from '@botpress/nlu-client'
 import _ from 'lodash'
-import { Linting, LintingId } from '../../infrastructure'
-import { LintTaskData, LintTaskError } from './typings'
-
-export const mapLintIdtoTaskId = (lintId: LintingId): string => {
-  const { appId, modelId } = lintId
-  const stringModelId = NLUEngine.modelIdService.toString(modelId)
-  return `${appId}/${stringModelId}`
-}
-
-export const mapTaskIdToLintId = (taskId: string): LintingId => {
-  const [appId, modelId] = taskId.split('/')
-  return { appId, modelId: NLUEngine.modelIdService.fromString(modelId) }
-}
+import { Linting } from '../../infrastructure'
+import { LintTask } from './typings'
 
 export const mapLintStatusToTaskStatus = (lintStatus: LintingStatus): queues.TaskStatus => {
   if (lintStatus === 'done') {
@@ -42,7 +30,8 @@ export const mapTaskStatusToLintStatus = (taskStatus: queues.TaskStatus): Lintin
   if (taskStatus === 'canceled') {
     return 'canceled'
   }
-  if (taskStatus === 'errored') {
+  if (taskStatus === 'errored' || taskStatus === 'zombie') {
+    // TODO: do not forget to create error
     return 'errored'
   }
   if (taskStatus === 'running') {
@@ -54,31 +43,11 @@ export const mapTaskStatusToLintStatus = (taskStatus: queues.TaskStatus): Lintin
   throw new Error(`Unsuported task status: "${taskStatus}"`)
 }
 
-export const mapTaskErrorToLintError = (
-  taskError: queues.TaskError<TrainInput, LintTaskData, LintTaskError>
-): LintingError => {
-  const { type: taskType, message, stack } = taskError
-  if (taskType === 'zombie-task') {
-    return { type: 'zombie-linting', message, stack }
-  }
-  const { data } = taskError
-  return { type: data.actualErrorType, message, stack }
-}
-
-export const mapLintErrorToTaskError = (
-  lintError: LintingError
-): queues.TaskError<TrainInput, LintTaskData, LintTaskError> => {
-  const { type: lintType, message, stack } = lintError
-  if (lintType === 'zombie-linting') {
-    return { type: 'zombie-task', message, stack }
-  }
-  return { type: 'internal', message, stack, data: { actualErrorType: lintType } }
-}
-
-export const mapLintingToTask = (linting: Linting): queues.Task<TrainInput, LintTaskData, LintTaskError> => {
+export const mapLintingToTask = (linting: Linting): LintTask => {
   const { appId, modelId, status, cluster, currentCount, totalCount, dataset, error, issues } = linting
   return {
-    id: mapLintIdtoTaskId({ appId, modelId }),
+    appId,
+    modelId,
     cluster,
     status: mapLintStatusToTaskStatus(status),
     data: {
@@ -86,15 +55,12 @@ export const mapLintingToTask = (linting: Linting): queues.Task<TrainInput, Lint
     },
     input: dataset,
     progress: { start: 0, end: totalCount, current: currentCount },
-    error: error && mapLintErrorToTaskError(error)
+    error
   }
 }
 
-export const mapTaskQueryToLintingQuery = (
-  task: Partial<queues.Task<TrainInput, LintTaskData, LintTaskError>>
-): Partial<Linting> => {
-  const { id, status, cluster, progress, input, data, error } = task
-  const { appId, modelId } = id ? mapTaskIdToLintId(id) : <Partial<LintingId>>{}
+export const mapTaskQueryToLintingQuery = (task: Partial<LintTask>): Partial<Linting> => {
+  const { appId, modelId, status, cluster, progress, input, data, error } = task
   return _.pickBy(
     {
       appId,
@@ -103,16 +69,16 @@ export const mapTaskQueryToLintingQuery = (
       status: status && mapTaskStatusToLintStatus(status),
       dataset: input,
       progress: progress?.current,
-      error: error && mapTaskErrorToLintError(error)
+      error,
+      issues: data?.issues
     },
     (x) => x !== undefined
   )
 }
 
-export const mapTaskToLinting = (task: queues.Task<TrainInput, LintTaskData, LintTaskError>): Linting => {
-  const { id, status, cluster, progress, input, data, error } = task
+export const mapTaskToLinting = (task: LintTask): Linting => {
+  const { appId, modelId, status, cluster, progress, input, data, error } = task
   const { issues } = data
-  const { appId, modelId } = mapTaskIdToLintId(id)
   return {
     appId,
     modelId,
@@ -122,6 +88,6 @@ export const mapTaskToLinting = (task: queues.Task<TrainInput, LintTaskData, Lin
     currentCount: progress.current,
     totalCount: progress.end,
     issues,
-    error: error && mapTaskErrorToLintError(error)
+    error
   }
 }

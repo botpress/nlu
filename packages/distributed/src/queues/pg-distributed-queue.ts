@@ -4,34 +4,35 @@ import { PGTransactionLocker } from '../locks'
 import { BaseTaskQueue } from './base-queue'
 import { LocalTaskQueue } from './local-queue'
 import { SafeTaskRepo } from './safe-repo'
-import { TaskRunner, TaskRepository, QueueOptions, TaskQueue as ITaskQueue } from './typings'
+import { TaskRunner, TaskRepository, QueueOptions, TaskQueue as ITaskQueue, TaskIdUtil } from './typings'
 
 type Func<X extends any[], Y extends any> = (...x: X) => Y
 
-export class PGDistributedTaskQueue<TInput, TData, TError>
-  extends BaseTaskQueue<TInput, TData, TError>
-  implements ITaskQueue<TInput, TData, TError> {
+export class PGDistributedTaskQueue<TId, TInput, TData, TError>
+  extends BaseTaskQueue<TId, TInput, TData, TError>
+  implements ITaskQueue<TId, TInput, TData, TError> {
   private _pubsub: PGPubSub
 
-  private _broadcastCancelTask!: LocalTaskQueue<TInput, TData, TError>['cancelTask']
+  private _broadcastCancelTask!: LocalTaskQueue<TId, TInput, TData, TError>['cancelTask']
   private _broadcastSchedulerInterrupt!: () => Promise<void>
 
   constructor(
     pgURL: string,
-    taskRepo: TaskRepository<TInput, TData, TError>,
-    taskRunner: TaskRunner<TInput, TData, TError>,
+    taskRepo: TaskRepository<TId, TInput, TData, TError>,
+    taskRunner: TaskRunner<TId, TInput, TData, TError>,
     logger: Logger,
-    opt: Partial<QueueOptions<TInput, TData, TError>> = {}
+    taskIdUtils: TaskIdUtil<TId, TInput, TData, TError>,
+    opt: QueueOptions<TId, TInput, TData, TError>
   ) {
-    super(PGDistributedTaskQueue._makeSafeRepo(pgURL, taskRepo, logger), taskRunner, logger, opt)
+    super(PGDistributedTaskQueue._makeSafeRepo(pgURL, taskRepo, logger), taskRunner, logger, taskIdUtils, opt)
     this._pubsub = new PGPubSub(pgURL, {
       log: () => {}
     })
   }
 
-  private static _makeSafeRepo<TInput, TData, TError>(
+  private static _makeSafeRepo<TId, TInput, TData, TError>(
     pgURL: string,
-    taskRepo: TaskRepository<TInput, TData, TError>,
+    taskRepo: TaskRepository<TId, TInput, TData, TError>,
     logger: Logger
   ) {
     const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)
@@ -41,7 +42,7 @@ export class PGDistributedTaskQueue<TInput, TData, TError>
   public async initialize() {
     await super.initialize()
 
-    this._broadcastCancelTask = await this._broadcast<[string]>('cancel_task', super.cancelTask.bind(this))
+    this._broadcastCancelTask = await this._broadcast<[TId]>('cancel_task', super.cancelTask.bind(this))
     this._broadcastSchedulerInterrupt = await this._broadcast<[]>(
       'scheduler_interrupt',
       super.runSchedulerInterrupt.bind(this)
@@ -49,7 +50,7 @@ export class PGDistributedTaskQueue<TInput, TData, TError>
   }
 
   // for if a different instance gets the cancel task http call
-  public cancelTask(taskId: string) {
+  public cancelTask(taskId: TId) {
     return this._broadcastCancelTask(taskId)
   }
 

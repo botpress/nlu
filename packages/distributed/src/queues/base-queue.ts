@@ -2,14 +2,12 @@ import { Logger } from '@botpress/logger'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import moment from 'moment'
-import ms from 'ms'
 import { nanoid } from 'nanoid'
 
 import { TaskAlreadyStartedError, TaskNotFoundError } from './errors'
 import { createTimer, InterruptTimer } from './interrupt'
 import {
   Task,
-  TaskError,
   TaskProgress,
   SafeTaskRepository,
   TaskRunner,
@@ -17,31 +15,21 @@ import {
   TaskStatus,
   TaskRepository,
   QueueOptions,
-  TaskQueue as ITaskQueue
+  TaskQueue as ITaskQueue,
+  TaskIdUtil
 } from './typings'
 
-const DEFAULT_OPTIONS: QueueOptions<any, any, any> = {
-  maxTasks: 2,
-  initialProgress: { start: 0, end: 100, current: 0 },
-  initialData: {},
-  maxProgressDelay: ms('30s')
-}
-
-export class BaseTaskQueue<TInput, TData, TError> implements ITaskQueue<TInput, TData, TError> {
-  private _logger: Logger
-  private _options: QueueOptions<TInput, TData, TError>
+export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId, TInput, TData, TError> {
   private _schedulingTimmer!: InterruptTimer<[]>
   protected _clusterId: string = nanoid()
 
   constructor(
-    protected _taskRepo: SafeTaskRepository<TInput, TData, TError>,
-    private _taskRunner: TaskRunner<TInput, TData, TError>,
-    logger: Logger,
-    opt: Partial<QueueOptions<TInput, TData, TError>> = {}
-  ) {
-    this._logger = logger.sub('task-queue')
-    this._options = { ...DEFAULT_OPTIONS, ...opt }
-  }
+    protected _taskRepo: SafeTaskRepository<TId, TInput, TData, TError>,
+    private _taskRunner: TaskRunner<TId, TInput, TData, TError>,
+    private _logger: Logger,
+    private _taskIdUtils: TaskIdUtil<TId, TInput, TData, TError>,
+    private _options: QueueOptions<TId, TInput, TData, TError>
+  ) {}
 
   public async initialize() {
     this._schedulingTimmer = createTimer(this._runSchedulerInterrupt.bind(this), this._options.maxProgressDelay * 2)
@@ -56,40 +44,39 @@ export class BaseTaskQueue<TInput, TData, TError> implements ITaskQueue<TInput, 
     return localTasks.length
   }
 
-  public queueTask = async (taskId: string, input: TInput) => {
+  public queueTask = async (taskId: TId, input: TInput) => {
+    const taskKey = this._taskIdUtils.toString(taskId)
     await this._taskRepo.inTransaction(async (repo) => {
       const currentTask = await repo.get(taskId)
       if (currentTask && (currentTask.status === 'running' || currentTask.status === 'pending')) {
-        throw new TaskAlreadyStartedError(taskId)
+        throw new TaskAlreadyStartedError(taskKey)
       }
 
-      const state: TaskState = {
+      const state: TaskState<TId, TInput, TData, TError> = {
         status: 'pending',
         cluster: this._clusterId,
-        progress: this._options.initialProgress
-      }
-
-      return repo.set({
-        ...state,
-        id: taskId,
+        progress: this._options.initialProgress,
         input,
         data: this._options.initialData
-      })
+      }
+
+      return repo.set({ ...state, ...taskId })
     }, 'queueTask')
 
     // to return asap from queuing
     void this.runSchedulerInterrupt()
   }
 
-  public async cancelTask(taskId: string): Promise<void> {
+  public async cancelTask(taskId: TId): Promise<void> {
+    const taskKey = this._taskIdUtils.toString(taskId)
     return this._taskRepo.inTransaction(async (repo) => {
       const currentTask = await repo.get(taskId)
       if (!currentTask) {
-        throw new TaskNotFoundError(taskId)
+        throw new TaskNotFoundError(taskKey)
       }
 
       const zombieTasks = await this._getZombies(repo)
-      const isZombie = !!zombieTasks.find((t) => t.id === taskId)
+      const isZombie = !!zombieTasks.find((t) => this._taskIdUtils.areEqual(t, taskId))
 
       if (currentTask.status === 'pending' || isZombie) {
         const newTask = { ...currentTask, status: <TaskStatus>'canceled' }
@@ -122,14 +109,9 @@ export class BaseTaskQueue<TInput, TData, TError> implements ITaskQueue<TInput, 
       if (zombieTasks.length) {
         this._logger.debug(`Queuing back ${zombieTasks.length} tasks because they seem to be zombies.`)
 
-        const error: TaskError<TData, TInput, TError> = {
-          type: 'zombie-task',
-          message: `Zombie Task: Task had not been updated in more than ${this._options.maxProgressDelay} ms.`
-        }
-
         const progress = this._options.initialProgress
-        const newState: TaskState = { status: 'errored', cluster: this._clusterId, progress }
-        await Bluebird.each(zombieTasks, (z) => repo.set({ ...z, ...newState, error }))
+        const newState = { status: <TaskStatus>'zombie', cluster: this._clusterId, progress }
+        await Bluebird.each(zombieTasks, (z) => repo.set({ ...z, ...newState }))
       }
 
       const pendings = await repo.query({ status: 'pending' })
@@ -147,8 +129,9 @@ export class BaseTaskQueue<TInput, TData, TError> implements ITaskQueue<TInput, 
     }, '_runSchedulerInterrupt')
   }
 
-  private _runTask = async (task: Task<TInput, TData, TError>) => {
-    this._logger.debug(`task "${task.id}" is about to start.`)
+  private _runTask = async (task: Task<TId, TInput, TData, TError>) => {
+    const taskKey = this._taskIdUtils.toString(task)
+    this._logger.debug(`task "${taskKey}" is about to start.`)
 
     const progressCb = async (progress: TaskProgress, data?: TData) => {
       task.status = 'running'
@@ -163,20 +146,21 @@ export class BaseTaskQueue<TInput, TData, TError> implements ITaskQueue<TInput, 
 
     try {
       const terminatedTask = await this._taskRunner.run(task, progressCb)
-
-      await this._taskRepo.inTransaction(async (repo) => {
-        return repo.set(terminatedTask)
-      }, '_task_terminated')
+      if (terminatedTask) {
+        await this._taskRepo.inTransaction(async (repo) => {
+          return repo.set(terminatedTask)
+        }, '_task_terminated')
+      }
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      this._logger.attachError(err).error(`Unhandled error when running task "${task.id}"`)
+      this._logger.attachError(err).error(`Unhandled error when running task "${taskKey}"`)
     } finally {
       // to return asap
       void this.runSchedulerInterrupt()
     }
   }
 
-  private _getZombies = (repo: TaskRepository<TInput, TData, TError>) => {
+  private _getZombies = (repo: TaskRepository<TId, TInput, TData, TError>) => {
     const zombieThreshold = moment().subtract(this._options.maxProgressDelay, 'ms').toDate()
     return repo.queryOlderThan({ status: 'running' }, zombieThreshold)
   }

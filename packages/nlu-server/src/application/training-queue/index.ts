@@ -5,18 +5,22 @@ import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import ms from 'ms'
 
-import { ModelRepository, TrainingRepository } from '../../infrastructure'
+import { ModelRepository, TrainingId, TrainingRepository } from '../../infrastructure'
 import { TrainingAlreadyStartedError, TrainingNotFoundError } from '../errors'
 import { TrainHandler } from './train-handler'
-import { mapTrainIdtoTaskId } from './train-task-mapper'
+import { TrainIdUtil } from './train-id-utils'
 import { TrainTaskRepo } from './train-task-repo'
-import { TrainTaskData, TrainTaskError } from './typings'
+import { TrainTaskQueue, TrainTaskQueueOptions } from './typings'
 
 export const MIN_TRAINING_HEARTBEAT = ms('10s')
 export const PROGRESS_THROTTLE = MIN_TRAINING_HEARTBEAT / 2
 export const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * 3
-const TASK_OPTIONS: Partial<queues.QueueOptions<TrainInput, TrainTaskData, TrainTaskError>> = {
-  maxProgressDelay: MAX_TRAINING_HEARTBEAT
+
+const TASK_OPTIONS: TrainTaskQueueOptions = {
+  maxProgressDelay: MAX_TRAINING_HEARTBEAT,
+  maxTasks: 2,
+  initialData: {},
+  initialProgress: { start: 0, end: 100, current: 0 }
 }
 
 export type TrainQueueOptions = {
@@ -24,11 +28,7 @@ export type TrainQueueOptions = {
 }
 
 export abstract class TrainingQueue {
-  constructor(
-    private trainingRepo: TrainingRepository,
-    private taskQueue: queues.TaskQueue<TrainInput, TrainTaskData, TrainTaskError>,
-    private logger: Logger
-  ) {}
+  constructor(private trainingRepo: TrainingRepository, private taskQueue: TrainTaskQueue, private logger: Logger) {}
 
   public addListener = this.trainingRepo.addListener.bind(this.trainingRepo)
   public removeListener = this.trainingRepo.removeListener.bind(this.trainingRepo)
@@ -37,10 +37,11 @@ export abstract class TrainingQueue {
   public getLocalTrainingCount = this.taskQueue.getLocalTaskCount.bind(this.taskQueue)
 
   public queueTraining = async (appId: string, modelId: NLUEngine.ModelId, trainInput: TrainInput) => {
+    const trainId: TrainingId = { modelId, appId }
+    const trainKey: string = TrainIdUtil.toString(trainId)
     try {
-      const taskId = mapTrainIdtoTaskId({ modelId, appId })
-      await this.taskQueue.queueTask(taskId, trainInput)
-      this.logger.info(`[${taskId}] Training Queued.`)
+      await this.taskQueue.queueTask(trainId, trainInput)
+      this.logger.info(`[${trainKey}] Training Queued.`)
     } catch (thrown) {
       if (thrown instanceof queues.TaskAlreadyStartedError) {
         throw new TrainingAlreadyStartedError(appId, modelId)
@@ -51,8 +52,7 @@ export abstract class TrainingQueue {
 
   public async cancelTraining(appId: string, modelId: NLUEngine.ModelId): Promise<void> {
     try {
-      const taskId = mapTrainIdtoTaskId({ modelId, appId })
-      await this.taskQueue.cancelTask(taskId)
+      await this.taskQueue.cancelTask({ modelId, appId })
     } catch (thrown) {
       if (thrown instanceof queues.TaskNotFoundError) {
         throw new TrainingNotFoundError(appId, modelId)
@@ -73,10 +73,22 @@ export class PgTrainingQueue extends TrainingQueue {
   ) {
     const trainTaskRepo = new TrainTaskRepo(trainingRepo)
     const trainHandler = new TrainHandler(engine, modelRepo, logger.sub('training-queue'))
-    const taskQueue = new queues.PGDistributedTaskQueue(pgURL, trainTaskRepo, trainHandler, logger, {
-      ...TASK_OPTIONS,
-      maxTasks: opt.maxTraining
-    })
+
+    const options = opt.maxTraining
+      ? {
+          ...TASK_OPTIONS,
+          maxTasks: opt.maxTraining
+        }
+      : TASK_OPTIONS
+
+    const taskQueue = new queues.PGDistributedTaskQueue(
+      pgURL,
+      trainTaskRepo,
+      trainHandler,
+      logger,
+      TrainIdUtil,
+      options
+    )
     super(trainingRepo, taskQueue, logger)
   }
 }
@@ -92,10 +104,15 @@ export class LocalTrainingQueue extends TrainingQueue {
     const trainTaskRepo = new TrainTaskRepo(trainingRepo)
     const logger = baseLogger.sub('training-queue')
     const trainHandler = new TrainHandler(engine, modelRepo, logger)
-    const taskQueue = new queues.LocalTaskQueue(trainTaskRepo, trainHandler, logger, {
-      ...TASK_OPTIONS,
-      maxTasks: opt.maxTraining
-    })
+
+    const options = opt.maxTraining
+      ? {
+          ...TASK_OPTIONS,
+          maxTasks: opt.maxTraining
+        }
+      : TASK_OPTIONS
+
+    const taskQueue = new queues.LocalTaskQueue(trainTaskRepo, trainHandler, logger, TrainIdUtil, options)
     super(trainingRepo, taskQueue, logger)
   }
 }

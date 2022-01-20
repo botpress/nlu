@@ -1,20 +1,8 @@
 import { queues } from '@botpress/distributed'
-import { TrainingError, TrainingStatus, TrainInput } from '@botpress/nlu-client'
-import * as NLUEngine from '@botpress/nlu-engine'
+import { TrainingStatus } from '@botpress/nlu-client'
 import _ from 'lodash'
-import { Training, TrainingId } from '../../infrastructure'
-import { TrainTaskData, TrainTaskError } from './typings'
-
-export const mapTrainIdtoTaskId = (trainId: TrainingId): string => {
-  const { appId, modelId } = trainId
-  const stringModelId = NLUEngine.modelIdService.toString(modelId)
-  return `${appId}/${stringModelId}`
-}
-
-export const mapTaskIdToTrainId = (taskId: string): TrainingId => {
-  const [appId, modelId] = taskId.split('/')
-  return { appId, modelId: NLUEngine.modelIdService.fromString(modelId) }
-}
+import { Training } from '../../infrastructure'
+import { TrainTask } from './typings'
 
 export const mapTrainStatusToTaskStatus = (trainStatus: TrainingStatus): queues.TaskStatus => {
   if (trainStatus === 'done') {
@@ -42,7 +30,8 @@ export const mapTaskStatusToTrainStatus = (taskStatus: queues.TaskStatus): Train
   if (taskStatus === 'canceled') {
     return 'canceled'
   }
-  if (taskStatus === 'errored') {
+  if (taskStatus === 'errored' || taskStatus === 'zombie') {
+    // TODO: do not forget to also create an error for status zombie
     return 'errored'
   }
   if (taskStatus === 'running') {
@@ -54,46 +43,23 @@ export const mapTaskStatusToTrainStatus = (taskStatus: queues.TaskStatus): Train
   throw new Error(`Unsuported task status: "${taskStatus}"`)
 }
 
-export const mapTaskErrorToTrainError = (
-  taskError: queues.TaskError<TrainInput, TrainTaskData, TrainTaskError>
-): TrainingError => {
-  const { type: taskType, message, stack } = taskError
-  if (taskType === 'zombie-task') {
-    return { type: 'zombie-training', message, stack }
-  }
-  const { data } = taskError
-  return { type: data.actualErrorType, message, stack }
-}
-
-export const mapTrainErrorToTaskError = (
-  trainError: TrainingError
-): queues.TaskError<TrainInput, TrainTaskData, TrainTaskError> => {
-  const { type: trainType, message, stack } = trainError
-  if (trainType === 'zombie-training') {
-    return { type: 'zombie-task', message, stack }
-  }
-  return { type: 'internal', message, stack, data: { actualErrorType: trainType } }
-}
-
-export const mapTrainingToTask = (training: Training): queues.Task<TrainInput, TrainTaskData, TrainTaskError> => {
+export const mapTrainingToTask = (training: Training): TrainTask => {
   const { appId, modelId, status, cluster, progress, dataset, trainingTime, error } = training
   return {
-    id: mapTrainIdtoTaskId({ appId, modelId }),
+    appId,
+    modelId,
     cluster,
     status: mapTrainStatusToTaskStatus(status),
+    progress: { start: 0, end: 100, current: progress },
     data: { trainingTime },
     input: dataset,
-    progress: { start: 0, end: 100, current: progress },
-    error: error && mapTrainErrorToTaskError(error)
+    error
   }
 }
 
-export const mapTaskQueryToTrainingQuery = (
-  task: Partial<queues.Task<TrainInput, TrainTaskData, TrainTaskError>>
-): Partial<Training> => {
-  const { id, status, cluster, progress, input, data, error } = task
+export const mapTaskQueryToTrainingQuery = (task: Partial<TrainTask>): Partial<Training> => {
+  const { appId, modelId, status, cluster, progress, input, data, error } = task
   const { trainingTime } = data ?? {}
-  const { appId, modelId } = id ? mapTaskIdToTrainId(id) : <Partial<TrainingId>>{}
   return _.pickBy(
     {
       appId,
@@ -103,16 +69,15 @@ export const mapTaskQueryToTrainingQuery = (
       trainingTime,
       dataset: input,
       progress: progress?.current,
-      error: error && mapTaskErrorToTrainError(error)
+      error
     },
     (x) => x !== undefined
   )
 }
 
-export const mapTaskToTraining = (task: queues.Task<TrainInput, TrainTaskData, TrainTaskError>): Training => {
-  const { id, status, cluster, progress, input, data, error } = task
+export const mapTaskToTraining = (task: TrainTask): Training => {
+  const { appId, modelId, input, data, error, status, cluster, progress } = task
   const { trainingTime } = data
-  const { appId, modelId } = mapTaskIdToTrainId(id)
   return {
     appId,
     modelId,
@@ -121,6 +86,6 @@ export const mapTaskToTraining = (task: queues.Task<TrainInput, TrainTaskData, T
     trainingTime,
     dataset: input,
     progress: progress.current,
-    error: error && mapTaskErrorToTrainError(error)
+    error
   }
 }

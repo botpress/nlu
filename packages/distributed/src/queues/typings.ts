@@ -1,60 +1,51 @@
-export type TaskTrx<TInput, TData, TError> = (repo: TaskRepository<TInput, TData, TError>) => Promise<void>
+export type TaskTrx<TId, TInput, TData, TError> = (repo: TaskRepository<TId, TInput, TData, TError>) => Promise<void>
 
-export type TaskHandler<TInput, TData, TError> = (task: Task<TInput, TData, TError>) => Promise<void>
-export type ProgressCb<_TInput, TData, _TError> = (progress: TaskProgress, data?: TData) => void
+export type TaskHandler<TId, TInput, TData, TError> = (task: Task<TId, TInput, TData, TError>) => Promise<void>
+export type ProgressCb<_TId, _TInput, TData, _TError> = (progress: TaskProgress, data?: TData) => void
 
-export type TaskRunner<TInput, TData, TError> = {
+export type TaskRunner<TId, TInput, TData, TError> = {
   run: (
-    task: Task<TInput, TData, TError>,
-    progress: ProgressCb<TInput, TData, TError>
-  ) => Promise<TerminatedTask<TInput, TData, TError>>
-  cancel: (task: Task<TInput, TData, TError>) => Promise<void>
+    task: Task<TId, TInput, TData, TError>,
+    progress: ProgressCb<TId, TInput, TData, TError>
+  ) => Promise<TerminatedTask<TId, TInput, TData, TError> | undefined>
+  cancel: (task: Task<TId, TInput, TData, TError>) => Promise<void>
 }
 
-export type TaskErrorType = 'zombie-task' | 'internal'
-export type TaskError<_TInput, _TData, TError> = { message: string; stack?: string } & (
-  | {
-      type: 'zombie-task'
-    }
-  | { type: 'internal'; data: TError }
-)
-
 export type TaskTerminatedStatus = 'done' | 'canceled' | 'errored'
-export type TaskStatus = TaskTerminatedStatus | 'pending' | 'running'
-export type TaskState = {
+export type TaskStatus = TaskTerminatedStatus | 'pending' | 'running' | 'zombie'
+export type TaskState<_TId, TInput, TData, TError> = {
   status: TaskStatus
   cluster: string
   progress: TaskProgress
-}
-
-export type Task<TInput, TData, TError> = TaskState & {
-  id: string
   input: TInput
   data: TData
-  error?: TaskError<TInput, TData, TError>
+  error?: TError
 }
+
+export type Task<TId, TInput, TData, TError> = TId & TaskState<TId, TInput, TData, TError>
 
 type Override<T, K> = Omit<T, keyof K> & K
-export type TerminatedTask<TInput, TData, TError> = Override<
-  Task<TInput, TData, TError>,
-  { status: TaskTerminatedStatus }
->
+export type TerminatedTask<TId, TInput, TData, TError> = TId &
+  Override<TaskState<TId, TInput, TData, TError>, { status: TaskTerminatedStatus }>
 
-export type ReadonlyTaskRepository<TInput, TData, TError> = {
+export type ReadonlyTaskRepository<TId, TInput, TData, TError> = {
   initialize: () => Promise<void>
   teardown: () => Promise<void>
-  get: (id: string) => Promise<Task<TInput, TData, TError> | undefined>
-  has: (id: string) => Promise<boolean>
-  query: (query: Partial<TaskState>) => Promise<Task<TInput, TData, TError>[]>
-  queryOlderThan: (query: Partial<TaskState>, threshold: Date) => Promise<Task<TInput, TData, TError>[]>
+  get: (id: TId) => Promise<Task<TId, TInput, TData, TError> | undefined>
+  has: (id: TId) => Promise<boolean>
+  query: (query: Partial<TaskState<TId, TInput, TData, TError>>) => Promise<Task<TId, TInput, TData, TError>[]>
+  queryOlderThan: (
+    query: Partial<TaskState<TId, TInput, TData, TError>>,
+    threshold: Date
+  ) => Promise<Task<TId, TInput, TData, TError>[]>
 }
 
-export type TaskRepository<TInput, TData, TError> = ReadonlyTaskRepository<TInput, TData, TError> & {
-  set: (task: Task<TInput, TData, TError>) => Promise<void>
+export type TaskRepository<TId, TInput, TData, TError> = ReadonlyTaskRepository<TId, TInput, TData, TError> & {
+  set: (task: Task<TId, TInput, TData, TError>) => Promise<void>
 }
 
-export type SafeTaskRepository<TInput, TData, TError> = ReadonlyTaskRepository<TInput, TData, TError> & {
-  inTransaction: (trx: TaskTrx<TInput, TData, TError>, name: string) => Promise<void>
+export type SafeTaskRepository<TId, TInput, TData, TError> = ReadonlyTaskRepository<TId, TInput, TData, TError> & {
+  inTransaction: (trx: TaskTrx<TId, TInput, TData, TError>, name: string) => Promise<void>
 }
 
 export type TaskProgress = {
@@ -63,17 +54,22 @@ export type TaskProgress = {
   current: number
 }
 
-export type QueueOptions<_TInput, TData, _TError> = {
+export type QueueOptions<_TId, _TInput, TData, _TError> = {
   maxTasks: number
   initialProgress: TaskProgress
   initialData: TData
   maxProgressDelay: number
 }
 
-export type TaskQueue<TInput, _TData, _TError> = {
+export type TaskIdUtil<TId, _TInput, _TData, _TError> = {
+  toString(id: TId): string
+  areEqual(id1: TId, id2: TId): boolean
+}
+
+export type TaskQueue<TId, TInput, _TData, _TError> = {
   initialize(): Promise<void>
   teardown(): Promise<void>
   getLocalTaskCount(): Promise<number>
-  queueTask(taskId: string, input: TInput): Promise<void>
-  cancelTask(taskId: string): Promise<void>
+  queueTask(id: TId, input: TInput): Promise<void>
+  cancelTask(id: TId): Promise<void>
 }
