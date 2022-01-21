@@ -27,3 +27,9 @@ export class InvalidRequestFormatError extends ResponseError {
     super(`Invalid Request Format: ${message}`, 400)
   }
 }
+
+export class InvalidTrainSetError extends ResponseError {
+  constructor(message: string) {
+    super(`Invalid Training Set: ${message}`, 400)
+  }
+}

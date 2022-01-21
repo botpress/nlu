@@ -69,7 +69,7 @@ async function main(args: CommandLineArgs) {
 
   const tests = getTests(testsToRun, skip)
   // eslint-disable-next-line no-console
-  console.log(chalk.green(`Running tests [${tests.map(({ name }) => name).join(', ')}]`))
+  console.log(chalk.green(`Running benchmarks [${tests.map(({ name }) => name).join(', ')}]`))
 
   let testsPass = true
   for (const test of tests) {
@@ -91,8 +91,8 @@ async function main(args: CommandLineArgs) {
 
 yargs
   .command(
-    ['e2e', '$0'],
-    'Launch e2e tests on nlu-server',
+    ['bench', '$0'],
+    'Launch benchmarks on nlu-server',
     {
       update: {
         alias: 'u',

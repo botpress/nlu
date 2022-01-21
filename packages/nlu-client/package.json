@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc --build",
     "test": "jest --roots ./dist",
-    "clean": "rm -rf ./dist && rm -rf ./node_modules"
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   },
   "dependencies": {
     "axios": "^0.21.1",

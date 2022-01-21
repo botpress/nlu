@@ -11,7 +11,7 @@ import {
   DatasetValidationError,
   LintingNotFoundError
 } from '../application/errors'
-import { InvalidRequestFormatError } from './errors'
+import { InvalidRequestFormatError, InvalidTrainSetError } from './errors'
 
 const serializeError = (err: Error): http.NLUError => {
   const { message, stack } = err
@@ -34,6 +34,10 @@ const serializeError = (err: Error): http.NLUError => {
   if (err instanceof InvalidRequestFormatError) {
     const { statusCode } = err
     return { message, stack, type: 'request_format', code: statusCode }
+  }
+  if (err instanceof InvalidTrainSetError) {
+    const { statusCode } = err
+    return { message, stack, type: 'invalid_train_set', code: statusCode }
   }
   if (err instanceof LangServerCommError) {
     const { statusCode } = err

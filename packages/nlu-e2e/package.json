@@ -1,0 +1,32 @@
+{
+  "name": "@botpress/nlu-e2e",
+  "version": "0.0.1",
+  "description": "Small e2e test suite for the NLU Server. It's main purpose is to make sure happy paths work well for multiple server configuration.",
+  "main": "./dist/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@botpress/nlu-client": "*",
+    "@botpress/logger": "*",
+    "cli-progress": "^3.8.2",
+    "chalk": "^2.4.2",
+    "fs-extra": "^9.1.0",
+    "bluebird": "^3.7.2",
+    "lodash": "^4.17.19",
+    "yargs": "^16.0.3"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.116",
+    "@types/fs-extra": "^5.0.4",
+    "@types/node": "^16.11.10",
+    "typescript": "^4.5.2",
+    "chai": "4.3.4",
+    "@types/chai": "4.3.0",
+    "semver": "7.3.5",
+    "@types/semver": "7.3.9"
+  },
+  "scripts": {
+    "start": "node ./dist/index.js",
+    "build": "tsc --build",
+    "clean": "rimraf ./dist && rimraf ./node_modules"
+  }
+}

@@ -1,12 +1,13 @@
 import { IntentDefinition, http } from '@botpress/nlu-client'
 import { ObjectSchema, validate } from 'joi'
+import { InvalidRequestFormatError, InvalidTrainSetError } from '../errors'
 
 import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema, LintInputSchema } from './schemas'
 
 const validateIntent = (contexts: string[], intent: IntentDefinition) => {
   for (const ctx of intent.contexts) {
     if (!contexts.includes(ctx)) {
-      throw new Error(`Context ${ctx} of Intent ${intent.name} does not seem to appear in all contexts`)
+      throw new InvalidTrainSetError(`Context ${ctx} of Intent ${intent.name} does not seem to appear in all contexts`)
     }
   }
 }
@@ -15,7 +16,15 @@ async function _validateTrainset<T extends http.TrainRequestBody | http.LintRequ
   rawInput: any,
   schema: ObjectSchema
 ) {
-  const validatedInput: T = await validate(rawInput, schema, {})
+  let validatedInput: T
+  try {
+    validatedInput = await validate(rawInput, schema, {})
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid training/linting format')
+  }
 
   const { contexts } = validatedInput
 
@@ -35,11 +44,25 @@ export async function validateLintInput(rawInput: any): Promise<http.LintRequest
 }
 
 export async function validatePredictInput(rawInput: any): Promise<http.PredictRequestBody> {
-  const validated: http.PredictRequestBody = await validate(rawInput, PredictInputSchema, {})
-  return validated
+  try {
+    const validated: http.PredictRequestBody = await validate(rawInput, PredictInputSchema, {})
+    return validated
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid predict format')
+  }
 }
 
 export async function validateDetectLangInput(rawInput: any): Promise<http.DetectLangRequestBody> {
-  const validated: http.DetectLangRequestBody = await validate(rawInput, DetectLangInputSchema, {})
-  return validated
+  try {
+    const validated: http.DetectLangRequestBody = await validate(rawInput, DetectLangInputSchema, {})
+    return validated
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid detect language format')
+  }
 }
