@@ -7,6 +7,7 @@ import {
 } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import { validate } from 'joi'
+import { InvalidRequestFormatError, InvalidTrainSetError } from '../errors'
 
 import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema } from './schemas'
 
@@ -25,7 +26,7 @@ const makeSlotChecker = (listEntities: ListEntityDefinition[], patternEntities: 
   ]
   for (const entity of entities) {
     if (!supportedTypes.includes(entity)) {
-      throw new Error(`Slot ${name} references entity ${entity}, but it does not exist.`)
+      throw new InvalidTrainSetError(`Slot ${name} references entity ${entity}, but it does not exist.`)
     }
   }
 }
@@ -37,7 +38,7 @@ const makeIntentChecker = (contexts: string[]) => (
 ) => {
   for (const ctx of intent.contexts) {
     if (!contexts.includes(ctx)) {
-      throw new Error(`Context ${ctx} of Intent ${intent.name} does not seem to appear in all contexts`)
+      throw new InvalidTrainSetError(`Context ${ctx} of Intent ${intent.name} does not seem to appear in all contexts`)
     }
   }
   const variableChecker = makeSlotChecker(enums, patterns)
@@ -53,10 +54,18 @@ const isPatternEntity = (e: ListEntityDefinition | PatternEntityDefinition): e i
 }
 
 export async function validateTrainInput(rawInput: any): Promise<http.TrainRequestBody> {
-  const validatedInput: http.TrainRequestBody = await validate(rawInput, TrainInputSchema, {})
+  let validatedInput: http.TrainRequestBody
+
+  try {
+    validatedInput = await validate(rawInput, TrainInputSchema, {})
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid train format')
+  }
 
   const { entities, contexts } = validatedInput
-
   const listEntities = entities.filter(isListEntity)
   const patternEntities = entities.filter(isPatternEntity)
 
@@ -70,11 +79,25 @@ export async function validateTrainInput(rawInput: any): Promise<http.TrainReque
 }
 
 export async function validatePredictInput(rawInput: any): Promise<http.PredictRequestBody> {
-  const validated: http.PredictRequestBody = await validate(rawInput, PredictInputSchema, {})
-  return validated
+  try {
+    const validated: http.PredictRequestBody = await validate(rawInput, PredictInputSchema, {})
+    return validated
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid predict format')
+  }
 }
 
 export async function validateDetectLangInput(rawInput: any): Promise<http.DetectLangRequestBody> {
-  const validated: http.DetectLangRequestBody = await validate(rawInput, DetectLangInputSchema, {})
-  return validated
+  try {
+    const validated: http.DetectLangRequestBody = await validate(rawInput, DetectLangInputSchema, {})
+    return validated
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid detect language format')
+  }
 }
