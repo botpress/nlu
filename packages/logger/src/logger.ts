@@ -79,5 +79,6 @@ export class Logger implements sdk.Logger {
 
   private _logCurrentError = (error: Error) => {
     this.push({ type: 'stacktrace', level: LoggerLevel.Critical, message: error.message, stack: error.stack })
+    this._currentError = undefined
   }
 }
