@@ -77,10 +77,12 @@ export default class Engine implements IEngine {
   private modelsById: LRUCache<string, LoadedModel>
 
   private _trainLogger: Logger
+  private _lintLogger: Logger
   private _predictLogger: Logger
 
   constructor(private version: string, private _logger: Logger, opt: Partial<EngineOptions> = {}) {
     this._trainLogger = _logger.sub('training')
+    this._lintLogger = _logger.sub('linting')
     this._predictLogger = _logger.sub('predict')
 
     this._options = { ...DEFAULT_ENGINE_OPTIONS, ...opt }
@@ -127,7 +129,7 @@ export default class Engine implements IEngine {
   public async initialize(config: LanguageConfig & { assetsPath: string }): Promise<void> {
     this._tools = await initializeTools(config, this._logger)
     this._trainingWorkerQueue = new TrainingProcessPool(this._trainLogger, config)
-    this._lintingWorkerQueue = new LintingProcessPool(this._trainLogger, config)
+    this._lintingWorkerQueue = new LintingProcessPool(this._lintLogger, config)
   }
 
   public hasModel(modelId: ModelId) {
