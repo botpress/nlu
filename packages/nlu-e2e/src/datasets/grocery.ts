@@ -9,10 +9,10 @@ export const trainSet: TrainInput = {
       utterances: [
         'fruit is moldy',
         'this fruit is moldy',
-        'this [banana](fruit) is not good to eat',
-        'theses [oranges](fruit) have passed',
-        'theses [grapes](fruit) look bad',
-        'theses [apples](fruit) look so moldy'
+        'this [banana](moldy_fruit) is not good to eat',
+        'theses [oranges](moldy_fruit) have passed',
+        'theses [grapes](moldy_fruit) look bad',
+        'theses [apples](moldy_fruit) look so moldy'
       ],
       slots: [
         {

@@ -35,10 +35,6 @@ const serializeError = (err: Error): http.NLUError => {
     const { statusCode } = err
     return { message, stack, type: 'request_format', code: statusCode }
   }
-  if (err instanceof InvalidTrainSetError) {
-    const { statusCode } = err
-    return { message, stack, type: 'invalid_train_set', code: statusCode }
-  }
   if (err instanceof LangServerCommError) {
     const { statusCode } = err
     return { message, stack, type: 'lang-server', code: statusCode }
@@ -47,7 +43,7 @@ const serializeError = (err: Error): http.NLUError => {
     const { statusCode } = err
     return { message, stack, type: 'duckling-server', code: statusCode }
   }
-  if (err instanceof DatasetValidationError) {
+  if (err instanceof DatasetValidationError || err instanceof InvalidTrainSetError) {
     const { statusCode } = err
     return { message, stack, type: 'dataset_format', code: statusCode }
   }

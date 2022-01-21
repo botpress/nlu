@@ -37,7 +37,6 @@ export type ErrorType =
   | 'training_not_found'
   | 'linting_not_found'
   | 'training_already_started'
-  | 'invalid_train_set'
   | 'request_format'
   | 'lang-server'
   | 'duckling-server'
