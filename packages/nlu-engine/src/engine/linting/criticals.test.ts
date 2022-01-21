@@ -100,31 +100,30 @@ test('validate intent wihtout utterances should fail', async () => {
   await expect(validateTrainInput(trainInput)).rejects.toThrow()
 })
 
-// TODO: uncomment when implemented
-// test('validate enum without values or patterns without regexes should fail', async () => {
-//   // arrange
-//   const incompleteEnum: ListEntityDefinition = { name: 'city' } as ListEntityDefinition
+test('validate enum without values or patterns without regexes should fail', async () => {
+  // arrange
+  const incompleteEnum: ListEntityDefinition = { name: 'city' } as ListEntityDefinition
 
-//   const incompletePattern: PatternEntityDefinition = { name: 'password' } as PatternEntityDefinition
+  const incompletePattern: PatternEntityDefinition = { name: 'password' } as PatternEntityDefinition
 
-//   const withoutValues: TrainInput = {
-//     intents: [FLY_INTENT],
-//     entities: [incompleteEnum],
-//     language: LANG,
-//     seed: 42
-//   }
+  const withoutValues: TrainInput = {
+    intents: [FLY_INTENT],
+    entities: [incompleteEnum],
+    language: LANG,
+    seed: 42
+  }
 
-//   const withoutRegexes: TrainInput = {
-//     intents: [PROBLEM_INTENT],
-//     entities: [incompletePattern],
-//     language: LANG,
-//     seed: 42
-//   }
+  const withoutRegexes: TrainInput = {
+    intents: [PROBLEM_INTENT],
+    entities: [incompletePattern],
+    language: LANG,
+    seed: 42
+  }
 
-//   // act & assert
-//   await expect(validateTrainInput(withoutValues)).rejects.toThrow()
-//   await expect(validateTrainInput(withoutRegexes)).rejects.toThrow()
-// })
+  // act & assert
+  await expect(validateTrainInput(withoutValues)).rejects.toThrow()
+  await expect(validateTrainInput(withoutRegexes)).rejects.toThrow()
+})
 
 test('validate with an unexisting referenced enum should throw', async () => {
   // arrange
