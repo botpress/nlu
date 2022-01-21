@@ -5,17 +5,14 @@ import {
   TrainInput,
   ServerInfo,
   TrainingStatus,
-  LintingState,
-  DatasetIssue,
-  IssueCode,
-  LintingError
+  LintingState
 } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { TrainingRepository, TrainingListener } from '../infrastructure'
 import { LintingRepository } from '../infrastructure/linting-repo'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { ReadonlyTrainingRepository, TrainingListener } from '../infrastructure/training-repo/typings'
 import {
   ModelDoesNotExistError,
   TrainingNotFoundError,
@@ -25,16 +22,18 @@ import {
   DatasetValidationError,
   LintingNotFoundError
 } from './errors'
-import TrainingQueue from './training-queue'
+import { LintingQueue } from './linting-queue'
+import { TrainingQueue } from './training-queue'
 
 export class Application {
   private _logger: Logger
 
   constructor(
     private _modelRepo: ModelRepository,
-    private _trainingRepo: ReadonlyTrainingRepository,
+    private _trainingRepo: TrainingRepository,
     private _lintingRepo: LintingRepository,
     private _trainingQueue: TrainingQueue,
+    private _lintingQueue: LintingQueue,
     private _engine: Engine,
     private _serverVersion: string,
     baseLogger: Logger
@@ -55,6 +54,7 @@ export class Application {
     await this._trainingRepo.initialize()
     await this._trainingQueue.initialize()
     await this._lintingRepo.initialize()
+    await this._lintingQueue.initialize()
   }
 
   public async teardown() {
@@ -99,7 +99,7 @@ export class Application {
 
     const stringId = modelIdService.toString(modelId)
     const key = `${appId}/${stringId}`
-    const { issues } = await this._engine.lint(key, trainInput, { minSpeed: 'fastest' })
+    const { issues } = await this._engine.lint(key, trainInput, { minSpeed: 'fastest', runInMainProcess: true })
 
     const criticalErrors = issues.filter((i) => i.severity === 'critical')
     if (!!criticalErrors.length) {
@@ -149,7 +149,7 @@ export class Application {
 
     const model = await this._modelRepo.getModel(appId, modelId)
     if (!model) {
-      throw new TrainingNotFoundError(modelId)
+      throw new TrainingNotFoundError(appId, modelId)
     }
 
     return {
@@ -162,10 +162,14 @@ export class Application {
     return this._trainingQueue.cancelTraining(appId, modelId)
   }
 
+  public async cancelLinting(appId: string, modelId: ModelId): Promise<void> {
+    return this._lintingQueue.cancelLinting(appId, modelId)
+  }
+
   public async predict(appId: string, modelId: ModelId, utterances: string[]): Promise<PredictOutput[]> {
     const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
     if (!modelExists) {
-      throw new ModelDoesNotExistError(modelId)
+      throw new ModelDoesNotExistError(appId, modelId)
     }
 
     const { specificationHash: currentSpec } = this._getSpecFilter()
@@ -176,7 +180,7 @@ export class Application {
     if (!this._engine.hasModel(modelId)) {
       const model = await this._modelRepo.getModel(appId, modelId)
       if (!model) {
-        throw new ModelDoesNotExistError(modelId)
+        throw new ModelDoesNotExistError(appId, modelId)
       }
 
       await this._engine.loadModel(model)
@@ -187,10 +191,10 @@ export class Application {
       return predictions
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      if (engineErrors.isLangServerError(err)) {
+      if (err instanceof engineErrors.LangServerError) {
         throw new LangServerCommError(err)
       }
-      if (engineErrors.isDucklingServerError(err)) {
+      if (err instanceof engineErrors.DucklingServerError) {
         throw new DucklingCommError(err)
       }
       throw thrown
@@ -201,7 +205,7 @@ export class Application {
     for (const modelId of modelIds) {
       const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
       if (!modelExists) {
-        throw new ModelDoesNotExistError(modelId)
+        throw new ModelDoesNotExistError(appId, modelId)
       }
 
       const { specificationHash: currentSpec } = this._getSpecFilter()
@@ -212,7 +216,7 @@ export class Application {
       if (!this._engine.hasModel(modelId)) {
         const model = await this._modelRepo.getModel(appId, modelId)
         if (!model) {
-          throw new ModelDoesNotExistError(modelId)
+          throw new ModelDoesNotExistError(appId, modelId)
         }
         await this._engine.loadModel(model)
       }
@@ -243,57 +247,31 @@ You can increase your cache size by the CLI or config.
     return detectedLanguages
   }
 
-  private _lint = async (appId: string, modelId: ModelId, trainInput: TrainInput): Promise<void> => {
-    const stringId = modelIdService.toString(modelId)
-    const key = `${appId}/${stringId}`
-
-    let lintingState: LintingState = {
-      currentCount: 0,
-      totalCount: -1,
-      issues: [],
-      status: 'linting-pending'
-    }
-
-    try {
-      await this._engine.lint(key, trainInput, {
-        minSpeed: 'slow',
-        progressCallback: (currentCount: number, totalCount: number, issues: DatasetIssue<IssueCode>[]) => {
-          lintingState = {
-            currentCount,
-            totalCount,
-            issues,
-            status: 'linting'
-          }
-          return this._lintingRepo.set({ appId, modelId, ...lintingState })
-        }
-      })
-    } catch (thrown) {
-      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      const error: LintingError = { message: err.message, stack: err.stack, type: 'internal' }
-      return this._lintingRepo.set({ appId, modelId, ...lintingState, error })
-    }
-
-    return this._lintingRepo.set({ appId, modelId, ...lintingState, status: 'done' })
-  }
-
-  public async lintDataset(appId: string, trainInput: TrainInput): Promise<ModelId> {
+  public async startLinting(appId: string, trainInput: TrainInput): Promise<ModelId> {
     const modelId = modelIdService.makeId({
       ...trainInput,
       specifications: this._engine.getSpecifications()
     })
 
     // unhandled promise to return asap
-    void this._lint(appId, modelId, trainInput)
+    await this._lintingQueue.queueLinting(appId, modelId, trainInput)
 
     return modelId
   }
 
   public async getLintingState(appId: string, modelId: ModelId): Promise<LintingState> {
-    const state = await this._lintingRepo.get({ appId, modelId })
-    if (!state) {
-      throw new LintingNotFoundError(modelId)
+    const linting = await this._lintingRepo.get({ appId, modelId })
+    if (linting) {
+      const { status, error, currentCount, totalCount, issues } = linting
+      return { status, error, currentCount, totalCount, issues }
     }
-    return state
+
+    const { specificationHash: currentSpec } = this._getSpecFilter()
+    if (modelId.specificationHash !== currentSpec) {
+      throw new InvalidModelSpecError(modelId, currentSpec)
+    }
+
+    throw new LintingNotFoundError(appId, modelId)
   }
 
   private _getSpecFilter = (): { specificationHash: string } => {

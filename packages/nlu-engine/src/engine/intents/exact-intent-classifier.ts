@@ -1,6 +1,6 @@
 import Joi, { validate } from 'joi'
 import _ from 'lodash'
-import { ModelLoadingError } from '../../errors'
+import { ModelLoadingError } from '../errors'
 import { Intent } from '../typings'
 import Utterance, { UtteranceToStringOptions } from '../utterance/utterance'
 

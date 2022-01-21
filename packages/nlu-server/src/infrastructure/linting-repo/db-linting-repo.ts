@@ -1,7 +1,6 @@
 import { Logger } from '@botpress/logger'
 import {
   LintingErrorType,
-  LintingState,
   LintingStatus,
   DatasetIssue,
   IssueCode,
@@ -10,13 +9,15 @@ import {
   LintingError
 } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import Bluebird from 'bluebird'
 import { Knex } from 'knex'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
 import { createTableIfNotExists } from '../../utils/database'
+import { packTrainSet, unpackTrainSet } from '../dataset-serializer'
 import { LintingRepository } from '.'
-import { Linting, LintingId } from './typings'
+import { Linting, LintingId, LintingState } from './typings'
 
 type IssuesRow = {
   id: string
@@ -36,6 +37,8 @@ type LintingRow = LintingRowId & {
   status: LintingStatus
   currentCount: number
   totalCount: number
+  cluster: string
+  dataset: string
   error_type?: LintingErrorType
   error_message?: string
   error_stack?: string
@@ -72,6 +75,8 @@ export class DatabaseLintingRepo implements LintingRepository {
       table.string('status').notNullable()
       table.string('currentCount').notNullable()
       table.string('totalCount').notNullable()
+      table.string('cluster').nullable()
+      table.text('dataset').notNullable()
       table.string('error_type').nullable()
       table.text('error_message').nullable()
       table.text('error_stack').nullable()
@@ -111,27 +116,19 @@ export class DatabaseLintingRepo implements LintingRepository {
     return !!linting
   }
 
-  // TODO: express this method as a single query using a right join
-  public async get(id: LintingId): Promise<LintingState | undefined> {
+  public async get(id: LintingId): Promise<Linting | undefined> {
     const { appId, modelId } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
     const lintingId: LintingRowId = { appId, modelId: stringId }
-    const linting = await this._lintings.select('*').where(lintingId).first()
-    if (!linting) {
+    const lintingRow = await this._lintings.select('*').where(lintingId).first()
+    if (!lintingRow) {
       return
     }
-
-    const issueRows = await this._issues.select('*').where(lintingId)
-    const issues = issueRows.map(this._rowToIssue.bind(this))
-
-    const { status, currentCount, totalCount, error_message, error_stack, error_type } = linting
-    const error = this._toError(error_type, error_message, error_stack)
-    const state: LintingState = { status, currentCount, totalCount, error, issues }
-    return state
+    return this._fromLintingRow(lintingRow)
   }
 
   public async set(linting: Linting): Promise<void> {
-    const { modelId, appId, currentCount, issues, totalCount, status, error } = linting
+    const { modelId, appId, currentCount, cluster, dataset, issues, totalCount, status, error } = linting
     const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
     const stringId = NLUEngine.modelIdService.toString(modelId)
 
@@ -140,6 +137,8 @@ export class DatabaseLintingRepo implements LintingRepository {
       modelId: stringId,
       currentCount,
       totalCount,
+      cluster,
+      dataset: packTrainSet(dataset),
       status,
       error_type,
       error_stack,
@@ -151,7 +150,17 @@ export class DatabaseLintingRepo implements LintingRepository {
     await this._lintings
       .insert(lintingTaskRow)
       .onConflict(['appId', 'modelId'])
-      .merge(['status', 'currentCount', 'totalCount', 'error_type', 'error_message', 'error_stack', 'updatedOn'])
+      .merge([
+        'status',
+        'currentCount',
+        'totalCount',
+        'cluster',
+        'dataset',
+        'error_type',
+        'error_message',
+        'error_stack',
+        'updatedOn'
+      ])
 
     if (!issues.length) {
       return
@@ -159,6 +168,53 @@ export class DatabaseLintingRepo implements LintingRepository {
 
     const issueRows = issues.map(this._issueToRow.bind(this)).map((r) => ({ appId, modelId: stringId, ...r }))
     await this._issues.insert(issueRows).onConflict('id').merge()
+  }
+
+  public async query(query: Partial<LintingState>): Promise<Linting[]> {
+    const { status, currentCount, totalCount } = query
+    const rowFilters: Partial<LintingRow> = { status, currentCount, totalCount }
+    const rows: LintingRow[] = await this._lintings.where(rowFilters).select('*')
+    return Bluebird.map(rows, this._fromLintingRow.bind(this))
+  }
+
+  public async queryOlderThan(query: Partial<LintingState>, treshold: Date): Promise<Linting[]> {
+    const iso = treshold.toISOString()
+    const { status, currentCount, totalCount } = query
+    const rowFilters: Partial<LintingRow> = { status, currentCount, totalCount }
+    const rows: LintingRow[] = await this._lintings.where(rowFilters).where('updatedOn', '<=', iso).select('*')
+    return Bluebird.map(rows, this._fromLintingRow.bind(this))
+  }
+
+  private _fromLintingRow = async (row: LintingRow): Promise<Linting> => {
+    const {
+      appId,
+      modelId,
+      status,
+      currentCount,
+      cluster,
+      dataset,
+      totalCount,
+      error_message,
+      error_stack,
+      error_type
+    } = row
+
+    const issueRows = await this._issues.select('*').where({ appId, modelId })
+    const issues = issueRows.map(this._rowToIssue.bind(this))
+
+    const error = this._toError(error_type, error_message, error_stack)
+    const state: Linting = {
+      appId,
+      modelId: NLUEngine.modelIdService.fromString(modelId),
+      status,
+      currentCount,
+      totalCount,
+      cluster,
+      dataset: unpackTrainSet(dataset),
+      error,
+      issues
+    }
+    return state
   }
 
   private async _janitor() {

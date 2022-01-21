@@ -17,7 +17,7 @@ class Interval<X extends any[]> {
 
 type Func<X extends any[], Y extends any> = (...x: X) => Y
 
-export type WatchDog<X extends any[]> = {
+export type InterruptTimer<X extends any[]> = {
   run(...x: X): Promise<void>
   stop: () => void
 }
@@ -30,9 +30,9 @@ export type WatchDog<X extends any[]> = {
  *
  * @param f Function to run
  * @param ms Max allowed time beetween function invocation
- * @returns a watchdog object that can be ran or stopped
+ * @returns a timer object that can be ran or stopped
  */
-export const watchDog = <X extends any[]>(f: Func<X, Promise<void>>, ms: number): WatchDog<X> => {
+export const createTimer = <X extends any[]>(f: Func<X, Promise<void>>, ms: number): InterruptTimer<X> => {
   const interval = new Interval(f, ms)
 
   const run: Func<X, Promise<void>> = (...x: X): Promise<void> => {

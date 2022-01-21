@@ -1,12 +1,18 @@
-# Botpress Locks
+# Botpress Distributed
 
-Contains locks and transaction queues to prevent many kinds of race conditions
+Contains distributed locks and distributed queues
 
-Race conditions can occur:
+## Locks
+
+Locks prevent multiple types of race conditions. Race conditions can occur:
 
 - in single-threaded apps when using asynchronous code
 - in multi-threaded/multi-process apps
 - in mutli-instances apps
+
+## Queues
+
+A Distributed Task Queue can run tasks on multiple instances without the need for a master slave configuration.
 
 ## Licensing
 

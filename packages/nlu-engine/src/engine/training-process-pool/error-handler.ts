@@ -1,6 +1,6 @@
 import { ErrorSerializer, ErrorDeserializer, SerializedError } from '@botpress/worker'
 import _ from 'lodash'
-import { LangServerError, DucklingServerError } from '../../errors'
+import { LangServerError, DucklingServerError } from '../errors'
 
 export class ErrorHandler implements ErrorSerializer, ErrorDeserializer {
   public deserializeError(err: SerializedError): Error {

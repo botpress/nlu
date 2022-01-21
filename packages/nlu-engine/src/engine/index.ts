@@ -4,20 +4,31 @@ import _ from 'lodash'
 import LRUCache from 'lru-cache'
 import ms from 'ms'
 import sizeof from 'object-sizeof'
-import { PredictOutput, TrainInput, Specifications, LintingOptions, LintingProgress } from 'src/typings'
 import v8 from 'v8'
 import { isListEntity, isPatternEntity } from '../guards'
-import { IssueCode } from '../linting'
+import { DatasetIssue, IssueCode } from '../linting'
 
 import modelIdService from '../model-id-service'
 
-import { TrainingOptions, LanguageConfig, Logger, ModelId, Model, Engine as IEngine } from '../typings'
+import {
+  TrainingOptions,
+  LanguageConfig,
+  Logger,
+  ModelId,
+  Model,
+  Engine as IEngine,
+  PredictOutput,
+  TrainInput,
+  Specifications,
+  LintingOptions
+} from '../typings'
 import { deserializeKmeans } from './clustering'
 import { EntityCacheManager } from './entities/entity-cache-manager'
 import { initializeTools } from './initialize-tools'
 import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
+import { LintingProcessPool } from './linting-process-pool'
 import { allIssues } from './linting/definitions'
 import { lintingPipeline } from './linting/linting-pipeline'
 import { deserializeModel, PredictableModel, serializeModel } from './model-serializer'
@@ -46,6 +57,12 @@ const DEFAULT_TRAINING_OPTIONS: TrainingOptions = {
   minProgressHeartbeat: ms('10s')
 }
 
+const DEFAULT_LINTING_OPTIONS: LintingOptions = {
+  progressCallback: () => {},
+  minSpeed: 'slow',
+  runInMainProcess: false
+}
+
 type EngineOptions = {
   cacheSize: string
 }
@@ -53,16 +70,19 @@ type EngineOptions = {
 export default class Engine implements IEngine {
   private _tools!: Tools
   private _trainingWorkerQueue!: TrainingProcessPool
+  private _lintingWorkerQueue!: LintingProcessPool
 
   private _options: EngineOptions
 
   private modelsById: LRUCache<string, LoadedModel>
 
   private _trainLogger: Logger
+  private _lintLogger: Logger
   private _predictLogger: Logger
 
   constructor(private version: string, private _logger: Logger, opt: Partial<EngineOptions> = {}) {
     this._trainLogger = _logger.sub('training')
+    this._lintLogger = _logger.sub('linting')
     this._predictLogger = _logger.sub('predict')
 
     this._options = { ...DEFAULT_ENGINE_OPTIONS, ...opt }
@@ -109,6 +129,7 @@ export default class Engine implements IEngine {
   public async initialize(config: LanguageConfig & { assetsPath: string }): Promise<void> {
     this._tools = await initializeTools(config, this._logger)
     this._trainingWorkerQueue = new TrainingProcessPool(this._trainLogger, config)
+    this._lintingWorkerQueue = new LintingProcessPool(this._lintLogger, config)
   }
 
   public hasModel(modelId: ModelId) {
@@ -281,12 +302,27 @@ export default class Engine implements IEngine {
   }
 
   public lint = async (lintingId: string, trainSet: TrainInput, opts?: Partial<LintingOptions>) => {
-    const issues = await lintingPipeline(trainSet, this._tools, opts)
-    return { issues }
+    const options = { ...DEFAULT_LINTING_OPTIONS, ...opts }
+
+    let lintOutput: { issues: DatasetIssue<IssueCode>[] }
+    if (!options.runInMainProcess) {
+      lintOutput = await this._lintingWorkerQueue.startLinting(
+        {
+          lintId: lintingId,
+          trainSet,
+          minSpeed: options.minSpeed
+        },
+        options.progressCallback
+      )
+    } else {
+      const issues = await lintingPipeline(trainSet, this._tools, options)
+      lintOutput = { issues }
+    }
+    return lintOutput
   }
 
   public cancelLinting = async (lintingId: string) => {
-    this._logger.warning(`Currently no way of canceling linting of "${lintingId}"`)
+    return this._lintingWorkerQueue.cancelLinting(lintingId)
   }
 
   public getIssueDetails<C extends IssueCode>(code: C) {

@@ -17,7 +17,7 @@ const main = async () => {
   try {
     const tools = await initializeTools(config, processEntryPoint.logger)
 
-    processEntryPoint.listenForTask(async (taskDef: TaskDefinition<TrainInput>) => {
+    processEntryPoint.listenForTask(async (taskDef: TaskDefinition<TrainInput, TrainOutput>) => {
       const { input, logger, progress } = taskDef
 
       tools.seededLodashProvider.setSeed(input.nluSeed)

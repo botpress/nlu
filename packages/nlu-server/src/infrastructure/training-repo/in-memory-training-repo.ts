@@ -1,4 +1,3 @@
-import { makeInMemoryTrxQueue, LockedTransactionQueue } from '@botpress/locks'
 import { Logger } from '@botpress/logger'
 import { TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
@@ -6,16 +5,9 @@ import Bluebird from 'bluebird'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
-import { BaseWritableTrainingRepo, BaseTrainingRepository } from './base-training-repo'
+import { BaseTrainingRepository } from './base-training-repo'
 
-import {
-  Training,
-  TrainingId,
-  TrainingState,
-  TrainingRepository,
-  TrainingTrx,
-  WrittableTrainingRepository
-} from './typings'
+import { Training, TrainingId, TrainingState, TrainingRepository } from './typings'
 
 const KEY_JOIN_CHAR = '\u2581'
 
@@ -26,7 +18,7 @@ type TrainEntry = TrainingState & { updatedOn: Date } & {
   dataset: TrainInput
 }
 
-class WrittableTrainingRepo extends BaseWritableTrainingRepo implements WrittableTrainingRepository {
+export class InMemoryTrainingRepo extends BaseTrainingRepository implements TrainingRepository {
   private _trainSessions: {
     [key: string]: TrainEntry
   } = {}
@@ -118,50 +110,5 @@ class WrittableTrainingRepo extends BaseWritableTrainingRepo implements Writtabl
     const [stringId, appId] = key.split(KEY_JOIN_CHAR)
     const modelId = NLUEngine.modelIdService.fromString(stringId)
     return { modelId, appId }
-  }
-}
-
-export class InMemoryTrainingRepo extends BaseTrainingRepository<WrittableTrainingRepo> implements TrainingRepository {
-  private _trxQueue: LockedTransactionQueue<void>
-
-  constructor(logger: Logger) {
-    super(logger, new WrittableTrainingRepo(logger))
-    const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)
-    this._trxQueue = makeInMemoryTrxQueue(logCb)
-  }
-
-  public async initialize(): Promise<void> {
-    return this._writtableTrainingRepository.initialize()
-  }
-
-  public async get(id: TrainingId): Promise<Training | undefined> {
-    return this._writtableTrainingRepository.get(id)
-  }
-
-  public async has(id: TrainingId): Promise<boolean> {
-    return this._writtableTrainingRepository.has(id)
-  }
-
-  public async query(query: Partial<TrainingState>): Promise<Training[]> {
-    return this._writtableTrainingRepository.query(query)
-  }
-
-  public async queryOlderThan(query: Partial<TrainingState>, threshold: Date): Promise<Training[]> {
-    return this._writtableTrainingRepository.queryOlderThan(query, threshold)
-  }
-
-  public async delete(id: TrainingId): Promise<void> {
-    return this._writtableTrainingRepository.delete(id)
-  }
-
-  public async teardown() {
-    return this._writtableTrainingRepository.teardown()
-  }
-
-  public async inTransaction(trx: TrainingTrx, name: string): Promise<void> {
-    return this._trxQueue.runInLock({
-      name,
-      cb: () => trx(this._writtableTrainingRepository)
-    })
   }
 }

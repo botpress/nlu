@@ -1,32 +1,16 @@
-import { LockedTransactionQueue } from '@botpress/locks'
 import { Logger } from '@botpress/logger'
-import { TrainingError, TrainingErrorType, TrainingStatus, TrainInput } from '@botpress/nlu-client'
+import { TrainingError, TrainingErrorType, TrainingStatus } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
-import jsonpack from 'jsonpack'
 import { Knex } from 'knex'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
 import { createTableIfNotExists } from '../../utils/database'
-import { BaseWritableTrainingRepo, BaseTrainingRepository } from './base-training-repo'
-import {
-  Training,
-  TrainingId,
-  TrainingState,
-  WrittableTrainingRepository,
-  TrainingTrx,
-  TrainingRepository
-} from './typings'
+import { packTrainSet, unpackTrainSet } from '../dataset-serializer'
+import { BaseTrainingRepository } from './base-training-repo'
+import { Training, TrainingId, TrainingState, TrainingRepository } from './typings'
 
 const TABLE_NAME = 'nlu_trainings'
-const TRANSACTION_TIMEOUT_MS = ms('5s')
-
-const timeout = <T>(ms: number) => {
-  return new Promise<T>((_, reject) => {
-    setTimeout(() => reject(new Error("Transaction exceeded it's time limit")), ms)
-  })
-}
-
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
 const MS_BEFORE_PRUNE = ms('1h')
 
@@ -45,8 +29,10 @@ type TableRow = {
   updatedOn: string
 } & TableId
 
-class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements WrittableTrainingRepository {
-  constructor(protected _database: Knex, private _clusterId: string, _logger: Logger) {
+export class DbTrainingRepository extends BaseTrainingRepository implements TrainingRepository {
+  private _janitorIntervalId: NodeJS.Timeout | undefined
+
+  constructor(protected _database: Knex, _logger: Logger) {
     super(_logger)
   }
 
@@ -64,9 +50,13 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
       table.timestamp('updatedOn').notNullable()
       table.primary(['appId', 'modelId'])
     })
+
+    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
   }
 
-  public async teardown(): Promise<void> {}
+  public async teardown(): Promise<void> {
+    this._janitorIntervalId && clearInterval(this._janitorIntervalId)
+  }
 
   private get table() {
     return this._database.table<TableRow>(TABLE_NAME)
@@ -105,11 +95,6 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
     return this.table.where(tableId).delete()
   }
 
-  public deleteOlderThan = async (threshold: Date): Promise<number> => {
-    const iso = threshold.toISOString()
-    return this.table.where('updatedOn', '<=', iso).delete()
-  }
-
   public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
     const iso = threshold.toISOString()
 
@@ -119,10 +104,25 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
     return rows.map(this._rowToTraining.bind(this))
   }
 
+  private async _janitor() {
+    const now = moment()
+    const before = now.subtract({ milliseconds: MS_BEFORE_PRUNE })
+    const nDeletions = await this._deleteOlderThan(before.toDate())
+    if (nDeletions) {
+      this._logger.debug(`Pruning ${nDeletions} training state from database`)
+    }
+    return
+  }
+
+  private _deleteOlderThan = async (threshold: Date): Promise<number> => {
+    const iso = threshold.toISOString()
+    return this.table.where('updatedOn', '<=', iso).delete()
+  }
+
   private _trainingToRow(train: Training): TableRow {
     const id = this._trainIdToRow(train)
     const state = this._trainStateToRow(train)
-    const dataset = this.packTrainSet(train.dataset)
+    const dataset = packTrainSet(train.dataset)
     return {
       ...id,
       ...state,
@@ -153,7 +153,7 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
   }
 
   private _trainStateToRow = (state: TrainingState): Omit<TableRow, keyof TableId | 'dataset'> => {
-    const { progress, status, error } = state
+    const { progress, status, error, cluster } = state
     const { type: error_type, message: error_message, stack: error_stack } = error || {}
     return {
       status,
@@ -161,7 +161,7 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
       error_type,
       error_message,
       error_stack,
-      cluster: this._clusterId,
+      cluster,
       updatedOn: new Date().toISOString()
     }
   }
@@ -187,88 +187,7 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
       progress,
       error,
       cluster,
-      dataset: this.unpackTrainSet(dataset)
+      dataset: unpackTrainSet(dataset)
     }
-  }
-
-  private packTrainSet(ts: TrainInput): string {
-    return jsonpack.pack(ts)
-  }
-
-  private unpackTrainSet(compressed: string): TrainInput {
-    return jsonpack.unpack<TrainInput>(compressed)
-  }
-}
-
-export class DbTrainingRepository
-  extends BaseTrainingRepository<DbWrittableTrainingRepo>
-  implements TrainingRepository {
-  private _janitorIntervalId: NodeJS.Timeout | undefined
-
-  constructor(
-    private _database: Knex,
-    private _trxQueue: LockedTransactionQueue<void>,
-    logger: Logger,
-    private _clusterId: string
-  ) {
-    super(logger.sub('training-repo'), new DbWrittableTrainingRepo(_database, _clusterId, logger.sub('training-repo')))
-  }
-
-  public initialize = async (): Promise<void> => {
-    await this._writtableTrainingRepository.initialize()
-    await this._trxQueue.initialize()
-
-    this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
-  }
-
-  public async teardown(): Promise<void> {
-    this._janitorIntervalId && clearInterval(this._janitorIntervalId)
-    await this._trxQueue.teardown()
-    await this._database.destroy()
-  }
-
-  private async _janitor() {
-    const now = moment()
-    const before = now.subtract({ milliseconds: MS_BEFORE_PRUNE })
-    const nDeletions = await this._writtableTrainingRepository.deleteOlderThan(before.toDate())
-    if (nDeletions) {
-      this._logger.debug(`Pruning ${nDeletions} training state from database`)
-    }
-    return
-  }
-
-  public inTransaction = async (action: TrainingTrx, name: string): Promise<void> => {
-    const cb = async () => {
-      const operation = async () => {
-        const ctx = new DbWrittableTrainingRepo(this._database, this._clusterId, this._logger)
-        return action(ctx)
-      }
-      return Promise.race([operation(), timeout<void>(TRANSACTION_TIMEOUT_MS)])
-    }
-
-    return this._trxQueue.runInLock({
-      name,
-      cb
-    })
-  }
-
-  public get = async (trainId: TrainingId): Promise<Training | undefined> => {
-    return this._writtableTrainingRepository.get(trainId)
-  }
-
-  public has = async (trainId: TrainingId): Promise<boolean> => {
-    return this._writtableTrainingRepository.has(trainId)
-  }
-
-  public query = async (query: Partial<TrainingState>): Promise<Training[]> => {
-    return this._writtableTrainingRepository.query(query)
-  }
-
-  public queryOlderThan = async (query: Partial<TrainingState>, threshold: Date): Promise<Training[]> => {
-    return this._writtableTrainingRepository.queryOlderThan(query, threshold)
-  }
-
-  public async delete(id: TrainingId): Promise<void> {
-    return this._writtableTrainingRepository.delete(id)
   }
 }

@@ -1,29 +1,21 @@
-import { Worker } from './worker-pool/worker'
+import { errors } from './typings'
 
-export class TaskCanceledError extends Error {}
-export function isTaskCanceled(err: Error): err is TaskCanceledError {
-  return err instanceof TaskCanceledError
-}
+export class TaskCanceledError extends Error implements errors.TaskCanceledError {}
 
-export class TaskAlreadyStartedError extends Error {}
-export function isTaskAlreadyStarted(err: Error): err is TaskAlreadyStartedError {
-  return err instanceof TaskAlreadyStartedError
-}
+export class TaskAlreadyStartedError extends Error implements errors.TaskAlreadyStartedError {}
 
-export class TaskExitedUnexpectedlyError extends Error {
+export class TaskExitedUnexpectedlyError extends Error implements errors.TaskExitedUnexpectedlyError {
   public wid: number | undefined
-  public info: { exitCode: number; signal: string }
+  public exitCode: number
+  public signal: string
 
-  constructor(worker: Worker, info: { exitCode: number; signal: string }) {
-    const { exitCode, signal } = info
-    const { type } = worker.innerWorker
-    const workerType = type === 'process' ? 'Process' : 'Thread'
-    const message = `${workerType} ${worker.wid} exited with exit code ${exitCode} and signal ${signal}.`
+  constructor(args: errors.TaskExitedUnexpectedlyErrorArgs) {
+    const { wType, wid, exitCode, signal } = args
+    const workerType = wType === 'process' ? 'Process' : 'Thread'
+    const message = `${workerType} ${wid} exited with exit code ${exitCode} and signal ${signal}.`
     super(message)
-    this.wid = worker.wid
-    this.info = info
+    this.wid = args.wid
+    this.exitCode = exitCode
+    this.signal = signal
   }
-}
-export function isTaskExitedUnexpectedly(err: Error): err is TaskExitedUnexpectedlyError {
-  return err instanceof TaskExitedUnexpectedlyError
 }

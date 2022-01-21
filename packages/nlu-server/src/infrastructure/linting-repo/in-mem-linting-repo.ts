@@ -7,7 +7,7 @@ import ms from 'ms'
 import { LintingRepository } from '.'
 import { Linting, LintingId } from './typings'
 
-type LintEntry = LintingState & { updatedOn: Date }
+type LintEntry = Linting & { updatedOn: Date }
 
 const KEY_JOIN_CHAR = '\u2581'
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
@@ -38,7 +38,7 @@ export class InMemoryLintingRepo implements LintingRepository {
     return !!this._lintingTable[taskId]
   }
 
-  public async get(id: LintingId): Promise<LintingState | undefined> {
+  public async get(id: LintingId): Promise<Linting | undefined> {
     const { appId, modelId } = id
     const taskId = this._makeLintingKey({ appId, modelId })
     const linting = this._lintingTable[taskId]
@@ -56,10 +56,29 @@ export class InMemoryLintingRepo implements LintingRepository {
     return this._set(appId, modelId, { ...linting, issues: updatedIssues })
   }
 
-  private _janitor() {
+  public async query(query: Partial<LintingState>): Promise<Linting[]> {
+    const allLintings = this._getAllLintings()
+    return this._filter(allLintings, query)
+  }
+
+  public queryOlderThan = async (query: Partial<LintingState>, threshold: Date): Promise<Linting[]> => {
+    const allLintings = this._getAllLintings()
+    const olderThan = allLintings.filter((t) => moment(t.updatedOn).isBefore(threshold))
+    return this._filter(olderThan, query)
+  }
+
+  private _filter = (trainings: Linting[], filters: Partial<LintingState>) => {
+    let queryResult: Linting[] = trainings
+    for (const field in filters) {
+      queryResult = queryResult.filter((t) => t[field] === filters[field])
+    }
+    return queryResult
+  }
+
+  private async _janitor() {
     const threshold = moment().subtract(MS_BEFORE_PRUNE, 'ms').toDate()
 
-    const trainingsToPrune = this._queryOlderThan(threshold)
+    const trainingsToPrune = await this.queryOlderThan({}, threshold)
     if (trainingsToPrune.length) {
       this._logger.debug(`Pruning ${trainingsToPrune.length} linting state from memory`)
     }
@@ -74,11 +93,6 @@ export class InMemoryLintingRepo implements LintingRepository {
     delete this._lintingTable[key]
   }
 
-  private _queryOlderThan = (threshold: Date): Linting[] => {
-    const allLintings = this._getAllLintings()
-    return allLintings.filter((t) => moment(t.updatedOn).isBefore(threshold))
-  }
-
   private _getAllLintings = (): (Linting & { updatedOn: Date })[] => {
     return _(this._lintingTable)
       .toPairs()
@@ -86,7 +100,7 @@ export class InMemoryLintingRepo implements LintingRepository {
       .value()
   }
 
-  private async _set(appId: string, modelId: NLUEngine.ModelId, linting: LintingState) {
+  private async _set(appId: string, modelId: NLUEngine.ModelId, linting: Linting) {
     const taskId = this._makeLintingKey({ appId, modelId })
     this._lintingTable[taskId] = { ...linting, updatedOn: new Date() }
   }

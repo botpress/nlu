@@ -93,6 +93,14 @@ export class NLUClient implements IClient {
     return validateResponse<SuccessReponse>(call, res)
   }
 
+  public async cancelLinting(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse> {
+    const headers = this._appIdHeader(appId)
+    const ressource = `lint/${modelId}/cancel`
+    const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
+    const res = await this._post(call, {}, { headers })
+    return validateResponse<SuccessReponse>(call, res)
+  }
+
   public async listModels(appId: string): Promise<ListModelsResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
     const ressource = 'models'

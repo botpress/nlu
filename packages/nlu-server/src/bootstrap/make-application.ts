@@ -1,12 +1,9 @@
-import { makePostgresTrxQueue } from '@botpress/locks'
 import { Logger } from '@botpress/logger'
 import { Engine } from '@botpress/nlu-engine'
 import Knex from 'knex'
-import { nanoid } from 'nanoid'
-import PGPubsub from 'pg-pubsub'
 import { Application } from '../application'
-import { DistributedTrainingQueue } from '../application/distributed-training-queue'
-import TrainingQueue, { QueueOptions } from '../application/training-queue'
+import { LintingQueue, LocalLintingQueue, PgLintingQueue } from '../application/linting-queue'
+import { TrainQueueOptions, TrainingQueue, PgTrainingQueue, LocalTrainingQueue } from '../application/training-queue'
 import {
   DbTrainingRepository,
   InMemoryTrainingRepo,
@@ -17,7 +14,6 @@ import {
 } from '../infrastructure'
 import { InMemoryLintingRepo, LintingRepository, DatabaseLintingRepo } from '../infrastructure/linting-repo'
 import { NLUServerOptions } from '../typings'
-import { Broadcaster } from '../utils/broadcast'
 import { makeEngine } from './make-engine'
 
 type Services = {
@@ -25,61 +21,46 @@ type Services = {
   trainRepo: TrainingRepository
   trainingQueue: TrainingQueue
   lintingRepo: LintingRepository
-}
-
-const CLUSTER_ID = nanoid()
-
-const makeBroadcaster = (dbURL: string) => {
-  const dummyLogger = () => {}
-  const pubsub = new PGPubsub(dbURL, {
-    log: dummyLogger
-  })
-  return new Broadcaster(pubsub)
+  lintingQueue: LintingQueue
 }
 
 const makeServicesWithoutDb = (modelDir: string) => async (
   engine: Engine,
   logger: Logger,
-  queueOptions?: Partial<QueueOptions>
+  queueOptions?: Partial<TrainQueueOptions>
 ): Promise<Services> => {
   const modelRepo = new FileSystemModelRepository(modelDir, logger)
   const trainRepo = new InMemoryTrainingRepo(logger)
-  const trainingQueue = new TrainingQueue(engine, modelRepo, trainRepo, CLUSTER_ID, logger, queueOptions)
+  const trainingQueue = new LocalTrainingQueue(trainRepo, engine, modelRepo, logger, queueOptions)
   const lintingRepo = new InMemoryLintingRepo(logger)
+  const lintingQueue = new LocalLintingQueue(lintingRepo, engine, logger)
   return {
     modelRepo,
     trainRepo,
     trainingQueue,
-    lintingRepo
+    lintingRepo,
+    lintingQueue
   }
 }
 
 const makeServicesWithDb = (dbURL: string) => async (
   engine: Engine,
   logger: Logger,
-  queueOptions?: Partial<QueueOptions>
+  queueOptions?: Partial<TrainQueueOptions>
 ): Promise<Services> => {
   const knexDb = Knex({ connection: dbURL, client: 'pg' })
 
   const modelRepo = new DbModelRepository(knexDb, logger)
-  const loggingCb = (msg: string) => logger.sub('trx-queue').debug(msg)
-  const trainRepo = new DbTrainingRepository(knexDb, makePostgresTrxQueue(dbURL, loggingCb), logger, CLUSTER_ID)
-  const broadcaster = makeBroadcaster(dbURL)
-  const trainingQueue = new DistributedTrainingQueue(
-    engine,
-    modelRepo,
-    trainRepo,
-    CLUSTER_ID,
-    logger,
-    broadcaster,
-    queueOptions
-  )
+  const trainRepo = new DbTrainingRepository(knexDb, logger)
+  const trainingQueue = new PgTrainingQueue(dbURL, trainRepo, engine, modelRepo, logger, queueOptions)
   const lintingRepo = new DatabaseLintingRepo(knexDb, logger, engine)
+  const lintingQueue = new PgLintingQueue(dbURL, lintingRepo, engine, logger)
   return {
     modelRepo,
     trainRepo,
     trainingQueue,
-    lintingRepo
+    lintingRepo,
+    lintingQueue
   }
 }
 
@@ -91,13 +72,18 @@ export const makeApplication = async (
   const engine = await makeEngine(options, baseLogger.sub('Engine'))
   const { dbURL, modelDir } = options
   const serviceMaker = dbURL ? makeServicesWithDb(dbURL) : makeServicesWithoutDb(modelDir)
-  const { modelRepo, trainRepo, trainingQueue, lintingRepo } = await serviceMaker(engine, baseLogger, options)
+  const { modelRepo, trainRepo, trainingQueue, lintingRepo, lintingQueue } = await serviceMaker(
+    engine,
+    baseLogger,
+    options
+  )
 
   const application = new Application(
     modelRepo,
     trainRepo,
     lintingRepo,
     trainingQueue,
+    lintingQueue,
     engine,
     serverVersion,
     baseLogger

@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios'
 import retry from 'bluebird-retry'
 import httpsProxyAgent from 'https-proxy-agent'
 import _ from 'lodash'
-import { DucklingServerError } from '../../../errors'
+import { DucklingServerError } from '../../errors'
 import { Duckling } from './typings'
 
 export type DucklingParams = {

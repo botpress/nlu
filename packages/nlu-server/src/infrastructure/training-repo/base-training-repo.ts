@@ -1,15 +1,8 @@
 import { Logger } from '@botpress/logger'
 import _ from 'lodash'
-import {
-  Training,
-  TrainingListener,
-  WrittableTrainingRepository,
-  TrainingRepository,
-  TrainingId,
-  TrainingTrx
-} from './typings'
+import { Training, TrainingListener, TrainingRepository, TrainingId } from './typings'
 
-export abstract class BaseWritableTrainingRepo implements WrittableTrainingRepository {
+export abstract class BaseTrainingRepository implements TrainingRepository {
   private _listeners: TrainingListener[] = []
 
   constructor(protected _logger: Logger) {}
@@ -42,26 +35,4 @@ export abstract class BaseWritableTrainingRepo implements WrittableTrainingRepos
   abstract query(query: Partial<Training>): Promise<Training[]>
   abstract queryOlderThan(query: Partial<Training>, threshold: Date): Promise<Training[]>
   abstract delete(id: TrainingId): Promise<void>
-}
-
-export abstract class BaseTrainingRepository<writtable extends WrittableTrainingRepository>
-  implements TrainingRepository {
-  constructor(protected _logger: Logger, protected _writtableTrainingRepository: writtable) {}
-
-  public addListener(listener: TrainingListener) {
-    this._writtableTrainingRepository.addListener(listener)
-  }
-
-  public removeListener(listener: TrainingListener) {
-    this._writtableTrainingRepository.removeListener(listener)
-  }
-
-  abstract initialize(): Promise<void>
-  abstract teardown(): Promise<void>
-  abstract get(id: TrainingId): Promise<Training | undefined>
-  abstract has(id: TrainingId): Promise<boolean>
-  abstract query(query: Partial<Training>): Promise<Training[]>
-  abstract queryOlderThan(query: Partial<Training>, threshold: Date): Promise<Training[]>
-  abstract delete(id: TrainingId): Promise<void>
-  abstract inTransaction(trx: TrainingTrx, name: string): Promise<void>
 }
