@@ -5,11 +5,13 @@ import _, { debounce, sumBy } from 'lodash'
 import lru from 'lru-cache'
 import ms from 'ms'
 import path from 'path'
-import { Logger as ILogger } from '../../typings'
+import semver from 'semver'
 
+import { Logger as ILogger } from '../../typings'
 import { isSpace, processUtteranceTokens, restoreOriginalUtteranceCasing } from '../tools/token-utils'
 import { LangServerInfo } from '../typings'
 import { LanguageClient } from './lang-client'
+import { LegacyLanguageClient } from './legacy-lang-client'
 
 const MAX_PAYLOAD_SIZE = 150 * 1024 // 150kb
 const VECTOR_FILE_PREFIX = 'lang_vectors'
@@ -37,15 +39,28 @@ export class LanguageProvider {
   public static async create(logger: ILogger, args: LangProviderArgs): Promise<LanguageProvider> {
     const { languageURL, languageAuthToken, cacheDir } = args
 
-    const langClient = new LanguageClient(languageURL, languageAuthToken)
+    const legacyClient = new LegacyLanguageClient(languageURL, languageAuthToken)
 
     let installedLanguages: string[] | undefined
     let langServerInfo: LangServerInfo | undefined
 
+    let langClient: LanguageClient | LegacyLanguageClient | undefined
     await retry<void>(async () => {
-      const info = await langClient.getInfo()
+      const info = await legacyClient.getInfo()
       if (!info.ready) {
         throw new Error('Language server is not ready.')
+      }
+
+      // TODO: remove all these checks ASAP
+      if (!info.version || !_.isString(info.version)) {
+        throw new Error('Expected route GET <lang-server>/info to return object with string version')
+      } else if (!semver.valid(info.version) || semver.lt(info.version, '1.2.0')) {
+        logger.warning(
+          'The language server provided uses a deprecated API. Please update the language server to the latest version.'
+        )
+        langClient = legacyClient
+      } else {
+        langClient = new LanguageClient(languageURL, languageAuthToken)
       }
 
       const langState = await langClient.getLanguages()
@@ -58,7 +73,7 @@ export class LanguageProvider {
       }
     }, DISCOVERY_RETRY_POLICY)
 
-    if (!installedLanguages || !langServerInfo) {
+    if (!langClient || !installedLanguages || !langServerInfo) {
       throw new Error('Language Server initialization failed')
     }
 
@@ -70,7 +85,7 @@ export class LanguageProvider {
   }
 
   private constructor(
-    private _langClient: LanguageClient,
+    private _langClient: LanguageClient | LegacyLanguageClient,
     private _logger: ILogger,
     private _langServerInfo: LangServerInfo,
     private _installedLanguages: string[],

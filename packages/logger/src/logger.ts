@@ -6,6 +6,8 @@ export class Logger implements sdk.Logger {
   private static _GLOBAL_NAMESPACE = 'global'
   private _loggers = new Map<string, Logger>()
   private _config: sdk.LoggerConfig = defaultConfig
+  private _currentError: Error | undefined
+
   public parent: Logger | null = null
   public namespace: string = ''
 
@@ -41,7 +43,7 @@ export class Logger implements sdk.Logger {
   }
 
   public attachError(error: Error): this {
-    this.push({ type: 'stacktrace', level: LoggerLevel.Critical, message: error.message, stack: error.stack })
+    this._currentError = error
     return this
   }
 
@@ -52,21 +54,31 @@ export class Logger implements sdk.Logger {
 
   public critical(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Critical, message, metadata })
+    this._currentError && this._logCurrentError(this._currentError)
   }
 
   public debug(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Debug, message, metadata })
+    this._currentError && this._logCurrentError(this._currentError)
   }
 
   public info(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Info, message, metadata })
+    this._currentError && this._logCurrentError(this._currentError)
   }
 
   public warn(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Warn, message, metadata })
+    this._currentError && this._logCurrentError(this._currentError)
   }
 
   public error(message: string, metadata?: any): void {
     this.push({ type: 'log', level: LoggerLevel.Error, message, metadata })
+    this._currentError && this._logCurrentError(this._currentError)
+  }
+
+  private _logCurrentError = (error: Error) => {
+    this.push({ type: 'stacktrace', level: LoggerLevel.Critical, message: error.message, stack: error.stack })
+    this._currentError = undefined
   }
 }
