@@ -84,8 +84,6 @@ const mapTaskQueryToLintingQuery = (task: Partial<LintTask>): Partial<Linting> =
 
 export class LintTaskRepo implements LintTaskRepository {
   constructor(private _lintRepo: LintingRepository) {}
-  public initialize = this._lintRepo.initialize
-  public teardown = this._lintRepo.teardown
   public has = this._lintRepo.has.bind(this._lintRepo)
 
   public async get(lintId: LintingId): Promise<LintTask | undefined> {

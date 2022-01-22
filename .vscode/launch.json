@@ -48,6 +48,18 @@
       "console": "integratedTerminal",
       "args": ["-c", "${workspaceFolder}/jest.config.js", "${input:testFilter}"],
       "sourceMaps": true
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Debug E2E Tests",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/packages/nlu-e2e/dist/index.js",
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "autoAttachChildProcesses": true,
+      "args": ["--nlu-endpoint", "${input:nluEndpoint}"],
+      "outFiles": ["${workspaceRoot}/packages/**/*.js", "${workspaceRoot}/node_modules/**/*.js"]
     }
   ],
   "inputs": [
@@ -56,6 +68,12 @@
       "description": "jest filter when running tests",
       "type": "promptString",
       "default": ""
+    },
+    {
+      "id": "nluEndpoint",
+      "description": "nlu server endpoint for e2e",
+      "type": "promptString",
+      "default": "http://localhost:3200"
     }
   ]
 }

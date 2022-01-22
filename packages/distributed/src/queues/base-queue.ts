@@ -31,10 +31,12 @@ export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId
   ) {}
 
   public async initialize() {
+    await this._taskRepo.initialize()
     this._schedulingTimmer = createTimer(this._runSchedulerInterrupt.bind(this), this._options.maxProgressDelay * 2)
   }
 
   public async teardown() {
+    await this._taskRepo.teardown()
     return this._schedulingTimmer.stop()
   }
 

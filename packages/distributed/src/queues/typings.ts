@@ -29,8 +29,6 @@ export type TerminatedTask<TId, TInput, TData, TError> = TId &
   Override<TaskState<TId, TInput, TData, TError>, { status: TaskTerminatedStatus }>
 
 export type ReadonlyTaskRepository<TId, TInput, TData, TError> = {
-  initialize: () => Promise<void>
-  teardown: () => Promise<void>
   get: (id: TId) => Promise<Task<TId, TInput, TData, TError> | undefined>
   has: (id: TId) => Promise<boolean>
   query: (query: Partial<TaskState<TId, TInput, TData, TError>>) => Promise<Task<TId, TInput, TData, TError>[]>
@@ -45,6 +43,8 @@ export type TaskRepository<TId, TInput, TData, TError> = ReadonlyTaskRepository<
 }
 
 export type SafeTaskRepository<TId, TInput, TData, TError> = ReadonlyTaskRepository<TId, TInput, TData, TError> & {
+  initialize: () => Promise<void>
+  teardown: () => Promise<void>
   inTransaction: (trx: TaskTrx<TId, TInput, TData, TError>, name: string) => Promise<void>
 }
 

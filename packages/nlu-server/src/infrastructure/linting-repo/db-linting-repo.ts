@@ -172,7 +172,7 @@ export class DatabaseLintingRepo implements LintingRepository {
 
   public async query(query: Partial<LintingState>): Promise<Linting[]> {
     const { status, currentCount, totalCount } = query
-    const rowFilters: Partial<LintingRow> = { status, currentCount, totalCount }
+    const rowFilters: Partial<LintingRow> = _.pickBy({ status, currentCount, totalCount }, (x) => x !== undefined)
     const rows: LintingRow[] = await this._lintings.where(rowFilters).select('*')
     return Bluebird.map(rows, this._fromLintingRow.bind(this))
   }
@@ -180,7 +180,7 @@ export class DatabaseLintingRepo implements LintingRepository {
   public async queryOlderThan(query: Partial<LintingState>, treshold: Date): Promise<Linting[]> {
     const iso = treshold.toISOString()
     const { status, currentCount, totalCount } = query
-    const rowFilters: Partial<LintingRow> = { status, currentCount, totalCount }
+    const rowFilters: Partial<LintingRow> = _.pickBy({ status, currentCount, totalCount }, (x) => x !== undefined)
     const rows: LintingRow[] = await this._lintings.where(rowFilters).where('updatedOn', '<=', iso).select('*')
     return Bluebird.map(rows, this._fromLintingRow.bind(this))
   }

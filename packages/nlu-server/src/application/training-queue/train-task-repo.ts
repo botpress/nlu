@@ -87,8 +87,6 @@ const mapTaskToTraining = (task: TrainTask): Training => {
 
 export class TrainTaskRepo implements TrainTaskRepository {
   constructor(private _trainRepo: TrainingRepository) {}
-  public initialize = this._trainRepo.initialize.bind(this._trainRepo)
-  public teardown = this._trainRepo.teardown.bind(this._trainRepo)
   public has = this._trainRepo.has.bind(this._trainRepo)
 
   public async get(taskId: TrainingId): Promise<TrainTask | undefined> {
