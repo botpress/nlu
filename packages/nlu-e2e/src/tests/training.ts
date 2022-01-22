@@ -1,17 +1,23 @@
 import _ from 'lodash'
-import { AssertionArgs, assertModelsPrune, assertQueueTrainingFails, assertTrainingFails } from '../assertions'
+import { Test, AssertionArgs } from 'src/typings'
+import { assertModelsPrune, assertQueueTrainingFails, assertTrainingFails } from '../assertions'
 import { grocery_dataset } from '../datasets'
 
-export const runTrainingTest = async (args: AssertionArgs) => {
-  const { logger } = args
-  logger.info('Running training test')
-  const trainingLogger = logger.sub('training')
-  const trainingArgs = { ...args, logger: trainingLogger }
+const NAME = 'training-errors'
 
-  const invalidDataset = _.cloneDeep(grocery_dataset)
-  invalidDataset.intents[0].slots.push({ name: 'some-slot', entities: ['non-existent-entity'] })
-  await assertQueueTrainingFails(trainingArgs, invalidDataset, 'invalid_train_set')
+export const runTrainingErrorsTest: Test = {
+  name: NAME,
+  handler: async (args: AssertionArgs) => {
+    const { logger } = args
+    logger.info(`Running test: ${NAME}`)
+    const trainingLogger = logger.sub('training')
+    const trainingArgs = { ...args, logger: trainingLogger }
 
-  await assertTrainingFails(trainingArgs, { ...grocery_dataset, language: 'ab' }, 'lang-server')
-  await assertModelsPrune(args)
+    const invalidDataset = _.cloneDeep(grocery_dataset)
+    invalidDataset.intents[0].slots.push({ name: 'some-slot', entities: ['non-existent-entity'] })
+    await assertQueueTrainingFails(trainingArgs, invalidDataset, 'invalid_train_set')
+
+    await assertTrainingFails(trainingArgs, { ...grocery_dataset, language: 'ab' }, 'lang-server')
+    await assertModelsPrune(args)
+  }
 }

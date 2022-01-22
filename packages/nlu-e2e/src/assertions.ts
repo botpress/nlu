@@ -1,25 +1,12 @@
-import { Logger } from '@botpress/logger'
-import {
-  Client as NLUClient,
-  http,
-  TrainingErrorType,
-  TrainingState,
-  TrainingStatus,
-  TrainInput
-} from '@botpress/nlu-client'
+import { http, TrainingErrorType, TrainingState, TrainingStatus, TrainInput } from '@botpress/nlu-client'
 import chai from 'chai'
 import cliProgress from 'cli-progress'
 import _ from 'lodash'
 import ms from 'ms'
 import semver from 'semver'
 import { UnsuccessfullAPICall } from './errors'
+import { AssertionArgs } from './typings'
 import { pollTrainingUntil } from './utils'
-
-export type AssertionArgs = {
-  client: NLUClient
-  logger: Logger
-  appId: string
-}
 
 export const assertServerIsReachable = async (args: AssertionArgs, requiredLanguages: string[]) => {
   const { client, logger, appId } = args
