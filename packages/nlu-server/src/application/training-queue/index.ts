@@ -16,6 +16,7 @@ export const MAX_TRAINING_HEARTBEAT = MIN_TRAINING_HEARTBEAT * 3
 export const TRAINING_PROGRESS_THROTTLE = MIN_TRAINING_HEARTBEAT / 2
 
 const TASK_OPTIONS: TrainTaskQueueOptions = {
+  queueId: 'training',
   maxTasks: 2,
   initialData: {},
   initialProgress: { start: 0, end: 100, current: 0 },

@@ -55,6 +55,7 @@ export type TaskProgress = {
 }
 
 export type QueueOptions<_TId, _TInput, TData, _TError> = {
+  queueId: string
   maxTasks: number
   initialProgress: TaskProgress
   initialData: TData

@@ -12,6 +12,7 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
   extends BaseTaskQueue<TId, TInput, TData, TError>
   implements ITaskQueue<TId, TInput, TData, TError> {
   private _pubsub: PGPubSub
+  private _queueId: string
 
   private _broadcastCancelTask!: LocalTaskQueue<TId, TInput, TData, TError>['cancelTask']
   private _broadcastSchedulerInterrupt!: () => Promise<void>
@@ -28,6 +29,7 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
     this._pubsub = new PGPubSub(pgURL, {
       log: () => {}
     })
+    this._queueId = opt.queueId
   }
 
   private static _makeSafeRepo<TId, TInput, TData, TError>(
@@ -42,9 +44,12 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
   public async initialize() {
     await super.initialize()
 
-    this._broadcastCancelTask = await this._broadcast<[TId]>('cancel_task', super.cancelTask.bind(this))
+    this._broadcastCancelTask = await this._broadcast<[TId]>(
+      `${this._queueId}:cancel_task`,
+      super.cancelTask.bind(this)
+    )
     this._broadcastSchedulerInterrupt = await this._broadcast<[]>(
-      'scheduler_interrupt',
+      `${this._queueId}:scheduler_interrupt`,
       super.runSchedulerInterrupt.bind(this)
     )
   }

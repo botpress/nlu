@@ -16,6 +16,7 @@ export const MAX_LINTING_HEARTBEAT = MIN_LINTING_HEARTBEAT * 3
 export const LINTING_PROGRESS_THROTTLE = MIN_LINTING_HEARTBEAT / 2
 
 const TASK_OPTIONS: LintTaskQueueOptions = {
+  queueId: 'linting',
   initialProgress: { start: 0, end: -1, current: 0 },
   initialData: { issues: [] },
   maxTasks: 2,
