@@ -10,12 +10,12 @@ import { grocery_dataset } from '../datasets'
 
 const NAME = 'prediction'
 
-export const runPredictionTest: Test = {
+export const predictionTest: Test = {
   name: NAME,
   handler: async (args: AssertionArgs) => {
     const { logger } = args
     logger.info(`Running test: ${NAME}`)
-    const predictionLogger = logger.sub('prediction')
+    const predictionLogger = logger.sub(NAME)
     const predictionArgs = { ...args, logger: predictionLogger }
 
     const grocery_modelId = await assertTrainingStarts(predictionArgs, grocery_dataset)

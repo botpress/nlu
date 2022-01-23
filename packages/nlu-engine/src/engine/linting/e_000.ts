@@ -1,5 +1,6 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { SLOT_ANY } from '../../constants'
 import { isListEntity, isPatternEntity } from '../../guards'
 import { DatasetIssue, IssueData, IssueDefinition } from '../../linting'
 import {
@@ -76,6 +77,9 @@ const makeSlotValidator = (
 ) => async (slot: UtteranceSlot): Promise<DatasetIssue<typeof code>[]> => {
   const slotDef = intent.slots.find(({ name }) => name === slot.name)
   if (!slotDef) {
+    return []
+  }
+  if (slotDef.entities.includes(SLOT_ANY)) {
     return []
   }
 

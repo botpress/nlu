@@ -11,10 +11,12 @@ export class LintHandler implements LintTaskRunner {
   public run = async (task: LintTask, progressCb: LintTaskProgress): Promise<TerminatedLintTask | undefined> => {
     const lintKey = idToString(task)
     try {
+      const allIssues: DatasetIssue<IssueCode>[] = []
       await this._engine.lint(lintKey, task.input, {
         minSpeed: 'slow',
         progressCallback: (currentCount: number, totalCount: number, issues: DatasetIssue<IssueCode>[]) => {
-          return progressCb({ start: 0, end: totalCount, current: currentCount }, { issues })
+          allIssues.push(...issues)
+          return progressCb({ start: 0, end: totalCount, current: currentCount }, { issues: allIssues })
         }
       })
       this._logger.info(`[${lintKey}] Linting Done.`)

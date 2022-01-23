@@ -5,12 +5,12 @@ import { grocery_dataset } from '../datasets'
 
 const NAME = 'training-errors'
 
-export const runTrainingErrorsTest: Test = {
+export const trainingErrorsTest: Test = {
   name: NAME,
   handler: async (args: AssertionArgs) => {
     const { logger } = args
     logger.info(`Running test: ${NAME}`)
-    const trainingLogger = logger.sub('training')
+    const trainingLogger = logger.sub(NAME)
     const trainingArgs = { ...args, logger: trainingLogger }
 
     const invalidDataset = _.cloneDeep(grocery_dataset)

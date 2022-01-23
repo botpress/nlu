@@ -1,8 +1,9 @@
 import { Test } from '../typings'
-import { runLangDetectionTest } from './lang-detection'
-import { runModelLifecycleTest } from './model-lifecycle'
-import { runPredictionTest } from './prediction'
-import { runTrainingErrorsTest } from './training'
+import { langDetectionTest } from './lang-detection'
+import { lintingTest } from './linting'
+import { modelLifecycleTest } from './model-lifecycle'
+import { predictionTest } from './prediction'
+import { trainingErrorsTest } from './training'
 
-const tests: Test[] = [runTrainingErrorsTest, runModelLifecycleTest, runLangDetectionTest, runPredictionTest]
+const tests: Test[] = [trainingErrorsTest, lintingTest, modelLifecycleTest, langDetectionTest, predictionTest]
 export default tests

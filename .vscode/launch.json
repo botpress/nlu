@@ -58,14 +58,14 @@
       "console": "integratedTerminal",
       "sourceMaps": true,
       "autoAttachChildProcesses": true,
-      "args": ["--nlu-endpoint", "${input:nluEndpoint}"],
+      "args": ["--nlu-endpoint", "${input:nluEndpoint}", "--pattern", "${input:testFilter}"],
       "outFiles": ["${workspaceRoot}/packages/**/*.js", "${workspaceRoot}/node_modules/**/*.js"]
     }
   ],
   "inputs": [
     {
       "id": "testFilter",
-      "description": "jest filter when running tests",
+      "description": "filter when running tests",
       "type": "promptString",
       "default": ""
     },
