@@ -15,12 +15,12 @@ import { sleep } from '../utils'
 
 const NAME = 'life-cycle'
 
-export const runModelLifecycleTest: Test = {
+export const modelLifecycleTest: Test = {
   name: NAME,
   handler: async (args: AssertionArgs) => {
     const { logger } = args
     logger.info(`Running test: ${NAME}`)
-    const modelLifecycleLogger = logger.sub('model-lifecycle')
+    const modelLifecycleLogger = logger.sub(NAME)
     const modelLifecycleArgs = { ...args, logger: modelLifecycleLogger }
 
     let clinc150_42_modelId = await assertTrainingStarts(modelLifecycleArgs, clinc150_42_dataset)
