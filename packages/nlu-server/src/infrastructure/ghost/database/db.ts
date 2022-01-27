@@ -51,9 +51,7 @@ export class Database {
     const logger = this.logger
     const { DATABASE_URL, DATABASE_POOL } = process.env
 
-    let poolOptions = {
-      log: (message) => logger.warn(`[pool] ${message}`)
-    }
+    let poolOptions: Knex.PoolConfig = {}
 
     try {
       const customPoolOptions = DATABASE_POOL ? JSON.parse(DATABASE_POOL) : {}
@@ -71,7 +69,7 @@ export class Database {
       }
     }
 
-    const config: Knex.Config = {
+    let config: Knex.Config = {
       useNullAsDefault: true,
       log: {
         error: (message) => logger.error(`[knex] ${message}`),
@@ -81,11 +79,7 @@ export class Database {
     }
 
     if (databaseType === 'postgres') {
-      Object.assign(config, {
-        client: 'pg',
-        connection: this.dbURL,
-        pool: poolOptions
-      })
+      config = { ...config, client: 'pg', connection: this.dbURL, pool: poolOptions }
     } else {
       const projectLocation = getProjectLocation()
       const dbLocation = this.dbURL ? this.dbURL : `${projectLocation}/data/storage/core.sqlite`
