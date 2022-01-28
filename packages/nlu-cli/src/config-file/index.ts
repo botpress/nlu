@@ -7,6 +7,7 @@ type WriteConfigFileProps<S extends YargsSchema> = {
   schemaLocation: string
   fileLocation: string
   yargSchema: S
+  force?: boolean
 }
 
 type ReadConfigFileProps<S extends YargsSchema> = {
@@ -15,10 +16,14 @@ type ReadConfigFileProps<S extends YargsSchema> = {
 }
 
 export const writeConfigFile = async <S extends YargsSchema>(props: WriteConfigFileProps<S>): Promise<void> => {
-  const { yargSchema, schemaLocation, fileLocation } = props
+  const { yargSchema, schemaLocation, fileLocation, force } = props
   const schema = generateSchema(yargSchema)
   const jsonConfig = { $schema: schemaLocation }
   await fse.writeFile(schemaLocation, JSON.stringify(schema, null, 2))
+
+  if (!force && fse.existsSync(fileLocation)) {
+    throw new Error(`File ${fileLocation} already exists.`)
+  }
   await fse.writeFile(fileLocation, JSON.stringify(jsonConfig, null, 2))
 }
 

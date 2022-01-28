@@ -39,8 +39,9 @@ export const run: typeof types.run = async (cliOptions: types.CommandLineOptions
   const options = await getConfig(cliOptions)
   validateConfig(options)
 
+  const verbose = Number(options.verbose)
   const baseLogger = makeLogger({
-    level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
+    level: isNaN(verbose) ? LoggerLevel.Info : Number(options.verbose),
     minLevel: LoggerLevel.Error,
     filters: options.logFilter
   })
