@@ -115,13 +115,13 @@ test('when filter is set on a scope, it only applies on the scope', () => {
 test('when filter is set, all namespace must conform for the log to be sent', () => {
   // arrange
   const transporter = new FakeTransporter()
-  const helloLogger = new Logger('hello', {
-    filters: { [LoggerLevel.Info]: '^hello$|^hello:world$' },
+  const helloLogger = new Logger('Hello', {
+    filters: { [LoggerLevel.Info]: '/^hello$|^hello:world$/i' },
     transports: [transporter],
     formatter
   })
-  const helloWorldLogger = helloLogger.sub('world')
-  const helloWorldFlowersLogger = helloWorldLogger.sub('flowers')
+  const helloWorldLogger = helloLogger.sub('World')
+  const helloWorldFlowersLogger = helloWorldLogger.sub('Flowers')
 
   // act
   helloLogger.info('message 1')
