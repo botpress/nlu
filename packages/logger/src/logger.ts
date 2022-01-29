@@ -1,3 +1,4 @@
+import regexParser from 'regex-parser'
 import { defaultConfig, LoggerLevel } from './config'
 import * as types from './typings'
 
@@ -68,11 +69,11 @@ export class Logger implements types.Logger {
     }
 
     const filter = this._config.filters[entry.level]
-    if (filter === undefined) {
+    if (!filter) {
       return this._log(entry)
     }
 
-    const regex = new RegExp(filter)
+    const regex = regexParser(filter)
     if (!regex.exec(this.namespace)) {
       return
     }
