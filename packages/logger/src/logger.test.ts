@@ -112,11 +112,11 @@ test('when filter is set on a scope, it only applies on the scope', () => {
   expect(transporter.debugs).toHaveLength(1)
 })
 
-test('when filter is set, all namespaces must conform for the log to be sent', () => {
+test('when filter is set, all namespace must conform for the log to be sent', () => {
   // arrange
   const transporter = new FakeTransporter()
   const helloLogger = new Logger('hello', {
-    filters: { [LoggerLevel.Info]: 'hello|world' },
+    filters: { [LoggerLevel.Info]: '^hello$|^hello:world$' },
     transports: [transporter],
     formatter
   })
@@ -138,7 +138,7 @@ test('filter can work with a blacklist', () => {
   // arrange
   const transporter = new FakeTransporter()
   const helloLogger = new Logger('hello', {
-    filters: { [LoggerLevel.Info]: '^(?!rainbow|sunshine).*' },
+    filters: { [LoggerLevel.Info]: '^(?!hello:world:flowers:rainbow).*$' },
     transports: [transporter],
     formatter
   })

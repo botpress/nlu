@@ -66,13 +66,14 @@ export class Logger implements types.Logger {
     if (this._config.level < entry.level) {
       return
     }
+
     const filter = this._config.filters[entry.level]
     if (filter === undefined) {
       return this._log(entry)
     }
-    const namespaces = this.namespace.split(this._config.namespaceDelimiter)
-    const clashes = (ns: string) => !new RegExp(filter).exec(ns)
-    if (namespaces.some(clashes)) {
+
+    const regex = new RegExp(filter)
+    if (!regex.exec(this.namespace)) {
       return
     }
 
