@@ -11,8 +11,7 @@ import * as types from './typings'
 export const download: typeof types.download = async (argv: types.DownloadArgv) => {
   const options = getDownloadConfig(argv)
   const baseLogger = new Logger('', {
-    level: LoggerLevel.Info,
-    filters: undefined
+    level: LoggerLevel.Info
   })
 
   const languageDirectory = options.langDir
