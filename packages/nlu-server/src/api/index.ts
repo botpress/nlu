@@ -37,11 +37,10 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   const requestLogger = baseLogger.sub('api').sub('request')
   const expressApp = express()
 
-  // This must be first, otherwise the /info endpoint can't be called when token is used
   expressApp.use(cors())
 
   if (options.prometheusEnabled) {
-    app.addTrainingListener(async (training: Training) => {
+    app.on('training_update', async (training: Training) => {
       if (training.status !== 'canceled' && training.status !== 'done' && training.status !== 'errored') {
         return
       }
