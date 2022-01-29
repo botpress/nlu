@@ -1,4 +1,7 @@
+import { LogFormat } from '@botpress/nlu-server'
 import { asYargs } from '../yargs-utils'
+
+const logFormatChoices: LogFormat[] = ['json', 'text']
 
 export const parameters = asYargs({
   port: {
@@ -70,18 +73,21 @@ export const parameters = asYargs({
     description: 'Max allocated memory for model cache. Too few memory will result in more access to file system.',
     type: 'string'
   },
-  verbose: {
-    description: 'Verbosity level of the logging, integer from 0 to 4. Does not apply to "Launcher" logger.',
-    type: 'number'
-  },
   doc: {
     description: 'Whether or not to display documentation on start',
     type: 'boolean'
   },
-  logFilter: {
-    description:
-      'Filter logs by namespace, ex: "--log-filter training:svm api". Namespaces are space separated. Does not apply to "Launcher" logger.',
-    array: true,
+  logLevel: {
+    alias: 'verbose',
+    description: 'Verbosity level of the logging, integer from 0 to 4. Does not apply to booting logs.',
+    type: 'number'
+  },
+  logFormat: {
+    description: 'Weither to log using JSON or good old fashion formatted text with colors.',
+    choices: logFormatChoices
+  },
+  debugFilter: {
+    description: 'Regexp to filter debug logs by namespace. Only applies if log level is 4.',
     type: 'string'
   },
   maxTraining: {

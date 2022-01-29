@@ -5,6 +5,7 @@ type CommonOptions = {
   domain: string
 }
 
+export type LogFormat = 'text' | 'json'
 export type LangServerOptions = {
   port: number
   host: string
@@ -13,8 +14,9 @@ export type LangServerOptions = {
   authToken?: string
   adminToken?: string
   offline: boolean
-  verbose: number
-  logFilter?: string[]
+  logLevel: number
+  logFormat: LogFormat
+  debugFilter?: string
 } & CommonOptions
 
 export type DownloadOptions = {

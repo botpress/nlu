@@ -1,6 +1,6 @@
 import './rewire'
 import { run as runLanguageServer, download as downloadLang, version as langServerVersion } from '@botpress/lang-server'
-import { makeLogger } from '@botpress/logger'
+import { Logger } from '@botpress/logger'
 import { run as runNLUServer, version as nluServerVersion } from '@botpress/nlu-server'
 import path from 'path'
 import yargs from 'yargs'
@@ -12,7 +12,7 @@ import { parseEnv } from './parse-env'
 void yargs
   .version(false)
   .command(['nlu', '$0'], 'Launch a local standalone nlu server', (yargs) => {
-    const nluLogger = makeLogger({ prefix: 'NLU' })
+    const nluLogger = new Logger('', { prefix: 'NLU' })
     return yargs
       .command(
         '$0',
@@ -85,7 +85,7 @@ void yargs
       )
   })
   .command('lang', 'Launch a local language server', (yargs) => {
-    const langLogger = makeLogger({ prefix: 'LANG' })
+    const langLogger = new Logger('', { prefix: 'LANG' })
     return yargs
       .command(
         '$0',
