@@ -11,8 +11,15 @@ import rateLimit from 'express-rate-limit'
 import _ from 'lodash'
 import ms from 'ms'
 import { Application } from '../application'
+import { ModelLoadedData } from '../application/app-observer'
 import { Training } from '../infrastructure/training-repo/typings'
-import { initPrometheus, trainingCount, trainingDuration } from '../telemetry/metric'
+import {
+  initPrometheus,
+  modelMemoryLoadDuration,
+  modelStorageReadDuration,
+  trainingCount,
+  trainingDuration
+} from '../telemetry/metric'
 import { initTracing } from '../telemetry/trace'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
@@ -48,6 +55,11 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       if (training.trainingTime) {
         trainingDuration.observe({ status: training.status }, training.trainingTime / 1000)
       }
+    })
+
+    app.on('model_loaded', async (data: ModelLoadedData) => {
+      modelStorageReadDuration.observe(data.readTime)
+      modelMemoryLoadDuration.observe(data.loadTime)
     })
 
     await initPrometheus(expressApp, async () => {
