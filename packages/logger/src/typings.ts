@@ -1,5 +1,5 @@
 export type Logger = {
-  attachError(error: Error): this
+  attachError(error: Error): Logger
   configure(config: Partial<LoggerConfig>): void
   debug(message: string, metadata?: any): void
   info(message: string, metadata?: any): void
@@ -34,23 +34,12 @@ export type LogTransporter = {
 
 export type LoggerConfig = {
   level: number
-  minLevel: number | undefined // if defined, allows to bypass filters
   formatter: LogEntryFormatter
   transports: LogTransporter[]
   timeFormat: string // moment time format
   namespaceDelimiter: string
   colors: { [level: number]: string }
   indent: boolean
-  filters: string[] | undefined // if undefined, all logs are displayed
+  filters: { [level: number]: string | undefined }
   prefix?: string
 }
-
-export const centerText: (text: string, width: number, indent: number = 0) => string
-export const LoggerLevel: {
-  Critical: 0
-  Error: 1
-  Warn: 2
-  Info: 3
-  Debug: 4
-}
-export const makeLogger: (config?: Partial<LoggerConfig>) => Logger

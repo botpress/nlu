@@ -1,4 +1,4 @@
-import { makeLogger, LoggerLevel } from '@botpress/logger'
+import { Logger, LoggerLevel } from '@botpress/logger'
 import { Client as NLUClient } from '@botpress/nlu-client'
 
 import _ from 'lodash'
@@ -17,9 +17,9 @@ export const runTests = async (cliArgs: CommandLineArgs) => {
   const { nluEndpoint, pattern } = cliArgs
 
   const appId = nanoid()
-  const logger = makeLogger({
+  const logger = new Logger('e2e', {
     level: LoggerLevel.Debug
-  }).sub('e2e')
+  })
 
   logger.info(`Running e2e tests on server located at "${nluEndpoint}"`)
 

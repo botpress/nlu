@@ -3,6 +3,7 @@ export type BuildInfo = {
   branch: string
 }
 
+export type LogFormat = 'text' | 'json'
 export type NLUServerOptions = {
   host: string
   port: number
@@ -13,9 +14,10 @@ export type NLUServerOptions = {
   modelCacheSize: string
   dbURL?: string
   modelDir: string
-  verbose: number
   doc: boolean
-  logFilter?: string[]
+  logLevel: number
+  logFormat: LogFormat
+  debugFilter?: string
   apmEnabled?: boolean
   apmSampleRate?: number
   maxTraining: number

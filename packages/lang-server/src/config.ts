@@ -20,8 +20,9 @@ const DEFAULT_SERVER_OPTIONS = (): LangServerOptions => ({
   offline: false,
   dim: 100,
   domain: 'bp',
-  verbose: LoggerLevel.Info,
-  logFilter: undefined
+  logLevel: LoggerLevel.Info,
+  debugFilter: undefined,
+  logFormat: 'text'
 })
 
 const DEFAULT_DOWNLOAD_OPTIONS = (lang: string): DownloadOptions => ({

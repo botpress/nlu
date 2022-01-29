@@ -6,10 +6,6 @@ import util from 'util'
 import { LoggerLevel } from '../config'
 import { FormattedLogEntry, LogEntry, LogEntryFormatter, LoggerConfig } from '../typings'
 
-type ConsoleFormatterOpts = {
-  indent: boolean
-}
-
 function _serializeArgs(args: any): string {
   if (_.isArray(args)) {
     return args.map((arg) => _serializeArgs(arg)).join(', ')
@@ -24,19 +20,18 @@ function _serializeArgs(args: any): string {
   }
 }
 
-export class ConsoleFormatter implements LogEntryFormatter {
-  constructor(private _opts: ConsoleFormatterOpts = { indent: false }) {}
+export class TextFormatter implements LogEntryFormatter {
+  constructor() {}
 
   public format(config: LoggerConfig, entry: LogEntry): FormattedLogEntry {
     const time = moment().format(config.timeFormat)
     const serializedMetadata = entry.metadata ? _serializeArgs(entry.metadata) : ''
 
     const prefix = config.prefix ? `[${config.prefix}] ` : ''
-    const displayName = this._opts.indent
-      ? entry.namespace.substr(0, 15).padEnd(15, ' ')
-      : `${prefix}${entry.namespace}`
-    // eslint-disable-next-line prefer-template
-    const newLineIndent = chalk.dim(' '.repeat(`${config.timeFormat} ${displayName}`.length)) + ' '
+    let displayName = `${prefix}${entry.namespace}`
+    displayName += entry.namespace.length ? ' ' : ''
+
+    const newLineIndent = chalk.dim(' '.repeat(`${time} ${displayName}`.length))
     let indentedMessage =
       entry.level === LoggerLevel.Error ? entry.message : entry.message.replace(/\r\n|\n/g, os.EOL + newLineIndent)
 
@@ -49,7 +44,7 @@ export class ConsoleFormatter implements LogEntryFormatter {
       ...entry,
       formatted: chalk`{grey ${time}} {${
         config.colors[entry.level]
-      }.bold ${displayName}} ${indentedMessage}${serializedMetadata}`
+      }.bold ${displayName}}${indentedMessage}${serializedMetadata}`
     }
   }
 }

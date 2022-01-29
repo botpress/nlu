@@ -1,8 +1,6 @@
-import { ConsoleFormatter } from './formatters/console'
+import { TextFormatter } from './formatters/text'
 import { ConsoleTransport } from './transports/console'
 import { LoggerConfig } from './typings'
-
-const LOG_PREFIX = 'NLU'
 
 export enum LoggerLevel {
   Critical = 0,
@@ -14,7 +12,6 @@ export enum LoggerLevel {
 
 export const defaultConfig: LoggerConfig = {
   level: LoggerLevel.Info,
-  minLevel: undefined,
   timeFormat: 'L HH:mm:ss.SSS',
   namespaceDelimiter: ':',
   colors: {
@@ -24,9 +21,9 @@ export const defaultConfig: LoggerConfig = {
     [LoggerLevel.Error]: 'red',
     [LoggerLevel.Critical]: 'red'
   },
-  formatter: new ConsoleFormatter({ indent: !!process.env.INDENT_LOGS }),
+  formatter: new TextFormatter(),
   transports: [new ConsoleTransport()],
   indent: false,
-  filters: undefined, // show all logs
-  prefix: LOG_PREFIX
+  filters: {}, // show all logs
+  prefix: undefined
 }
