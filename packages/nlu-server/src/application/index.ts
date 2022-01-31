@@ -208,18 +208,22 @@ You can increase your cache size by the CLI or config.
 
   private _loadModelIfNeeded = async (appId: string, modelId: ModelId) => {
     if (!this._engine.hasModel(modelId)) {
-      const t0 = Date.now()
+      const modelReadStartTime = Date.now()
+
       const model = await this._modelRepo.getModel(appId, modelId)
-      const t1 = Date.now()
       if (!model) {
         throw new ModelDoesNotExistError(modelId)
       }
-      await this._engine.loadModel(model)
-      const t2 = Date.now()
 
-      const readTime = t1 - t0
-      const loadTime = t2 - t1
-      const totalTime = t2 - t0
+      const modelLoadStartTime = Date.now()
+
+      await this._engine.loadModel(model)
+
+      const modelLoadEndTime = Date.now()
+
+      const readTime = modelLoadStartTime - modelReadStartTime
+      const loadTime = modelLoadEndTime - modelLoadStartTime
+      const totalTime = modelLoadEndTime - modelReadStartTime
 
       const strId = this._toString(appId, modelId)
       this._logger.debug(
