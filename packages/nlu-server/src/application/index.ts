@@ -4,7 +4,8 @@ import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpre
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { ReadonlyTrainingRepository, TrainingListener } from '../infrastructure/training-repo/typings'
+import { ReadonlyTrainingRepository, Training, TrainingListener } from '../infrastructure/training-repo/typings'
+import { ApplicationObserver } from './app-observer'
 import {
   ModelDoesNotExistError,
   TrainingNotFoundError,
@@ -14,7 +15,7 @@ import {
 } from './errors'
 import TrainingQueue from './training-queue'
 
-export class Application {
+export class Application extends ApplicationObserver {
   private _logger: Logger
 
   constructor(
@@ -25,27 +26,22 @@ export class Application {
     private _serverVersion: string,
     baseLogger: Logger
   ) {
+    super()
     this._logger = baseLogger.sub('app')
-  }
-
-  public addTrainingListener(listener: TrainingListener) {
-    this._trainingQueue.addListener(listener)
-  }
-
-  public removeTrainingListener(listener: TrainingListener) {
-    this._trainingQueue.removeListener(listener)
   }
 
   public async initialize() {
     await this._modelRepo.initialize()
     await this._trainingRepo.initialize()
     await this._trainingQueue.initialize()
+    this._trainingQueue.addListener(this._listenTrainingUpdates)
   }
 
   public async teardown() {
     await this._modelRepo.teardown()
     await this._trainingRepo.teardown()
     await this._trainingQueue.teardown()
+    this._trainingQueue.removeListener(this._listenTrainingUpdates)
   }
 
   public getLocalTrainingCount() {
@@ -149,14 +145,7 @@ export class Application {
       throw new InvalidModelSpecError(modelId, currentSpec)
     }
 
-    if (!this._engine.hasModel(modelId)) {
-      const model = await this._modelRepo.getModel(appId, modelId)
-      if (!model) {
-        throw new ModelDoesNotExistError(modelId)
-      }
-
-      await this._engine.loadModel(model)
-    }
+    await this._loadModelIfNeeded(appId, modelId)
 
     try {
       const predictions = await Bluebird.map(utterances, (utterance) => this._engine.predict(utterance, modelId))
@@ -185,13 +174,7 @@ export class Application {
         throw new InvalidModelSpecError(modelId, currentSpec)
       }
 
-      if (!this._engine.hasModel(modelId)) {
-        const model = await this._modelRepo.getModel(appId, modelId)
-        if (!model) {
-          throw new ModelDoesNotExistError(modelId)
-        }
-        await this._engine.loadModel(model)
-      }
+      await this._loadModelIfNeeded(appId, modelId)
     }
 
     const missingModels = modelIds.filter((m) => !this._engine.hasModel(m))
@@ -217,6 +200,42 @@ You can increase your cache size by the CLI or config.
     })
 
     return detectedLanguages
+  }
+
+  private _listenTrainingUpdates: TrainingListener = async (training: Training) => {
+    this.emit('training_update', training)
+  }
+
+  private _loadModelIfNeeded = async (appId: string, modelId: ModelId) => {
+    if (!this._engine.hasModel(modelId)) {
+      const modelReadStartTime = Date.now()
+
+      const model = await this._modelRepo.getModel(appId, modelId)
+      if (!model) {
+        throw new ModelDoesNotExistError(modelId)
+      }
+
+      const modelLoadStartTime = Date.now()
+
+      await this._engine.loadModel(model)
+
+      const modelLoadEndTime = Date.now()
+
+      const readTime = modelLoadStartTime - modelReadStartTime
+      const loadTime = modelLoadEndTime - modelLoadStartTime
+      const totalTime = modelLoadEndTime - modelReadStartTime
+
+      const strId = this._toString(appId, modelId)
+      this._logger.debug(
+        `[${strId}] Reading model from storage took ${readTime} ms and loading it in memory took ${loadTime} ms. The whole operation took ${totalTime} ms`
+      )
+      this.emit('model_loaded', { appId, modelId, readTime, loadTime, totalTime })
+    }
+  }
+
+  private _toString = (appId: string, modelId: ModelId) => {
+    const strModelId = modelIdService.toString(modelId)
+    return `${appId}/${strModelId}`
   }
 
   private _getSpecFilter = (): { specificationHash: string } => {

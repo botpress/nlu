@@ -11,8 +11,15 @@ import rateLimit from 'express-rate-limit'
 import _ from 'lodash'
 import ms from 'ms'
 import { Application } from '../application'
+import { ModelLoadedData } from '../application/app-observer'
 import { Training } from '../infrastructure/training-repo/typings'
-import { initPrometheus, trainingCount, trainingDuration } from '../telemetry/metric'
+import {
+  initPrometheus,
+  modelMemoryLoadDuration,
+  modelStorageReadDuration,
+  trainingCount,
+  trainingDuration
+} from '../telemetry/metric'
 import { initTracing } from '../telemetry/trace'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
@@ -37,11 +44,10 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   const requestLogger = baseLogger.sub('api').sub('request')
   const expressApp = express()
 
-  // This must be first, otherwise the /info endpoint can't be called when token is used
   expressApp.use(cors())
 
   if (options.prometheusEnabled) {
-    app.addTrainingListener(async (training: Training) => {
+    app.on('training_update', async (training: Training) => {
       if (training.status !== 'canceled' && training.status !== 'done' && training.status !== 'errored') {
         return
       }
@@ -49,6 +55,11 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       if (training.trainingTime) {
         trainingDuration.observe({ status: training.status }, training.trainingTime / 1000)
       }
+    })
+
+    app.on('model_loaded', async (data: ModelLoadedData) => {
+      modelStorageReadDuration.observe(data.readTime)
+      modelMemoryLoadDuration.observe(data.loadTime)
     })
 
     await initPrometheus(expressApp, async () => {
