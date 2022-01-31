@@ -11,13 +11,13 @@ export const trainingDuration = new client.Histogram({
 export const modelStorageReadDuration = new client.Histogram({
   name: 'model_storage_read_duration',
   help: 'Histogram of the duration required to read a model from storage in ms.',
-  buckets: _.range(1, 11).map((i) => i * 200) // [200, 400, ..., 2000]
+  buckets: [64, 128, 256, 512, 1024, 2048, 4096, 8192]
 })
 
 export const modelMemoryLoadDuration = new client.Histogram({
   name: 'model_memory_load_duration',
   help: 'Histogram of the duration required to load a model in memory in ms.',
-  buckets: _.range(1, 11).map((i) => i * 250) // [250, 500, ..., 2500]
+  buckets: [64, 128, 256, 512, 1024, 2048, 4096, 8192]
 })
 
 export const trainingCount = new client.Gauge({
