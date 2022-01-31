@@ -48,91 +48,91 @@ const makeLogger = (namespace: string, config?: Partial<LoggerConfig>, delimiter
   return logger
 }
 
-test('when debug level and no filters, all logs are sent', () => {
-  // arrange
-  const transporter = new FakeTransporter()
-  const logger = makeLogger('some:namespace', { transports: [transporter], level: LoggerLevel.Debug })
+// test('when debug level and no filters, all logs are sent', () => {
+//   // arrange
+//   const transporter = new FakeTransporter()
+//   const logger = makeLogger('some:namespace', { transports: [transporter], level: LoggerLevel.Debug })
 
-  // act
-  logger.critical('critical log')
-  logger.error('error log')
-  logger.warn('warn log')
-  logger.info('info log')
-  logger.debug('debug log')
+//   // act
+//   logger.critical('critical log')
+//   logger.error('error log')
+//   logger.warn('warn log')
+//   logger.info('info log')
+//   logger.debug('debug log')
 
-  // assert
-  expect(transporter.criticals).toHaveLength(1)
-  expect(transporter.errors).toHaveLength(1)
-  expect(transporter.warnings).toHaveLength(1)
-  expect(transporter.infos).toHaveLength(1)
-  expect(transporter.debugs).toHaveLength(1)
-})
+//   // assert
+//   expect(transporter.criticals).toHaveLength(1)
+//   expect(transporter.errors).toHaveLength(1)
+//   expect(transporter.warnings).toHaveLength(1)
+//   expect(transporter.infos).toHaveLength(1)
+//   expect(transporter.debugs).toHaveLength(1)
+// })
 
-test('when warning level and no filters, debugs and info are not sent', () => {
-  // arrange
-  const transporter = new FakeTransporter()
-  const logger = makeLogger('some:namespace', { transports: [transporter], level: LoggerLevel.Warn })
+// test('when warning level and no filters, debugs and info are not sent', () => {
+//   // arrange
+//   const transporter = new FakeTransporter()
+//   const logger = makeLogger('some:namespace', { transports: [transporter], level: LoggerLevel.Warn })
 
-  // act
-  logger.critical('critical log')
-  logger.error('error log')
-  logger.warn('warn log')
-  logger.info('info log')
-  logger.debug('debug log')
+//   // act
+//   logger.critical('critical log')
+//   logger.error('error log')
+//   logger.warn('warn log')
+//   logger.info('info log')
+//   logger.debug('debug log')
 
-  // assert
-  expect(transporter.criticals).toHaveLength(1)
-  expect(transporter.errors).toHaveLength(1)
-  expect(transporter.warnings).toHaveLength(1)
-  expect(transporter.infos).toHaveLength(0)
-  expect(transporter.debugs).toHaveLength(0)
-})
+//   // assert
+//   expect(transporter.criticals).toHaveLength(1)
+//   expect(transporter.errors).toHaveLength(1)
+//   expect(transporter.warnings).toHaveLength(1)
+//   expect(transporter.infos).toHaveLength(0)
+//   expect(transporter.debugs).toHaveLength(0)
+// })
 
-test('when filter is set on a scope, it only applies on the scope', () => {
-  // arrange
-  const transporter = new FakeTransporter()
-  const logger = makeLogger('some:namespace', {
-    transports: [transporter],
-    level: LoggerLevel.Debug,
-    filters: { [LoggerLevel.Warn]: 'lol' }
-  })
+// test('when filter is set on a scope, it only applies on the scope', () => {
+//   // arrange
+//   const transporter = new FakeTransporter()
+//   const logger = makeLogger('some:namespace', {
+//     transports: [transporter],
+//     level: LoggerLevel.Debug,
+//     filters: { [LoggerLevel.Warn]: 'lol' }
+//   })
 
-  // act
-  logger.critical('critical log')
-  logger.error('error log')
-  logger.warn('warn log')
-  logger.info('info log')
-  logger.debug('debug log')
+//   // act
+//   logger.critical('critical log')
+//   logger.error('error log')
+//   logger.warn('warn log')
+//   logger.info('info log')
+//   logger.debug('debug log')
 
-  // assert
-  expect(transporter.criticals).toHaveLength(1)
-  expect(transporter.errors).toHaveLength(1)
-  expect(transporter.warnings).toHaveLength(0)
-  expect(transporter.infos).toHaveLength(1)
-  expect(transporter.debugs).toHaveLength(1)
-})
+//   // assert
+//   expect(transporter.criticals).toHaveLength(1)
+//   expect(transporter.errors).toHaveLength(1)
+//   expect(transporter.warnings).toHaveLength(0)
+//   expect(transporter.infos).toHaveLength(1)
+//   expect(transporter.debugs).toHaveLength(1)
+// })
 
-test('when filter is set, all namespace must conform for the log to be sent', () => {
-  // arrange
-  const transporter = new FakeTransporter()
-  const helloLogger = new Logger('Hello', {
-    filters: { [LoggerLevel.Info]: '/^hello$|^hello:world$/i' },
-    transports: [transporter],
-    formatter
-  })
-  const helloWorldLogger = helloLogger.sub('World')
-  const helloWorldFlowersLogger = helloWorldLogger.sub('Flowers')
+// test('when filter is set, all namespace must conform for the log to be sent', () => {
+//   // arrange
+//   const transporter = new FakeTransporter()
+//   const helloLogger = new Logger('Hello', {
+//     filters: { [LoggerLevel.Info]: '/^hello$|^hello:world$/i' },
+//     transports: [transporter],
+//     formatter
+//   })
+//   const helloWorldLogger = helloLogger.sub('World')
+//   const helloWorldFlowersLogger = helloWorldLogger.sub('Flowers')
 
-  // act
-  helloLogger.info('message 1')
-  helloWorldLogger.info('message 2')
-  helloWorldFlowersLogger.info('message 3')
+//   // act
+//   helloLogger.info('message 1')
+//   helloWorldLogger.info('message 2')
+//   helloWorldFlowersLogger.info('message 3')
 
-  // assert
-  expect(transporter.hasMessage('message 1')).toBe(true)
-  expect(transporter.hasMessage('message 2')).toBe(true)
-  expect(transporter.hasMessage('message 3')).toBe(false)
-})
+//   // assert
+//   expect(transporter.hasMessage('message 1')).toBe(true)
+//   expect(transporter.hasMessage('message 2')).toBe(true)
+//   expect(transporter.hasMessage('message 3')).toBe(false)
+// })
 
 test('filter can work with a blacklist', () => {
   // arrange

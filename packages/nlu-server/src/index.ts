@@ -44,9 +44,7 @@ export const run: typeof types.run = async (cliOptions: types.CommandLineOptions
   const level: LoggerLevel = isNaN(verbose) ? LoggerLevel.Info : verbose
   const baseLogger = new Logger('', {
     level,
-    filters: {
-      [LoggerLevel.Debug]: options.debugFilter
-    },
+    filters: options.debugFilter && { [LoggerLevel.Debug]: options.debugFilter },
     prefix: 'NLU',
     formatter
   })

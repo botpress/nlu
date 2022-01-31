@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import regexParser from 'regex-parser'
 import { defaultConfig, LoggerLevel } from './config'
 import * as types from './typings'
@@ -6,6 +7,7 @@ export class Logger implements types.Logger {
   private _loggers = new Map<string, Logger>()
   private _config: types.LoggerConfig = defaultConfig
   private _currentError: Error | undefined
+  private _filters: { [level: number]: RegExp } = {}
 
   public parent: Logger | null = null
   public namespace: string = ''
@@ -17,6 +19,9 @@ export class Logger implements types.Logger {
 
   public configure(config: Partial<types.LoggerConfig>) {
     this._config = { ...this._config, ...config }
+    if (config.filters) {
+      this._filters = _.mapValues(config.filters, regexParser)
+    }
 
     // logger configures all childs
     for (const logger of this._loggers.values()) {
@@ -28,9 +33,9 @@ export class Logger implements types.Logger {
     if (this._loggers.has(name)) {
       return this._loggers.get(name)!
     }
-    const logger = new Logger(name)
+    const logger = new Logger('', { ...this._config })
     logger.parent = this
-    logger._config = { ...this._config } // copy parent config
+
     logger.namespace = logger.parent.namespace.length ? logger.parent.namespace + this._config.namespaceDelimiter : ''
     logger.namespace += name
 
@@ -68,16 +73,16 @@ export class Logger implements types.Logger {
       return
     }
 
-    const filter = this._config.filters[entry.level]
-    if (!filter) {
+    const regex = this._filters[entry.level]
+    if (!regex) {
       return this._log(entry)
     }
 
-    const regex = regexParser(filter)
-    if (!regex.exec(this.namespace)) {
+    const match = regex.test(this.namespace)
+    regex.lastIndex = 0
+    if (!match) {
       return
     }
-
     this._log(entry)
   }
 

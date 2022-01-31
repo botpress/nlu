@@ -25,5 +25,5 @@ export const defaultConfig: LoggerConfig = {
   transports: [new ConsoleTransport()],
   indent: false,
   filters: {}, // show all logs
-  prefix: undefined
+  prefix: ''
 }
