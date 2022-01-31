@@ -33,9 +33,9 @@ export class Logger implements types.Logger {
     if (this._loggers.has(name)) {
       return this._loggers.get(name)!
     }
-    const logger = new Logger(name)
+    const logger = new Logger('', { ...this._config })
     logger.parent = this
-    logger._config = { ...this._config } // copy parent config
+
     logger.namespace = logger.parent.namespace.length ? logger.parent.namespace + this._config.namespaceDelimiter : ''
     logger.namespace += name
 
