@@ -40,6 +40,6 @@ export type LoggerConfig = {
   namespaceDelimiter: string
   colors: { [level: number]: string }
   indent: boolean
-  filters: { [level: number]: string | undefined }
-  prefix?: string
+  filters: { [level: number]: string }
+  prefix: string
 }
