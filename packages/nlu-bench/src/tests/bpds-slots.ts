@@ -1,10 +1,12 @@
+import bitfan from '@botpress/bitfan'
 import Bluebird from 'bluebird'
+import { Args } from './typings'
 
-const problemMaker = (bitfan) => async (topic) => {
+const problemMaker = (_bitfan: typeof bitfan) => async (topic: string): Promise<bitfan.Problem<'slot'>> => {
   const fileDef = {
     lang: 'en',
-    fileType: 'dataset',
-    type: 'slot',
+    fileType: <'dataset'>'dataset',
+    type: <'slot'>'slot',
     namespace: 'bpds'
   }
 
@@ -14,16 +16,16 @@ const problemMaker = (bitfan) => async (topic) => {
   return {
     name: `bpds slot ${topic}`,
     type: 'slot',
-    trainSet: await bitfan.datasets.readDataset(trainFileDef),
-    testSet: await bitfan.datasets.readDataset(testFileDef),
+    trainSet: await _bitfan.datasets.readDataset(trainFileDef),
+    testSet: await _bitfan.datasets.readDataset(testFileDef),
     lang: 'en'
   }
 }
 
-export default function (bitfan) {
-  const avgStrictSlotAccuray = bitfan.metrics.averageScore(bitfan.criterias.slotsAre)
-  const avgLooseSlotAccuray = bitfan.metrics.averageScore(bitfan.criterias.slotIncludes)
-  const avgSlotCountAccuray = bitfan.metrics.averageScore(bitfan.criterias.slotCountIs)
+export default function (_bitfan: typeof bitfan, args: Args) {
+  const avgStrictSlotAccuray = _bitfan.metrics.averageScore(_bitfan.criterias.slotsAre)
+  const avgLooseSlotAccuray = _bitfan.metrics.averageScore(_bitfan.criterias.slotIncludes)
+  const avgSlotCountAccuray = _bitfan.metrics.averageScore(_bitfan.criterias.slotCountIs)
 
   const metrics = [avgStrictSlotAccuray, avgLooseSlotAccuray, avgSlotCountAccuray]
 
@@ -43,12 +45,11 @@ export default function (bitfan) {
         'I'
       ]
 
-      const makeProblem = problemMaker(bitfan)
+      const makeProblem = problemMaker(_bitfan)
       const problems = await Bluebird.map(allTopics, makeProblem)
 
-      const nluServerEndpoint = process.env.NLU_SERVER_ENDPOINT ?? 'http://localhost:3200'
-      const password = '123456'
-      const engine = bitfan.engines.makeBpSlotEngine(nluServerEndpoint, password)
+      const { nluServerEndpoint } = args
+      const engine = _bitfan.engines.makeBpSlotEngine(nluServerEndpoint)
 
       const solution = {
         name: 'bpds slot',
@@ -57,10 +58,10 @@ export default function (bitfan) {
       }
 
       const seeds = [42]
-      const results = await bitfan.runSolution(solution, seeds)
+      const results = await _bitfan.runSolution(solution, seeds)
 
-      const report = bitfan.evaluateMetrics(results, metrics)
-      bitfan.visualisation.showPerformanceReport(report)
+      const report = _bitfan.evaluateMetrics(results, metrics)
+      _bitfan.visualisation.showPerformanceReport(report)
       // bitfan.visualisation.showSlotsResults(results);
 
       return report
@@ -72,7 +73,7 @@ export default function (bitfan) {
         [avgLooseSlotAccuray.name]: 0.02,
         [avgSlotCountAccuray.name]: 0.02
       }
-      return bitfan.comparePerformances(currentPerformance, previousPerformance, { toleranceByMetric })
+      return _bitfan.comparePerformances(currentPerformance, previousPerformance, { toleranceByMetric })
     }
   }
 }

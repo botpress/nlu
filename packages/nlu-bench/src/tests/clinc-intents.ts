@@ -1,8 +1,11 @@
-const problemMaker = (bitfan) => async (name, trainSet, testSet) => {
+import bitfan from '@botpress/bitfan'
+import { Args } from './typings'
+
+const problemMaker = (_bitfan: typeof bitfan) => async (name: string, trainSet: string, testSet: string) => {
   const fileDef = {
     lang: 'en',
-    fileType: 'dataset',
-    type: 'intent',
+    fileType: <'dataset'>'dataset',
+    type: <'intent'>'intent',
     namespace: ''
   }
   const trainFileDef = { name: trainSet, ...fileDef }
@@ -10,33 +13,32 @@ const problemMaker = (bitfan) => async (name, trainSet, testSet) => {
 
   return {
     name,
-    type: 'intent',
-    trainSet: await bitfan.datasets.readDataset(trainFileDef),
-    testSet: await bitfan.datasets.readDataset(testFileDef),
+    type: <'intent'>'intent',
+    trainSet: await _bitfan.datasets.readDataset(trainFileDef),
+    testSet: await _bitfan.datasets.readDataset(testFileDef),
     lang: 'en'
   }
 }
 
-export default function (bitfan) {
+export default function (_bitfan: typeof bitfan, args: Args) {
   const metrics = [
-    bitfan.metrics.accuracy,
-    bitfan.metrics.oosAccuracy,
-    bitfan.metrics.oosPrecision,
-    bitfan.metrics.oosRecall,
-    bitfan.metrics.oosF1
+    _bitfan.metrics.accuracy,
+    _bitfan.metrics.oosAccuracy,
+    _bitfan.metrics.oosPrecision,
+    _bitfan.metrics.oosRecall,
+    _bitfan.metrics.oosF1
   ]
 
   return {
     name: 'clinc150',
 
     computePerformance: async () => {
-      const nluServerEndpoint = process.env.NLU_SERVER_ENDPOINT ?? 'http://localhost:3200'
-      const password = '123456'
-      const engine = bitfan.engines.makeBpIntentEngine(nluServerEndpoint, password)
+      const { nluServerEndpoint } = args
+      const engine = _bitfan.engines.makeBpIntentEngine(nluServerEndpoint)
 
-      const makeProblem = problemMaker(bitfan)
+      const makeProblem = problemMaker(_bitfan)
 
-      const results = await bitfan.runSolution(
+      const results = await _bitfan.runSolution(
         {
           name: 'bpds intent',
           problems: [
@@ -47,22 +49,22 @@ export default function (bitfan) {
         [42]
       )
 
-      const performanceReport = bitfan.evaluateMetrics(results, metrics)
-      await bitfan.visualisation.showPerformanceReport(performanceReport, { groupBy: 'problem' })
-      await bitfan.visualisation.showOOSConfusion(results)
+      const performanceReport = _bitfan.evaluateMetrics(results, metrics)
+      await _bitfan.visualisation.showPerformanceReport(performanceReport, { groupBy: 'problem' })
+      await _bitfan.visualisation.showOOSConfusion(results)
 
       return performanceReport
     },
 
     evaluatePerformance: (currentPerformance, previousPerformance) => {
       const toleranceByMetric = {
-        [bitfan.metrics.accuracy.name]: 0.05,
-        [bitfan.metrics.oosAccuracy.name]: 0.05,
-        [bitfan.metrics.oosPrecision.name]: 0.1,
-        [bitfan.metrics.oosRecall.name]: 0.1,
-        [bitfan.metrics.oosF1.name]: 0.15 // more tolerance for f1 score
+        [_bitfan.metrics.accuracy.name]: 0.05,
+        [_bitfan.metrics.oosAccuracy.name]: 0.05,
+        [_bitfan.metrics.oosPrecision.name]: 0.1,
+        [_bitfan.metrics.oosRecall.name]: 0.1,
+        [_bitfan.metrics.oosF1.name]: 0.15 // more tolerance for f1 score
       }
-      return bitfan.comparePerformances(currentPerformance, previousPerformance, { toleranceByMetric })
+      return _bitfan.comparePerformances(currentPerformance, previousPerformance, { toleranceByMetric })
     }
   }
 }

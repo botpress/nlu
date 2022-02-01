@@ -42,12 +42,13 @@ async function runTest(test, { update, keepGoing }) {
 type CommandLineArgs = {
   update: boolean
   keepGoing: boolean
+  nluEndpoint: string
   tests?: string
   skip?: string
 }
 
-function getTests(tests: string | undefined, skip: string | undefined) {
-  const allTests = [bpdsIntents, bpdsSlots, bpdsSpell, clincIntents].map((t) => t(bitfan))
+function getTests(tests: string | undefined, skip: string | undefined, nluServerEndpoint: string) {
+  const allTests = [bpdsIntents, bpdsSlots, bpdsSpell, clincIntents].map((t) => t(bitfan, { nluServerEndpoint }))
   if (skip && tests) {
     // eslint-disable-next-line no-console
     console.log(chalk.yellow('Both --skip and --tests flags are set; Ignoring --skip flag.'))
@@ -65,9 +66,9 @@ function getTests(tests: string | undefined, skip: string | undefined) {
 }
 
 async function main(args: CommandLineArgs) {
-  const { update, skip, keepGoing, tests: testsToRun } = args
+  const { update, skip, keepGoing, tests: testsToRun, nluEndpoint } = args
 
-  const tests = getTests(testsToRun, skip)
+  const tests = getTests(testsToRun, skip, nluEndpoint)
   // eslint-disable-next-line no-console
   console.log(chalk.green(`Running benchmarks [${tests.map(({ name }) => name).join(', ')}]`))
 
@@ -94,6 +95,12 @@ yargs
     ['bench', '$0'],
     'Launch benchmarks on nlu-server',
     {
+      nluEndpoint: {
+        type: 'string',
+        alias: 'e',
+        required: true,
+        default: 'http://localhost:3200'
+      },
       update: {
         alias: 'u',
         description: 'Whether or not to update latest results',
