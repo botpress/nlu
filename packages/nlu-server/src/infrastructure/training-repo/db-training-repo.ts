@@ -8,14 +8,14 @@ import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
 import { createTableIfNotExists } from '../../utils/database'
-import { BaseWritableTrainingRepo, BaseTrainingRepository } from './base-training-repo'
 import {
   Training,
   TrainingId,
   TrainingState,
   WrittableTrainingRepository,
   TrainingTrx,
-  TrainingRepository
+  TrainingRepository,
+  TrainingListener
 } from './typings'
 
 const TABLE_NAME = 'nlu_trainings'
@@ -45,9 +45,17 @@ type TableRow = {
   updatedOn: string
 } & TableId
 
-class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements WrittableTrainingRepository {
-  constructor(protected _database: Knex, private _clusterId: string, _logger: Logger) {
-    super(_logger)
+class DbWrittableTrainingRepo implements WrittableTrainingRepository {
+  private _listeners: TrainingListener[] = []
+
+  constructor(protected _database: Knex, private _clusterId: string, private _logger: Logger) {}
+
+  public addListener(listener: TrainingListener) {
+    this._listeners.push(listener)
+  }
+
+  public removeListener(listenerToRemove: TrainingListener) {
+    _.remove(this._listeners, (listener) => listener === listenerToRemove)
   }
 
   public async initialize(): Promise<void> {
@@ -73,7 +81,7 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
   }
 
   public set = async (training: Training): Promise<void> => {
-    await super.set(training)
+    this._onTrainingEvent(training)
     const row = this._trainingToRow(training)
     const { appId, modelId } = row
 
@@ -122,7 +130,7 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
   private _trainingToRow(train: Training): TableRow {
     const id = this._trainIdToRow(train)
     const state = this._trainStateToRow(train)
-    const dataset = this.packTrainSet(train.dataset)
+    const dataset = this._packTrainSet(train.dataset)
     return {
       ...id,
       ...state,
@@ -191,32 +199,48 @@ class DbWrittableTrainingRepo extends BaseWritableTrainingRepo implements Writta
       progress,
       error,
       cluster,
-      dataset: this.unpackTrainSet(dataset)
+      dataset: this._unpackTrainSet(dataset)
     }
   }
 
-  private packTrainSet(ts: TrainInput): string {
+  private _packTrainSet(ts: TrainInput): string {
     return jsonpack.pack(ts)
   }
 
-  private unpackTrainSet(compressed: string): TrainInput {
+  private _unpackTrainSet(compressed: string): TrainInput {
     return jsonpack.unpack<TrainInput>(compressed)
+  }
+
+  private _onTrainingEvent(training: Training) {
+    this._listeners.forEach((listener) => {
+      // The await keyword isn't used to prevent a listener from blocking the training repo
+      listener(training).catch((e) =>
+        this._logger.attachError(e).error('an error occured in the training repository listener')
+      )
+    })
   }
 }
 
-export class DbTrainingRepository
-  extends BaseTrainingRepository<DbWrittableTrainingRepo>
-  implements TrainingRepository {
+export class DbTrainingRepository implements TrainingRepository {
   private _janitorIntervalId: NodeJS.Timeout | undefined
+  private _writtableTrainingRepository: DbWrittableTrainingRepo
 
   constructor(
     private _database: Knex,
     private _trxQueue: LockedTransactionQueue<void>,
-    logger: Logger,
+    private _logger: Logger,
     private _clusterId: string
   ) {
-    super(logger.sub('training-repo'), new DbWrittableTrainingRepo(_database, _clusterId, logger.sub('training-repo')))
+    this._writtableTrainingRepository = new DbWrittableTrainingRepo(_database, _clusterId, _logger.sub('training-repo'))
     this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
+  }
+
+  public addListener(listener: TrainingListener) {
+    this._writtableTrainingRepository.addListener(listener)
+  }
+
+  public removeListener(listener: TrainingListener) {
+    this._writtableTrainingRepository.removeListener(listener)
   }
 
   public initialize = async (): Promise<void> => {
@@ -243,8 +267,7 @@ export class DbTrainingRepository
   public inTransaction = async (action: TrainingTrx, name: string): Promise<void> => {
     const cb = async () => {
       const operation = async () => {
-        const ctx = new DbWrittableTrainingRepo(this._database, this._clusterId, this._logger)
-        return action(ctx)
+        return action(this._writtableTrainingRepository)
       }
       return Promise.race([operation(), timeout<void>(TRANSACTION_TIMEOUT_MS)])
     }
