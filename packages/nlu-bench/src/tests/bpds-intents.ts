@@ -1,37 +1,44 @@
-const problemMaker = (bitfan) => async (name, lang, trainSet, testSet) => {
+import bitfan from '@botpress/bitfan'
+import { Args } from './typings'
+
+const problemMaker = (_bitfan: typeof bitfan) => async (
+  name: string,
+  lang: string,
+  trainSet: string,
+  testSet: string
+): Promise<bitfan.Problem<'intent'>> => {
   const fileDef = {
     lang,
-    fileType: 'dataset',
-    type: 'intent',
+    fileType: <'dataset'>'dataset',
+    type: <'intent'>'intent',
     namespace: 'bpds'
   }
-
   const trainFileDef = { name: trainSet, ...fileDef }
   const testFileDef = { name: testSet, ...fileDef }
 
   return {
     name,
     type: 'intent',
-    trainSet: await bitfan.datasets.readDataset(trainFileDef),
-    testSet: await bitfan.datasets.readDataset(testFileDef),
+    trainSet: await _bitfan.datasets.readDataset(trainFileDef),
+    testSet: await _bitfan.datasets.readDataset(testFileDef),
     lang
   }
 }
 
-export default function (bitfan) {
+export default function (_bitfan: typeof bitfan, args: Args) {
   const metrics = [
-    bitfan.metrics.accuracy,
-    bitfan.metrics.oosAccuracy,
-    bitfan.metrics.oosPrecision,
-    bitfan.metrics.oosRecall,
-    bitfan.metrics.oosF1
+    _bitfan.metrics.accuracy,
+    _bitfan.metrics.oosAccuracy,
+    _bitfan.metrics.oosPrecision,
+    _bitfan.metrics.oosRecall,
+    _bitfan.metrics.oosF1
   ]
 
   return {
     name: 'bpds-intent',
 
     computePerformance: async () => {
-      const makeProblem = problemMaker(bitfan)
+      const makeProblem = problemMaker(_bitfan)
       let problems = [
         await makeProblem('bpsd A-en', 'en', 'A-train', 'A-test'),
         await makeProblem('bpds A imbalanced-en', 'en', 'A-imbalanced-train', 'A-test'),
@@ -47,37 +54,36 @@ export default function (bitfan) {
         problems = problems.filter((p) => p.lang === usedLang)
       }
 
-      const nluServerEndpoint = process.env.NLU_SERVER_ENDPOINT ?? 'http://localhost:3200'
-      const password = '123456'
-      const engine = bitfan.engines.makeBpIntentEngine(nluServerEndpoint, password)
+      const { nluServerEndpoint } = args
+      const engine = _bitfan.engines.makeBpIntentEngine(nluServerEndpoint)
 
-      const solution = {
+      const solution: bitfan.Solution<'intent'> = {
         name: 'bpds intent',
         problems,
         engine
       }
 
       const seeds = [42, 69, 666]
-      const results = await bitfan.runSolution(solution, seeds)
+      const results = await _bitfan.runSolution(solution, seeds)
 
-      const performanceReport = bitfan.evaluateMetrics(results, metrics)
+      const performanceReport = _bitfan.evaluateMetrics(results, metrics)
 
-      await bitfan.visualisation.showPerformanceReport(performanceReport, { groupBy: 'seed' })
-      await bitfan.visualisation.showPerformanceReport(performanceReport, { groupBy: 'problem' })
-      await bitfan.visualisation.showOOSConfusion(results)
+      await _bitfan.visualisation.showPerformanceReport(performanceReport, { groupBy: 'seed' })
+      await _bitfan.visualisation.showPerformanceReport(performanceReport, { groupBy: 'problem' })
+      await _bitfan.visualisation.showOOSConfusion(results)
 
       return performanceReport
     },
 
     evaluatePerformance: (currentPerformance, previousPerformance) => {
       const toleranceByMetric = {
-        [bitfan.metrics.accuracy.name]: 0.075,
-        [bitfan.metrics.oosAccuracy.name]: 0.075,
-        [bitfan.metrics.oosPrecision.name]: 0.075,
-        [bitfan.metrics.oosRecall.name]: 0.075,
-        [bitfan.metrics.oosF1.name]: 0.15 // more tolerance for f1 score
+        [_bitfan.metrics.accuracy.name]: 0.075,
+        [_bitfan.metrics.oosAccuracy.name]: 0.075,
+        [_bitfan.metrics.oosPrecision.name]: 0.075,
+        [_bitfan.metrics.oosRecall.name]: 0.075,
+        [_bitfan.metrics.oosF1.name]: 0.15 // more tolerance for f1 score
       }
-      return bitfan.comparePerformances(currentPerformance, previousPerformance, { toleranceByMetric })
+      return _bitfan.comparePerformances(currentPerformance, previousPerformance, { toleranceByMetric })
     }
   }
 }
