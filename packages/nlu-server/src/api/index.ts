@@ -61,15 +61,15 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       }
 
       const trainingTime = training.trainingTime / 1000
-      prometheusLogger.debug(`sending metric "training_duration_seconds" with value: ${trainingTime}`)
+      prometheusLogger.debug(`adding metric "training_duration_seconds" with value: ${trainingTime}`)
       trainingDuration.observe({ status: training.status }, trainingTime)
     })
 
     app.on('model_loaded', async (data: ModelLoadedData) => {
-      prometheusLogger.debug(`sending metric "model_storage_read_duration" with value: ${data.readTime}`)
+      prometheusLogger.debug(`adding metric "model_storage_read_duration" with value: ${data.readTime}`)
       modelStorageReadDuration.observe(data.readTime)
 
-      prometheusLogger.debug(`sending metric "model_memory_load_duration" with value: ${data.loadTime}`)
+      prometheusLogger.debug(`adding metric "model_memory_load_duration" with value: ${data.loadTime}`)
       modelMemoryLoadDuration.observe(data.loadTime)
     })
 
