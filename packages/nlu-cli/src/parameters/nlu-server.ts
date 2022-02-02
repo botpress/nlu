@@ -93,5 +93,9 @@ export const parameters = asYargs({
   maxTraining: {
     description: 'The max allowed amount of simultaneous trainings on a single instance',
     type: 'number'
+  },
+  usageURL: {
+    description: 'Endpoint to send usage info to.',
+    type: 'string'
   }
 })

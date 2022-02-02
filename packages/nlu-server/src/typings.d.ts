@@ -25,6 +25,7 @@ export type NLUServerOptions = {
   languageAuthToken?: string
   ducklingURL: string
   ducklingEnabled: boolean
+  usageURL?: string
 }
 
 export type CommandLineOptions = Partial<NLUServerOptions>
