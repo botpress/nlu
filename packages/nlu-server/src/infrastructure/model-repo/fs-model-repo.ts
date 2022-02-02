@@ -109,7 +109,8 @@ export class FileSystemModelRepository implements ModelRepository {
   }
 
   private _computeDirPath = (appId: string): string => {
-    const rawPath = path.join(this._basePath, MODELS_DIR, appId)
+    const appIdDir = encodeURIComponent(appId)
+    const rawPath = path.join(this._basePath, MODELS_DIR, appIdDir)
     return path.normalize(rawPath)
   }
 
