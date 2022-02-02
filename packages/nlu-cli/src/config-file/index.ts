@@ -1,7 +1,9 @@
 import fse from 'fs-extra'
 import { validate } from 'json-schema'
+import os from 'os'
 import { YargsSchema, YargsArgv } from '../yargs-utils'
 import { generateSchema } from './schema'
+import { toUnix } from './to-unix'
 
 type WriteConfigFileProps<S extends YargsSchema> = {
   schemaLocation: string
@@ -18,7 +20,9 @@ type ReadConfigFileProps<S extends YargsSchema> = {
 export const writeConfigFile = async <S extends YargsSchema>(props: WriteConfigFileProps<S>): Promise<void> => {
   const { yargSchema, schemaLocation, fileLocation, force } = props
   const schema = generateSchema(yargSchema)
-  const jsonConfig = { $schema: schemaLocation }
+
+  const $schema = os.platform() !== 'win32' ? schemaLocation : toUnix(schemaLocation)
+  const jsonConfig = { $schema }
   await fse.writeFile(schemaLocation, JSON.stringify(schema, null, 2))
 
   if (!force && fse.existsSync(fileLocation)) {
