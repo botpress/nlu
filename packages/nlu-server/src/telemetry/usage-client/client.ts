@@ -21,10 +21,24 @@ export class UsageClient {
     try {
       await axios.post(this.usageURL, usage)
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response && _.isString(err.response?.data)) {
-        err.message += `: ${err.response.data}`
+      if (axios.isAxiosError(err) && err.response?.data) {
+        const { data } = err.response
+        const message = this._serialize(data)
+        err.message += `: ${message}`
       }
       throw err
+    }
+  }
+
+  private _serialize = (data: any): string => {
+    if (_.isString(data)) {
+      return data
+    }
+    try {
+      const str = JSON.stringify(data)
+      return str
+    } catch (err) {
+      return `${data}`
     }
   }
 }
