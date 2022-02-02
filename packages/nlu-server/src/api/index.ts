@@ -81,7 +81,6 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       sampleRate: options.apmSampleRate ?? 1.0
     })
 
-    expressApp.use(Sentry.Handlers.errorHandler())
     expressApp.use(Sentry.Handlers.requestHandler())
     expressApp.use(Sentry.Handlers.tracingHandler())
   }
@@ -93,6 +92,10 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
     next()
   })
+
+  if (options.apmEnabled) {
+    expressApp.use(Sentry.Handlers.errorHandler())
+  }
 
   expressApp.use(handleError)
 
