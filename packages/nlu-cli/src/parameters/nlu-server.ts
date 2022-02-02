@@ -94,8 +94,8 @@ export const parameters = asYargs({
     description: 'The max allowed amount of simultaneous trainings on a single instance',
     type: 'number'
   },
-  adminURL: {
-    description: 'Endpoint of admin server, used to report billing usage.',
+  usageURL: {
+    description: 'Endpoint to send usage info to.',
     type: 'string'
   }
 })

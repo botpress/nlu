@@ -13,7 +13,6 @@ import ms from 'ms'
 import { Application } from '../application'
 import { ModelLoadedData } from '../application/app-observer'
 import { Training } from '../infrastructure/training-repo/typings'
-import { BillingClient } from '../telemetry/billing-client'
 import {
   initPrometheus,
   modelMemoryLoadDuration,
@@ -22,6 +21,7 @@ import {
   trainingDuration
 } from '../telemetry/metric'
 import { initTracing } from '../telemetry/trace'
+import { UsageClient } from '../telemetry/usage-client'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
 
@@ -37,7 +37,7 @@ type APIOptions = {
   prometheusEnabled?: boolean
   apmEnabled?: boolean
   apmSampleRate?: number
-  adminURL?: string
+  usageURL?: string
 }
 
 const { modelIdService } = NLUEngine
@@ -79,11 +79,11 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     })
   }
 
-  if (options.adminURL) {
-    const billingLogger = apiLogger.sub('billing')
-    billingLogger.debug('billing usage enabled')
+  if (options.usageURL) {
+    const usageLogger = apiLogger.sub('usage')
+    usageLogger.debug('usage endpoint enabled')
 
-    const billingClient = new BillingClient({ baseURL: options.adminURL })
+    const usageClient = new UsageClient(options.usageURL)
     app.on('training_update', async (training: Training) => {
       if (isTrainingRunning(training) || !training.trainingTime) {
         return
@@ -103,13 +103,13 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         timestamp
       }
 
-      billingLogger.debug(`sending usage ${type} with value: ${JSON.stringify(value)}`)
+      usageLogger.debug(`sending usage ${type} with value: ${JSON.stringify(value)}`)
 
       try {
-        await billingClient.sendUsage('nlu', type, [value])
+        await usageClient.sendUsage('nlu', type, [value])
       } catch (thrown) {
         const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-        billingLogger.attachError(err).error('an error occured when sending billing usage.')
+        usageLogger.attachError(err).error(`an error occured when sending "${type}" usage.`)
       }
     })
   }
