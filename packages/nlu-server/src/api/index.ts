@@ -94,6 +94,8 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     next()
   })
 
+  expressApp.use(handleError)
+
   if (process.env.REVERSE_PROXY) {
     expressApp.set('trust proxy', process.env.REVERSE_PROXY)
   }
