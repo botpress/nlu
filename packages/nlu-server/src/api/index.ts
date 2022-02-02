@@ -13,6 +13,7 @@ import ms from 'ms'
 import { Application } from '../application'
 import { ModelLoadedData } from '../application/app-observer'
 import { Training } from '../infrastructure/training-repo/typings'
+import { BillingClient } from '../telemetry/billing-client'
 import {
   initPrometheus,
   modelMemoryLoadDuration,
@@ -36,35 +37,80 @@ type APIOptions = {
   prometheusEnabled?: boolean
   apmEnabled?: boolean
   apmSampleRate?: number
+  adminURL?: string
 }
 
 const { modelIdService } = NLUEngine
 
+const isTrainingRunning = ({ status }: Training) => status === 'training-pending' || status === 'training'
+
 export const createAPI = async (options: APIOptions, app: Application, baseLogger: Logger): Promise<ExpressApp> => {
-  const requestLogger = baseLogger.sub('api').sub('request')
+  const apiLogger = baseLogger.sub('api')
+  const requestLogger = apiLogger.sub('request')
   const expressApp = express()
 
   expressApp.use(cors())
 
   if (options.prometheusEnabled) {
+    const prometheusLogger = apiLogger.sub('prometheus')
+    prometheusLogger.debug('prometheus metrics enabled')
+
     app.on('training_update', async (training: Training) => {
-      if (training.status !== 'canceled' && training.status !== 'done' && training.status !== 'errored') {
+      if (isTrainingRunning(training) || !training.trainingTime) {
         return
       }
 
-      if (training.trainingTime) {
-        trainingDuration.observe({ status: training.status }, training.trainingTime / 1000)
-      }
+      const trainingTime = training.trainingTime / 1000
+      prometheusLogger.debug(`sending metric "training_duration_seconds" with value: ${trainingTime}`)
+      trainingDuration.observe({ status: training.status }, trainingTime)
     })
 
     app.on('model_loaded', async (data: ModelLoadedData) => {
+      prometheusLogger.debug(`sending metric "model_storage_read_duration" with value: ${data.readTime}`)
       modelStorageReadDuration.observe(data.readTime)
+
+      prometheusLogger.debug(`sending metric "model_memory_load_duration" with value: ${data.loadTime}`)
       modelMemoryLoadDuration.observe(data.loadTime)
     })
 
     await initPrometheus(expressApp, async () => {
       const count = await app.getLocalTrainingCount()
       trainingCount.set(count)
+    })
+  }
+
+  if (options.adminURL) {
+    const billingLogger = apiLogger.sub('billing')
+    billingLogger.debug('billing usage enabled')
+
+    const billingClient = new BillingClient({ baseURL: options.adminURL })
+    app.on('training_update', async (training: Training) => {
+      if (isTrainingRunning(training) || !training.trainingTime) {
+        return
+      }
+
+      const { appId, modelId, trainingTime } = training
+      const app_id = appId
+      const model_id = modelIdService.toString(modelId)
+      const training_time = trainingTime / 1000
+      const timestamp = new Date().toISOString()
+
+      const type = 'training_time'
+      const value = {
+        app_id,
+        model_id,
+        training_time,
+        timestamp
+      }
+
+      billingLogger.debug(`sending usage ${type} with value: ${JSON.stringify(value)}`)
+
+      try {
+        await billingClient.sendUsage('nlu', type, [value])
+      } catch (thrown) {
+        const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+        billingLogger.attachError(err).error('an error occured when sending billing usage.')
+      }
     })
   }
 
