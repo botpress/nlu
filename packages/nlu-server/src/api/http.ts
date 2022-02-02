@@ -11,6 +11,7 @@ import {
   DucklingCommError
 } from '../application/errors'
 import { InvalidRequestFormatError, InvalidTrainSetError } from './errors'
+import { validateAppId } from './validation'
 
 const serializeError = (err: Error): NLUError => {
   const { message, stack } = err
@@ -53,11 +54,12 @@ export const handleError = (thrownObject: any, _req: Request, res: Response, _ne
   return res.status(code).send(resp)
 }
 
-const X_APP_ID = 'X-App-Id'.toLowerCase()
+const X_APP_ID = 'X-App-Id'
+const x_app_id = X_APP_ID.toLowerCase()
 export const getAppId = (req: Request): string => {
-  const appId = req.headers[X_APP_ID]
+  const appId = req.headers[x_app_id]
   if (!_.isString(appId) || !appId.length) {
-    throw new InvalidRequestFormatError('X-App-Id Header must be a non-empty string.')
+    throw new InvalidRequestFormatError(`${X_APP_ID} Header must be a non-empty string.`)
   }
-  return appId
+  return validateAppId(appId)
 }

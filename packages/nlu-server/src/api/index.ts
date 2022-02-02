@@ -24,7 +24,7 @@ import { initTracing } from '../telemetry/trace'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
 
-import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
+import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation'
 type APIOptions = {
   host: string
   port: number
@@ -81,6 +81,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       sampleRate: options.apmSampleRate ?? 1.0
     })
 
+    expressApp.use(Sentry.Handlers.errorHandler())
     expressApp.use(Sentry.Handlers.requestHandler())
     expressApp.use(Sentry.Handlers.tracingHandler())
   }
@@ -92,12 +93,6 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
     next()
   })
-
-  if (options.apmEnabled) {
-    expressApp.use(Sentry.Handlers.errorHandler())
-  }
-
-  expressApp.use(handleError)
 
   if (process.env.REVERSE_PROXY) {
     expressApp.set('trust proxy', process.env.REVERSE_PROXY)

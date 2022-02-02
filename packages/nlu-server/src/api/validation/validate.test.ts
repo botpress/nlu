@@ -6,7 +6,7 @@ import {
   http
 } from '@botpress/nlu-client'
 
-import { validateTrainInput } from './validate'
+import { validateTrainInput } from './body-validation'
 
 const CITY_ENUM: ListEntityDefinition = {
   name: 'city',
