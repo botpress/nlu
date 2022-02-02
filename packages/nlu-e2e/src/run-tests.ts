@@ -16,7 +16,7 @@ type CommandLineArgs = {
 export const runTests = async (cliArgs: CommandLineArgs) => {
   const { nluEndpoint, pattern } = cliArgs
 
-  const appId = nanoid()
+  const appId = `e2e/${nanoid()}/tests`
   const logger = new Logger('e2e', {
     level: LoggerLevel.Debug
   })
