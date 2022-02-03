@@ -13,7 +13,6 @@ import modelIdService from '../model-id-service'
 
 import { TrainingOptions, LanguageConfig, Logger, ModelId, Model, Engine as IEngine } from '../typings'
 import { deserializeKmeans } from './clustering'
-import { EntityCacheManager } from './entities/entity-cache-manager'
 import { initializeTools } from './initialize-tools'
 import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
@@ -25,13 +24,6 @@ import { isPatternValid } from './tools/patterns-utils'
 import { TrainInput as TrainingPipelineInput, TrainOutput as TrainingPipelineOutput } from './training-pipeline'
 import { TrainingProcessPool } from './training-process-pool'
 import { EntityCacheDump, ListEntity, PatternEntity, Tools } from './typings'
-import { getModifiedContexts, mergeModelOutputs } from './warm-training-handler'
-
-type LoadedModel = {
-  model: PredictableModel
-  predictors: Predictors
-  entityCache: EntityCacheManager
-}
 
 const DEFAULT_CACHE_SIZE = '850mb'
 const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
@@ -40,7 +32,6 @@ const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
 
 const DEFAULT_TRAINING_OPTIONS: TrainingOptions = {
   progressCallback: () => {},
-  previousModel: undefined,
   minProgressHeartbeat: ms('10s')
 }
 
@@ -54,7 +45,7 @@ export default class Engine implements IEngine {
 
   private _options: EngineOptions
 
-  private modelsById: LRUCache<string, LoadedModel>
+  private modelsById: LRUCache<string, Predictors>
 
   private _trainLogger: Logger
   private _predictLogger: Logger
@@ -120,21 +111,21 @@ export default class Engine implements IEngine {
 
     const options = { ...DEFAULT_TRAINING_OPTIONS, ...opt }
 
-    const { previousModel: previousModelId, progressCallback, minProgressHeartbeat } = options
-    const previousModel = previousModelId && this.modelsById.get(modelIdService.toString(previousModelId))
+    const { progressCallback, minProgressHeartbeat } = options
 
-    const list_entities = entities.filter(isListEntity).map((e) => {
-      return <ListEntity & { cache: EntityCacheDump }>{
-        name: e.name,
-        fuzzyTolerance: e.fuzzy,
-        sensitive: e.sensitive,
-        synonyms: _.chain(e.values)
-          .keyBy((e) => e.name)
-          .mapValues((e) => e.synonyms)
-          .value(),
-        cache: previousModel?.entityCache.getCache(e.name) || []
-      }
-    })
+    const list_entities = entities.filter(isListEntity).map(
+      (e) =>
+        <ListEntity & { cache: EntityCacheDump }>{
+          name: e.name,
+          fuzzyTolerance: e.fuzzy,
+          sensitive: e.sensitive,
+          synonyms: _.chain(e.values)
+            .keyBy((e) => e.name)
+            .mapValues((e) => e.synonyms)
+            .value(),
+          cache: [] // TODO: bring back list entitiy caching
+        }
+    )
 
     const pattern_entities: PatternEntity[] = entities
       .filter(isPatternEntity)
@@ -161,18 +152,6 @@ export default class Engine implements IEngine {
         slot_definitions: x.slots
       }))
 
-    let ctxToTrain = contexts
-    if (previousModel) {
-      const previousIntents = previousModel.model.data.input.intents
-      const contextChangeLog = getModifiedContexts(pipelineIntents, previousIntents)
-      ctxToTrain = [...contextChangeLog.createdContexts, ...contextChangeLog.modifiedContexts]
-    }
-
-    const debugMsg = previousModel
-      ? `Retraining only contexts: [${ctxToTrain}] for language: ${language}`
-      : `Training all contexts for language: ${language}`
-    this._trainLogger.debug(`[${trainId}] ${debugMsg}`)
-
     const input: TrainingPipelineInput = {
       trainId,
       nluSeed: seed,
@@ -181,12 +160,21 @@ export default class Engine implements IEngine {
       pattern_entities,
       contexts,
       intents: pipelineIntents,
-      ctxToTrain,
       minProgressHeartbeat
     }
 
     const startedAt = new Date()
     const output = await this._trainingWorkerQueue.startTraining(input, progressCallback)
+
+    const {
+      list_entities: coldEntities,
+      tfidf,
+      vocab,
+      kmeans,
+      ctx_model,
+      intent_model_by_ctx,
+      slots_model_by_intent
+    } = output
 
     const modelId = modelIdService.makeId({
       ...trainSet,
@@ -198,13 +186,18 @@ export default class Engine implements IEngine {
       startedAt,
       finishedAt: new Date(),
       data: {
-        input,
-        output
+        intents: pipelineIntents,
+        languageCode: language,
+        pattern_entities,
+        contexts,
+        tfidf,
+        vocab,
+        kmeans,
+        ctx_model,
+        intent_model_by_ctx,
+        slots_model_by_intent,
+        list_entities: coldEntities.map(({ cache, ...e }) => e) // rm cache to get smaller model
       }
-    }
-
-    if (previousModel) {
-      model.data.output = mergeModelOutputs(model.data.output, previousModel.model.data.output, contexts)
     }
 
     this._trainLogger.debug(`[${trainId}] Successfully finished ${language} training`)
@@ -226,14 +219,7 @@ export default class Engine implements IEngine {
     }
 
     const model = deserializeModel(serialized)
-    const { input, output } = model.data
-
-    const modelCacheItem: LoadedModel = {
-      model,
-      predictors: await this._makePredictors(input, output),
-      entityCache: this._makeCacheManager(output)
-    }
-
+    const modelCacheItem = await this._makePredictors(model.data)
     const modelSize = sizeof(modelCacheItem)
     const bytesModelSize = bytes(modelSize)
     this._logger.debug(`Size of model ${stringId} is ${bytesModelSize}`)
@@ -278,18 +264,22 @@ export default class Engine implements IEngine {
     this._logger.debug('Model unloaded with success')
   }
 
-  private _makeCacheManager(output: TrainingPipelineOutput) {
-    const cacheManager = new EntityCacheManager()
-    const { list_entities } = output
-    cacheManager.loadFromData(list_entities)
-    return cacheManager
-  }
-
-  private async _makePredictors(input: TrainingPipelineInput, output: TrainingPipelineOutput): Promise<Predictors> {
+  private async _makePredictors(modelData: PredictableModel['data']): Promise<Predictors> {
     const tools = this._tools
 
-    const { intents, languageCode, pattern_entities, contexts } = input
-    const { ctx_model, intent_model_by_ctx, kmeans, slots_model_by_intent, tfidf, vocab, list_entities } = output
+    const {
+      intents,
+      languageCode,
+      pattern_entities,
+      contexts,
+      list_entities,
+      tfidf,
+      vocab,
+      kmeans,
+      ctx_model,
+      intent_model_by_ctx,
+      slots_model_by_intent
+    } = modelData
 
     const warmKmeans = kmeans && deserializeKmeans(kmeans)
 
@@ -336,14 +326,14 @@ export default class Engine implements IEngine {
       throw new Error(`model ${stringId} not loaded`)
     }
 
-    const language = loaded.model.id.languageCode
+    const language = modelId.languageCode
     return Predict(
       {
         language,
         text
       },
       this._tools,
-      loaded.predictors
+      loaded
     )
   }
 
@@ -352,21 +342,16 @@ export default class Engine implements IEngine {
 
     const predictorsByLang = _.mapValues(modelsByLang, (id) => {
       const stringId = modelIdService.toString(id)
-      return this.modelsById.get(stringId)?.predictors
+      return this.modelsById.get(stringId)
     })
 
-    if (!this._dictionnaryIsFilled(predictorsByLang)) {
+    if (Object.values(predictorsByLang).some(_.isUndefined)) {
       const missingLangs = _(predictorsByLang)
         .pickBy((pred) => _.isUndefined(pred))
         .keys()
         .value()
       throw new Error(`No models loaded for the following languages: [${missingLangs.join(', ')}]`)
     }
-    return this._tools.identify_language(text, predictorsByLang)
-  }
-
-  // TODO: this should go someplace else, but I find it very handy
-  private _dictionnaryIsFilled = <T>(dictionnary: { [key: string]: T | undefined }): dictionnary is _.Dictionary<T> => {
-    return !Object.values(dictionnary).some(_.isUndefined)
+    return this._tools.identify_language(text, predictorsByLang as _.Dictionary<Predictors>)
   }
 }

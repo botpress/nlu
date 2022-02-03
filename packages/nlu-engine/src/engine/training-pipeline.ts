@@ -8,7 +8,7 @@ import { watchDog } from '../utils/watch-dog'
 import { serializeKmeans } from './clustering'
 import { CustomEntityExtractor } from './entities/custom-extractor'
 import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/multi-thread-extractor'
-import { warmEntityCache } from './entities/entity-cache-manager'
+import { warmEntityCache } from './entities/entity-cache'
 import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
@@ -43,7 +43,6 @@ export type TrainInput = Readonly<{
   list_entities: ListEntityWithCache[]
   contexts: string[]
   intents: Intent<string>[]
-  ctxToTrain: string[]
   minProgressHeartbeat: number
 }>
 
@@ -58,7 +57,6 @@ export type TrainStep = Readonly<{
   vocabVectors: Token2Vec
   tfIdf?: TFIDF
   kmeans?: MLToolkit.KMeans.KmeansResult
-  ctxToTrain: string[]
 }>
 
 export type TrainOutput = {
@@ -66,7 +64,6 @@ export type TrainOutput = {
   tfidf: TFIDF
   vocab: string[]
   kmeans: SerializedKmeansResult | undefined
-  contexts: string[]
   ctx_model: string
   intent_model_by_ctx: _.Dictionary<string>
   slots_model_by_intent: _.Dictionary<string>
@@ -94,14 +91,13 @@ async function PreprocessInput(input: TrainInput, tools: Tools): Promise<TrainSt
   const intents = await ProcessIntents(input.intents, input.languageCode, tools)
   const vocabVectors = buildVectorsVocab(intents)
 
-  const { trainId, nluSeed, languageCode, pattern_entities, contexts, ctxToTrain } = input
+  const { trainId, nluSeed, languageCode, pattern_entities, contexts } = input
   return {
     trainId,
     nluSeed,
     languageCode,
     pattern_entities,
     contexts,
-    ctxToTrain,
     list_entities,
     intents,
     vocabVectors
@@ -174,18 +170,18 @@ async function TrainIntentClassifiers(
   tools: Tools,
   progress: progressCB
 ): Promise<_.Dictionary<string>> {
-  const { list_entities, pattern_entities, intents, ctxToTrain, nluSeed, languageCode } = input
+  const { list_entities, pattern_entities, intents, nluSeed, languageCode, contexts } = input
 
   const progressPerCtx: _.Dictionary<number> = {}
 
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
   const reportProgress = () => {
-    const n = ctxToTrain.length
+    const n = contexts.length
     const total = _(progressPerCtx).values().sum()
     clampedProgress(total / n)
   }
 
-  const models = await Bluebird.map(ctxToTrain, async (ctx) => {
+  const models = await Bluebird.map(contexts, async (ctx) => {
     const taskName = `train Clf for Ctx "${ctx}"`
     tools.logger.debug(taskStarted(input.trainId, taskName))
 
@@ -441,7 +437,6 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
     ctx_model,
     intent_model_by_ctx,
     slots_model_by_intent,
-    contexts: input.contexts,
     vocab: Object.keys(step.vocabVectors),
     kmeans: step.kmeans && serializeKmeans(step.kmeans)
   }
