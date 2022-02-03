@@ -1,7 +1,7 @@
 import { unlinkSync } from 'fs'
 import path from 'path'
 import { EntityExtractionResult } from '../typings'
-import { SystemEntityCacheManager } from './entity-cache-manager'
+import { SystemEntityCacheManager } from './entity-cache'
 
 describe('System Entity Cache', () => {
   let testCache: SystemEntityCacheManager

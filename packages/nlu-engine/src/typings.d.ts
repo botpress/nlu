@@ -55,7 +55,6 @@ export type ModelIdArgs = {
 
 export type TrainingOptions = {
   progressCallback: (x: number) => void
-  previousModel: ModelId | undefined
   minProgressHeartbeat: number
 }
 
@@ -95,10 +94,7 @@ export type Model = {
   id: ModelId
   startedAt: Date
   finishedAt: Date
-  data: {
-    input: string
-    output: string
-  }
+  data: string
 }
 
 export type LangServerSpecs = {

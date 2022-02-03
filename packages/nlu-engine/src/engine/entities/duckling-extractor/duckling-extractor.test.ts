@@ -2,7 +2,7 @@ import { unlinkSync } from 'fs'
 import _ from 'lodash'
 import path from 'path'
 import { JOIN_CHAR } from '../../tools/token-utils'
-import { SystemEntityCacheManager } from '../entity-cache-manager'
+import { SystemEntityCacheManager } from '../entity-cache'
 import { DucklingEntityExtractor } from '.'
 import { DucklingClient } from './duckling-client'
 

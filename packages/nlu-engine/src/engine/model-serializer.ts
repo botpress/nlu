@@ -1,12 +1,23 @@
 import _ from 'lodash'
 import { Model } from '../typings'
-
-import { TrainInput, TrainOutput } from './training-pipeline'
+import { ListEntityModel, Intent, PatternEntity, SerializedKmeansResult, TFIDF } from './typings'
 
 export type PredictableModel = Omit<Model, 'data'> & {
   data: {
-    input: TrainInput
-    output: TrainOutput
+    // input
+    intents: Intent<string>[]
+    languageCode: string
+    pattern_entities: PatternEntity[]
+    contexts: string[]
+
+    // output
+    list_entities: ListEntityModel[]
+    tfidf: TFIDF
+    vocab: string[]
+    kmeans: SerializedKmeansResult | undefined
+    ctx_model: string
+    intent_model_by_ctx: _.Dictionary<string>
+    slots_model_by_intent: _.Dictionary<string>
   }
 }
 
@@ -17,14 +28,10 @@ export function serializeModel(model: PredictableModel): Model {
     id,
     startedAt,
     finishedAt,
-    data: {
-      input: '',
-      output: ''
-    }
+    data: ''
   }
 
-  serialized.data.input = JSON.stringify(data.input)
-  serialized.data.output = JSON.stringify(data.output)
+  serialized.data = JSON.stringify(data)
 
   return serialized
 }
@@ -36,10 +43,7 @@ export function deserializeModel(serialized: Model): PredictableModel {
     id,
     startedAt,
     finishedAt,
-    data: {
-      input: JSON.parse(data.input),
-      output: JSON.parse(data.output)
-    }
+    data: JSON.parse(data)
   }
   return model
 }
