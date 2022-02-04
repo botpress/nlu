@@ -19,7 +19,7 @@ export class Trainer implements MLToolkit.SVM.Trainer {
     points: MLToolkit.SVM.DataPoint[],
     options?: MLToolkit.SVM.SVMOptions,
     callback?: MLToolkit.SVM.TrainProgressCallback | undefined
-  ): Promise<string> {
+  ): Promise<Uint8Array> {
     const vectorsLengths = _(points)
       .map((p) => p.coordinates.length)
       .uniq()
@@ -61,12 +61,13 @@ export class Trainer implements MLToolkit.SVM.Trainer {
     this.svm.free()
 
     if (!trainResult) {
-      return ''
+      return Buffer.from('')
     }
 
     const { model } = trainResult
     this.model = model
-    return JSON.stringify({ ...model, labels_idx: labels })
+    const ser = Buffer.from(JSON.stringify({ ...model, labels_idx: labels }))
+    return ser
   }
 
   public isTrained(): boolean {
@@ -86,8 +87,8 @@ export class Predictor implements MLToolkit.SVM.Predictor {
   private model: SvmModel
 
   // TODO: no need for both a ctor and a initialize function; it uses too much memory for no purpose
-  constructor(json_model: string) {
-    const { labels_idx, ...model } = JSON.parse(json_model)
+  constructor(json_model: Uint8Array) {
+    const { labels_idx, ...model } = JSON.parse(json_model.toString())
     this.labels = labels_idx
     this.model = model
   }

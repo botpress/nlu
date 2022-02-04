@@ -133,4 +133,8 @@ yargs
         })
     }
   )
+  .command(['list', 'ls'], 'List benchmarks', {}, (argv) => {
+    const tests = getTests(undefined, undefined, '').map(({ name }) => name)
+    console.log(tests.join(',\n'))
+  })
   .help().argv

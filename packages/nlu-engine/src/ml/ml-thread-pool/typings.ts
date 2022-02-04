@@ -12,4 +12,4 @@ export type TaskInput =
       options: MLToolkit.CRF.TrainerOptions
     }
 
-export type TaskOutput = string
+export type TaskOutput = Uint8Array

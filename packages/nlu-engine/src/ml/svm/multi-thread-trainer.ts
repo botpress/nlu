@@ -11,6 +11,6 @@ export class MultiThreadTrainer extends Trainer {
   ) {
     const id = nanoid()
     const output = await mLThreadPool(this.logger).startSvmTraining(id, elements, options, progressCallback)
-    return output
+    return Buffer.from(output)
   }
 }

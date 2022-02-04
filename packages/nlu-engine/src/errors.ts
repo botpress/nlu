@@ -19,7 +19,7 @@ export class TrainingExitedUnexpectedly extends Error {
 
 export class ModelLoadingError extends Error {
   constructor(component: string, innerError: Error | undefined) {
-    super(`${component} could load model. Inner error is: "${innerError?.message}"`)
+    super(`${component} could not load model. Inner error is: "${innerError?.message}"`)
   }
 }
 

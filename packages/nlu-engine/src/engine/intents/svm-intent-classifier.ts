@@ -74,7 +74,7 @@ export class SvmIntentClassifier implements IntentClassifier {
     const svmModel = await svm.train(points, { kernel: 'LINEAR', classifier: 'C_SVC', seed }, progress)
 
     this.model = {
-      svmModel,
+      svmModel: svmModel.toString(),
       intentNames: intents.map((i) => i.name),
       entitiesName
     }
@@ -102,7 +102,7 @@ export class SvmIntentClassifier implements IntentClassifier {
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { svmModel, intentNames, entitiesName } = model
 
-    const svm = svmModel ? new this.tools.mlToolkit.SVM.Predictor(svmModel) : undefined
+    const svm = svmModel ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(svmModel)) : undefined
     await svm?.initialize()
     return {
       svm,
