@@ -1,4 +1,5 @@
 import { Tagger as AddonTagger, Trainer as AddonTrainer, makeTrainer, makeTagger } from '@botpress/node-crfsuite'
+import fse from 'fs-extra'
 import { Logger } from 'src/typings'
 import tmp from 'tmp'
 import { MLToolkit } from '../../ml/typings'
@@ -10,7 +11,6 @@ export class Trainer implements MLToolkit.CRF.Trainer {
   constructor(protected logger: Logger) {}
 
   public async initialize() {
-    // debugging should be enabled but, this slows down crf training... TODO: find a solution
     this.trainer = await makeTrainer({ debug: false })
   }
 
@@ -18,7 +18,7 @@ export class Trainer implements MLToolkit.CRF.Trainer {
     elements: MLToolkit.CRF.DataPoint[],
     options: MLToolkit.CRF.TrainerOptions,
     progressCallback: (iteration: number) => void
-  ): Promise<string> {
+  ): Promise<Uint8Array> {
     this.trainer.set_params(options)
 
     for (const { features, labels } of elements) {
@@ -32,7 +32,7 @@ export class Trainer implements MLToolkit.CRF.Trainer {
       return this._cancelTraining ? 1 : 0
     })
 
-    return crfModelFilename
+    return fse.readFile(crfModelFilename)
   }
 
   public cancelTraining() {
@@ -53,8 +53,10 @@ export class Tagger implements MLToolkit.CRF.Tagger {
     return this.tagger.tag(xseq)
   }
 
-  public open(model_filename: string): boolean {
-    return this.tagger.open(model_filename)
+  public open(crfModel: Uint8Array): boolean {
+    const crfModelFn = tmp.tmpNameSync()
+    fse.writeFileSync(crfModelFn, crfModel)
+    return this.tagger.open(crfModelFn)
   }
 
   public marginal(xseq: string[][]): { [label: string]: number }[] {

@@ -1,8 +1,6 @@
-import fse from 'fs-extra'
 import Joi, { validate } from 'joi'
 import _ from 'lodash'
 import { Logger } from 'src/typings'
-import tmp from 'tmp'
 import { ModelLoadingError } from '../../errors'
 import { MLToolkit } from '../../ml/typings'
 import { getEntitiesAndVocabOfIntent } from '../intents/intent-vocab'
@@ -140,7 +138,7 @@ type TrainInput = {
 }
 
 export type Model = {
-  crfModel: Buffer | undefined
+  crfModel: Uint8Array | undefined
   intentFeatures: IntentSlotFeatures
   slot_definitions: SlotDefinition[]
 }
@@ -180,7 +178,7 @@ export default class SlotTagger {
 
   public load = async (serialized: string) => {
     try {
-      const raw: Model = JSON.parse(serialized)
+      const raw = JSON.parse(serialized)
       raw.crfModel = raw.crfModel && Buffer.from(raw.crfModel)
 
       const model: Model = await validate(raw, modelSchema)
@@ -196,7 +194,6 @@ export default class SlotTagger {
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { intentFeatures, crfModel, slot_definitions } = model
     const crfTagger = crfModel && (await this._makeCrfTagger(crfModel))
-
     return {
       crfTagger,
       intentFeatures,
@@ -204,12 +201,10 @@ export default class SlotTagger {
     }
   }
 
-  private async _makeCrfTagger(crfModel: Buffer) {
-    const crfModelFn = tmp.tmpNameSync()
-    fse.writeFileSync(crfModelFn, crfModel)
+  private async _makeCrfTagger(crfModel: Uint8Array) {
     const crfTagger = new this.mlToolkit.CRF.Tagger()
     await crfTagger.initialize()
-    crfTagger.open(crfModelFn)
+    crfTagger.open(crfModel)
     return crfTagger
   }
 
@@ -249,9 +244,7 @@ export default class SlotTagger {
     const trainer = new this.mlToolkit.CRF.Trainer(this.logger)
     await trainer.initialize()
     const dummyProgress = () => {}
-    const crfModelFn = await trainer.train(elements, CRF_TRAINER_PARAMS, dummyProgress)
-
-    const crfModel = await fse.readFile(crfModelFn)
+    const crfModel = await trainer.train(elements, CRF_TRAINER_PARAMS, dummyProgress)
 
     this.model = {
       crfModel,

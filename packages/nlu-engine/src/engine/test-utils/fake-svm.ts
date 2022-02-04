@@ -8,17 +8,19 @@ export class FakeSvmTrainer implements MLToolkit.SVM.Trainer {
     points: MLToolkit.SVM.DataPoint[],
     options?: MLToolkit.SVM.SVMOptions | undefined,
     callback?: MLToolkit.SVM.TrainProgressCallback | undefined
-  ): Promise<string> {
+  ): Promise<Uint8Array> {
     if (!points.length) {
       throw new Error('fake SVM needs datapoints')
     }
     this._isTrained = true
     callback?.(1)
-    return _(points)
-      .map((p) => p.label)
-      .uniq()
-      .value()
-      .join(',')
+    return Buffer.from(
+      _(points)
+        .map((p) => p.label)
+        .uniq()
+        .value()
+        .join(',')
+    )
   }
   public isTrained(): boolean {
     return this._isTrained
@@ -26,10 +28,10 @@ export class FakeSvmTrainer implements MLToolkit.SVM.Trainer {
 }
 
 export class FakeSvmPredictor implements MLToolkit.SVM.Predictor {
-  constructor(private model: string) {}
+  constructor(private model: Uint8Array) {}
 
   public async predict(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
-    const labels = this.model.split(',')
+    const labels = this.model.toString().split(',')
     return labels.map((label) => ({ label, confidence: 1 / labels.length }))
   }
 
@@ -40,6 +42,6 @@ export class FakeSvmPredictor implements MLToolkit.SVM.Predictor {
   }
 
   public getLabels(): string[] {
-    return this.model.split(',')
+    return this.model.toString().split(',')
   }
 }

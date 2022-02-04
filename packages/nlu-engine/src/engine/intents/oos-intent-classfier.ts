@@ -218,7 +218,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const svm = new this.tools.mlToolkit.SVM.Trainer(this._logger)
 
     const model = await svm.train([...in_scope_points, ...oos_points], trainingOptions, progress)
-    return model
+    return model.toString()
   }
 
   private async _trainInScopeSvm(
@@ -289,7 +289,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const exactIntenClassifier = new ExactIntenClassifier()
     await exactIntenClassifier.load(exactMatchModel)
 
-    const oosSvm = oosSvmModel ? new this.tools.mlToolkit.SVM.Predictor(oosSvmModel) : undefined
+    const oosSvm = oosSvmModel ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(oosSvmModel)) : undefined
     await oosSvm?.initialize()
 
     return {
