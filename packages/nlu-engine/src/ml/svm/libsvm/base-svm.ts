@@ -8,14 +8,12 @@ import { Data } from './typings'
 export default class BaseSVM {
   private _clf: NSVM | undefined
 
-  constructor(clf?: NSVM) {
-    this._clf = clf
-  }
-
   static restore = async (model: Model) => {
     const clf = await makeSvm()
     clf.set_model(model) // might throw
-    return new BaseSVM(clf)
+    const instance = new BaseSVM()
+    instance._clf = clf
+    return instance
   }
 
   train = async (dataset: Data[], random_seed: number, params: Parameters): Promise<Model> => {
