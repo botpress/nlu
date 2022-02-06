@@ -4,6 +4,7 @@ import { MLToolkit } from '../typings'
 
 import { SVM } from './libsvm'
 import { Data, KernelTypes, SvmModel, Parameters, SvmTypes } from './libsvm/typings'
+import { deserializeModel, serializeModel } from './serialization'
 
 export class Trainer implements MLToolkit.SVM.Trainer {
   private model?: SvmModel
@@ -66,7 +67,7 @@ export class Trainer implements MLToolkit.SVM.Trainer {
 
     const { model } = trainResult
     this.model = model
-    const ser = Buffer.from(JSON.stringify({ ...model, labels_idx: labels }))
+    const ser = serializeModel({ ...model, labels_idx: labels })
     return ser
   }
 
@@ -87,8 +88,8 @@ export class Predictor implements MLToolkit.SVM.Predictor {
   private model: SvmModel
 
   // TODO: no need for both a ctor and a initialize function; it uses too much memory for no purpose
-  constructor(json_model: Uint8Array) {
-    const { labels_idx, ...model } = JSON.parse(json_model.toString())
+  constructor(serialized: Uint8Array) {
+    const { labels_idx, ...model } = deserializeModel(serialized)
     this.labels = labels_idx
     this.model = model
   }
