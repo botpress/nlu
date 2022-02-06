@@ -3,11 +3,7 @@ import { Logger } from 'src/typings'
 import { MLToolkit } from '../typings'
 
 import { SVM } from './libsvm'
-import { Data, KernelTypes, SvmModel, SvmParameters as Parameters, SvmTypes } from './libsvm/typings'
-
-type Serialized = SvmModel & {
-  labels_idx: string[]
-}
+import { Data, KernelTypes, SvmModel, Parameters, SvmTypes } from './libsvm/typings'
 
 export class Trainer implements MLToolkit.SVM.Trainer {
   private model?: SvmModel
@@ -70,8 +66,7 @@ export class Trainer implements MLToolkit.SVM.Trainer {
 
     const { model } = trainResult
     this.model = model
-    const serialized: Serialized = { ...model, labels_idx: labels }
-    return JSON.stringify(serialized)
+    return JSON.stringify({ ...model, labels_idx: labels })
   }
 
   public isTrained(): boolean {
@@ -88,21 +83,20 @@ export class Predictor implements MLToolkit.SVM.Predictor {
   private clf: SVM | undefined
   private labels: string[]
   private parameters: Parameters | undefined
-  private serialized: Serialized
+  private model: SvmModel
 
+  // TODO: no need for both a ctor and a initialize function; it uses too much memory for no purpose
   constructor(json_model: string) {
-    const serialized: Serialized = JSON.parse(json_model)
-    this.labels = serialized.labels_idx
-    this.serialized = serialized
+    const { labels_idx, ...model } = JSON.parse(json_model)
+    this.labels = labels_idx
+    this.model = model
   }
 
   public async initialize() {
     try {
-      // TODO: actually check the model format
-      const model = _.omit(this.serialized, 'labels_idx')
-      this.parameters = model.param
+      this.parameters = this.model.param
       this.clf = new SVM({ kFold: 1 })
-      await this.clf.initialize(model)
+      await this.clf.initialize(this.model)
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this.throwModelHasChanged(err)
