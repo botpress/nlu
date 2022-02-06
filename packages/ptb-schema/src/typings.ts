@@ -33,31 +33,3 @@ export type Field = Override<ptb.IField, { type: FieldType | PTBMessage<any>; ru
 
 export type FlatStructSchema = Dic<BasicField>
 export type StructSchema = Dic<Field>
-
-/**
- * ######################
- * ### type inference ###
- * ######################
- */
-
-export type InferFromStructFieldType<F extends FieldType | PTBMessage<any>> = F extends PTBMessage<infer S>
-  ? InferFromStructSchema<S>
-  : F extends NumberFieldType
-  ? number
-  : F extends 'bool'
-  ? boolean
-  : F extends 'string'
-  ? string
-  : F extends 'bytes'
-  ? Uint8Array
-  : never
-
-export type InferFromStructField<F extends Field> = F['rule'] extends 'repeated'
-  ? InferFromStructFieldType<F['type']>[]
-  : F['rule'] extends 'optional'
-  ? InferFromStructFieldType<F['type']> | undefined
-  : InferFromStructFieldType<F['type']>
-
-export type InferFromStructSchema<S extends StructSchema> = {
-  [k in keyof S]: InferFromStructField<S[k]>
-}

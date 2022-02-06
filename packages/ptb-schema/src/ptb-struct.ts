@@ -1,5 +1,6 @@
 import ptb from 'protobufjs'
-import { InferFromStructSchema, FlatStructSchema, Field, StructSchema, BasicField } from './typings'
+import { InferFromStructSchema } from './inference'
+import { FlatStructSchema, Field, StructSchema, BasicField } from './typings'
 
 type Props = {
   type: ptb.Type
