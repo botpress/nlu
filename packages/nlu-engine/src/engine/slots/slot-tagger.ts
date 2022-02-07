@@ -8,6 +8,7 @@ import { Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } 
 import Utterance, { UtteranceToken } from '../utterance/utterance'
 
 import * as featurizer from './slot-featurizer'
+import { deserializeModel, IntentSlotFeatures, Model, serializeModel } from './slot-tagger-model'
 import {
   labelizeUtterance,
   makeExtractedSlots,
@@ -26,18 +27,6 @@ const CRF_TRAINER_PARAMS = {
 type TrainInput = {
   intent: Intent<Utterance>
   list_entites: ListEntityModel[]
-}
-
-type IntentSlotFeatures = {
-  name: string
-  vocab: string[]
-  slot_entities: string[]
-}
-
-export type Model = {
-  crfModel: Buffer | undefined
-  intentFeatures: IntentSlotFeatures
-  slot_definitions: SlotDefinition[]
 }
 
 type Predictors = {
@@ -61,14 +50,12 @@ export default class SlotTagger {
     if (!this.model) {
       throw new Error(`${SlotTagger._name} must be trained before calling serialize.`)
     }
-    return Buffer.from(JSON.stringify(this.model), 'utf8')
+    return serializeModel(this.model)
   }
 
   public load = async (serialized: Buffer) => {
     try {
-      const model: Model = JSON.parse(Buffer.from(serialized).toString('utf8'))
-      model.crfModel = model.crfModel && Buffer.from(model.crfModel)
-
+      const model = deserializeModel(serialized)
       this.predictors = await this._makePredictors(model)
       this.model = model
     } catch (thrown) {
