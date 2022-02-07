@@ -1,3 +1,4 @@
+import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
 import { ModelLoadingError } from '../../errors'
 import { Intent } from '../typings'
@@ -11,6 +12,15 @@ type Model = {
 }
 
 type ExactMatchIndex = _.Dictionary<{ intent: string }>
+
+const PTBExactIndexValue = new ptb.PTBMessage('ExactIndexValue', {
+  intent: { type: 'string', id: 1 }
+})
+
+const PTBExactIntentModel = new ptb.PTBMessage('ExactIntentModel', {
+  intents: { type: 'string', id: 1, rule: 'repeated' },
+  exact_match_index: { keyType: 'string', type: PTBExactIndexValue, id: 2, rule: 'map' }
+})
 
 const EXACT_MATCH_STR_OPTIONS: UtteranceToStringOptions = {
   lowerCase: true,
@@ -60,12 +70,17 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
     if (!this.model) {
       throw new Error(`${ExactIntenClassifier._displayName} must be trained before calling serialize.`)
     }
-    return Buffer.from(JSON.stringify(this.model), 'utf8')
+    const bin = PTBExactIntentModel.encode(this.model)
+    return Buffer.from(bin)
   }
 
   public async load(serialized: Buffer) {
     try {
-      const model: Model = JSON.parse(Buffer.from(serialized).toString('utf8'))
+      const { intents, exact_match_index } = PTBExactIntentModel.decode(Buffer.from(serialized))
+      const model: Model = {
+        intents: intents ?? [],
+        exact_match_index
+      }
       this.model = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
