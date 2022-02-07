@@ -1,4 +1,3 @@
-import Joi, { validate } from 'joi'
 import _ from 'lodash'
 import { ModelLoadingError } from '../../errors'
 import { MLToolkit } from '../../ml/typings'
@@ -26,9 +25,9 @@ const JUNK_TOKEN_MAX = 20
 
 export type Model = {
   trainingVocab: string[]
-  baseIntentClfModel: string
-  oosSvmModel: string | undefined
-  exactMatchModel: string
+  baseIntentClfModel: Buffer
+  oosSvmModel: Buffer | undefined
+  exactMatchModel: Buffer
 }
 
 type Predictors = {
@@ -44,15 +43,6 @@ const NONE_UTTERANCES_BOUNDS = {
   MIN: 20,
   MAX: 200
 }
-
-export const modelSchema = Joi.object()
-  .keys({
-    trainingVocab: Joi.array().items(Joi.string().allow('')).required(),
-    baseIntentClfModel: Joi.string().allow('').required(),
-    oosSvmModel: Joi.string().allow('').optional(),
-    exactMatchModel: Joi.string().allow('').required()
-  })
-  .required()
 
 /**
  * @description Intent classfier composed of 3 smaller components:
@@ -189,7 +179,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     trainInput: TrainInput,
     noneIntent: Omit<Intent<Utterance>, 'contexts'>,
     progress: (p: number) => void
-  ): Promise<string | undefined> {
+  ): Promise<Buffer | undefined> {
     const { allUtterances, nluSeed, intents, languageCode } = trainInput
 
     const trainingOptions: MLToolkit.SVM.SVMOptions = {
@@ -218,14 +208,14 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const svm = new this.tools.mlToolkit.SVM.Trainer(this._logger)
 
     const model = await svm.train([...in_scope_points, ...oos_points], trainingOptions, progress)
-    return Buffer.from(model).toString('hex')
+    return model
   }
 
   private async _trainInScopeSvm(
     trainInput: TrainInput,
     noneIntent: Omit<Intent<Utterance>, 'contexts'>,
     progress: (p: number) => void
-  ): Promise<string> {
+  ): Promise<Buffer> {
     const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
     const noneUtts = noneIntent.utterances.filter((u) => u.tokens.filter((t) => t.isWord).length >= 3)
 
@@ -258,17 +248,16 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     return _.flatMap(utts, (u) => u.tokens.map((t) => t.toString({ lowerCase: true })))
   }
 
-  public serialize(): string {
+  public serialize(): Buffer {
     if (!this.model) {
       throw new Error(`${OOSIntentClassifier._displayName} must be trained before calling serialize.`)
     }
-    return JSON.stringify(this.model)
+    return Buffer.from(JSON.stringify(this.model), 'utf8')
   }
 
-  public async load(serialized: string): Promise<void> {
+  public async load(serialized: Buffer): Promise<void> {
     try {
-      const raw = JSON.parse(serialized)
-      const model: Model = await validate(raw, modelSchema)
+      const model: Model = JSON.parse(Buffer.from(serialized).toString('utf8'))
       this.predictors = await this._makePredictors(model)
       this.model = model
     } catch (thrown) {
@@ -289,7 +278,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const exactIntenClassifier = new ExactIntenClassifier()
     await exactIntenClassifier.load(exactMatchModel)
 
-    const oosSvm = oosSvmModel ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(oosSvmModel, 'hex')) : undefined
+    const oosSvm = oosSvmModel ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(oosSvmModel)) : undefined
     await oosSvm?.initialize()
 
     return {

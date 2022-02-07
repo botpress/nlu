@@ -7,8 +7,8 @@ import { makeTestUtterance } from '../test-utils/fake-utterance'
 import { BIO, ExtractedEntity, ExtractedSlot } from '../typings'
 import Utterance from '../utterance/utterance'
 
-import SlotTagger, { labelizeUtterance, makeExtractedSlots } from './slot-tagger'
-import { TagResult } from './typings'
+import SlotTagger from './slot-tagger'
+import { labelizeUtterance, makeExtractedSlots, TagResult } from './slot-tagger-utils'
 
 const fakeTools = makeFakeTools(300, ['en'])
 const dummyProgress = (p: number) => {}
@@ -167,34 +167,6 @@ describe('Slot tagger component lifecycle', () => {
 
     const prediction = await slotTagger.predict(dudeWheresMyCar)
     expect(prediction.length).toBe(0)
-  })
-
-  test('When model is corrupted, loading throws', async () => {
-    const slotTagger = new SlotTagger(fakeTools, dummyLogger as Logger)
-    await slotTagger.train(
-      {
-        intent: {
-          name: 'someIntent',
-          contexts: [],
-          utterances: [dudeWheresMyCar],
-          slot_definitions: []
-        },
-        list_entites: []
-      },
-      dummyProgress
-    )
-
-    const model = slotTagger.serialize()
-
-    // act && asert
-    await expect(slotTagger.load(`${model} I'm not a rapper`)).rejects.toThrowError(ModelLoadingError)
-
-    const parsed = JSON.parse(model)
-    parsed['someKey'] = 'someValue'
-    await expect(slotTagger.load(JSON.stringify(parsed))).rejects.toThrowError(ModelLoadingError)
-
-    const undef: unknown = undefined
-    await expect(slotTagger.load(undef as string)).rejects.toThrowError(ModelLoadingError)
   })
 
   // TODO: add a fake CRF tagger to the fake tools and assert the slot tagger works well as a whole

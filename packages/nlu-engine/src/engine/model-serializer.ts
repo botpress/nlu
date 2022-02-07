@@ -15,9 +15,9 @@ export type PredictableModel = Omit<Model, 'data'> & {
     tfidf: TFIDF
     vocab: string[]
     kmeans: SerializedKmeansResult | undefined
-    ctx_model: string
-    intent_model_by_ctx: _.Dictionary<string>
-    slots_model_by_intent: _.Dictionary<string>
+    ctx_model: Buffer
+    intent_model_by_ctx: _.Dictionary<Buffer>
+    slots_model_by_intent: _.Dictionary<Buffer>
   }
 }
 

@@ -2,9 +2,9 @@ import { SvmModel, Parameters } from '../libsvm/typings'
 import { flattenMatrix, unflattenMatrix } from './flat-matrix'
 import { PTBParameters, PTBModelMsg } from './protobufs'
 
-export const serializeModel = (model: SvmModel & { labels_idx: string[] }): Uint8Array => {
+export const serializeModel = (model: SvmModel & { labels_idx: string[] }): Buffer => {
   const { SV, sv_coef, u, mu, sigma, ...others } = model
-  return PTBModelMsg.encode({
+  const bytes: Uint8Array = PTBModelMsg.encode({
     ...others,
     SV: flattenMatrix(SV),
     sv_coef: flattenMatrix(sv_coef),
@@ -12,6 +12,7 @@ export const serializeModel = (model: SvmModel & { labels_idx: string[] }): Uint
     mu,
     sigma
   })
+  return Buffer.from(bytes)
 }
 
 const deserializeParams = (params: PTBParameters): Parameters => {
@@ -23,7 +24,7 @@ const deserializeParams = (params: PTBParameters): Parameters => {
   }
 }
 
-export const deserializeModel = (serialized: Uint8Array): SvmModel & { labels_idx: string[] } => {
+export const deserializeModel = (serialized: Buffer): SvmModel & { labels_idx: string[] } => {
   const model = PTBModelMsg.decode(serialized)
   const { SV, sv_coef, u, param, rho, probA, probB, sv_indices, label, nSV, labels_idx, ...others } = model
   return {
