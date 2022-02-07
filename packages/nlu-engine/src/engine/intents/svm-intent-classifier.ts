@@ -8,7 +8,7 @@ import Utterance from '../utterance/utterance'
 import { IntentClassifier, IntentPredictions, IntentTrainInput } from './intent-classifier'
 
 type Featurizer = (u: Utterance, entities: string[]) => number[]
-export type Model = {
+type Model = {
   svmModel: Buffer | undefined
   intentNames: string[]
   entitiesName: string[]

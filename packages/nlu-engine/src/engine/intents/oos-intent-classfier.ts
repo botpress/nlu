@@ -23,7 +23,7 @@ const JUNK_VOCAB_SIZE = 500
 const JUNK_TOKEN_MIN = 1
 const JUNK_TOKEN_MAX = 20
 
-export type Model = {
+type Model = {
   trainingVocab: string[]
   baseIntentClfModel: Buffer
   oosSvmModel: Buffer | undefined
