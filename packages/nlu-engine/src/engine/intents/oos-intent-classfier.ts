@@ -1,3 +1,4 @@
+import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
 import { ModelLoadingError } from '../../errors'
 import { MLToolkit } from '../../ml/typings'
@@ -29,6 +30,13 @@ type Model = {
   oosSvmModel: Buffer | undefined
   exactMatchModel: Buffer
 }
+
+const PTBOOSIntentModel = new ptb.PTBMessage('OOSIntentModel', {
+  trainingVocab: { type: 'string', id: 1, rule: 'repeated' },
+  baseIntentClfModel: { type: 'bytes', id: 2 },
+  oosSvmModel: { type: 'bytes', id: 3, rule: 'optional' },
+  exactMatchModel: { type: 'bytes', id: 4 }
+})
 
 type Predictors = {
   baseIntentClf: SvmIntentClassifier
@@ -252,12 +260,21 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     if (!this.model) {
       throw new Error(`${OOSIntentClassifier._displayName} must be trained before calling serialize.`)
     }
-    return Buffer.from(JSON.stringify(this.model), 'utf8')
+    const bin = PTBOOSIntentModel.encode(this.model)
+    return Buffer.from(bin)
   }
 
   public async load(serialized: Buffer): Promise<void> {
     try {
-      const model: Model = JSON.parse(Buffer.from(serialized).toString('utf8'))
+      const { baseIntentClfModel, exactMatchModel, oosSvmModel, trainingVocab } = PTBOOSIntentModel.decode(
+        Buffer.from(serialized)
+      )
+      const model: Model = {
+        baseIntentClfModel: Buffer.from(baseIntentClfModel),
+        exactMatchModel: Buffer.from(exactMatchModel),
+        oosSvmModel: oosSvmModel && Buffer.from(oosSvmModel),
+        trainingVocab: trainingVocab ?? []
+      }
       this.predictors = await this._makePredictors(model)
       this.model = model
     } catch (thrown) {

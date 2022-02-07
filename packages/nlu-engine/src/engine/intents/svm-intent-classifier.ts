@@ -1,3 +1,4 @@
+import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
 import { ModelLoadingError } from '../../errors'
 import { MLToolkit } from '../../ml/typings'
@@ -13,6 +14,12 @@ type Model = {
   intentNames: string[]
   entitiesName: string[]
 }
+
+const PTBSvmIntentModel = new ptb.PTBMessage('SvmIntentModel', {
+  svmModel: { type: 'bytes', id: 1, rule: 'optional' },
+  intentNames: { type: 'string', id: 2, rule: 'repeated' },
+  entitiesName: { type: 'string', id: 3, rule: 'repeated' }
+})
 
 type Predictors = {
   svm: MLToolkit.SVM.Predictor | undefined
@@ -76,12 +83,19 @@ export class SvmIntentClassifier implements IntentClassifier {
     if (!this.model) {
       throw new Error(`${SvmIntentClassifier._displayName} must be trained before calling serialize.`)
     }
-    return Buffer.from(JSON.stringify(this.model), 'utf8')
+    const bin = PTBSvmIntentModel.encode(this.model)
+    return Buffer.from(bin)
   }
 
   public async load(serialized: Buffer): Promise<void> {
     try {
-      const model: Model = JSON.parse(Buffer.from(serialized).toString('utf8'))
+      const { entitiesName, intentNames, svmModel } = PTBSvmIntentModel.decode(Buffer.from(serialized))
+      const model: Model = {
+        svmModel: svmModel && Buffer.from(svmModel),
+        entitiesName: entitiesName ?? [],
+        intentNames: intentNames ?? []
+      }
+
       this.predictors = await this._makePredictors(model)
       this.model = model
     } catch (thrown) {
@@ -93,7 +107,7 @@ export class SvmIntentClassifier implements IntentClassifier {
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { svmModel, intentNames, entitiesName } = model
 
-    const svm = svmModel ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(svmModel)) : undefined
+    const svm = svmModel?.length ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(svmModel)) : undefined
     await svm?.initialize()
     return {
       svm,

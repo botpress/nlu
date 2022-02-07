@@ -22,28 +22,41 @@ export type PredictableModel = Omit<Model, 'data'> & {
 }
 
 export function serializeModel(model: PredictableModel): Model {
-  const { id, startedAt, finishedAt, data } = model
+  const { id, startedAt, finishedAt, data: parsedData } = model
+  const { ctx_model, intent_model_by_ctx, slots_model_by_intent, ...others } = parsedData
+
+  const serializedData = JSON.stringify({
+    ...others,
+    ctx_model: Buffer.from(ctx_model).toString('hex'),
+    intent_model_by_ctx: _.mapValues(intent_model_by_ctx, (m) => Buffer.from(m).toString('hex')),
+    slots_model_by_intent: _.mapValues(slots_model_by_intent, (m) => Buffer.from(m).toString('hex'))
+  })
 
   const serialized: Model = {
     id,
     startedAt,
     finishedAt,
-    data: ''
+    data: serializedData
   }
-
-  serialized.data = JSON.stringify(data)
-
   return serialized
 }
 
 export function deserializeModel(serialized: Model): PredictableModel {
-  const { id, startedAt, finishedAt, data } = serialized
+  const { id, startedAt, finishedAt, data: serializedData } = serialized
+  const { ctx_model, intent_model_by_ctx, slots_model_by_intent, ...others } = JSON.parse(serializedData)
+
+  const parsedData = {
+    ...others,
+    ctx_model: Buffer.from(ctx_model as string, 'hex'),
+    intent_model_by_ctx: _.mapValues(intent_model_by_ctx as _.Dictionary<string>, (m) => Buffer.from(m, 'hex')),
+    slots_model_by_intent: _.mapValues(slots_model_by_intent as _.Dictionary<string>, (m) => Buffer.from(m, 'hex'))
+  }
 
   const model: PredictableModel = {
     id,
     startedAt,
     finishedAt,
-    data: JSON.parse(data)
+    data: parsedData
   }
   return model
 }
