@@ -1,17 +1,17 @@
-import ptb from 'protobufjs'
+import ptb, { MapField } from 'protobufjs'
 import { InferFromStructSchema } from './inference'
-import { FlatStructSchema, Field, StructSchema, BasicField } from './typings'
+import { BasicStructSchema, Field, StructSchema, BasicField, BasicMapField } from './typings'
 
 type Props = {
   type: ptb.Type
   childTypes: ptb.Type[]
 }
 
-export const isBaseField = (f: Field): f is BasicField => {
+export const isBaseField = (f: Field | MapField): f is BasicField | BasicMapField => {
   return !(f.type instanceof PTBMessage)
 }
 
-export const isFlatSchema = (s: StructSchema): s is FlatStructSchema => {
+export const isFlatSchema = (s: StructSchema): s is BasicStructSchema => {
   return Object.values(s).every(isBaseField)
 }
 
@@ -27,7 +27,7 @@ export class PTBMessage<S extends StructSchema> {
     return this._schema
   }
 
-  private static _fromFlatSchema = (name: string, schema: FlatStructSchema): Props => {
+  private static _fromFlatSchema = (name: string, schema: BasicStructSchema): Props => {
     const type = ptb.Type.fromJSON(name, { fields: schema })
     const childTypes: ptb.Type[] = []
     return { type, childTypes }

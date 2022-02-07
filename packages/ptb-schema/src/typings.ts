@@ -10,7 +10,7 @@ type Override<T, K> = Omit<T, keyof K> & K
  * ####################
  */
 
-export type Rule = 'required' | 'optional' | 'repeated'
+export type FieldRule = 'required' | 'optional' | 'repeated'
 
 export type NumberFieldType =
   | 'double'
@@ -28,8 +28,11 @@ export type NumberFieldType =
 
 export type FieldType = 'bool' | 'string' | 'bytes' | NumberFieldType
 
-export type BasicField = Override<ptb.IField, { type: FieldType; rule?: Rule }>
-export type Field = Override<ptb.IField, { type: FieldType | PTBMessage<any>; rule?: Rule }>
+export type BasicField = Override<ptb.IField, { type: FieldType; rule?: FieldRule }>
+export type Field = Override<BasicField, { type: FieldType | PTBMessage<any> }>
 
-export type FlatStructSchema = Dic<BasicField>
-export type StructSchema = Dic<Field>
+export type BasicMapField = { type: FieldType; id: number; keyType: NumberFieldType | 'string' }
+export type MapField = Override<BasicMapField, { type: FieldType | PTBMessage<any> }>
+
+export type BasicStructSchema = Dic<BasicField | BasicMapField>
+export type StructSchema = Dic<Field | MapField>
