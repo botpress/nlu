@@ -1,4 +1,3 @@
-import Joi, { validate } from 'joi'
 import _ from 'lodash'
 import { ModelLoadingError } from '../../errors'
 import { MLToolkit } from '../../ml/typings'
@@ -10,7 +9,7 @@ import { IntentClassifier, IntentPredictions, IntentTrainInput } from './intent-
 
 type Featurizer = (u: Utterance, entities: string[]) => number[]
 export type Model = {
-  svmModel: string | undefined
+  svmModel: Buffer | undefined
   intentNames: string[]
   entitiesName: string[]
 }
@@ -20,13 +19,6 @@ type Predictors = {
   intentNames: string[]
   entitiesName: string[]
 }
-
-const keys: Record<keyof Model, Joi.AnySchema> = {
-  svmModel: Joi.string().allow('').optional(),
-  intentNames: Joi.array().items(Joi.string()).required(),
-  entitiesName: Joi.array().items(Joi.string()).required()
-}
-export const modelSchema = Joi.object().keys(keys).required()
 
 export class SvmIntentClassifier implements IntentClassifier {
   private static _displayName = 'SVM Intent Classifier'
@@ -74,23 +66,22 @@ export class SvmIntentClassifier implements IntentClassifier {
     const svmModel = await svm.train(points, { kernel: 'LINEAR', classifier: 'C_SVC', seed }, progress)
 
     this.model = {
-      svmModel: Buffer.from(svmModel).toString('hex'),
+      svmModel,
       intentNames: intents.map((i) => i.name),
       entitiesName
     }
   }
 
-  public serialize(): string {
+  public serialize(): Buffer {
     if (!this.model) {
       throw new Error(`${SvmIntentClassifier._displayName} must be trained before calling serialize.`)
     }
-    return JSON.stringify(this.model)
+    return Buffer.from(JSON.stringify(this.model), 'utf8')
   }
 
-  public async load(serialized: string): Promise<void> {
+  public async load(serialized: Buffer): Promise<void> {
     try {
-      const raw = JSON.parse(serialized)
-      const model: Model = await validate(raw, modelSchema)
+      const model: Model = JSON.parse(Buffer.from(serialized).toString('utf8'))
       this.predictors = await this._makePredictors(model)
       this.model = model
     } catch (thrown) {
@@ -102,7 +93,7 @@ export class SvmIntentClassifier implements IntentClassifier {
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { svmModel, intentNames, entitiesName } = model
 
-    const svm = svmModel ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(svmModel, 'hex')) : undefined
+    const svm = svmModel ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(svmModel)) : undefined
     await svm?.initialize()
     return {
       svm,

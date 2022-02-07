@@ -1,4 +1,3 @@
-import Joi, { validate } from 'joi'
 import _ from 'lodash'
 import { ModelLoadingError } from '../../errors'
 import { Intent } from '../typings'
@@ -18,14 +17,6 @@ const EXACT_MATCH_STR_OPTIONS: UtteranceToStringOptions = {
   onlyWords: true,
   strategy: 'replace-entity-name'
 }
-
-const schemaKeys: Record<keyof Model, Joi.AnySchema> = {
-  intents: Joi.array().items(Joi.string()).required(),
-  exact_match_index: Joi.object()
-    .pattern(/^/, Joi.object().keys({ intent: Joi.string() }))
-    .required()
-}
-export const modelSchema = Joi.object().keys(schemaKeys).required()
 
 export class ExactIntenClassifier implements NoneableIntentClassifier {
   private static _displayName = 'Exact Intent Classifier'
@@ -65,17 +56,16 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
       .value()
   }
 
-  public serialize() {
+  public serialize(): Buffer {
     if (!this.model) {
       throw new Error(`${ExactIntenClassifier._displayName} must be trained before calling serialize.`)
     }
-    return JSON.stringify(this.model)
+    return Buffer.from(JSON.stringify(this.model), 'utf8')
   }
 
-  public async load(serialized: string) {
+  public async load(serialized: Buffer) {
     try {
-      const raw = JSON.parse(serialized)
-      const model: Model = await validate(raw, modelSchema)
+      const model: Model = JSON.parse(Buffer.from(serialized).toString('utf8'))
       this.model = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)

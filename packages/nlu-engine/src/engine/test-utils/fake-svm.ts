@@ -8,7 +8,7 @@ export class FakeSvmTrainer implements MLToolkit.SVM.Trainer {
     points: MLToolkit.SVM.DataPoint[],
     options?: MLToolkit.SVM.SVMOptions | undefined,
     callback?: MLToolkit.SVM.TrainProgressCallback | undefined
-  ): Promise<Uint8Array> {
+  ): Promise<Buffer> {
     if (!points.length) {
       throw new Error('fake SVM needs datapoints')
     }
@@ -28,7 +28,7 @@ export class FakeSvmTrainer implements MLToolkit.SVM.Trainer {
 }
 
 export class FakeSvmPredictor implements MLToolkit.SVM.Predictor {
-  constructor(private model: Uint8Array) {}
+  constructor(private model: Buffer) {}
 
   public async predict(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
     const labels = this.model.toString().split(',')

@@ -103,22 +103,3 @@ test('predict with multiple class returns svm prediction', async () => {
   const totalConf = confs.reduce((sum, x) => sum + x, 0)
   expect(totalConf).toEqual(1)
 })
-
-test('When model is corrupted, loading a model throws', async () => {
-  // arrange
-  const intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
-  await intentClassifier.train(makeTrainset([intentA, intentB, intentC]), dummyProgress)
-  const model = intentClassifier.serialize()
-
-  // act && asert
-  await expect(intentClassifier.load(`${model} I'm about to end this model's whole career`)).rejects.toThrowError(
-    ModelLoadingError
-  )
-
-  const parsed = JSON.parse(model)
-  parsed['someKey'] = 'someValue'
-  await expect(intentClassifier.load(JSON.stringify(parsed))).rejects.toThrowError(ModelLoadingError)
-
-  const undef: unknown = undefined
-  await expect(intentClassifier.load(undef as string)).rejects.toThrowError(ModelLoadingError)
-})

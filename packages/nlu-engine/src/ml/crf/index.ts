@@ -18,7 +18,7 @@ export class Trainer implements MLToolkit.CRF.Trainer {
     elements: MLToolkit.CRF.DataPoint[],
     options: MLToolkit.CRF.TrainerOptions,
     progressCallback: (iteration: number) => void
-  ): Promise<Uint8Array> {
+  ): Promise<Buffer> {
     this.trainer.set_params(options)
 
     for (const { features, labels } of elements) {
@@ -53,7 +53,7 @@ export class Tagger implements MLToolkit.CRF.Tagger {
     return this.tagger.tag(xseq)
   }
 
-  public open(crfModel: Uint8Array): boolean {
+  public open(crfModel: Buffer): boolean {
     const crfModelFn = tmp.tmpNameSync()
     fse.writeFileSync(crfModelFn, crfModel)
     return this.tagger.open(crfModelFn)

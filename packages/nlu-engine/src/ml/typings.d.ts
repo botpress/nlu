@@ -117,12 +117,12 @@ export namespace MLToolkit {
 
     export class Trainer {
       constructor(logger: Logger)
-      public train(points: DataPoint[], options?: SVMOptions, callback: TrainProgressCallback): Promise<Uint8Array>
+      public train(points: DataPoint[], options?: SVMOptions, callback: TrainProgressCallback): Promise<Buffer>
       public isTrained(): boolean
     }
 
     export class Predictor {
-      constructor(model: Uint8Array)
+      constructor(model: Buffer)
       public initialize(): Promise<void>
       public predict(coordinates: number[]): Promise<Prediction[]>
       public isLoaded(): boolean
@@ -134,7 +134,7 @@ export namespace MLToolkit {
     export class Tagger {
       public initialize(): Promise<void>
       public tag(xseq: Array<string[]>): { probability: number; result: string[] }
-      public open(model: Uint8Array): boolean
+      public open(model: Buffer): boolean
       public marginal(xseq: Array<string[]>): { [label: string]: number }[]
     }
 
@@ -158,7 +158,7 @@ export namespace MLToolkit {
         elements: DataPoint[],
         options: TrainerOptions,
         progressCallback: TrainProgressCallback
-      ): Promise<Uint8Array>
+      ): Promise<Buffer>
     }
   }
 

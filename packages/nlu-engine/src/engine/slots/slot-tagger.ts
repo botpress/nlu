@@ -1,16 +1,19 @@
-import Joi, { validate } from 'joi'
 import _ from 'lodash'
 import { Logger } from 'src/typings'
 import { ModelLoadingError } from '../../errors'
 import { MLToolkit } from '../../ml/typings'
 import { getEntitiesAndVocabOfIntent } from '../intents/intent-vocab'
 
-import { BIO, Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } from '../typings'
+import { Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } from '../typings'
 import Utterance, { UtteranceToken } from '../utterance/utterance'
 
-import { SlotDefinitionSchema } from './schemas'
 import * as featurizer from './slot-featurizer'
-import { TagResult, IntentSlotFeatures } from './typings'
+import {
+  labelizeUtterance,
+  makeExtractedSlots,
+  predictionLabelToTagResult,
+  removeInvalidTagsForIntent
+} from './slot-tagger-utils'
 
 const CRF_TRAINER_PARAMS = {
   c1: '0.0001',
@@ -20,125 +23,19 @@ const CRF_TRAINER_PARAMS = {
   'feature.possible_states': '1'
 }
 
-const MIN_SLOT_CONFIDENCE = 0.15
-
-export function labelizeUtterance(utterance: Utterance): string[] {
-  return utterance.tokens
-    .filter((x) => !x.isSpace)
-    .map((token) => {
-      if (_.isEmpty(token.slots)) {
-        return BIO.OUT
-      }
-
-      const slot = token.slots[0]
-      const tag = slot.startTokenIdx === token.index ? BIO.BEGINNING : BIO.INSIDE
-      const any = _.isEmpty(token.entities) ? '/any' : ''
-
-      return `${tag}-${slot.name}${any}`
-    })
-}
-
-function predictionLabelToTagResult(prediction: { [label: string]: number }): TagResult {
-  const pairedPreds = _.chain(prediction)
-    .mapValues((value, key) => value + (prediction[`${key}/any`] || 0))
-    .toPairs()
-    .value()
-
-  if (!pairedPreds.length) {
-    throw new Error('there should be at least one prediction when converting predictions to tag result')
-  }
-  const [label, probability] = _.maxBy(pairedPreds, (x) => x[1])!
-
-  return {
-    tag: label[0],
-    name: label.slice(2).replace('/any', ''),
-    probability
-  } as TagResult
-}
-
-function removeInvalidTagsForIntent(slot_definitions: SlotDefinition[], tag: TagResult): TagResult {
-  if (tag.tag === BIO.OUT) {
-    return tag
-  }
-
-  const foundInSlotDef = !!slot_definitions.find((s) => s.name === tag.name)
-
-  if (tag.probability < MIN_SLOT_CONFIDENCE || !foundInSlotDef) {
-    tag = {
-      tag: BIO.OUT,
-      name: '',
-      probability: 1 - tag.probability // anything would do here
-    }
-  }
-
-  return tag
-}
-
-export function makeExtractedSlots(
-  slot_entities: string[],
-  utterance: Utterance,
-  slotTagResults: TagResult[]
-): SlotExtractionResult[] {
-  return _.zipWith(
-    utterance.tokens.filter((t) => !t.isSpace),
-    slotTagResults,
-    (token, tagRes) => ({ token, tagRes })
-  )
-    .filter(({ tagRes }) => tagRes.tag !== BIO.OUT)
-    .reduce((combined, { token, tagRes }) => {
-      const last = _.last(combined)
-      const shouldConcatWithPrev = tagRes.tag === BIO.INSIDE && _.get(last, 'slot.name') === tagRes.name
-
-      if (shouldConcatWithPrev && last) {
-        const newEnd = token.offset + token.value.length
-        const newSource = utterance.toString({ strategy: 'keep-token' }).slice(last.start, newEnd) // we use slice in case tokens are space split
-        last.slot.source = newSource
-        last.slot.value = newSource
-        last.end = newEnd
-
-        return [...combined.slice(0, -1), last]
-      } else {
-        return [
-          ...combined,
-          {
-            slot: {
-              name: tagRes.name,
-              confidence: tagRes.probability,
-              source: token.toString(),
-              value: token.toString()
-            },
-            start: token.offset,
-            end: token.offset + token.value.length
-          }
-        ]
-      }
-    }, [] as SlotExtractionResult[])
-    .map((extracted: SlotExtractionResult) => {
-      const associatedEntityInRange = utterance.entities.find(
-        (e) =>
-          ((e.startPos <= extracted.start && e.endPos >= extracted.end) || // slot is fully contained by an entity
-            (e.startPos >= extracted.start && e.endPos <= extracted.end)) && // entity is fully within the tagged slot
-          _.includes(slot_entities, e.type) // entity is part of the possible entities
-      )
-      if (associatedEntityInRange) {
-        extracted.slot.entity = {
-          ..._.omit(associatedEntityInRange, 'startPos', 'endPos', 'startTokenIdx', 'endTokenIdx'),
-          start: associatedEntityInRange.startPos,
-          end: associatedEntityInRange.endPos
-        }
-        extracted.slot.value = associatedEntityInRange.value
-      }
-      return extracted
-    })
-}
-
 type TrainInput = {
   intent: Intent<Utterance>
   list_entites: ListEntityModel[]
 }
 
+type IntentSlotFeatures = {
+  name: string
+  vocab: string[]
+  slot_entities: string[]
+}
+
 export type Model = {
-  crfModel: Uint8Array | undefined
+  crfModel: Buffer | undefined
   intentFeatures: IntentSlotFeatures
   slot_definitions: SlotDefinition[]
 }
@@ -148,22 +45,6 @@ type Predictors = {
   intentFeatures: IntentSlotFeatures
   slot_definitions: SlotDefinition[]
 }
-
-const intentSlotFeaturesSchema = Joi.object()
-  .keys({
-    name: Joi.string().required(),
-    vocab: Joi.array().items(Joi.string().allow('')).required(),
-    slot_entities: Joi.array().items(Joi.string()).required()
-  })
-  .required()
-
-export const modelSchema = Joi.object()
-  .keys({
-    crfModel: Joi.binary().optional(),
-    intentFeatures: intentSlotFeaturesSchema,
-    slot_definitions: Joi.array().items(SlotDefinitionSchema).required()
-  })
-  .required()
 
 export default class SlotTagger {
   private static _name = 'CRF Slot Tagger'
@@ -176,12 +57,17 @@ export default class SlotTagger {
     this.mlToolkit = tools.mlToolkit
   }
 
-  public load = async (serialized: string) => {
-    try {
-      const raw = JSON.parse(serialized)
-      raw.crfModel = raw.crfModel && Buffer.from(raw.crfModel)
+  public serialize(): Buffer {
+    if (!this.model) {
+      throw new Error(`${SlotTagger._name} must be trained before calling serialize.`)
+    }
+    return Buffer.from(JSON.stringify(this.model), 'utf8')
+  }
 
-      const model: Model = await validate(raw, modelSchema)
+  public load = async (serialized: Buffer) => {
+    try {
+      const model: Model = JSON.parse(Buffer.from(serialized).toString('utf8'))
+      model.crfModel = model.crfModel && Buffer.from(model.crfModel)
 
       this.predictors = await this._makePredictors(model)
       this.model = model
@@ -201,18 +87,11 @@ export default class SlotTagger {
     }
   }
 
-  private async _makeCrfTagger(crfModel: Uint8Array) {
+  private async _makeCrfTagger(crfModel: Buffer) {
     const crfTagger = new this.mlToolkit.CRF.Tagger()
     await crfTagger.initialize()
     crfTagger.open(crfModel)
     return crfTagger
-  }
-
-  public serialize(): string {
-    if (!this.model) {
-      throw new Error(`${SlotTagger._name} must be trained before calling serialize.`)
-    }
-    return JSON.stringify(this.model)
   }
 
   public async train(trainSet: TrainInput, progress: (p: number) => void): Promise<void> {

@@ -64,9 +64,9 @@ export type TrainOutput = {
   tfidf: TFIDF
   vocab: string[]
   kmeans: SerializedKmeansResult | undefined
-  ctx_model: string
-  intent_model_by_ctx: _.Dictionary<string>
-  slots_model_by_intent: _.Dictionary<string>
+  ctx_model: Buffer
+  intent_model_by_ctx: _.Dictionary<Buffer>
+  slots_model_by_intent: _.Dictionary<Buffer>
 }
 
 type Tools = {
@@ -169,7 +169,7 @@ async function TrainIntentClassifiers(
   input: TrainStep,
   tools: Tools,
   progress: progressCB
-): Promise<_.Dictionary<string>> {
+): Promise<_.Dictionary<Buffer>> {
   const { list_entities, pattern_entities, intents, nluSeed, languageCode, contexts } = input
 
   const progressPerCtx: _.Dictionary<number> = {}
@@ -217,7 +217,7 @@ async function TrainIntentClassifiers(
     .value()
 }
 
-async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: progressCB): Promise<string> {
+async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: progressCB): Promise<Buffer> {
   const { languageCode, intents, contexts, list_entities, pattern_entities, nluSeed } = input
 
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
@@ -341,8 +341,8 @@ export async function TfidfTokens(input: TrainStep): Promise<TrainStep> {
   return copy
 }
 
-async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progressCB): Promise<_.Dictionary<string>> {
-  const slotModelByIntent: _.Dictionary<string> = {}
+async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progressCB): Promise<_.Dictionary<Buffer>> {
+  const slotModelByIntent: _.Dictionary<Buffer> = {}
 
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
 
@@ -381,8 +381,7 @@ const makeLogger = (trainId: string, logger: Logger) => {
     const ret = fn(...args)
 
     // awaiting if not responsibility of this logger decorator
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    ret.then(() => logger.debug(taskDone(trainId, fn.name))).catch((_err) => {})
+    void ret.then(() => logger.debug(taskDone(trainId, fn.name))).catch((_err) => {})
     return ret
   }
 }

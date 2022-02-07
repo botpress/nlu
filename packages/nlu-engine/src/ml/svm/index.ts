@@ -20,7 +20,7 @@ export class Trainer implements MLToolkit.SVM.Trainer {
     points: MLToolkit.SVM.DataPoint[],
     options?: MLToolkit.SVM.SVMOptions,
     callback?: MLToolkit.SVM.TrainProgressCallback | undefined
-  ): Promise<Uint8Array> {
+  ): Promise<Buffer> {
     const vectorsLengths = _(points)
       .map((p) => p.coordinates.length)
       .uniq()
@@ -88,7 +88,7 @@ export class Predictor implements MLToolkit.SVM.Predictor {
   private model: SvmModel
 
   // TODO: no need for both a ctor and a initialize function; it uses too much memory for no purpose
-  constructor(serialized: Uint8Array) {
+  constructor(serialized: Buffer) {
     const { labels_idx, ...model } = deserializeModel(serialized)
     this.labels = labels_idx
     this.model = model
