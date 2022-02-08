@@ -66,7 +66,7 @@ export default class SlotTagger {
 
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { intentFeatures, crfModel, slot_definitions } = model
-    const crfTagger = crfModel && (await this._makeCrfTagger(crfModel))
+    const crfTagger = crfModel && !!crfModel.length ? await this._makeCrfTagger(crfModel) : undefined
     return {
       crfTagger,
       intentFeatures,
