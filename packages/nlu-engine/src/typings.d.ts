@@ -94,7 +94,7 @@ export type Model = {
   id: ModelId
   startedAt: Date
   finishedAt: Date
-  data: string
+  data: Buffer
 }
 
 export type LangServerSpecs = {
