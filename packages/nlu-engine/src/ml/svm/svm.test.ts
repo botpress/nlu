@@ -1,5 +1,6 @@
 import { Logger } from 'src/typings'
-import { DataPoint, Predictor, Trainer } from '.'
+import { Predictor, Trainer } from './base'
+import { DataPoint } from './typings'
 
 const SEED = 42
 

@@ -2,8 +2,7 @@ import { Tagger as AddonTagger, makeTrainer, makeTagger } from '@botpress/node-c
 import fse from 'fs-extra'
 import { Logger } from 'src/typings'
 import tmp from 'tmp'
-import { ITagger } from '.'
-import { DataPoint, TrainerOptions } from './typings'
+import { DataPoint, TrainerOptions, ITagger } from './typings'
 
 export class Trainer {
   public static async train(
