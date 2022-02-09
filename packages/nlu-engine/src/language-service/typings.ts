@@ -1,4 +1,4 @@
-import { MLToolkit } from '../ml/typings'
+import * as MLToolkit from '../ml/toolkit'
 
 export type ModelSet = {
   bpeModel: AvailableModel | LoadedBPEModel

@@ -1,15 +1,15 @@
-import { MLToolkit } from '../typings'
+import { CRF, SVM } from '../toolkit'
 
 export type TaskInput =
   | {
       trainingType: 'svm'
-      points: MLToolkit.SVM.DataPoint[]
-      options: MLToolkit.SVM.SVMOptions
+      points: SVM.DataPoint[]
+      options: SVM.SVMOptions
     }
   | {
       trainingType: 'crf'
-      points: MLToolkit.CRF.DataPoint[]
-      options: MLToolkit.CRF.TrainerOptions
+      points: CRF.DataPoint[]
+      options: CRF.TrainerOptions
     }
 
 export type TaskOutput = Buffer
