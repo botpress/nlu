@@ -1,8 +1,8 @@
 import { nanoid } from 'nanoid'
 import { Logger } from 'src/typings'
 import mLThreadPool from '../ml-thread-pool'
-import { DataPoint, TrainerOptions } from '.'
 import { Trainer } from './base'
+import { DataPoint, TrainerOptions } from './typings'
 
 export class MultiThreadTrainer extends Trainer {
   public static async train(
