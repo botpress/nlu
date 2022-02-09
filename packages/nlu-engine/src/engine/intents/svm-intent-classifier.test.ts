@@ -51,9 +51,7 @@ const helloILoveYou = makeTestUtterance("hello, I love you won't you tell me you
 test('predict with no data points returns empty array', async () => {
   // arrange
   let intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
-  await intentClassifier.train(emptyDataset, dummyProgress)
-
-  const model = intentClassifier.serialize()
+  const model = await intentClassifier.train(emptyDataset, dummyProgress)
   intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.load(model)
 
@@ -67,9 +65,8 @@ test('predict with no data points returns empty array', async () => {
 test('predict with only one class returns the only class with confidence 1', async () => {
   // arrange
   let intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
-  await intentClassifier.train(makeTrainset([intentA]), dummyProgress)
+  const model = await intentClassifier.train(makeTrainset([intentA]), dummyProgress)
 
-  const model = intentClassifier.serialize()
   intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.load(model)
 
@@ -86,9 +83,8 @@ test('predict with only one class returns the only class with confidence 1', asy
 test('predict with multiple class returns svm prediction', async () => {
   // arrange
   let intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
-  await intentClassifier.train(makeTrainset([intentA, intentB, intentC]), dummyProgress)
+  const model = await intentClassifier.train(makeTrainset([intentA, intentB, intentC]), dummyProgress)
 
-  const model = intentClassifier.serialize()
   intentClassifier = new SvmIntentClassifier(fakeTools, fakeFeaturizer, dummyLogger as Logger)
   await intentClassifier.load(model)
 

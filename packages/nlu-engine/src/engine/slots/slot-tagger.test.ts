@@ -148,7 +148,7 @@ describe('makeExtractedSlots', () => {
 describe('Slot tagger component lifecycle', () => {
   test('Slot tagger with no slots should predict empty array', async () => {
     let slotTagger = new SlotTagger(fakeTools, dummyLogger as Logger)
-    await slotTagger.train(
+    const model = await slotTagger.train(
       {
         intent: {
           name: 'someIntent',
@@ -161,7 +161,6 @@ describe('Slot tagger component lifecycle', () => {
       dummyProgress
     )
 
-    const model = slotTagger.serialize()
     slotTagger = new SlotTagger(fakeTools, dummyLogger as Logger)
     await slotTagger.load(model)
 

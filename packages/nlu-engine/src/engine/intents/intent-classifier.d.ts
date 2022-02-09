@@ -1,4 +1,4 @@
-import { Intent, ListEntityModel, PatternEntity } from '../typings'
+import { Intent, ListEntityModel, PatternEntity, PipelineComponent } from '../typings'
 import Utterance from '../utterance/utterance'
 
 export type IntentTrainInput = {
@@ -17,17 +17,14 @@ export type IntentPrediction = {
 export type IntentPredictions = {
   intents: IntentPrediction[]
 }
+
+export type NoneableIntentTrainInput = {
+  allUtterances: Utterance[]
+} & IntentTrainInput
+
 export type NoneableIntentPredictions = {
   oos: number
 } & IntentPredictions
 
-export type IntentClassifier = {
-  train(trainInput: IntentTrainInput, progress: (p: number) => void): Promise<void>
-  serialize(): Buffer
-  load(model: Buffer): Promise<void>
-  predict(utterance: Utterance): Promise<IntentPredictions>
-}
-
-export type NoneableIntentClassifier = {
-  predict(utterance: Utterance): Promise<NoneableIntentPredictions>
-}
+export type IntentClassifier = PipelineComponent<IntentTrainInput, IntentPredictions>
+export type NoneableIntentClassifier = PipelineComponent<NoneableIntentTrainInput, NoneableIntentPredictions>

@@ -189,7 +189,7 @@ async function TrainIntentClassifiers(
     const trainableIntents = intents.filter((i) => i.contexts.includes(ctx))
 
     const intentClf = new OOSIntentClassifier(tools, tools.logger)
-    await intentClf.train(
+    const model = await intentClf.train(
       {
         languageCode,
         intents: trainableIntents,
@@ -205,7 +205,6 @@ async function TrainIntentClassifiers(
     )
 
     tools.logger.debug(taskDone(input.trainId, taskName))
-    const model = intentClf.serialize()
     return { ctx, model }
   })
 
@@ -237,7 +236,7 @@ async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: 
   })
 
   const rootIntentClassifier = new SvmIntentClassifier(tools, getCtxFeatures, tools.logger)
-  await rootIntentClassifier.train(
+  const model = await rootIntentClassifier.train(
     {
       intents: rootIntents,
       languageCode,
@@ -251,7 +250,7 @@ async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: 
   )
 
   progress(1)
-  return rootIntentClassifier.serialize()
+  return model
 }
 
 async function ProcessIntents(
@@ -351,7 +350,7 @@ async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progre
 
     const slotTagger = new SlotTagger(tools, tools.logger)
 
-    await slotTagger.train(
+    const model = await slotTagger.train(
       {
         intent,
         list_entites: input.list_entities
@@ -362,7 +361,7 @@ async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progre
       }
     )
 
-    slotModelByIntent[intent.name] = slotTagger.serialize()
+    slotModelByIntent[intent.name] = model
   }
 
   progress(1)

@@ -31,7 +31,6 @@ export class SvmIntentClassifier implements IntentClassifier {
   private static _displayName = 'SVM Intent Classifier'
   private static _name = 'svm-classifier'
 
-  private model: Model | undefined
   private predictors: Predictors | undefined
 
   constructor(private tools: Tools, private featurizer: Featurizer, private _logger: Logger) {}
@@ -40,7 +39,7 @@ export class SvmIntentClassifier implements IntentClassifier {
     return SvmIntentClassifier._name
   }
 
-  public async train(input: IntentTrainInput, progress: (p: number) => void): Promise<void> {
+  public async train(input: IntentTrainInput, progress: (p: number) => void): Promise<Buffer> {
     const { intents, nluSeed, list_entities, pattern_entities } = input
 
     const entitiesName = this._getEntitiesName(list_entities, pattern_entities)
@@ -58,13 +57,12 @@ export class SvmIntentClassifier implements IntentClassifier {
     const classCount = _.uniqBy(points, (p) => p.label).length
     if (points.length === 0 || classCount <= 1) {
       this._logger.debug('No SVM to train because there is less than two classes.')
-      this.model = {
+      progress(1)
+      return this._serialize({
         svmModel: undefined,
         intentNames: intents.map((i) => i.name),
         entitiesName
-      }
-      progress(1)
-      return
+      })
     }
 
     const svmModel = await this.tools.mlToolkit.SVM.Trainer.train(
@@ -74,18 +72,15 @@ export class SvmIntentClassifier implements IntentClassifier {
       progress
     )
 
-    this.model = {
+    return this._serialize({
       svmModel,
       intentNames: intents.map((i) => i.name),
       entitiesName
-    }
+    })
   }
 
-  public serialize(): Buffer {
-    if (!this.model) {
-      throw new Error(`${SvmIntentClassifier._displayName} must be trained before calling serialize.`)
-    }
-    const bin = PTBSvmIntentModel.encode(this.model)
+  private _serialize(model: Model): Buffer {
+    const bin = PTBSvmIntentModel.encode(model)
     return Buffer.from(bin)
   }
 
@@ -99,7 +94,6 @@ export class SvmIntentClassifier implements IntentClassifier {
       }
 
       this.predictors = await this._makePredictors(model)
-      this.model = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(SvmIntentClassifier._displayName, err)
@@ -119,11 +113,7 @@ export class SvmIntentClassifier implements IntentClassifier {
 
   public async predict(utterance: Utterance): Promise<IntentPredictions> {
     if (!this.predictors) {
-      if (!this.model) {
-        throw new Error(`${SvmIntentClassifier._displayName} must be trained before calling predict.`)
-      }
-
-      this.predictors = await this._makePredictors(this.model)
+      throw new Error(`${SvmIntentClassifier._displayName} must load model before calling predict.`)
     }
 
     const { svm, intentNames, entitiesName } = this.predictors

@@ -11,14 +11,10 @@ import { Intent, Tools } from '../typings'
 import Utterance, { buildUtteranceBatch } from '../utterance/utterance'
 
 import { ExactIntenClassifier } from './exact-intent-classifier'
-import { IntentTrainInput, NoneableIntentClassifier, NoneableIntentPredictions } from './intent-classifier'
+import { NoneableIntentClassifier, NoneableIntentPredictions, NoneableIntentTrainInput } from './intent-classifier'
 import { getIntentFeatures } from './intent-featurizer'
 import { featurizeInScopeUtterances, featurizeOOSUtterances, getUtteranceFeatures } from './out-of-scope-featurizer'
 import { SvmIntentClassifier } from './svm-intent-classifier'
-
-type TrainInput = {
-  allUtterances: Utterance[]
-} & IntentTrainInput
 
 const JUNK_VOCAB_SIZE = 500
 const JUNK_TOKEN_MIN = 1
@@ -63,8 +59,6 @@ const NONE_UTTERANCES_BOUNDS = {
 export class OOSIntentClassifier implements NoneableIntentClassifier {
   private static _displayName = 'OOS Intent Classifier'
   private static _name = 'classifier'
-
-  private model: Model | undefined
   private predictors: Predictors | undefined
 
   constructor(private tools: Tools, private _logger: Logger) {}
@@ -73,7 +67,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     return OOSIntentClassifier._name
   }
 
-  public async train(trainInput: TrainInput, progress: (p: number) => void): Promise<void> {
+  public async train(trainInput: NoneableIntentTrainInput, progress: (p: number) => void): Promise<Buffer> {
     const { languageCode, allUtterances } = trainInput
     const noneIntent = await this._makeNoneIntent(allUtterances, languageCode)
 
@@ -97,15 +91,14 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
 
     const exactIntenClassifier = new ExactIntenClassifier()
     const dummyProgress = () => {}
-    await exactIntenClassifier.train(trainInput, dummyProgress)
-    const exactMatchModel = exactIntenClassifier.serialize()
+    const exactMatchModel = await exactIntenClassifier.train(trainInput, dummyProgress)
 
-    this.model = {
+    return this._serialize({
       oosSvmModel: ooScopeModel,
       baseIntentClfModel: inScopeModel,
       trainingVocab: this.getVocab(trainInput.allUtterances),
       exactMatchModel
-    }
+    })
   }
 
   private _makeNoneIntent = async (allUtterances: Utterance[], languageCode: string): Promise<Intent<Utterance>> => {
@@ -184,7 +177,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   }
 
   private async _trainOOScopeSvm(
-    trainInput: TrainInput,
+    trainInput: NoneableIntentTrainInput,
     noneIntent: Omit<Intent<Utterance>, 'contexts'>,
     progress: (p: number) => void
   ): Promise<Buffer | undefined> {
@@ -223,7 +216,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   }
 
   private async _trainInScopeSvm(
-    trainInput: TrainInput,
+    trainInput: NoneableIntentTrainInput,
     noneIntent: Omit<Intent<Utterance>, 'contexts'>,
     progress: (p: number) => void
   ): Promise<Buffer> {
@@ -251,19 +244,15 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       }
     ]
 
-    await baseIntentClf.train({ ...trainInput, intents }, progress)
-    return baseIntentClf.serialize()
+    return baseIntentClf.train({ ...trainInput, intents }, progress)
   }
 
   private getVocab(utts: Utterance[]) {
     return _.flatMap(utts, (u) => u.tokens.map((t) => t.toString({ lowerCase: true })))
   }
 
-  public serialize(): Buffer {
-    if (!this.model) {
-      throw new Error(`${OOSIntentClassifier._displayName} must be trained before calling serialize.`)
-    }
-    const bin = PTBOOSIntentModel.encode(this.model)
+  private _serialize(model: Model): Buffer {
+    const bin = PTBOOSIntentModel.encode(model)
     return Buffer.from(bin)
   }
 
@@ -279,7 +268,6 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
         trainingVocab: trainingVocab ?? []
       }
       this.predictors = await this._makePredictors(model)
-      this.model = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(OOSIntentClassifier._displayName, err)
@@ -310,11 +298,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
 
   public async predict(utterance: Utterance): Promise<NoneableIntentPredictions> {
     if (!this.predictors) {
-      if (!this.model) {
-        throw new Error(`${OOSIntentClassifier._displayName} must be trained before calling predict.`)
-      }
-
-      this.predictors = await this._makePredictors(this.model)
+      throw new Error(`${OOSIntentClassifier._displayName} must load model before calling predict.`)
     }
 
     const { oosSvm, baseIntentClf, trainingVocab, exactIntenClassifier } = this.predictors
