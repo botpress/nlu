@@ -31,7 +31,7 @@
     "package": "yarn cmd package",
     "bench": "yarn workspace @botpress/nlu-bench start",
     "e2e": "yarn workspace @botpress/nlu-e2e start",
-    "test": "jest -c ./jest.config.js",
+    "test": "jest -c ./jest.config.js --runInBand --detectOpenHandles",
     "prettier": "cross-env prettier --check './packages/**/*.ts' '!**/*.d.ts'",
     "prettier:fix": "cross-env prettier --write './packages/**/*.ts' '!**/*.d.ts'",
     "eslint": "cross-env eslint packages/ --ext .ts",
