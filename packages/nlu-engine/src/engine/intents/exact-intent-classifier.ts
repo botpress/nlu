@@ -11,6 +11,8 @@ type Model = {
   exact_match_index: ExactMatchIndex
 }
 
+type Predictors = Model
+
 type ExactMatchIndex = _.Dictionary<{ intent: string }>
 
 const PTBExactIndexValue = new ptb.PTBMessage('ExactIndexValue', {
@@ -32,21 +34,22 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
   private static _displayName = 'Exact Intent Classifier'
   private static _name = 'exact-matcher'
 
-  private model: Model | undefined
+  private predictors: Predictors | undefined
 
   public get name() {
     return ExactIntenClassifier._name
   }
 
-  public async train(trainInput: IntentTrainInput, progress: (p: number) => void) {
+  public async train(trainInput: IntentTrainInput, progress: (p: number) => void): Promise<Buffer> {
     const { intents } = trainInput
     const exact_match_index = this._buildExactMatchIndex(intents)
 
-    this.model = {
+    progress(1)
+
+    return this._serialize({
       intents: intents.map((i) => i.name),
       exact_match_index
-    }
-    progress(1)
+    })
   }
 
   private _buildExactMatchIndex = (intents: Intent<Utterance>[]): ExactMatchIndex => {
@@ -66,11 +69,8 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
       .value()
   }
 
-  public serialize(): Buffer {
-    if (!this.model) {
-      throw new Error(`${ExactIntenClassifier._displayName} must be trained before calling serialize.`)
-    }
-    const bin = PTBExactIntentModel.encode(this.model)
+  private _serialize(model: Model): Buffer {
+    const bin = PTBExactIntentModel.encode(model)
     return Buffer.from(bin)
   }
 
@@ -81,7 +81,7 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
         intents: intents ?? [],
         exact_match_index
       }
-      this.model = model
+      this.predictors = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(ExactIntenClassifier._displayName, err)
@@ -89,11 +89,11 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
   }
 
   public async predict(utterance: Utterance): Promise<NoneableIntentPredictions> {
-    if (!this.model) {
-      throw new Error(`${ExactIntenClassifier._displayName} must be trained before calling predict.`)
+    if (!this.predictors) {
+      throw new Error(`${ExactIntenClassifier._displayName} must load model before calling predict.`)
     }
 
-    const { exact_match_index, intents: intentNames } = this.model
+    const { exact_match_index, intents: intentNames } = this.predictors
 
     const exactPred = this._findExactIntent(exact_match_index, utterance)
 

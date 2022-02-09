@@ -4,7 +4,7 @@ import { ModelLoadingError } from '../../errors'
 import * as MLToolkit from '../../ml/toolkit'
 import { getEntitiesAndVocabOfIntent } from '../intents/intent-vocab'
 
-import { Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } from '../typings'
+import { Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition, PipelineComponent } from '../typings'
 import Utterance, { UtteranceToken } from '../utterance/utterance'
 
 import * as featurizer from './slot-featurizer'
@@ -35,10 +35,9 @@ type Predictors = {
   slot_definitions: SlotDefinition[]
 }
 
-export default class SlotTagger {
+export default class SlotTagger implements PipelineComponent<TrainInput, SlotExtractionResult[]> {
   private static _name = 'CRF Slot Tagger'
 
-  private model: Model | undefined
   private predictors: Predictors | undefined
   private mlToolkit: typeof MLToolkit
 
@@ -46,18 +45,10 @@ export default class SlotTagger {
     this.mlToolkit = tools.mlToolkit
   }
 
-  public serialize(): Buffer {
-    if (!this.model) {
-      throw new Error(`${SlotTagger._name} must be trained before calling serialize.`)
-    }
-    return serializeModel(this.model)
-  }
-
   public load = async (serialized: Buffer) => {
     try {
       const model = deserializeModel(serialized)
       this.predictors = await this._makePredictors(model)
-      this.model = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(SlotTagger._name, err)
@@ -79,19 +70,18 @@ export default class SlotTagger {
     return crfTagger
   }
 
-  public async train(trainSet: TrainInput, progress: (p: number) => void): Promise<void> {
+  public async train(trainSet: TrainInput, progress: (p: number) => void): Promise<Buffer> {
     const { intent, list_entites } = trainSet
     const intentFeatures = getEntitiesAndVocabOfIntent(intent, list_entites)
     const { slot_definitions } = intent
 
     if (slot_definitions.length <= 0) {
-      this.model = {
+      progress(1)
+      return serializeModel({
         crfModel: undefined,
         intentFeatures,
         slot_definitions
-      }
-      progress(1)
-      return
+      })
     }
 
     const elements: MLToolkit.CRF.DataPoint[] = []
@@ -107,14 +97,13 @@ export default class SlotTagger {
 
     const dummyProgress = () => {}
     const crfModel = await this.mlToolkit.CRF.Trainer.train(elements, CRF_TRAINER_PARAMS, this.logger, dummyProgress)
+    progress(1)
 
-    this.model = {
+    return serializeModel({
       crfModel,
       intentFeatures,
       slot_definitions
-    }
-
-    progress(1)
+    })
   }
 
   private tokenSliceFeatures(
@@ -193,11 +182,7 @@ export default class SlotTagger {
 
   public async predict(utterance: Utterance): Promise<SlotExtractionResult[]> {
     if (!this.predictors) {
-      if (!this.model) {
-        throw new Error(`${SlotTagger._name} must be trained before calling predict.`)
-      }
-
-      this.predictors = await this._makePredictors(this.model)
+      throw new Error(`${SlotTagger._name} must load model before calling predict.`)
     }
 
     const { intentFeatures, crfTagger, slot_definitions } = this.predictors
