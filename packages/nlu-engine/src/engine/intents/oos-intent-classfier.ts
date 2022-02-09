@@ -1,7 +1,7 @@
 import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
 import { ModelLoadingError } from '../../errors'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 import { Logger } from '../../typings'
 import { isPOSAvailable } from '../language/pos-tagger'
 import { vocabNGram } from '../tools/strings'
@@ -40,7 +40,7 @@ const PTBOOSIntentModel = new ptb.PTBMessage('OOSIntentModel', {
 
 type Predictors = {
   baseIntentClf: SvmIntentClassifier
-  oosSvm: MLToolkit.SVM.Predictor | undefined
+  oosSvm: MLToolkit.SVM.IPredictor | undefined
   trainingVocab: string[]
   exactIntenClassifier: ExactIntenClassifier
 }
@@ -213,9 +213,12 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       .flatMap((i) => featurizeInScopeUtterances(i.utterances, i.name))
       .value()
 
-    const svm = new this.tools.mlToolkit.SVM.Trainer(this._logger)
-
-    const model = await svm.train([...in_scope_points, ...oos_points], trainingOptions, progress)
+    const model = await this.tools.mlToolkit.SVM.Trainer.train(
+      [...in_scope_points, ...oos_points],
+      trainingOptions,
+      this._logger,
+      progress
+    )
     return model
   }
 
@@ -295,8 +298,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const exactIntenClassifier = new ExactIntenClassifier()
     await exactIntenClassifier.load(exactMatchModel)
 
-    const oosSvm = oosSvmModel ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(oosSvmModel)) : undefined
-    await oosSvm?.initialize()
+    const oosSvm = oosSvmModel ? await this.tools.mlToolkit.SVM.Predictor.create(Buffer.from(oosSvmModel)) : undefined
 
     return {
       oosSvm,

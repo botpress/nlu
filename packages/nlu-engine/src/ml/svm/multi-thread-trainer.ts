@@ -1,16 +1,18 @@
 import { nanoid } from 'nanoid'
+import { Logger } from 'src/typings'
 import mLThreadPool from '../ml-thread-pool'
-import { MLToolkit } from '../typings'
-import { Trainer } from '.'
+import { DataPoint, SVMOptions } from '.'
+import { Trainer as BaseTrainer } from './base'
 
-export class MultiThreadTrainer extends Trainer {
-  public async train(
-    elements: MLToolkit.SVM.DataPoint[],
-    options: MLToolkit.SVM.SVMOptions,
+export class MultiThreadTrainer extends BaseTrainer {
+  public static async train(
+    elements: DataPoint[],
+    options: SVMOptions,
+    logger: Logger,
     progressCallback: (iteration: number) => void
   ) {
     const id = nanoid()
-    const output = await mLThreadPool(this.logger).startSvmTraining(id, elements, options, progressCallback)
+    const output = await mLThreadPool(logger).startSvmTraining(id, elements, options, progressCallback)
     return Buffer.from(output)
   }
 }
