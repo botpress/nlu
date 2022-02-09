@@ -37,7 +37,7 @@ const isOneHot = (x: number[]) => {
 describe('Exact match intent classifier', () => {
   test('when no match clf returns all confidence 0 and oos 1', async () => {
     let exactMatchIntentClf = new ExactIntenClassifier()
-    await exactMatchIntentClf.train(
+    const model = await exactMatchIntentClf.train(
       {
         intents,
         languageCode: 'en',
@@ -47,8 +47,6 @@ describe('Exact match intent classifier', () => {
       },
       dummyProgress
     )
-
-    const model = exactMatchIntentClf.serialize()
     exactMatchIntentClf = new ExactIntenClassifier()
     await exactMatchIntentClf.load(model)
 
@@ -60,7 +58,7 @@ describe('Exact match intent classifier', () => {
 
   test('when match clf returns one hot vector', async () => {
     let exactMatchIntentClf = new ExactIntenClassifier()
-    await exactMatchIntentClf.train(
+    const model = await exactMatchIntentClf.train(
       {
         intents,
         languageCode: 'en',
@@ -70,8 +68,6 @@ describe('Exact match intent classifier', () => {
       },
       dummyProgress
     )
-
-    const model = exactMatchIntentClf.serialize()
     exactMatchIntentClf = new ExactIntenClassifier()
     await exactMatchIntentClf.load(model)
 
@@ -93,7 +89,7 @@ describe('Exact match intent classifier', () => {
   // This test is dependant of utterance.toString() implementation. Ideally we would mock the utterance class.
   test('clf matches even when casing or special characters', async () => {
     let exactMatchIntentClf = new ExactIntenClassifier()
-    await exactMatchIntentClf.train(
+    const model = await exactMatchIntentClf.train(
       {
         intents,
         languageCode: 'en',
@@ -103,8 +99,6 @@ describe('Exact match intent classifier', () => {
       },
       dummyProgress
     )
-
-    const model = exactMatchIntentClf.serialize()
     exactMatchIntentClf = new ExactIntenClassifier()
     await exactMatchIntentClf.load(model)
 
