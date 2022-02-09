@@ -1,7 +1,7 @@
 import Bluebird from 'bluebird'
 import fs from 'fs'
 import path from 'path'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 
 import { isSpace, SPACE } from '../tools/token-utils'
 
@@ -90,43 +90,36 @@ function wordFeatures(seq: string[], idx: number): string[] {
     })
 }
 
-export const fallbackTagger: MLToolkit.CRF.Tagger = {
+export const fallbackTagger: MLToolkit.CRF.ITagger = {
   tag: (seq) => ({ probability: 1, result: new Array(seq.length).fill('N/A') }),
-  initialize: async () => {},
-  open: (f) => false,
   marginal: (seq) => new Array(seq.length).fill({ 'N/A': 1 })
 }
 
 // eventually this will be moved in language provider
 // POS tagging will reside language server once we support more than english
-const taggersByLang: { [lang: string]: MLToolkit.CRF.Tagger } = {}
+const taggersByLang: { [lang: string]: MLToolkit.CRF.ITagger } = {}
 
 export async function getPOSTagger(
   preTrainedDir: string,
   languageCode: string,
   toolkit: typeof MLToolkit
-): Promise<MLToolkit.CRF.Tagger> {
+): Promise<MLToolkit.CRF.ITagger> {
   if (!isPOSAvailable(languageCode)) {
     return fallbackTagger
   }
 
   if (!taggersByLang[languageCode]) {
-    const tagger = new toolkit.CRF.Tagger()
-    await tagger.initialize()
     const preTrainedPath = getPretrainedModelFilePath(preTrainedDir, languageCode)
     const model = await Bluebird.fromCallback<Buffer>((cb) => fs.readFile(preTrainedPath, cb))
 
-    const openSuccess = tagger.open(model)
-    if (!openSuccess) {
-      throw new Error(`Could not open POS tagger for language "${languageCode}".`)
-    }
+    const tagger = await toolkit.CRF.Tagger.create(model)
     taggersByLang[languageCode] = tagger
   }
 
   return taggersByLang[languageCode]
 }
 
-export function tagSentence(tagger: MLToolkit.CRF.Tagger, tokens: string[]): POSClass[] {
+export function tagSentence(tagger: MLToolkit.CRF.ITagger, tokens: string[]): POSClass[] {
   const [words, spaceIdx] = tokens.reduce(
     ([words, spaceIdx], token, idx) => {
       if (isSpace(token)) {

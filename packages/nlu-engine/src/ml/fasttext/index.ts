@@ -1,12 +1,15 @@
 import { makeClassifier, makeQuery, Options, Query } from '@botpress/node-fasttext'
 import Bluebird from 'bluebird'
 import { VError } from 'verror'
-import { MLToolkit } from '../typings'
+
+import { PredictResult, TrainArgs, TrainCommand } from './typings'
 
 const FAST_TEXT_VERBOSITY = parseInt(process.env.FAST_TEXT_VERBOSITY || '0')
 const FAST_TEXT_CLEANUP_MS = parseInt(process.env.FAST_TEXT_CLEANUP_MS || '60000') // 60s caching by default
 
-export const DefaultTrainArgs: Partial<MLToolkit.FastText.TrainArgs> = {
+export * from './typings'
+
+export const DefaultTrainArgs: Partial<TrainArgs> = {
   bucket: 25000,
   dim: 15,
   epoch: 5,
@@ -23,7 +26,7 @@ export const DefaultTrainArgs: Partial<MLToolkit.FastText.TrainArgs> = {
  * allows to delay the loading of the model only when actually needed for prediction or query.
  * It also cleans up the model after 'x' ms of inactivity to free up memory.
  */
-export class FastTextModel implements MLToolkit.FastText.Model {
+export class Model {
   private _modelPromise: Promise<any> | undefined
   private _queryPromise: Promise<any> | undefined
   private _modelTimeout: NodeJS.Timeout | undefined
@@ -49,11 +52,7 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     this._queryPromise = undefined
   }
 
-  public async trainToFile(
-    method: MLToolkit.FastText.TrainCommand,
-    modelPath: string,
-    args: Partial<MLToolkit.FastText.TrainArgs>
-  ): Promise<void> {
+  public async trainToFile(method: TrainCommand, modelPath: string, args: Partial<TrainArgs>): Promise<void> {
     const outPath = this._cleanPath(modelPath)
     const model = await makeClassifier()
     await model.train(method, {
@@ -83,7 +82,7 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     }
   }
 
-  public async predict(str: string, nbLabels: number): Promise<MLToolkit.FastText.PredictResult[]> {
+  public async predict(str: string, nbLabels: number): Promise<PredictResult[]> {
     if (this.queryOnly) {
       throw new Error("This model is marked as Query Only, which doesn't support Prediction")
     }

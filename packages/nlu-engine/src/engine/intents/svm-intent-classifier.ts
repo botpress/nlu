@@ -1,7 +1,7 @@
 import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
 import { ModelLoadingError } from '../../errors'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 import { Logger } from '../../typings'
 import { ListEntityModel, PatternEntity, Tools } from '../typings'
 import Utterance from '../utterance/utterance'
@@ -22,7 +22,7 @@ const PTBSvmIntentModel = new ptb.PTBMessage('SvmIntentModel', {
 })
 
 type Predictors = {
-  svm: MLToolkit.SVM.Predictor | undefined
+  svm: MLToolkit.SVM.IPredictor | undefined
   intentNames: string[]
   entitiesName: string[]
 }
@@ -67,10 +67,12 @@ export class SvmIntentClassifier implements IntentClassifier {
       return
     }
 
-    const svm = new this.tools.mlToolkit.SVM.Trainer(this._logger)
-
-    const seed = nluSeed
-    const svmModel = await svm.train(points, { kernel: 'LINEAR', classifier: 'C_SVC', seed }, progress)
+    const svmModel = await this.tools.mlToolkit.SVM.Trainer.train(
+      points,
+      { kernel: 'LINEAR', classifier: 'C_SVC', seed: nluSeed },
+      this._logger,
+      progress
+    )
 
     this.model = {
       svmModel,
@@ -107,8 +109,7 @@ export class SvmIntentClassifier implements IntentClassifier {
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { svmModel, intentNames, entitiesName } = model
 
-    const svm = svmModel?.length ? new this.tools.mlToolkit.SVM.Predictor(Buffer.from(svmModel)) : undefined
-    await svm?.initialize()
+    const svm = svmModel?.length ? await this.tools.mlToolkit.SVM.Predictor.create(Buffer.from(svmModel)) : undefined
     return {
       svm,
       intentNames,

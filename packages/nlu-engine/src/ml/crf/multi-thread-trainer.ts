@@ -1,16 +1,18 @@
 import { nanoid } from 'nanoid'
+import { Logger } from 'src/typings'
 import mLThreadPool from '../ml-thread-pool'
-import { MLToolkit } from '../typings'
-import { Trainer } from '.'
+import { DataPoint, TrainerOptions } from '.'
+import { Trainer } from './base'
 
 export class MultiThreadTrainer extends Trainer {
-  public async train(
-    elements: MLToolkit.CRF.DataPoint[],
-    options: MLToolkit.CRF.TrainerOptions,
+  public static async train(
+    elements: DataPoint[],
+    options: TrainerOptions,
+    logger: Logger,
     progressCallback: (iteration: number) => void
   ) {
     const id = nanoid()
-    const output = await mLThreadPool(this.logger).startCrfTraining(id, elements, options, progressCallback)
+    const output = await mLThreadPool(logger).startCrfTraining(id, elements, options, progressCallback)
     return Buffer.from(output)
   }
 }

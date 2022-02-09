@@ -1,6 +1,6 @@
 import { makeThreadEntryPoint, TaskDefinition } from '@botpress/worker'
-import { Trainer as CrfTrainer } from '../crf'
-import { Trainer as SvmTrainer } from '../svm'
+import { Trainer as CrfTrainer } from '../crf/base'
+import { Trainer as SvmTrainer } from '../svm/base'
 import { TaskInput, TaskOutput } from './typings'
 
 export const ENTRY_POINT = __filename
@@ -13,14 +13,11 @@ const main = async () => {
       const { input, progress } = taskDef
 
       if (input.trainingType === 'svm') {
-        const trainer = new SvmTrainer(taskDef.logger)
-        const result = await trainer.train(input.points, input.options, progress)
+        const result = await SvmTrainer.train(input.points, input.options, taskDef.logger, progress)
         return result
       }
 
-      const trainer = new CrfTrainer(taskDef.logger)
-      await trainer.initialize()
-      const result = await trainer.train(input.points, input.options, progress)
+      const result = await CrfTrainer.train(input.points, input.options, taskDef.logger, progress)
       return result
     })
     await threadEntryPoint.initialize()

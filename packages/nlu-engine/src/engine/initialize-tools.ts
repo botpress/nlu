@@ -2,7 +2,7 @@ import path from 'path'
 import { LangServerSpecs } from 'src/typings'
 import yn from 'yn'
 
-import MLToolkit from '../ml/toolkit'
+import * as MLToolkit from '../ml/toolkit'
 import { LanguageConfig, Logger } from '../typings'
 import { DucklingEntityExtractor } from './entities/duckling-extractor'
 import { DucklingClient } from './entities/duckling-extractor/duckling-client'
@@ -92,6 +92,7 @@ export async function initializeTools(config: LanguageConfig & { assetsPath: str
       const tagger = await getPOSTagger(posModelDirPath, lang, MLToolkit)
       return tokenUtterances.map((u) => tagSentence(tagger, u))
     },
+
     tokenize_utterances: (utterances: string[], lang: string, vocab?: string[]) =>
       languageProvider.tokenize(utterances, lang, vocab),
     vectorize_tokens: async (tokens, lang) => {

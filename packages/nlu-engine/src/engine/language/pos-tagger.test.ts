@@ -1,4 +1,4 @@
-import MLToolkit from '../../ml/toolkit'
+import * as MLToolkit from '../../ml/toolkit'
 import { tokenizeLatinTextForTests } from '../test-utils/fake-tools'
 
 import { isSpace } from '../tools/token-utils'

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { Logger } from 'src/typings'
 import { ModelLoadingError } from '../../errors'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 import { getEntitiesAndVocabOfIntent } from '../intents/intent-vocab'
 
 import { Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } from '../typings'
@@ -30,7 +30,7 @@ type TrainInput = {
 }
 
 type Predictors = {
-  crfTagger: MLToolkit.CRF.Tagger | undefined
+  crfTagger: MLToolkit.CRF.ITagger | undefined
   intentFeatures: IntentSlotFeatures
   slot_definitions: SlotDefinition[]
 }
@@ -75,9 +75,7 @@ export default class SlotTagger {
   }
 
   private async _makeCrfTagger(crfModel: Buffer) {
-    const crfTagger = new this.mlToolkit.CRF.Tagger()
-    await crfTagger.initialize()
-    crfTagger.open(crfModel)
+    const crfTagger = await this.mlToolkit.CRF.Tagger.create(crfModel)
     return crfTagger
   }
 
@@ -107,10 +105,8 @@ export default class SlotTagger {
       elements.push({ features, labels })
     }
 
-    const trainer = new this.mlToolkit.CRF.Trainer(this.logger)
-    await trainer.initialize()
     const dummyProgress = () => {}
-    const crfModel = await trainer.train(elements, CRF_TRAINER_PARAMS, dummyProgress)
+    const crfModel = await this.mlToolkit.CRF.Trainer.train(elements, CRF_TRAINER_PARAMS, this.logger, dummyProgress)
 
     this.model = {
       crfModel,
