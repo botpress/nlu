@@ -27,6 +27,7 @@
     "start": "cross-env node ./packages/nlu-cli/dist/index.js",
     "build": "tsc --build ./tsconfig.json",
     "clean": "yarn workspaces run clean && rimraf ./dist && rimraf ./node_modules",
+    "rebuild": "yarn clean && yarn && yarn build --force",
     "postbuild": "yarn workspace @botpress/nlu-server postbuild",
     "package": "yarn cmd package",
     "bench": "yarn workspace @botpress/nlu-bench start",
