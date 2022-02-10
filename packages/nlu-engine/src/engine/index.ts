@@ -3,7 +3,6 @@ import bytes from 'bytes'
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
 import ms from 'ms'
-import sizeof from 'object-sizeof'
 import { PredictOutput, TrainInput, Specifications } from 'src/typings'
 
 import v8 from 'v8'
@@ -21,7 +20,7 @@ import { deserializeModel, PredictableModel, serializeModel } from './model-seri
 import { Predict, Predictors } from './predict-pipeline'
 import SlotTagger from './slots/slot-tagger'
 import { isPatternValid } from './tools/patterns-utils'
-import { TrainInput as TrainingPipelineInput, TrainOutput as TrainingPipelineOutput } from './training-pipeline'
+import { TrainInput as TrainingPipelineInput } from './training-pipeline'
 import { TrainingProcessPool } from './training-process-pool'
 import { EntityCacheDump, ListEntity, PatternEntity, Tools } from './typings'
 
@@ -39,13 +38,18 @@ type EngineOptions = {
   cacheSize: string
 }
 
+type ModelCacheEntry = {
+  predictors: Predictors
+  size: number
+}
+
 export default class Engine implements IEngine {
   private _tools!: Tools
   private _trainingWorkerQueue!: TrainingProcessPool
 
   private _options: EngineOptions
 
-  private modelsById: LRUCache<string, Predictors>
+  private modelsById: LRUCache<string, ModelCacheEntry>
 
   private _trainLogger: Logger
   private _predictLogger: Logger
@@ -58,7 +62,7 @@ export default class Engine implements IEngine {
 
     this.modelsById = new LRUCache({
       max: this._parseCacheSize(this._options.cacheSize),
-      length: sizeof // ignores size of functions, but let's assume it's small
+      length: (m) => m.size
     })
 
     const debugMsg =
@@ -218,9 +222,10 @@ export default class Engine implements IEngine {
       return
     }
 
+    const modelSize = serialized.data.length
     const model = deserializeModel(serialized)
-    const modelCacheItem = await this._makePredictors(model.data)
-    const modelSize = sizeof(modelCacheItem)
+    const predictors = await this._makePredictors(model.data)
+
     const bytesModelSize = bytes(modelSize)
     this._logger.debug(`Size of model ${stringId} is ${bytesModelSize}`)
 
@@ -231,7 +236,7 @@ export default class Engine implements IEngine {
       throw new Error(`${msg} (${details}). ${solution}`)
     }
 
-    this.modelsById.set(stringId, modelCacheItem)
+    this.modelsById.set(stringId, { predictors, size: modelSize })
 
     this._logger.debug(`Model cache entries are: [${this.modelsById.keys().join(', ')}]`)
     const debug = this._getMemoryUsage()
@@ -333,7 +338,7 @@ export default class Engine implements IEngine {
         text
       },
       this._tools,
-      loaded
+      loaded.predictors
     )
   }
 
@@ -342,7 +347,8 @@ export default class Engine implements IEngine {
 
     const predictorsByLang = _.mapValues(modelsByLang, (id) => {
       const stringId = modelIdService.toString(id)
-      return this.modelsById.get(stringId)
+      const entry = this.modelsById.get(stringId)
+      return entry?.predictors
     })
 
     if (Object.values(predictorsByLang).some(_.isUndefined)) {
