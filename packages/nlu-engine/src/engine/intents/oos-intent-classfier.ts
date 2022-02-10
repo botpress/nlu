@@ -264,7 +264,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       const model: Model = {
         baseIntentClfModel: Buffer.from(baseIntentClfModel),
         exactMatchModel: Buffer.from(exactMatchModel),
-        oosSvmModel: oosSvmModel && Buffer.from(oosSvmModel),
+        oosSvmModel: oosSvmModel && oosSvmModel.length ? Buffer.from(oosSvmModel) : undefined,
         trainingVocab: trainingVocab ?? []
       }
       this.predictors = await this._makePredictors(model)
