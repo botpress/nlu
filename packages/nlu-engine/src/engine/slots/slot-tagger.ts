@@ -36,7 +36,7 @@ type Predictors = {
   slot_definitions: SlotDefinition[]
 }
 
-export default class SlotTagger implements PipelineComponent<TrainInput, Utterance, SlotExtractionResult[]> {
+export class SlotTagger implements PipelineComponent<TrainInput, Utterance, SlotExtractionResult[]> {
   private static _displayName = 'CRF Slot Tagger'
   private static _name = 'crf-slot-tagger'
 
