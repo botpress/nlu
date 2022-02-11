@@ -14,7 +14,7 @@ import { IntentPrediction, IntentPredictions, NoneableIntentPredictions } from '
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
 import { spellCheck as spellCheckUtterance } from './language/spell-check'
-import SlotTagger from './slots/slot-tagger'
+import { SlotTagger } from './slots/slot-tagger'
 import {
   EntityExtractionResult,
   ExtractedEntity,
