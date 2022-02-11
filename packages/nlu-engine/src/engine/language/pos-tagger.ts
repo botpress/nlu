@@ -1,6 +1,8 @@
 import Bluebird from 'bluebird'
 import fs from 'fs'
 import path from 'path'
+import { PredictorOf } from 'src/component'
+import { Logger } from 'src/typings'
 import * as MLToolkit from '../../ml/toolkit'
 
 import { isSpace, SPACE } from '../tools/token-utils'
@@ -90,20 +92,20 @@ function wordFeatures(seq: string[], idx: number): string[] {
     })
 }
 
-export const fallbackTagger: MLToolkit.CRF.ITagger = {
-  tag: (seq) => ({ probability: 1, result: new Array(seq.length).fill('N/A') }),
-  marginal: (seq) => new Array(seq.length).fill({ 'N/A': 1 })
+export const fallbackTagger: PredictorOf<MLToolkit.CRF.Tagger> = {
+  predict: async (seq: string[][]) => ({ probability: 1, result: new Array(seq.length).fill('N/A') })
 }
 
 // eventually this will be moved in language provider
 // POS tagging will reside language server once we support more than english
-const taggersByLang: { [lang: string]: MLToolkit.CRF.ITagger } = {}
+const taggersByLang: { [lang: string]: PredictorOf<MLToolkit.CRF.Tagger> } = {}
 
 export async function getPOSTagger(
   preTrainedDir: string,
   languageCode: string,
-  toolkit: typeof MLToolkit
-): Promise<MLToolkit.CRF.ITagger> {
+  toolkit: typeof MLToolkit,
+  logger: Logger
+): Promise<PredictorOf<MLToolkit.CRF.Tagger>> {
   if (!isPOSAvailable(languageCode)) {
     return fallbackTagger
   }
@@ -112,14 +114,15 @@ export async function getPOSTagger(
     const preTrainedPath = getPretrainedModelFilePath(preTrainedDir, languageCode)
     const model = await Bluebird.fromCallback<Buffer>((cb) => fs.readFile(preTrainedPath, cb))
 
-    const tagger = await toolkit.CRF.Tagger.create(model)
+    const tagger = new toolkit.CRF.Tagger(logger)
+    await tagger.load(model)
     taggersByLang[languageCode] = tagger
   }
 
   return taggersByLang[languageCode]
 }
 
-export function tagSentence(tagger: MLToolkit.CRF.ITagger, tokens: string[]): POSClass[] {
+export async function tagSentence(tagger: PredictorOf<MLToolkit.CRF.Tagger>, tokens: string[]): Promise<POSClass[]> {
   const [words, spaceIdx] = tokens.reduce(
     ([words, spaceIdx], token, idx) => {
       if (isSpace(token)) {
@@ -136,7 +139,7 @@ export function tagSentence(tagger: MLToolkit.CRF.ITagger, tokens: string[]): PO
     feats.push(wordFeatures(words, i))
   }
 
-  const tags = tagger.tag(feats).result
+  const { result: tags } = await tagger.predict(feats)
   for (const idx of spaceIdx) {
     tags.splice(idx, 0, SPACE)
   }

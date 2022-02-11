@@ -1,5 +1,5 @@
 import { makeThreadEntryPoint, TaskDefinition } from '@botpress/worker'
-import { Trainer as CrfTrainer } from '../crf/base'
+import { CRFTagger } from '../crf/base'
 import { SVMClassifier } from '../svm/base'
 import { TaskInput, TaskOutput } from './typings'
 
@@ -18,7 +18,8 @@ const main = async () => {
         return result
       }
 
-      const result = await CrfTrainer.train(input.points, input.options, taskDef.logger, progress)
+      const crf = new CRFTagger(taskDef.logger)
+      const result = await crf.train({ elements: input.points, options: input.options }, progress)
       return result
     })
     await threadEntryPoint.initialize()
