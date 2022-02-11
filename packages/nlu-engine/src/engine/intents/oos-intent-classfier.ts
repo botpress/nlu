@@ -280,9 +280,6 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
     await baseIntentClf.load(baseIntentClfModel)
 
-    const exactMatcher = new ExactIntenClassifier()
-    await exactMatcher.load(exactMatchModel)
-
     const exactIntenClassifier = new ExactIntenClassifier()
     await exactIntenClassifier.load(exactMatchModel)
 
