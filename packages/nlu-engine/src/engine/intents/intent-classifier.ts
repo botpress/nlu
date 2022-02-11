@@ -1,3 +1,4 @@
+import * as ptb from '@botpress/ptb-schema'
 import { PipelineComponent } from 'src/component'
 import { Intent, ListEntityModel, PatternEntity } from '../typings'
 import Utterance from '../utterance/utterance'
@@ -27,5 +28,11 @@ export type NoneableIntentPredictions = {
   oos: number
 } & IntentPredictions
 
-export type IntentClassifier = PipelineComponent<IntentTrainInput, Utterance, IntentPredictions>
-export type NoneableIntentClassifier = PipelineComponent<NoneableIntentTrainInput, Utterance, NoneableIntentPredictions>
+export type IntentClassifier = PipelineComponent<IntentTrainInput, Buffer, Utterance, IntentPredictions>
+
+export type NoneableIntentClassifier = PipelineComponent<
+  NoneableIntentTrainInput,
+  Buffer,
+  Utterance,
+  NoneableIntentPredictions
+>

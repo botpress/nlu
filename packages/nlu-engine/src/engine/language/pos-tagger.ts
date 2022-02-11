@@ -115,7 +115,7 @@ export async function getPOSTagger(
     const model = await Bluebird.fromCallback<Buffer>((cb) => fs.readFile(preTrainedPath, cb))
 
     const tagger = new toolkit.CRF.Tagger(logger)
-    await tagger.load(model)
+    await tagger.load({ content: model })
     taggersByLang[languageCode] = tagger
   }
 

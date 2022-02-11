@@ -1,10 +1,12 @@
+import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
 import { PipelineComponent } from 'src/component'
 import { Logger } from 'src/typings'
+import { flattenMatrix, unflattenMatrix } from './flat-matrix'
 
 import { SVM } from './libsvm'
-import { Data, KernelTypes, Parameters, SvmTypes } from './libsvm/typings'
-import { deserializeModel, serializeModel } from './serialization'
+import { Data, KernelTypes, Parameters, SvmModel, SvmTypes } from './libsvm/typings'
+import { PTBSVMClassifierModel, PTBSVMClassifierParams } from './serialization'
 import { SVMTrainInput, Prediction, TrainProgressCallback, SVMOptions } from './typings'
 
 type Predictors = {
@@ -15,7 +17,9 @@ type Predictors = {
 
 type Dic<T> = _.Dictionary<T>
 
-export class SVMClassifier implements PipelineComponent<SVMTrainInput, number[], Prediction[]> {
+type ComponentModel = ptb.Infer<typeof PTBSVMClassifierModel>
+
+export class SVMClassifier implements PipelineComponent<SVMTrainInput, ComponentModel, number[], Prediction[]> {
   private static _displayName = 'SVM Classifier'
   private static _name = 'svm-classifier'
 
@@ -25,9 +29,13 @@ export class SVMClassifier implements PipelineComponent<SVMTrainInput, number[],
     return SVMClassifier._name
   }
 
+  public static get modelType() {
+    return PTBSVMClassifierModel
+  }
+
   constructor(protected logger: Logger) {}
 
-  public async train(input: SVMTrainInput, callback: TrainProgressCallback | undefined): Promise<Buffer> {
+  public async train(input: SVMTrainInput, callback: TrainProgressCallback | undefined): Promise<ComponentModel> {
     const { points, options } = input
     const vectorsLengths = _(points)
       .map((p) => p.coordinates.length)
@@ -72,12 +80,24 @@ export class SVMClassifier implements PipelineComponent<SVMTrainInput, number[],
     svm.free()
 
     const { model } = trainResult
-    const ser = serializeModel({ ...model, labels_idx: labels })
+    const ser = this._serializeModel({ ...model, labels_idx: labels })
     return ser
   }
 
-  public load = async (serialized: Buffer) => {
-    const { labels_idx: labels, ...model } = deserializeModel(serialized)
+  private _serializeModel = (model: SvmModel & { labels_idx: string[] }): ptb.Infer<typeof PTBSVMClassifierModel> => {
+    const { SV, sv_coef, u, mu, sigma, ...others } = model
+    return {
+      ...others,
+      SV: flattenMatrix(SV),
+      sv_coef: flattenMatrix(sv_coef),
+      u: u && flattenMatrix(u),
+      mu,
+      sigma
+    }
+  }
+
+  public load = async (serialized: ComponentModel) => {
+    const { labels_idx: labels, ...model } = this._deserializeModel(serialized)
     const { param: parameters } = model
     const clf = new SVM({ kFold: 1 })
     await clf.initialize(model)
@@ -85,6 +105,33 @@ export class SVMClassifier implements PipelineComponent<SVMTrainInput, number[],
       clf,
       labels,
       parameters
+    }
+  }
+
+  private _deserializeModel = (model: ComponentModel): SvmModel & { labels_idx: string[] } => {
+    const { SV, sv_coef, u, param, rho, probA, probB, sv_indices, label, nSV, labels_idx, ...others } = model
+    return {
+      param: this._deserializeParams(param),
+      SV: unflattenMatrix(SV),
+      sv_coef: unflattenMatrix(sv_coef),
+      u: u && unflattenMatrix(u),
+      rho: rho ?? [],
+      probA: probA ?? [],
+      probB: probB ?? [],
+      sv_indices: sv_indices ?? [],
+      label: label ?? [],
+      nSV: nSV ?? [],
+      labels_idx: labels_idx ?? [],
+      ...others
+    }
+  }
+
+  private _deserializeParams = (params: ptb.Infer<typeof PTBSVMClassifierParams>): Parameters => {
+    const { weight_label, weight, ...others } = params
+    return {
+      weight_label: weight_label ?? [],
+      weight: weight ?? [],
+      ...others
     }
   }
 

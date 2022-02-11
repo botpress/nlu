@@ -1,5 +1,6 @@
+import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
-import { PipelineComponent } from 'src/component'
+import { ModelOf, PipelineComponent } from 'src/component'
 import { Logger } from 'src/typings'
 import { ModelLoadingError } from '../../errors'
 import * as MLToolkit from '../../ml/toolkit'
@@ -9,13 +10,13 @@ import { Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } 
 import Utterance, { UtteranceToken } from '../utterance/utterance'
 
 import * as featurizer from './slot-featurizer'
-import { deserializeModel, IntentSlotFeatures, Model, serializeModel } from './slot-tagger-model'
 import {
   labelizeUtterance,
   makeExtractedSlots,
   predictionLabelToTagResult,
   removeInvalidTagsForIntent
 } from './slot-tagger-utils'
+import { IntentSlotFeatures } from './typings'
 
 const CRF_TRAINER_PARAMS = {
   c1: '0.0001',
@@ -23,6 +24,29 @@ const CRF_TRAINER_PARAMS = {
   max_iterations: '500',
   'feature.possible_transitions': '1',
   'feature.possible_states': '1'
+}
+
+const PTBSlotDefinition = new ptb.PTBMessage('SlotDefinition', {
+  name: { type: 'string', id: 1 },
+  entities: { type: 'string', id: 2, rule: 'repeated' }
+})
+
+const PTBIntentSlotFeatures = new ptb.PTBMessage('IntentSlotFeatures', {
+  name: { type: 'string', id: 1 },
+  vocab: { type: 'string', id: 2, rule: 'repeated' },
+  slot_entities: { type: 'string', id: 3, rule: 'repeated' }
+})
+
+const PTBSlotTaggerModel = new ptb.PTBMessage('SlotTaggerModel', {
+  crfModel: { type: MLToolkit.CRF.Tagger.modelType, id: 1, rule: 'optional' },
+  intentFeatures: { type: PTBIntentSlotFeatures, id: 2 },
+  slot_definitions: { type: PTBSlotDefinition, id: 3, rule: 'repeated' }
+})
+
+type Model = {
+  crfModel: ModelOf<MLToolkit.CRF.Tagger> | undefined
+  intentFeatures: IntentSlotFeatures
+  slot_definitions: SlotDefinition[]
 }
 
 type TrainInput = {
@@ -36,7 +60,7 @@ type Predictors = {
   slot_definitions: SlotDefinition[]
 }
 
-export class SlotTagger implements PipelineComponent<TrainInput, Utterance, SlotExtractionResult[]> {
+export class SlotTagger implements PipelineComponent<TrainInput, Buffer, Utterance, SlotExtractionResult[]> {
   private static _displayName = 'CRF Slot Tagger'
   private static _name = 'crf-slot-tagger'
 
@@ -53,7 +77,7 @@ export class SlotTagger implements PipelineComponent<TrainInput, Utterance, Slot
 
   public load = async (serialized: Buffer) => {
     try {
-      const model = deserializeModel(serialized)
+      const model = this.deserializeModel(serialized)
       this.predictors = await this._makePredictors(model)
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
@@ -61,9 +85,30 @@ export class SlotTagger implements PipelineComponent<TrainInput, Utterance, Slot
     }
   }
 
+  private deserializeModel = (serialized: Buffer): Model => {
+    const { crfModel, intentFeatures, slot_definitions } = PTBSlotTaggerModel.decode(Buffer.from(serialized))
+    return {
+      crfModel,
+      intentFeatures: {
+        ...intentFeatures,
+        vocab: intentFeatures.vocab ?? [],
+        slot_entities: intentFeatures.slot_entities ?? []
+      },
+      slot_definitions: slot_definitions ? slot_definitions.map(this.deserializeSlotDef) : []
+    }
+  }
+
+  private deserializeSlotDef = (encoded: ptb.Infer<typeof PTBSlotDefinition>): SlotDefinition => {
+    const { entities, name } = encoded
+    return {
+      name,
+      entities: entities ?? []
+    }
+  }
+
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { intentFeatures, crfModel, slot_definitions } = model
-    const crfTagger = crfModel && !!crfModel.length ? await this._makeCrfTagger(crfModel) : undefined
+    const crfTagger = crfModel ? await this._makeCrfTagger(crfModel) : undefined
     return {
       crfTagger,
       intentFeatures,
@@ -71,7 +116,7 @@ export class SlotTagger implements PipelineComponent<TrainInput, Utterance, Slot
     }
   }
 
-  private async _makeCrfTagger(crfModel: Buffer) {
+  private async _makeCrfTagger(crfModel: ModelOf<MLToolkit.CRF.Tagger>) {
     const crfTagger = new this.mlToolkit.CRF.Tagger(this.logger)
     await crfTagger.load(crfModel)
     return crfTagger
@@ -84,11 +129,12 @@ export class SlotTagger implements PipelineComponent<TrainInput, Utterance, Slot
 
     if (slot_definitions.length <= 0) {
       progress(1)
-      return serializeModel({
+      const bin = PTBSlotTaggerModel.encode({
         crfModel: undefined,
         intentFeatures,
         slot_definitions
       })
+      return Buffer.from(bin)
     }
 
     const elements: MLToolkit.CRF.DataPoint[] = []
@@ -107,11 +153,12 @@ export class SlotTagger implements PipelineComponent<TrainInput, Utterance, Slot
     const crfModel = await crf.train({ elements, options: CRF_TRAINER_PARAMS }, dummyProgress)
     progress(1)
 
-    return serializeModel({
+    const bin = PTBSlotTaggerModel.encode({
       crfModel,
       intentFeatures,
       slot_definitions
     })
+    return Buffer.from(bin)
   }
 
   private tokenSliceFeatures(
