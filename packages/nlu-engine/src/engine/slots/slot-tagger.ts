@@ -61,7 +61,7 @@ type Predictors = {
 }
 
 export class SlotTagger
-  implements PipelineComponent<TrainInput, ptb.Infer<typeof PTBSlotTaggerModel>, Utterance, SlotExtractionResult[]> {
+  implements PipelineComponent<TrainInput, typeof PTBSlotTaggerModel, Utterance, SlotExtractionResult[]> {
   private static _displayName = 'CRF Slot Tagger'
   private static _name = 'crf-slot-tagger'
 
@@ -73,6 +73,10 @@ export class SlotTagger
   }
 
   public static get modelType() {
+    return PTBSlotTaggerModel
+  }
+
+  public get modelType() {
     return PTBSlotTaggerModel
   }
 

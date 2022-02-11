@@ -13,7 +13,8 @@ const PTBCRFTaggerModel = new ptb.PTBMessage('CRFTaggerModel', {
 
 type CRFTaggerModel = ptb.Infer<typeof PTBCRFTaggerModel>
 
-export class CRFTagger implements PipelineComponent<CRFTrainInput, CRFTaggerModel, string[][], TagPrediction> {
+export class CRFTagger
+  implements PipelineComponent<CRFTrainInput, typeof PTBCRFTaggerModel, string[][], TagPrediction> {
   private static _displayName = 'SVM Classifier'
   private static _name = 'svm-classifier'
 
@@ -24,6 +25,10 @@ export class CRFTagger implements PipelineComponent<CRFTrainInput, CRFTaggerMode
   }
 
   public static get modelType() {
+    return PTBCRFTaggerModel
+  }
+
+  public get modelType() {
     return PTBCRFTaggerModel
   }
 

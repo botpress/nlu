@@ -28,7 +28,7 @@ type Predictors = {
   entitiesName: string[]
 }
 
-export class SvmIntentClassifier implements IntentClassifier<ptb.Infer<typeof PTBSvmIntentModel>> {
+export class SvmIntentClassifier implements IntentClassifier<typeof PTBSvmIntentModel> {
   private static _displayName = 'SVM Intent Classifier'
   private static _name = 'svm-classifier'
 
@@ -41,6 +41,10 @@ export class SvmIntentClassifier implements IntentClassifier<ptb.Infer<typeof PT
   }
 
   public static get modelType() {
+    return PTBSvmIntentModel
+  }
+
+  public get modelType() {
     return PTBSvmIntentModel
   }
 
