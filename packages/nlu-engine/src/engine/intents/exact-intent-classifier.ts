@@ -30,7 +30,7 @@ const EXACT_MATCH_STR_OPTIONS: UtteranceToStringOptions = {
   strategy: 'replace-entity-name'
 }
 
-export class ExactIntenClassifier implements NoneableIntentClassifier {
+export class ExactIntenClassifier implements NoneableIntentClassifier<ptb.Infer<typeof PTBExactIntentModel>> {
   private static _displayName = 'Exact Intent Classifier'
   private static _name = 'exact-matcher'
 
@@ -40,16 +40,23 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
     return ExactIntenClassifier._name
   }
 
-  public async train(trainInput: IntentTrainInput, progress: (p: number) => void): Promise<Buffer> {
+  public static get modelType() {
+    return PTBExactIntentModel
+  }
+
+  public async train(
+    trainInput: IntentTrainInput,
+    progress: (p: number) => void
+  ): Promise<ptb.Infer<typeof PTBExactIntentModel>> {
     const { intents } = trainInput
     const exact_match_index = this._buildExactMatchIndex(intents)
 
     progress(1)
 
-    return this._serialize({
+    return {
       intents: intents.map((i) => i.name),
       exact_match_index
-    })
+    }
   }
 
   private _buildExactMatchIndex = (intents: Intent<Utterance>[]): ExactMatchIndex => {
@@ -69,14 +76,9 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
       .value()
   }
 
-  private _serialize(model: Model): Buffer {
-    const bin = PTBExactIntentModel.encode(model)
-    return Buffer.from(bin)
-  }
-
-  public async load(serialized: Buffer) {
+  public async load(serialized: ptb.Infer<typeof PTBExactIntentModel>) {
     try {
-      const { intents, exact_match_index } = PTBExactIntentModel.decode(Buffer.from(serialized))
+      const { intents, exact_match_index } = serialized
       const model: Model = {
         intents: intents ?? [],
         exact_match_index

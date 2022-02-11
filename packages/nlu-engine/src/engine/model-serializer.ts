@@ -1,6 +1,10 @@
 import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
+import { ModelOf } from 'src/component'
 import { Model, SlotDefinition } from '../typings'
+import { OOSIntentClassifier } from './intents/oos-intent-classfier'
+import { SvmIntentClassifier } from './intents/svm-intent-classifier'
+import { SlotTagger } from './slots/slot-tagger'
 import { ListEntityModel, Intent, PatternEntity, SerializedKmeansResult, TFIDF } from './typings'
 
 export type PredictableModelData = {
@@ -12,9 +16,9 @@ export type PredictableModelData = {
   tfidf: TFIDF
   vocab: string[]
   kmeans: SerializedKmeansResult | undefined
-  ctx_model: Buffer
-  intent_model_by_ctx: _.Dictionary<Buffer>
-  slots_model_by_intent: _.Dictionary<Buffer>
+  ctx_model: ModelOf<SvmIntentClassifier>
+  intent_model_by_ctx: _.Dictionary<ModelOf<OOSIntentClassifier>>
+  slots_model_by_intent: _.Dictionary<ModelOf<SlotTagger>>
 }
 
 export type PredictableModel = Omit<Model, 'data'> & {
@@ -81,9 +85,9 @@ const PTBPredictableModelData = new ptb.PTBMessage('PredictableModelData', {
   tfidf: { keyType: 'string', type: 'double', id: model_data_idx++ },
   vocab: { type: 'string', id: model_data_idx++, rule: 'repeated' },
   kmeans: { type: PTBKmeansResult, id: model_data_idx++, rule: 'optional' },
-  ctx_model: { type: 'bytes', id: model_data_idx++ },
-  intent_model_by_ctx: { keyType: 'string', type: 'bytes', id: model_data_idx++ },
-  slots_model_by_intent: { keyType: 'string', type: 'bytes', id: model_data_idx++ }
+  ctx_model: { type: SvmIntentClassifier.modelType, id: model_data_idx++ },
+  intent_model_by_ctx: { keyType: 'string', type: OOSIntentClassifier.modelType, id: model_data_idx++ },
+  slots_model_by_intent: { keyType: 'string', type: SlotTagger.modelType, id: model_data_idx++ }
 })
 
 const encodeListEntity = (list_entity: ListEntityModel): ptb.Infer<typeof PTBListEntityModel> => {
@@ -194,9 +198,9 @@ export const deserializeModel = (serialized: Model): PredictableModel => {
       tfidf,
       vocab: vocab ?? [],
       kmeans: kmeans && decodeKmeans(kmeans),
-      ctx_model: Buffer.from(ctx_model),
-      intent_model_by_ctx: _.mapValues(intent_model_by_ctx, Buffer.from),
-      slots_model_by_intent: _.mapValues(slots_model_by_intent, Buffer.from)
+      ctx_model,
+      intent_model_by_ctx,
+      slots_model_by_intent
     }
   }
   return model

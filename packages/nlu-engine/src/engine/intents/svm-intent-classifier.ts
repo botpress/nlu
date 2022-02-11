@@ -28,7 +28,7 @@ type Predictors = {
   entitiesName: string[]
 }
 
-export class SvmIntentClassifier implements IntentClassifier {
+export class SvmIntentClassifier implements IntentClassifier<ptb.Infer<typeof PTBSvmIntentModel>> {
   private static _displayName = 'SVM Intent Classifier'
   private static _name = 'svm-classifier'
 
@@ -40,7 +40,14 @@ export class SvmIntentClassifier implements IntentClassifier {
     return SvmIntentClassifier._name
   }
 
-  public async train(input: IntentTrainInput, progress: (p: number) => void): Promise<Buffer> {
+  public static get modelType() {
+    return PTBSvmIntentModel
+  }
+
+  public async train(
+    input: IntentTrainInput,
+    progress: (p: number) => void
+  ): Promise<ptb.Infer<typeof PTBSvmIntentModel>> {
     const { intents, nluSeed, list_entities, pattern_entities } = input
 
     const entitiesName = this._getEntitiesName(list_entities, pattern_entities)
@@ -59,11 +66,11 @@ export class SvmIntentClassifier implements IntentClassifier {
     if (points.length === 0 || classCount <= 1) {
       this._logger.debug('No SVM to train because there is less than two classes.')
       progress(1)
-      return this._serialize({
+      return {
         svmModel: undefined,
         intentNames: intents.map((i) => i.name),
         entitiesName
-      })
+      }
     }
 
     const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
@@ -71,21 +78,16 @@ export class SvmIntentClassifier implements IntentClassifier {
     const options: MLToolkit.SVM.SVMOptions = { kernel: 'LINEAR', classifier: 'C_SVC', seed: nluSeed }
     const svmModel = await svm.train({ points, options }, progress)
 
-    return this._serialize({
+    return {
       svmModel,
       intentNames: intents.map((i) => i.name),
       entitiesName
-    })
+    }
   }
 
-  private _serialize(model: Model): Buffer {
-    const bin = PTBSvmIntentModel.encode(model)
-    return Buffer.from(bin)
-  }
-
-  public async load(serialized: Buffer): Promise<void> {
+  public async load(serialized: ptb.Infer<typeof PTBSvmIntentModel>): Promise<void> {
     try {
-      const { entitiesName, intentNames, svmModel } = PTBSvmIntentModel.decode(Buffer.from(serialized))
+      const { entitiesName, intentNames, svmModel } = serialized
       const model: Model = {
         svmModel,
         entitiesName: entitiesName ?? [],

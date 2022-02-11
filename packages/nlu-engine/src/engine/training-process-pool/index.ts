@@ -30,18 +30,8 @@ export class TrainingProcessPool {
 
   public async startTraining(input: TrainInput, progress: (x: number) => void): Promise<TrainOutput> {
     try {
-      const { ctx_model, intent_model_by_ctx, slots_model_by_intent, ...others } = await this._processPool.run(
-        input.trainId,
-        input,
-        progress
-      )
-
-      return {
-        ctx_model: Buffer.from(ctx_model),
-        intent_model_by_ctx: _.mapValues(intent_model_by_ctx, Buffer.from),
-        slots_model_by_intent: _.mapValues(slots_model_by_intent, Buffer.from),
-        ...others
-      }
+      const ouput = await this._processPool.run(input.trainId, input, progress)
+      return ouput
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       if (errors.isTaskCanceled(err)) {
