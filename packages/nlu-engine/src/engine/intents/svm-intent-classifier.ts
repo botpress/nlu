@@ -1,5 +1,6 @@
 import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
+import { ModelOf } from 'src/component'
 import { ModelLoadingError } from '../../errors'
 import * as MLToolkit from '../../ml/toolkit'
 import { Logger } from '../../typings'
@@ -10,13 +11,13 @@ import { IntentClassifier, IntentPredictions, IntentTrainInput } from './intent-
 
 type Featurizer = (u: Utterance, entities: string[]) => number[]
 type Model = {
-  svmModel: Buffer | undefined
+  svmModel: ModelOf<MLToolkit.SVM.Classifier> | undefined
   intentNames: string[]
   entitiesName: string[]
 }
 
 const PTBSvmIntentModel = new ptb.PTBMessage('SvmIntentModel', {
-  svmModel: { type: 'bytes', id: 1, rule: 'optional' },
+  svmModel: { type: MLToolkit.SVM.Classifier.modelType, id: 1, rule: 'optional' },
   intentNames: { type: 'string', id: 2, rule: 'repeated' },
   entitiesName: { type: 'string', id: 3, rule: 'repeated' }
 })
@@ -86,7 +87,7 @@ export class SvmIntentClassifier implements IntentClassifier {
     try {
       const { entitiesName, intentNames, svmModel } = PTBSvmIntentModel.decode(Buffer.from(serialized))
       const model: Model = {
-        svmModel: svmModel && Buffer.from(svmModel),
+        svmModel,
         entitiesName: entitiesName ?? [],
         intentNames: intentNames ?? []
       }
@@ -100,7 +101,7 @@ export class SvmIntentClassifier implements IntentClassifier {
 
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { svmModel, intentNames, entitiesName } = model
-    const svm = svmModel?.length ? await this._makeSvmClf(svmModel) : undefined
+    const svm = svmModel ? await this._makeSvmClf(svmModel) : undefined
     return {
       svm,
       intentNames,
@@ -108,9 +109,9 @@ export class SvmIntentClassifier implements IntentClassifier {
     }
   }
 
-  private async _makeSvmClf(svmModel: Buffer): Promise<MLToolkit.SVM.Classifier> {
+  private async _makeSvmClf(svmModel: ModelOf<MLToolkit.SVM.Classifier>): Promise<MLToolkit.SVM.Classifier> {
     const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
-    await svm.load(Buffer.from(svmModel))
+    await svm.load(svmModel)
     return svm
   }
 

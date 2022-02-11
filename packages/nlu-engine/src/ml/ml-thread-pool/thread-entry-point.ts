@@ -15,12 +15,14 @@ const main = async () => {
       if (input.trainingType === 'svm') {
         const svm = new SVMClassifier(taskDef.logger)
         const result = await svm.train(input, progress)
-        return result
+        const bin = SVMClassifier.modelType.encode(result)
+        return Buffer.from(bin)
       }
 
       const crf = new CRFTagger(taskDef.logger)
       const result = await crf.train({ elements: input.points, options: input.options }, progress)
-      return result
+      const bin = CRFTagger.modelType.encode(result)
+      return Buffer.from(bin)
     })
     await threadEntryPoint.initialize()
   } catch (thrown) {

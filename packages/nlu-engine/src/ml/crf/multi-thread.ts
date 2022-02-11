@@ -8,6 +8,7 @@ export class MultiThreadCRFTagger extends CRFTagger {
     const { elements, options } = input
     const id = nanoid()
     const output = await mLThreadPool(this.logger).startCrfTraining(id, elements, options, progressCallback)
-    return Buffer.from(output)
+    const bin = Buffer.from(output)
+    return CRFTagger.modelType.decode(bin)
   }
 }

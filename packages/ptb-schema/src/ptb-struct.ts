@@ -3,6 +3,7 @@ import { InferFromStructSchema } from './inference'
 import { BasicStructSchema, Field, StructSchema, BasicField, BasicMapField } from './typings'
 
 type Props = {
+  namespace: ptb.Namespace
   type: ptb.Type
   childTypes: ptb.Type[]
 }
@@ -16,6 +17,7 @@ export const isFlatSchema = (s: StructSchema): s is BasicStructSchema => {
 }
 
 export class PTBMessage<S extends StructSchema> {
+  private _namespace: ptb.Namespace
   private _childTypes: ptb.Type[] = []
   private _innerType: ptb.Type
 
@@ -30,7 +32,9 @@ export class PTBMessage<S extends StructSchema> {
   private static _fromFlatSchema = (name: string, schema: BasicStructSchema): Props => {
     const type = ptb.Type.fromJSON(name, { fields: schema })
     const childTypes: ptb.Type[] = []
-    return { type, childTypes }
+    const namespace = ptb.Namespace.fromJSON(`${name}_namespace`, {})
+    namespace.add(type)
+    return { type, childTypes, namespace }
   }
 
   private static _fromNestedSchema = (name: string, schema: StructSchema): Props => {
@@ -39,11 +43,13 @@ export class PTBMessage<S extends StructSchema> {
 
     for (const fieldName in schema) {
       const fieldValue: Field = schema[fieldName]
-      const fieldType = fieldValue.type
+      const fieldType = fieldValue.type instanceof PTBMessage ? fieldValue.type.clone() : fieldValue.type
 
       let currentField: ptb.IField
       if (fieldType instanceof PTBMessage) {
-        const newChildTypes = [fieldType._innerType, ...fieldType._childTypes].filter((ct) => !childTypes.includes(ct))
+        const newChildTypes = [fieldType._innerType, ...fieldType._childTypes].filter(
+          (ct) => !childTypes.map(({ name }) => name).includes(ct.name)
+        )
         childTypes.push(...newChildTypes)
         currentField = { ...fieldValue, type: fieldType.name }
       } else {
@@ -61,17 +67,23 @@ export class PTBMessage<S extends StructSchema> {
     }
 
     return {
+      namespace,
       type,
       childTypes
     }
   }
 
   constructor(private _name: string, private _schema: S) {
-    const { type, childTypes } = isFlatSchema(_schema)
+    const { type, childTypes, namespace } = isFlatSchema(_schema)
       ? PTBMessage._fromFlatSchema(_name, _schema)
       : PTBMessage._fromNestedSchema(_name, _schema)
     this._innerType = type
     this._childTypes = childTypes
+    this._namespace = namespace
+  }
+
+  public clone() {
+    return new PTBMessage(this._name, this._schema)
   }
 
   public encode(x: InferFromStructSchema<S>): Uint8Array {
