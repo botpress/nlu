@@ -4,7 +4,6 @@ import { LangServerSpecs } from 'src/typings'
 import * as MLToolkit from '../ml/toolkit'
 
 import { Predictors } from './predict-pipeline'
-import Utterance from './utterance/utterance'
 
 export const BIO = {
   INSIDE: 'I',
@@ -145,16 +144,3 @@ export type SlotDefinition = Readonly<{
 }>
 
 export type SerializedKmeansResult = Omit<MLToolkit.KMeans.KmeansResult, 'nearest'>
-
-/**
- * ##################
- * ### Components ###
- * ##################
- */
-
-export type PipelineComponent<TrainInput, PredictOutput> = {
-  // readonly displayName: string
-  // readonly name: string
-  train: (input: TrainInput, progress: (p: number) => void) => Promise<Buffer>
-  predict: (u: Utterance) => Promise<PredictOutput>
-}
