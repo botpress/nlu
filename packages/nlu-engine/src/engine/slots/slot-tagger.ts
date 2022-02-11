@@ -60,7 +60,8 @@ type Predictors = {
   slot_definitions: SlotDefinition[]
 }
 
-export class SlotTagger implements PipelineComponent<TrainInput, Buffer, Utterance, SlotExtractionResult[]> {
+export class SlotTagger
+  implements PipelineComponent<TrainInput, ptb.Infer<typeof PTBSlotTaggerModel>, Utterance, SlotExtractionResult[]> {
   private static _displayName = 'CRF Slot Tagger'
   private static _name = 'crf-slot-tagger'
 
@@ -71,11 +72,15 @@ export class SlotTagger implements PipelineComponent<TrainInput, Buffer, Utteran
     return SlotTagger._name
   }
 
+  public static get modelType() {
+    return PTBSlotTaggerModel
+  }
+
   constructor(tools: Tools, private logger: Logger) {
     this.mlToolkit = tools.mlToolkit
   }
 
-  public load = async (serialized: Buffer) => {
+  public load = async (serialized: ptb.Infer<typeof PTBSlotTaggerModel>) => {
     try {
       const model = this.deserializeModel(serialized)
       this.predictors = await this._makePredictors(model)
@@ -85,8 +90,8 @@ export class SlotTagger implements PipelineComponent<TrainInput, Buffer, Utteran
     }
   }
 
-  private deserializeModel = (serialized: Buffer): Model => {
-    const { crfModel, intentFeatures, slot_definitions } = PTBSlotTaggerModel.decode(Buffer.from(serialized))
+  private deserializeModel = (serialized: ptb.Infer<typeof PTBSlotTaggerModel>): Model => {
+    const { crfModel, intentFeatures, slot_definitions } = serialized
     return {
       crfModel,
       intentFeatures: {
@@ -122,19 +127,21 @@ export class SlotTagger implements PipelineComponent<TrainInput, Buffer, Utteran
     return crfTagger
   }
 
-  public async train(trainSet: TrainInput, progress: (p: number) => void): Promise<Buffer> {
+  public async train(
+    trainSet: TrainInput,
+    progress: (p: number) => void
+  ): Promise<ptb.Infer<typeof PTBSlotTaggerModel>> {
     const { intent, list_entites } = trainSet
     const intentFeatures = getEntitiesAndVocabOfIntent(intent, list_entites)
     const { slot_definitions } = intent
 
     if (slot_definitions.length <= 0) {
       progress(1)
-      const bin = PTBSlotTaggerModel.encode({
+      return {
         crfModel: undefined,
         intentFeatures,
         slot_definitions
-      })
-      return Buffer.from(bin)
+      }
     }
 
     const elements: MLToolkit.CRF.DataPoint[] = []
@@ -153,12 +160,11 @@ export class SlotTagger implements PipelineComponent<TrainInput, Buffer, Utteran
     const crfModel = await crf.train({ elements, options: CRF_TRAINER_PARAMS }, dummyProgress)
     progress(1)
 
-    const bin = PTBSlotTaggerModel.encode({
+    return {
       crfModel,
       intentFeatures,
       slot_definitions
-    })
-    return Buffer.from(bin)
+    }
   }
 
   private tokenSliceFeatures(

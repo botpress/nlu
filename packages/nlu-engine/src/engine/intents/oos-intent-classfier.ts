@@ -23,16 +23,16 @@ const JUNK_TOKEN_MAX = 20
 
 type Model = {
   trainingVocab: string[]
-  baseIntentClfModel: Buffer
+  baseIntentClfModel: ModelOf<SvmIntentClassifier>
   oosSvmModel: ModelOf<MLToolkit.SVM.Classifier> | undefined
-  exactMatchModel: Buffer
+  exactMatchModel: ModelOf<ExactIntenClassifier>
 }
 
 const PTBOOSIntentModel = new ptb.PTBMessage('OOSIntentModel', {
   trainingVocab: { type: 'string', id: 1, rule: 'repeated' },
-  baseIntentClfModel: { type: 'bytes', id: 2 },
+  baseIntentClfModel: { type: SvmIntentClassifier.modelType, id: 2 },
   oosSvmModel: { type: MLToolkit.SVM.Classifier.modelType, id: 3, rule: 'optional' },
-  exactMatchModel: { type: 'bytes', id: 4 }
+  exactMatchModel: { type: ExactIntenClassifier.modelType, id: 4 }
 })
 
 type Predictors = {
@@ -57,7 +57,7 @@ const NONE_UTTERANCES_BOUNDS = {
  *
  * @returns A confidence level for all possible labels including none
  */
-export class OOSIntentClassifier implements NoneableIntentClassifier {
+export class OOSIntentClassifier implements NoneableIntentClassifier<ptb.Infer<typeof PTBOOSIntentModel>> {
   private static _displayName = 'OOS Intent Classifier'
   private static _name = 'classifier'
   private predictors: Predictors | undefined
@@ -68,7 +68,14 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     return OOSIntentClassifier._name
   }
 
-  public async train(trainInput: NoneableIntentTrainInput, progress: (p: number) => void): Promise<Buffer> {
+  public static get modelType() {
+    return PTBOOSIntentModel
+  }
+
+  public async train(
+    trainInput: NoneableIntentTrainInput,
+    progress: (p: number) => void
+  ): Promise<ptb.Infer<typeof PTBOOSIntentModel>> {
     const { languageCode, allUtterances } = trainInput
     const noneIntent = await this._makeNoneIntent(allUtterances, languageCode)
 
@@ -94,12 +101,12 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const dummyProgress = () => {}
     const exactMatchModel = await exactIntenClassifier.train(trainInput, dummyProgress)
 
-    return this._serialize({
+    return {
       oosSvmModel: ooScopeModel,
       baseIntentClfModel: inScopeModel,
       trainingVocab: this.getVocab(trainInput.allUtterances),
       exactMatchModel
-    })
+    }
   }
 
   private _makeNoneIntent = async (allUtterances: Utterance[], languageCode: string): Promise<Intent<Utterance>> => {
@@ -218,7 +225,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     trainInput: NoneableIntentTrainInput,
     noneIntent: Omit<Intent<Utterance>, 'contexts'>,
     progress: (p: number) => void
-  ): Promise<Buffer> {
+  ) {
     const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
     const noneUtts = noneIntent.utterances.filter((u) => u.tokens.filter((t) => t.isWord).length >= 3)
 
@@ -250,19 +257,12 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     return _.flatMap(utts, (u) => u.tokens.map((t) => t.toString({ lowerCase: true })))
   }
 
-  private _serialize(model: Model): Buffer {
-    const bin = PTBOOSIntentModel.encode(model)
-    return Buffer.from(bin)
-  }
-
-  public async load(serialized: Buffer): Promise<void> {
+  public async load(serialized: ptb.Infer<typeof PTBOOSIntentModel>): Promise<void> {
     try {
-      const { baseIntentClfModel, exactMatchModel, oosSvmModel, trainingVocab } = PTBOOSIntentModel.decode(
-        Buffer.from(serialized)
-      )
+      const { baseIntentClfModel, exactMatchModel, oosSvmModel, trainingVocab } = serialized
       const model: Model = {
-        baseIntentClfModel: Buffer.from(baseIntentClfModel),
-        exactMatchModel: Buffer.from(exactMatchModel),
+        baseIntentClfModel,
+        exactMatchModel,
         oosSvmModel,
         trainingVocab: trainingVocab ?? []
       }

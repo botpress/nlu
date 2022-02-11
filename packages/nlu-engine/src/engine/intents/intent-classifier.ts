@@ -28,11 +28,11 @@ export type NoneableIntentPredictions = {
   oos: number
 } & IntentPredictions
 
-export type IntentClassifier = PipelineComponent<IntentTrainInput, Buffer, Utterance, IntentPredictions>
+export type IntentClassifier<Model> = PipelineComponent<IntentTrainInput, Model, Utterance, IntentPredictions>
 
-export type NoneableIntentClassifier = PipelineComponent<
+export type NoneableIntentClassifier<Model> = PipelineComponent<
   NoneableIntentTrainInput,
-  Buffer,
+  Model,
   Utterance,
   NoneableIntentPredictions
 >

@@ -1,5 +1,6 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { ModelOf } from 'src/component'
 import * as MLToolkit from '../ml/toolkit'
 import { Logger } from '../typings'
 
@@ -64,9 +65,9 @@ export type TrainOutput = {
   tfidf: TFIDF
   vocab: string[]
   kmeans: SerializedKmeansResult | undefined
-  ctx_model: Buffer
-  intent_model_by_ctx: _.Dictionary<Buffer>
-  slots_model_by_intent: _.Dictionary<Buffer>
+  ctx_model: ModelOf<SvmIntentClassifier>
+  intent_model_by_ctx: _.Dictionary<ModelOf<OOSIntentClassifier>>
+  slots_model_by_intent: _.Dictionary<ModelOf<SlotTagger>>
 }
 
 type Tools = {
@@ -169,7 +170,7 @@ async function TrainIntentClassifiers(
   input: TrainStep,
   tools: Tools,
   progress: progressCB
-): Promise<_.Dictionary<Buffer>> {
+): Promise<_.Dictionary<ModelOf<OOSIntentClassifier>>> {
   const { list_entities, pattern_entities, intents, nluSeed, languageCode, contexts } = input
 
   const progressPerCtx: _.Dictionary<number> = {}
@@ -216,7 +217,11 @@ async function TrainIntentClassifiers(
     .value()
 }
 
-async function TrainContextClassifier(input: TrainStep, tools: Tools, progress: progressCB): Promise<Buffer> {
+async function TrainContextClassifier(
+  input: TrainStep,
+  tools: Tools,
+  progress: progressCB
+): Promise<ModelOf<SvmIntentClassifier>> {
   const { languageCode, intents, contexts, list_entities, pattern_entities, nluSeed } = input
 
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
@@ -340,8 +345,8 @@ export async function TfidfTokens(input: TrainStep): Promise<TrainStep> {
   return copy
 }
 
-async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progressCB): Promise<_.Dictionary<Buffer>> {
-  const slotModelByIntent: _.Dictionary<Buffer> = {}
+async function TrainSlotTaggers(input: TrainStep, tools: Tools, progress: progressCB) {
+  const slotModelByIntent: _.Dictionary<ModelOf<SlotTagger>> = {}
 
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
 
