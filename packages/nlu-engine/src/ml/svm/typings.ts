@@ -24,6 +24,7 @@ export type TrainProgressCallback = {
   (progress: number): void
 }
 
-export type IPredictor = {
-  predict(coordinates: number[]): Promise<Prediction[]>
+export type SvmTrainInput = {
+  points: DataPoint[]
+  options: SVMOptions
 }

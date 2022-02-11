@@ -1,5 +1,6 @@
 import { Logger } from 'src/typings'
-import { Predictor, Trainer } from './base'
+import { SVMOptions } from '.'
+import { SVMClassifier } from './base'
 import { DataPoint } from './typings'
 
 const SEED = 42
@@ -16,19 +17,17 @@ describe('SVM', () => {
       { coordinates: [1, 1], label: 'B' }
     ]
 
-    const mod = await Trainer.train(
-      line,
-      { classifier: 'C_SVC', kernel: 'LINEAR', c: 1, seed: SEED },
-      dummyLogger as Logger,
-      dummyCallback
-    )
+    const svm = new SVMClassifier(dummyLogger as Logger)
 
-    const predictor = await Predictor.create(mod)
+    const options: SVMOptions = { classifier: 'C_SVC', kernel: 'LINEAR', c: 1, seed: SEED }
+    const mod = await svm.train({ points: line, options }, dummyCallback)
 
-    const r1 = await predictor.predict([0, 0])
-    const r2 = await predictor.predict([1, 1])
-    const r3 = await predictor.predict([0, 1])
-    const r4 = await predictor.predict([1, 0])
+    await svm.load(mod)
+
+    const r1 = await svm.predict([0, 0])
+    const r2 = await svm.predict([1, 1])
+    const r3 = await svm.predict([0, 1])
+    const r4 = await svm.predict([1, 0])
 
     expect(r1[0].label).toBe('A')
     expect(r2[0].label).toBe('B')
@@ -46,12 +45,9 @@ describe('SVM', () => {
 
     let errorThrown = false
     try {
-      await Trainer.train(
-        line,
-        { classifier: 'C_SVC', kernel: 'LINEAR', c: [1], seed: SEED },
-        dummyLogger as Logger,
-        dummyCallback
-      )
+      const svm = new SVMClassifier(dummyLogger as Logger)
+      const options: SVMOptions = { classifier: 'C_SVC', kernel: 'LINEAR', c: [1], seed: SEED }
+      await svm.train({ points: line, options }, dummyCallback)
     } catch (err) {
       errorThrown = true
     }

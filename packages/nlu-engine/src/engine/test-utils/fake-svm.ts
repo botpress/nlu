@@ -1,45 +1,36 @@
 import _ from 'lodash'
 import * as MLToolkit from '../../ml/toolkit'
-import { Logger } from '../../typings'
 
-export class FakeSvmTrainer {
-  public static async train(
-    points: MLToolkit.SVM.DataPoint[],
-    options: MLToolkit.SVM.SVMOptions | undefined,
-    logger: Logger,
+export class FakeSvm extends MLToolkit.SVM.Classifier {
+  private model: string | undefined
+
+  public async train(
+    input: MLToolkit.SVM.SvmTrainInput,
     callback: MLToolkit.SVM.TrainProgressCallback | undefined
   ): Promise<Buffer> {
+    const { points } = input
     if (!points.length) {
       throw new Error('fake SVM needs datapoints')
     }
     callback?.(1)
-    return Buffer.from(
-      _(points)
-        .map((p) => p.label)
-        .uniq()
-        .value()
-        .join(',')
-    )
+
+    const strModel: string = _(points)
+      .map((p) => p.label)
+      .uniq()
+      .value()
+      .join(',')
+    return Buffer.from(strModel, 'utf8')
   }
-}
 
-export class FakeSvmPredictor implements MLToolkit.SVM.IPredictor {
-  constructor(private model: Buffer) {}
-
-  public static async create(model: Buffer) {
-    return new FakeSvmPredictor(model)
+  public load = async (model: Buffer) => {
+    this.model = model.toString('utf8')
   }
 
   public async predict(coordinates: number[]): Promise<MLToolkit.SVM.Prediction[]> {
-    const labels = this.model.toString().split(',')
+    if (!this.model) {
+      throw new Error('Fake SVm must load model before calling predict.')
+    }
+    const labels = this.model.split(',')
     return labels.map((label) => ({ label, confidence: 1 / labels.length }))
-  }
-
-  public isLoaded(): boolean {
-    return true
-  }
-
-  public getLabels(): string[] {
-    return this.model.toString().split(',')
   }
 }

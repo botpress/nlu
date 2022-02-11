@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import { Logger } from 'src/typings'
-import { ModelLoadingError } from '../../errors'
 import { makeFakeTools } from '../test-utils/fake-tools'
 import { makeTestUtterance } from '../test-utils/fake-utterance'
 import { Intent } from '../typings'
@@ -13,7 +12,7 @@ const languages = ['en']
 const fakeTools = makeFakeTools(languageDimension, languages)
 const fakeFeaturizer = (utt: Utterance) => [..._.range(languageDimension)]
 const dummyProgress = (p: number) => {}
-const dummyLogger: Partial<Logger> = { debug: () => {} }
+const dummyLogger: Partial<Logger> = { debug: () => {}, warning: () => {} }
 
 const emptyDataset = {
   languageCode: 'en',

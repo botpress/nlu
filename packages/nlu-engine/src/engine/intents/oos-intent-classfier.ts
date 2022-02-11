@@ -36,7 +36,7 @@ const PTBOOSIntentModel = new ptb.PTBMessage('OOSIntentModel', {
 
 type Predictors = {
   baseIntentClf: SvmIntentClassifier
-  oosSvm: MLToolkit.SVM.IPredictor | undefined
+  oosSvm: MLToolkit.SVM.Classifier | undefined
   trainingVocab: string[]
   exactIntenClassifier: ExactIntenClassifier
 }
@@ -206,12 +206,10 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       .flatMap((i) => featurizeInScopeUtterances(i.utterances, i.name))
       .value()
 
-    const model = await this.tools.mlToolkit.SVM.Trainer.train(
-      [...in_scope_points, ...oos_points],
-      trainingOptions,
-      this._logger,
-      progress
-    )
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
+
+    const points = [...in_scope_points, ...oos_points]
+    const model = await svm.train({ points, options: trainingOptions }, progress)
     return model
   }
 
@@ -283,7 +281,8 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const exactIntenClassifier = new ExactIntenClassifier()
     await exactIntenClassifier.load(exactMatchModel)
 
-    const oosSvm = oosSvmModel ? await this.tools.mlToolkit.SVM.Predictor.create(Buffer.from(oosSvmModel)) : undefined
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
+    const oosSvm = oosSvmModel ? await this._makeSvmClf(oosSvmModel) : undefined
 
     return {
       oosSvm,
@@ -291,6 +290,12 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       trainingVocab,
       exactIntenClassifier
     }
+  }
+
+  private async _makeSvmClf(svmModel: Buffer): Promise<MLToolkit.SVM.Classifier> {
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
+    await svm.load(Buffer.from(svmModel))
+    return svm
   }
 
   public async predict(utterance: Utterance): Promise<NoneableIntentPredictions> {

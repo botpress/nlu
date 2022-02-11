@@ -22,7 +22,7 @@ const PTBSvmIntentModel = new ptb.PTBMessage('SvmIntentModel', {
 })
 
 type Predictors = {
-  svm: MLToolkit.SVM.IPredictor | undefined
+  svm: MLToolkit.SVM.Classifier | undefined
   intentNames: string[]
   entitiesName: string[]
 }
@@ -65,12 +65,10 @@ export class SvmIntentClassifier implements IntentClassifier {
       })
     }
 
-    const svmModel = await this.tools.mlToolkit.SVM.Trainer.train(
-      points,
-      { kernel: 'LINEAR', classifier: 'C_SVC', seed: nluSeed },
-      this._logger,
-      progress
-    )
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
+
+    const options: MLToolkit.SVM.SVMOptions = { kernel: 'LINEAR', classifier: 'C_SVC', seed: nluSeed }
+    const svmModel = await svm.train({ points, options }, progress)
 
     return this._serialize({
       svmModel,
@@ -102,13 +100,18 @@ export class SvmIntentClassifier implements IntentClassifier {
 
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { svmModel, intentNames, entitiesName } = model
-
-    const svm = svmModel?.length ? await this.tools.mlToolkit.SVM.Predictor.create(Buffer.from(svmModel)) : undefined
+    const svm = svmModel?.length ? await this._makeSvmClf(svmModel) : undefined
     return {
       svm,
       intentNames,
       entitiesName
     }
+  }
+
+  private async _makeSvmClf(svmModel: Buffer): Promise<MLToolkit.SVM.Classifier> {
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
+    await svm.load(Buffer.from(svmModel))
+    return svm
   }
 
   public async predict(utterance: Utterance): Promise<IntentPredictions> {
