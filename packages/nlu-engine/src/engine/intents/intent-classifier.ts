@@ -28,9 +28,14 @@ export type NoneableIntentPredictions = {
   oos: number
 } & IntentPredictions
 
-export type IntentClassifier<Model> = PipelineComponent<IntentTrainInput, Model, Utterance, IntentPredictions>
+export type IntentClassifier<Model extends ptb.PTBMessage<any>> = PipelineComponent<
+  IntentTrainInput,
+  Model,
+  Utterance,
+  IntentPredictions
+>
 
-export type NoneableIntentClassifier<Model> = PipelineComponent<
+export type NoneableIntentClassifier<Model extends ptb.PTBMessage<any>> = PipelineComponent<
   NoneableIntentTrainInput,
   Model,
   Utterance,

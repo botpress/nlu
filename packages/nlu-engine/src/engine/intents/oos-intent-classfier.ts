@@ -57,7 +57,7 @@ const NONE_UTTERANCES_BOUNDS = {
  *
  * @returns A confidence level for all possible labels including none
  */
-export class OOSIntentClassifier implements NoneableIntentClassifier<ptb.Infer<typeof PTBOOSIntentModel>> {
+export class OOSIntentClassifier implements NoneableIntentClassifier<typeof PTBOOSIntentModel> {
   private static _displayName = 'OOS Intent Classifier'
   private static _name = 'classifier'
   private predictors: Predictors | undefined
@@ -69,6 +69,10 @@ export class OOSIntentClassifier implements NoneableIntentClassifier<ptb.Infer<t
   }
 
   public static get modelType() {
+    return PTBOOSIntentModel
+  }
+
+  public get modelType() {
     return PTBOOSIntentModel
   }
 

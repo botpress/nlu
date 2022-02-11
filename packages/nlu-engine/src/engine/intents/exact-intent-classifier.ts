@@ -30,7 +30,7 @@ const EXACT_MATCH_STR_OPTIONS: UtteranceToStringOptions = {
   strategy: 'replace-entity-name'
 }
 
-export class ExactIntenClassifier implements NoneableIntentClassifier<ptb.Infer<typeof PTBExactIntentModel>> {
+export class ExactIntenClassifier implements NoneableIntentClassifier<typeof PTBExactIntentModel> {
   private static _displayName = 'Exact Intent Classifier'
   private static _name = 'exact-matcher'
 
@@ -41,6 +41,10 @@ export class ExactIntenClassifier implements NoneableIntentClassifier<ptb.Infer<
   }
 
   public static get modelType() {
+    return PTBExactIntentModel
+  }
+
+  public get modelType() {
     return PTBExactIntentModel
   }
 
