@@ -11,7 +11,6 @@ import { normalizeDataset, normalizeInput } from './normalize'
 import reduce from './reduce-dataset'
 import { Data, Report, SvmConfig, SvmModel } from './typings'
 
-class TrainingCanceledError extends Error {}
 class NoTrainedModelError extends Error {
   constructor() {
     super('Cannot predict because there is no trained model.')
@@ -61,7 +60,7 @@ export class SVM {
     dataset: Data[],
     seed: number,
     progressCb: (progress: number) => void
-  ): Promise<TrainOutput | undefined> => {
+  ): Promise<TrainOutput> => {
     const dims = numeric.dim(dataset)
     assert(dims[0] > 0 && dims[1] === 2 && dims[2] > 0, 'dataset must be an list of [X,y] tuples')
 
@@ -89,20 +88,9 @@ export class SVM {
       dataset = red.dataset
     }
 
-    let gridSearchResult: GridSearchResult
-    try {
-      gridSearchResult = await gridSearch(this._logger)(dataset, this._config, seed, (progress) => {
-        if (this._isCanceled) {
-          throw new TrainingCanceledError('Training was canceled')
-        }
-        progressCb(progress.done / (progress.total + 1))
-      })
-    } catch (err) {
-      if (err instanceof TrainingCanceledError) {
-        return
-      }
-      throw err
-    }
+    const gridSearchResult = await gridSearch(this._logger)(dataset, this._config, seed, (progress) =>
+      progressCb(progress.done / (progress.total + 1))
+    )
 
     const { params, report } = gridSearchResult
     const svm = new BaseSVM()
