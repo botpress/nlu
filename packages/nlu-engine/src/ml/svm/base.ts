@@ -5,7 +5,7 @@ import { Logger } from 'src/typings'
 import { SVM } from './libsvm'
 import { Data, KernelTypes, Parameters, SvmTypes } from './libsvm/typings'
 import { deserializeModel, serializeModel } from './serialization'
-import { SvmTrainInput, Prediction, TrainProgressCallback, SVMOptions } from './typings'
+import { SVMTrainInput, Prediction, TrainProgressCallback, SVMOptions } from './typings'
 
 type Predictors = {
   clf: SVM
@@ -15,8 +15,8 @@ type Predictors = {
 
 type Dic<T> = _.Dictionary<T>
 
-export class SVMClassifier implements PipelineComponent<SvmTrainInput, number[], Prediction[]> {
-  private static _displayName = 'SVM Intent Classifier'
+export class SVMClassifier implements PipelineComponent<SVMTrainInput, number[], Prediction[]> {
+  private static _displayName = 'SVM Classifier'
   private static _name = 'svm-classifier'
 
   private _predictors: Predictors | undefined
@@ -27,7 +27,7 @@ export class SVMClassifier implements PipelineComponent<SvmTrainInput, number[],
 
   constructor(protected logger: Logger) {}
 
-  public async train(input: SvmTrainInput, callback: TrainProgressCallback | undefined): Promise<Buffer> {
+  public async train(input: SVMTrainInput, callback: TrainProgressCallback | undefined): Promise<Buffer> {
     const { points, options } = input
     const vectorsLengths = _(points)
       .map((p) => p.coordinates.length)

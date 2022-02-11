@@ -1,5 +1,3 @@
-import { Logger } from 'src/typings'
-
 export type SVMOptions = {
   classifier: 'C_SVC' | 'NU_SVC' | 'ONE_CLASS' | 'EPSILON_SVR' | 'NU_SVR'
   kernel: 'LINEAR' | 'POLY' | 'RBF' | 'SIGMOID'
@@ -24,7 +22,7 @@ export type TrainProgressCallback = {
   (progress: number): void
 }
 
-export type SvmTrainInput = {
+export type SVMTrainInput = {
   points: DataPoint[]
   options: SVMOptions
 }

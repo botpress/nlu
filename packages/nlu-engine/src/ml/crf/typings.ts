@@ -11,7 +11,10 @@ export type DataPoint = {
   labels: string[]
 }
 
-export type ITagger = {
-  tag(xseq: string[][]): { probability: number; result: string[] }
-  marginal(xseq: string[][]): { [label: string]: number }[]
+export type CRFTrainInput = {
+  elements: DataPoint[]
+  options: TrainerOptions
 }
+
+export type TagPrediction = { probability: number; result: string[] }
+export type MarginalPrediction = { [label: string]: number }
