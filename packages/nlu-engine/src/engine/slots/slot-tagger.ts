@@ -1,10 +1,11 @@
 import _ from 'lodash'
+import { PipelineComponent } from 'src/component'
 import { Logger } from 'src/typings'
 import { ModelLoadingError } from '../../errors'
 import * as MLToolkit from '../../ml/toolkit'
 import { getEntitiesAndVocabOfIntent } from '../intents/intent-vocab'
 
-import { Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition, PipelineComponent } from '../typings'
+import { Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } from '../typings'
 import Utterance, { UtteranceToken } from '../utterance/utterance'
 
 import * as featurizer from './slot-featurizer'
@@ -35,11 +36,16 @@ type Predictors = {
   slot_definitions: SlotDefinition[]
 }
 
-export default class SlotTagger implements PipelineComponent<TrainInput, SlotExtractionResult[]> {
-  private static _name = 'CRF Slot Tagger'
+export default class SlotTagger implements PipelineComponent<TrainInput, Utterance, SlotExtractionResult[]> {
+  private static _displayName = 'CRF Slot Tagger'
+  private static _name = 'crf-slot-tagger'
 
   private predictors: Predictors | undefined
   private mlToolkit: typeof MLToolkit
+
+  public get name() {
+    return SlotTagger._name
+  }
 
   constructor(tools: Tools, private logger: Logger) {
     this.mlToolkit = tools.mlToolkit
@@ -51,7 +57,7 @@ export default class SlotTagger implements PipelineComponent<TrainInput, SlotExt
       this.predictors = await this._makePredictors(model)
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      throw new ModelLoadingError(SlotTagger._name, err)
+      throw new ModelLoadingError(SlotTagger._displayName, err)
     }
   }
 
@@ -182,7 +188,7 @@ export default class SlotTagger implements PipelineComponent<TrainInput, SlotExt
 
   public async predict(utterance: Utterance): Promise<SlotExtractionResult[]> {
     if (!this.predictors) {
-      throw new Error(`${SlotTagger._name} must load model before calling predict.`)
+      throw new Error(`${SlotTagger._displayName} must load model before calling predict.`)
     }
 
     const { intentFeatures, crfTagger, slot_definitions } = this.predictors

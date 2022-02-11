@@ -1,4 +1,5 @@
-import { Intent, ListEntityModel, PatternEntity, PipelineComponent } from '../typings'
+import { PipelineComponent } from 'src/component'
+import { Intent, ListEntityModel, PatternEntity } from '../typings'
 import Utterance from '../utterance/utterance'
 
 export type IntentTrainInput = {
@@ -26,5 +27,5 @@ export type NoneableIntentPredictions = {
   oos: number
 } & IntentPredictions
 
-export type IntentClassifier = PipelineComponent<IntentTrainInput, IntentPredictions>
-export type NoneableIntentClassifier = PipelineComponent<NoneableIntentTrainInput, NoneableIntentPredictions>
+export type IntentClassifier = PipelineComponent<IntentTrainInput, Utterance, IntentPredictions>
+export type NoneableIntentClassifier = PipelineComponent<NoneableIntentTrainInput, Utterance, NoneableIntentPredictions>
