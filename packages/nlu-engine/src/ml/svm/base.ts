@@ -19,7 +19,8 @@ type Dic<T> = _.Dictionary<T>
 
 type ComponentModel = ptb.Infer<typeof PTBSVMClassifierModel>
 
-export class SVMClassifier implements PipelineComponent<SVMTrainInput, ComponentModel, number[], Prediction[]> {
+export class SVMClassifier
+  implements PipelineComponent<SVMTrainInput, typeof PTBSVMClassifierModel, number[], Prediction[]> {
   private static _displayName = 'SVM Classifier'
   private static _name = 'svm-classifier'
 
@@ -30,6 +31,10 @@ export class SVMClassifier implements PipelineComponent<SVMTrainInput, Component
   }
 
   public static get modelType() {
+    return PTBSVMClassifierModel
+  }
+
+  public get modelType() {
     return PTBSVMClassifierModel
   }
 
