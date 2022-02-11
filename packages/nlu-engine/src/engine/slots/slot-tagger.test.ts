@@ -7,7 +7,7 @@ import { makeTestUtterance } from '../test-utils/fake-utterance'
 import { BIO, ExtractedEntity, ExtractedSlot } from '../typings'
 import Utterance from '../utterance/utterance'
 
-import SlotTagger from './slot-tagger'
+import { SlotTagger } from './slot-tagger'
 import { labelizeUtterance, makeExtractedSlots, TagResult } from './slot-tagger-utils'
 
 const fakeTools = makeFakeTools(300, ['en'])
