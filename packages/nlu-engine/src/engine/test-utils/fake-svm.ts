@@ -5,7 +5,7 @@ export class FakeSvm extends MLToolkit.SVM.Classifier {
   private model: string | undefined
 
   public async train(
-    input: MLToolkit.SVM.SvmTrainInput,
+    input: MLToolkit.SVM.SVMTrainInput,
     callback: MLToolkit.SVM.TrainProgressCallback | undefined
   ): Promise<Buffer> {
     const { points } = input

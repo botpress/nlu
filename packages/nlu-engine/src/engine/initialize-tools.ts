@@ -1,3 +1,4 @@
+import Bluebird from 'bluebird'
 import path from 'path'
 import { LangServerSpecs } from 'src/typings'
 import yn from 'yn'
@@ -89,8 +90,8 @@ export async function initializeTools(config: LanguageConfig & { assetsPath: str
     identify_language: languageIdentifier(fastTextLanguageId),
 
     pos_utterances: async (tokenUtterances: string[][], lang: string) => {
-      const tagger = await getPOSTagger(posModelDirPath, lang, MLToolkit)
-      return tokenUtterances.map((u) => tagSentence(tagger, u))
+      const tagger = await getPOSTagger(posModelDirPath, lang, MLToolkit, logger)
+      return Bluebird.map(tokenUtterances, (u) => tagSentence(tagger, u))
     },
 
     tokenize_utterances: (utterances: string[], lang: string, vocab?: string[]) =>

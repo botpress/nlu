@@ -31,7 +31,7 @@ type TrainInput = {
 }
 
 type Predictors = {
-  crfTagger: MLToolkit.CRF.ITagger | undefined
+  crfTagger: MLToolkit.CRF.Tagger | undefined
   intentFeatures: IntentSlotFeatures
   slot_definitions: SlotDefinition[]
 }
@@ -72,7 +72,8 @@ export class SlotTagger implements PipelineComponent<TrainInput, Utterance, Slot
   }
 
   private async _makeCrfTagger(crfModel: Buffer) {
-    const crfTagger = await this.mlToolkit.CRF.Tagger.create(crfModel)
+    const crfTagger = new this.mlToolkit.CRF.Tagger(this.logger)
+    await crfTagger.load(crfModel)
     return crfTagger
   }
 
@@ -102,7 +103,8 @@ export class SlotTagger implements PipelineComponent<TrainInput, Utterance, Slot
     }
 
     const dummyProgress = () => {}
-    const crfModel = await this.mlToolkit.CRF.Trainer.train(elements, CRF_TRAINER_PARAMS, this.logger, dummyProgress)
+    const crf = new this.mlToolkit.CRF.Tagger(this.logger)
+    const crfModel = await crf.train({ elements, options: CRF_TRAINER_PARAMS }, dummyProgress)
     progress(1)
 
     return serializeModel({
@@ -199,7 +201,7 @@ export class SlotTagger implements PipelineComponent<TrainInput, Utterance, Slot
 
     const features = this._getSequenceFeatures(intentFeatures, utterance, true)
 
-    const predictions = crfTagger.marginal(features)
+    const predictions = await crfTagger.marginal(features)
 
     return _.chain(predictions)
       .map(predictionLabelToTagResult)
