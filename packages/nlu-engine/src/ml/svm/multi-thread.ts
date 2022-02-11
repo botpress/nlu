@@ -8,6 +8,7 @@ export class MultiThreadSVMClassifier extends SVMClassifier {
     const { points, options } = input
     const id = nanoid()
     const output = await mLThreadPool(this.logger).startSvmTraining(id, points, options, progressCallback)
-    return Buffer.from(output)
+    const bin = Buffer.from(output)
+    return SVMClassifier.modelType.decode(bin)
   }
 }

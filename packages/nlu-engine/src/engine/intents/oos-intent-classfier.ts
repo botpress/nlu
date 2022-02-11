@@ -1,5 +1,6 @@
 import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
+import { ModelOf } from 'src/component'
 import { ModelLoadingError } from '../../errors'
 import * as MLToolkit from '../../ml/toolkit'
 import { Logger } from '../../typings'
@@ -23,14 +24,14 @@ const JUNK_TOKEN_MAX = 20
 type Model = {
   trainingVocab: string[]
   baseIntentClfModel: Buffer
-  oosSvmModel: Buffer | undefined
+  oosSvmModel: ModelOf<MLToolkit.SVM.Classifier> | undefined
   exactMatchModel: Buffer
 }
 
 const PTBOOSIntentModel = new ptb.PTBMessage('OOSIntentModel', {
   trainingVocab: { type: 'string', id: 1, rule: 'repeated' },
   baseIntentClfModel: { type: 'bytes', id: 2 },
-  oosSvmModel: { type: 'bytes', id: 3, rule: 'optional' },
+  oosSvmModel: { type: MLToolkit.SVM.Classifier.modelType, id: 3, rule: 'optional' },
   exactMatchModel: { type: 'bytes', id: 4 }
 })
 
@@ -180,7 +181,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     trainInput: NoneableIntentTrainInput,
     noneIntent: Omit<Intent<Utterance>, 'contexts'>,
     progress: (p: number) => void
-  ): Promise<Buffer | undefined> {
+  ): Promise<ModelOf<MLToolkit.SVM.Classifier> | undefined> {
     const { allUtterances, nluSeed, intents, languageCode } = trainInput
 
     const trainingOptions: MLToolkit.SVM.SVMOptions = {
@@ -262,7 +263,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       const model: Model = {
         baseIntentClfModel: Buffer.from(baseIntentClfModel),
         exactMatchModel: Buffer.from(exactMatchModel),
-        oosSvmModel: oosSvmModel && oosSvmModel.length ? Buffer.from(oosSvmModel) : undefined,
+        oosSvmModel,
         trainingVocab: trainingVocab ?? []
       }
       this.predictors = await this._makePredictors(model)
@@ -292,9 +293,9 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     }
   }
 
-  private async _makeSvmClf(svmModel: Buffer): Promise<MLToolkit.SVM.Classifier> {
+  private async _makeSvmClf(svmModel: ModelOf<MLToolkit.SVM.Classifier>): Promise<MLToolkit.SVM.Classifier> {
     const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
-    await svm.load(Buffer.from(svmModel))
+    await svm.load(svmModel)
     return svm
   }
 
