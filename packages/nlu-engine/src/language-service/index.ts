@@ -10,8 +10,7 @@ import process from 'process'
 import { Logger, LanguageService as ILanguageService, InstalledModel } from 'src/typings'
 import { VError } from 'verror'
 
-import toolkit from '../ml/toolkit'
-import { MLToolkit } from '../ml/typings'
+import * as MLToolkit from '../ml/toolkit'
 
 import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet, AvailableModel } from './typings'
 
@@ -198,7 +197,7 @@ export default class LanguageService implements ILanguageService {
 
   private async _loadFastTextModel(lang: string): Promise<LoadedFastTextModel> {
     const loadingAction = async (lang: string) => {
-      const model = new toolkit.FastText.Model(false, true, true)
+      const model = new MLToolkit.FastText.Model(false, true, true)
       const path = this._models[lang].fastTextModel.path
       await model.loadFromFile(path)
       return { model, path }
@@ -216,7 +215,7 @@ export default class LanguageService implements ILanguageService {
 
   private async _loadBPEModel(lang: string): Promise<LoadedBPEModel> {
     const loadingAction = async (lang) => {
-      const tokenizer = await toolkit.SentencePiece.createProcessor()
+      const tokenizer = await MLToolkit.SentencePiece.createProcessor()
       const path = this._models[lang].bpeModel.path
       tokenizer.loadModel(path)
       return Promise.resolve({ model: tokenizer, path })

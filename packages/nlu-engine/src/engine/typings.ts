@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
 import { LangServerSpecs } from 'src/typings'
-import { MLToolkit } from '../ml/typings'
+import * as MLToolkit from '../ml/toolkit'
 
 import { Predictors } from './predict-pipeline'
 

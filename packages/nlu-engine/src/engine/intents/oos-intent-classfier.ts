@@ -1,6 +1,7 @@
-import Joi, { validate } from 'joi'
+import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
-import { MLToolkit } from '../../ml/typings'
+import { ModelOf } from 'src/component'
+import * as MLToolkit from '../../ml/toolkit'
 import { Logger } from '../../typings'
 import { ModelLoadingError } from '../errors'
 import { isPOSAvailable } from '../language/pos-tagger'
@@ -11,29 +12,32 @@ import { Intent, Tools } from '../typings'
 import Utterance, { buildUtteranceBatch } from '../utterance/utterance'
 
 import { ExactIntenClassifier } from './exact-intent-classifier'
-import { IntentTrainInput, NoneableIntentClassifier, NoneableIntentPredictions } from './intent-classifier'
+import { NoneableIntentClassifier, NoneableIntentPredictions, NoneableIntentTrainInput } from './intent-classifier'
 import { getIntentFeatures } from './intent-featurizer'
 import { featurizeInScopeUtterances, featurizeOOSUtterances, getUtteranceFeatures } from './out-of-scope-featurizer'
 import { SvmIntentClassifier } from './svm-intent-classifier'
-
-type TrainInput = {
-  allUtterances: Utterance[]
-} & IntentTrainInput
 
 const JUNK_VOCAB_SIZE = 500
 const JUNK_TOKEN_MIN = 1
 const JUNK_TOKEN_MAX = 20
 
-export type Model = {
+type Model = {
   trainingVocab: string[]
-  baseIntentClfModel: string
-  oosSvmModel: string | undefined
-  exactMatchModel: string
+  baseIntentClfModel: ModelOf<SvmIntentClassifier>
+  oosSvmModel: ModelOf<MLToolkit.SVM.Classifier> | undefined
+  exactMatchModel: ModelOf<ExactIntenClassifier>
 }
+
+const PTBOOSIntentModel = new ptb.PTBMessage('OOSIntentModel', {
+  trainingVocab: { type: 'string', id: 1, rule: 'repeated' },
+  baseIntentClfModel: { type: SvmIntentClassifier.modelType, id: 2 },
+  oosSvmModel: { type: MLToolkit.SVM.Classifier.modelType, id: 3, rule: 'optional' },
+  exactMatchModel: { type: ExactIntenClassifier.modelType, id: 4 }
+})
 
 type Predictors = {
   baseIntentClf: SvmIntentClassifier
-  oosSvm: MLToolkit.SVM.Predictor | undefined
+  oosSvm: MLToolkit.SVM.Classifier | undefined
   trainingVocab: string[]
   exactIntenClassifier: ExactIntenClassifier
 }
@@ -45,15 +49,6 @@ const NONE_UTTERANCES_BOUNDS = {
   MAX: 200
 }
 
-export const modelSchema = Joi.object()
-  .keys({
-    trainingVocab: Joi.array().items(Joi.string().allow('')).required(),
-    baseIntentClfModel: Joi.string().allow('').required(),
-    oosSvmModel: Joi.string().allow('').optional(),
-    exactMatchModel: Joi.string().allow('').required()
-  })
-  .required()
-
 /**
  * @description Intent classfier composed of 3 smaller components:
  *  1 - an SVM intent classifier
@@ -62,11 +57,9 @@ export const modelSchema = Joi.object()
  *
  * @returns A confidence level for all possible labels including none
  */
-export class OOSIntentClassifier implements NoneableIntentClassifier {
+export class OOSIntentClassifier implements NoneableIntentClassifier<typeof PTBOOSIntentModel> {
   private static _displayName = 'OOS Intent Classifier'
   private static _name = 'classifier'
-
-  private model: Model | undefined
   private predictors: Predictors | undefined
 
   constructor(private tools: Tools, private _logger: Logger) {}
@@ -75,7 +68,18 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     return OOSIntentClassifier._name
   }
 
-  public async train(trainInput: TrainInput, progress: (p: number) => void): Promise<void> {
+  public static get modelType() {
+    return PTBOOSIntentModel
+  }
+
+  public get modelType() {
+    return PTBOOSIntentModel
+  }
+
+  public async train(
+    trainInput: NoneableIntentTrainInput,
+    progress: (p: number) => void
+  ): Promise<ptb.Infer<typeof PTBOOSIntentModel>> {
     const { languageCode, allUtterances } = trainInput
     const noneIntent = await this._makeNoneIntent(allUtterances, languageCode)
 
@@ -99,10 +103,9 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
 
     const exactIntenClassifier = new ExactIntenClassifier()
     const dummyProgress = () => {}
-    await exactIntenClassifier.train(trainInput, dummyProgress)
-    const exactMatchModel = exactIntenClassifier.serialize()
+    const exactMatchModel = await exactIntenClassifier.train(trainInput, dummyProgress)
 
-    this.model = {
+    return {
       oosSvmModel: ooScopeModel,
       baseIntentClfModel: inScopeModel,
       trainingVocab: this.getVocab(trainInput.allUtterances),
@@ -186,10 +189,10 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
   }
 
   private async _trainOOScopeSvm(
-    trainInput: TrainInput,
+    trainInput: NoneableIntentTrainInput,
     noneIntent: Omit<Intent<Utterance>, 'contexts'>,
     progress: (p: number) => void
-  ): Promise<string | undefined> {
+  ): Promise<ModelOf<MLToolkit.SVM.Classifier> | undefined> {
     const { allUtterances, nluSeed, intents, languageCode } = trainInput
 
     const trainingOptions: MLToolkit.SVM.SVMOptions = {
@@ -215,17 +218,18 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       .flatMap((i) => featurizeInScopeUtterances(i.utterances, i.name))
       .value()
 
-    const svm = new this.tools.mlToolkit.SVM.Trainer(this._logger)
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
 
-    const model = await svm.train([...in_scope_points, ...oos_points], trainingOptions, progress)
+    const points = [...in_scope_points, ...oos_points]
+    const model = await svm.train({ points, options: trainingOptions }, progress)
     return model
   }
 
   private async _trainInScopeSvm(
-    trainInput: TrainInput,
+    trainInput: NoneableIntentTrainInput,
     noneIntent: Omit<Intent<Utterance>, 'contexts'>,
     progress: (p: number) => void
-  ): Promise<string> {
+  ) {
     const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
     const noneUtts = noneIntent.utterances.filter((u) => u.tokens.filter((t) => t.isWord).length >= 3)
 
@@ -250,27 +254,23 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
       }
     ]
 
-    await baseIntentClf.train({ ...trainInput, intents }, progress)
-    return baseIntentClf.serialize()
+    return baseIntentClf.train({ ...trainInput, intents }, progress)
   }
 
   private getVocab(utts: Utterance[]) {
     return _.flatMap(utts, (u) => u.tokens.map((t) => t.toString({ lowerCase: true })))
   }
 
-  public serialize(): string {
-    if (!this.model) {
-      throw new Error(`${OOSIntentClassifier._displayName} must be trained before calling serialize.`)
-    }
-    return JSON.stringify(this.model)
-  }
-
-  public async load(serialized: string): Promise<void> {
+  public async load(serialized: ptb.Infer<typeof PTBOOSIntentModel>): Promise<void> {
     try {
-      const raw = JSON.parse(serialized)
-      const model: Model = await validate(raw, modelSchema)
+      const { baseIntentClfModel, exactMatchModel, oosSvmModel, trainingVocab } = serialized
+      const model: Model = {
+        baseIntentClfModel,
+        exactMatchModel,
+        oosSvmModel,
+        trainingVocab: trainingVocab ?? []
+      }
       this.predictors = await this._makePredictors(model)
-      this.model = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(OOSIntentClassifier._displayName, err)
@@ -283,14 +283,11 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
     await baseIntentClf.load(baseIntentClfModel)
 
-    const exactMatcher = new ExactIntenClassifier()
-    await exactMatcher.load(exactMatchModel)
-
     const exactIntenClassifier = new ExactIntenClassifier()
     await exactIntenClassifier.load(exactMatchModel)
 
-    const oosSvm = oosSvmModel ? new this.tools.mlToolkit.SVM.Predictor(oosSvmModel) : undefined
-    await oosSvm?.initialize()
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
+    const oosSvm = oosSvmModel ? await this._makeSvmClf(oosSvmModel) : undefined
 
     return {
       oosSvm,
@@ -300,13 +297,15 @@ export class OOSIntentClassifier implements NoneableIntentClassifier {
     }
   }
 
+  private async _makeSvmClf(svmModel: ModelOf<MLToolkit.SVM.Classifier>): Promise<MLToolkit.SVM.Classifier> {
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
+    await svm.load(svmModel)
+    return svm
+  }
+
   public async predict(utterance: Utterance): Promise<NoneableIntentPredictions> {
     if (!this.predictors) {
-      if (!this.model) {
-        throw new Error(`${OOSIntentClassifier._displayName} must be trained before calling predict.`)
-      }
-
-      this.predictors = await this._makePredictors(this.model)
+      throw new Error(`${OOSIntentClassifier._displayName} must load model before calling predict.`)
     }
 
     const { oosSvm, baseIntentClf, trainingVocab, exactIntenClassifier } = this.predictors

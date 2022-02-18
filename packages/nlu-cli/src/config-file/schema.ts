@@ -6,9 +6,22 @@ export const generateSchema = (yargSchema: YargsSchema): JSONSchema7 => {
   const properties: Dictionary<JSONSchema7Definition> = {}
   for (const param in yargSchema) {
     const yargProp = yargSchema[param]
-    properties[param] = {
-      type: yargProp.type
+
+    const { type, description, choices, array } = yargProp
+    let props: JSONSchema7Definition = {
+      type,
+      description
     }
+
+    if (array) {
+      props = { ...props, type: 'array', items: { type } }
+    }
+
+    if (choices) {
+      props = { ...props, enum: choices }
+    }
+
+    properties[param] = props
   }
 
   const schema: JSONSchema7 = {

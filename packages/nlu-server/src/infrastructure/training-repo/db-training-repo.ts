@@ -7,8 +7,7 @@ import moment from 'moment'
 import ms from 'ms'
 import { createTableIfNotExists } from '../../utils/database'
 import { packTrainSet, unpackTrainSet } from '../dataset-serializer'
-import { BaseTrainingRepository } from './base-training-repo'
-import { Training, TrainingId, TrainingState, TrainingRepository } from './typings'
+import { Training, TrainingId, TrainingState, TrainingRepository, TrainingListener } from './typings'
 
 const TABLE_NAME = 'nlu_trainings'
 const JANITOR_MS_INTERVAL = ms('1m') // 60,000 ms
@@ -29,11 +28,18 @@ type TableRow = {
   updatedOn: string
 } & TableId
 
-export class DbTrainingRepository extends BaseTrainingRepository implements TrainingRepository {
+export class DbTrainingRepository implements TrainingRepository {
+  private _listeners: TrainingListener[] = []
   private _janitorIntervalId: NodeJS.Timeout | undefined
 
-  constructor(protected _database: Knex, _logger: Logger) {
-    super(_logger)
+  constructor(private _database: Knex, private _logger: Logger) {}
+
+  public addListener(listener: TrainingListener) {
+    this._listeners.push(listener)
+  }
+
+  public removeListener(listenerToRemove: TrainingListener) {
+    _.remove(this._listeners, (listener) => listener === listenerToRemove)
   }
 
   public async initialize(): Promise<void> {
@@ -63,7 +69,7 @@ export class DbTrainingRepository extends BaseTrainingRepository implements Trai
   }
 
   public set = async (training: Training): Promise<void> => {
-    await super.set(training)
+    this._onTrainingEvent(training)
     const row = this._trainingToRow(training)
     const { appId, modelId } = row
 
@@ -189,5 +195,14 @@ export class DbTrainingRepository extends BaseTrainingRepository implements Trai
       cluster,
       dataset: unpackTrainSet(dataset)
     }
+  }
+
+  private _onTrainingEvent(training: Training) {
+    this._listeners.forEach((listener) => {
+      // The await keyword isn't used to prevent a listener from blocking the training repo
+      listener(training).catch((e) =>
+        this._logger.attachError(e).error('an error occured in the training repository listener')
+      )
+    })
   }
 }

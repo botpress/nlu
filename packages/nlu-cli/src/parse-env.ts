@@ -1,20 +1,18 @@
 import decamelize from 'decamelize'
+import _ from 'lodash'
 import yargs from 'yargs'
 import yn from 'yn'
 import { YargsSchema } from './yargs-utils'
 
 const parseSingleEnv = <O extends yargs.Options>(
   yargSchema: O,
-  envVarValue: string | undefined
+  envVarValue: string
 ): yargs.InferredOptionType<O> | undefined => {
-  if (envVarValue === undefined) {
-    return
-  }
-
   if (yargSchema.type === 'string') {
     const parsed: string = envVarValue
     return parsed as any // typescript is dumb
   }
+
   if (yargSchema.type === 'number') {
     const parsed: number = parseFloat(envVarValue)
     if (isNaN(parsed)) {
@@ -26,6 +24,37 @@ const parseSingleEnv = <O extends yargs.Options>(
   if (yargSchema.type === 'boolean') {
     const parsed: boolean = !!yn(envVarValue)
     return parsed as any // typescript is dumb
+  }
+
+  if (yargSchema.choices?.includes(envVarValue)) {
+    const parsed: string = envVarValue
+    return parsed as any // typescript is dumb
+  }
+}
+
+const tryExtractingFromEnv = <O extends yargs.Options>(
+  paramName: string,
+  schema: O
+): yargs.InferredOptionType<O> | undefined => {
+  const possibleNames: string[] = [paramName]
+  const { alias } = schema
+  if (_.isString(alias) && alias) {
+    possibleNames.push(alias)
+  } else if (_.isArray(alias)) {
+    possibleNames.push(...alias)
+  }
+
+  for (const paramAlias of possibleNames) {
+    const envVarName = decamelize(paramAlias, { preserveConsecutiveUppercase: true, separator: '_' }).toUpperCase()
+    const envVarValue = process.env[envVarName]
+    if (!envVarValue) {
+      continue
+    }
+
+    const parsedEnvValue = parseSingleEnv(schema, envVarValue)
+    if (parsedEnvValue !== undefined) {
+      return parsedEnvValue
+    }
   }
 }
 
@@ -40,12 +69,10 @@ const parseSingleEnv = <O extends yargs.Options>(
 export const parseEnv = <T extends YargsSchema>(yargsSchema: T): Partial<yargs.InferredOptionTypes<T>> => {
   const returned: Partial<yargs.InferredOptionTypes<T>> = {}
   for (const param in yargsSchema) {
-    const envVarName = decamelize(param, { preserveConsecutiveUppercase: true, separator: '_' }).toUpperCase()
-    const envVarValue = process.env[envVarName]
     const schema = yargsSchema[param]
-    const parsedEnvValue = parseSingleEnv(schema, envVarValue)
-    if (parsedEnvValue !== undefined) {
-      returned[param] = parsedEnvValue
+    const extracted = tryExtractingFromEnv(param, schema)
+    if (extracted !== undefined) {
+      returned[param] = extracted
     }
   }
   return returned

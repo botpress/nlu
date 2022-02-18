@@ -64,8 +64,7 @@ export type ModelIdArgs = {
 
 export type TrainingProgress = (p: number) => void
 export type TrainingOptions = {
-  progressCallback: TrainingProgress
-  previousModel: ModelId | undefined
+  progressCallback: (x: number) => void
   minProgressHeartbeat: number
 }
 
@@ -121,10 +120,7 @@ export type Model = {
   id: ModelId
   startedAt: Date
   finishedAt: Date
-  data: {
-    input: string
-    output: string
-  }
+  data: Buffer
 }
 
 export type LangServerSpecs = {

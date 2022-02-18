@@ -10,7 +10,7 @@ import {
   assertTrainingsAre,
   assertTrainingStarts
 } from '../assertions'
-import { clinc150_42_dataset, clinc150_666_dataset } from '../datasets'
+import { clinc50_42_dataset, clinc50_666_dataset } from '../datasets'
 import { sleep } from '../utils'
 
 const NAME = 'life-cycle'
@@ -23,17 +23,17 @@ export const modelLifecycleTest: Test = {
     const modelLifecycleLogger = logger.sub(NAME)
     const modelLifecycleArgs = { ...args, logger: modelLifecycleLogger }
 
-    let clinc150_42_modelId = await assertTrainingStarts(modelLifecycleArgs, clinc150_42_dataset)
+    let clinc150_42_modelId = await assertTrainingStarts(modelLifecycleArgs, clinc50_42_dataset)
 
     await sleep(ms('1s'))
     await assertTrainingCancels(modelLifecycleArgs, clinc150_42_modelId)
 
-    clinc150_42_modelId = await assertTrainingStarts(modelLifecycleArgs, clinc150_42_dataset)
+    clinc150_42_modelId = await assertTrainingStarts(modelLifecycleArgs, clinc50_42_dataset)
     await assertTrainingFinishes(modelLifecycleArgs, clinc150_42_modelId)
 
-    const clinc150_666_modelId = await assertTrainingStarts(modelLifecycleArgs, clinc150_666_dataset)
+    const clinc150_666_modelId = await assertTrainingStarts(modelLifecycleArgs, clinc50_666_dataset)
 
-    await assertQueueTrainingFails(modelLifecycleArgs, clinc150_666_dataset, 'training_already_started')
+    await assertQueueTrainingFails(modelLifecycleArgs, clinc50_666_dataset, 'training_already_started')
     await assertPredictionFails(modelLifecycleArgs, clinc150_666_modelId, 'I love Botpress', 'model_not_found')
     await assertModelsInclude(modelLifecycleArgs, [clinc150_42_modelId])
     await assertTrainingsAre(modelLifecycleArgs, ['done', 'training'])

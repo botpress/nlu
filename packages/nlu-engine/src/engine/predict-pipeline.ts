@@ -7,14 +7,14 @@ import {
   IntentPrediction as StanIntentPrediction,
   PredictOutput
 } from 'src/typings'
-import { MLToolkit } from '../ml/typings'
+import * as MLToolkit from '../ml/toolkit'
 
 import { CustomEntityExtractor } from './entities/custom-extractor'
 import { IntentPrediction, IntentPredictions, NoneableIntentPredictions } from './intents/intent-classifier'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
 import { spellCheck as spellCheckUtterance } from './language/spell-check'
-import SlotTagger from './slots/slot-tagger'
+import { SlotTagger } from './slots/slot-tagger'
 import {
   EntityExtractionResult,
   ExtractedEntity,

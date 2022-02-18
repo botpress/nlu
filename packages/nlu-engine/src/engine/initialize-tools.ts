@@ -1,13 +1,14 @@
+import Bluebird from 'bluebird'
 import path from 'path'
 import { LangServerSpecs } from 'src/typings'
 import yn from 'yn'
 
-import MLToolkit from '../ml/toolkit'
+import * as MLToolkit from '../ml/toolkit'
 import { LanguageConfig, Logger } from '../typings'
 import { DucklingEntityExtractor } from './entities/duckling-extractor'
 import { DucklingClient } from './entities/duckling-extractor/duckling-client'
 import { DummySystemEntityExtractor } from './entities/dummy-system-extractor'
-import { SystemEntityCacheManager } from './entities/entity-cache-manager'
+import { SystemEntityCacheManager } from './entities/entity-cache'
 import { MicrosoftEntityExtractor } from './entities/microsoft-extractor'
 import languageIdentifier, { FastTextLanguageId } from './language/language-identifier'
 import { LanguageProvider } from './language/language-provider'
@@ -89,9 +90,10 @@ export async function initializeTools(config: LanguageConfig & { assetsPath: str
     identify_language: languageIdentifier(fastTextLanguageId),
 
     pos_utterances: async (tokenUtterances: string[][], lang: string) => {
-      const tagger = await getPOSTagger(posModelDirPath, lang, MLToolkit)
-      return tokenUtterances.map((u) => tagSentence(tagger, u))
+      const tagger = await getPOSTagger(posModelDirPath, lang, MLToolkit, logger)
+      return Bluebird.map(tokenUtterances, (u) => tagSentence(tagger, u))
     },
+
     tokenize_utterances: (utterances: string[], lang: string, vocab?: string[]) =>
       languageProvider.tokenize(utterances, lang, vocab),
     vectorize_tokens: async (tokens, lang) => {

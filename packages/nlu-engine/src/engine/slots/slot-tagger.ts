@@ -1,18 +1,22 @@
-import fse from 'fs-extra'
-import Joi, { validate } from 'joi'
+import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
+import { ModelOf, PipelineComponent } from 'src/component'
 import { Logger } from 'src/typings'
-import tmp from 'tmp'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 import { ModelLoadingError } from '../errors'
 import { getEntitiesAndVocabOfIntent } from '../intents/intent-vocab'
 
-import { BIO, Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } from '../typings'
+import { Intent, ListEntityModel, SlotExtractionResult, Tools, SlotDefinition } from '../typings'
 import Utterance, { UtteranceToken } from '../utterance/utterance'
 
-import { SlotDefinitionSchema } from './schemas'
 import * as featurizer from './slot-featurizer'
-import { TagResult, IntentSlotFeatures } from './typings'
+import {
+  labelizeUtterance,
+  makeExtractedSlots,
+  predictionLabelToTagResult,
+  removeInvalidTagsForIntent
+} from './slot-tagger-utils'
+import { IntentSlotFeatures } from './typings'
 
 const CRF_TRAINER_PARAMS = {
   c1: '0.0001',
@@ -22,127 +26,32 @@ const CRF_TRAINER_PARAMS = {
   'feature.possible_states': '1'
 }
 
-const MIN_SLOT_CONFIDENCE = 0.15
+const PTBSlotDefinition = new ptb.PTBMessage('SlotDefinition', {
+  name: { type: 'string', id: 1 },
+  entities: { type: 'string', id: 2, rule: 'repeated' }
+})
 
-export function labelizeUtterance(utterance: Utterance): string[] {
-  return utterance.tokens
-    .filter((x) => !x.isSpace)
-    .map((token) => {
-      if (_.isEmpty(token.slots)) {
-        return BIO.OUT
-      }
+const PTBIntentSlotFeatures = new ptb.PTBMessage('IntentSlotFeatures', {
+  name: { type: 'string', id: 1 },
+  vocab: { type: 'string', id: 2, rule: 'repeated' },
+  slot_entities: { type: 'string', id: 3, rule: 'repeated' }
+})
 
-      const slot = token.slots[0]
-      const tag = slot.startTokenIdx === token.index ? BIO.BEGINNING : BIO.INSIDE
-      const any = _.isEmpty(token.entities) ? '/any' : ''
+const PTBSlotTaggerModel = new ptb.PTBMessage('SlotTaggerModel', {
+  crfModel: { type: MLToolkit.CRF.Tagger.modelType, id: 1, rule: 'optional' },
+  intentFeatures: { type: PTBIntentSlotFeatures, id: 2 },
+  slot_definitions: { type: PTBSlotDefinition, id: 3, rule: 'repeated' }
+})
 
-      return `${tag}-${slot.name}${any}`
-    })
-}
-
-function predictionLabelToTagResult(prediction: { [label: string]: number }): TagResult {
-  const pairedPreds = _.chain(prediction)
-    .mapValues((value, key) => value + (prediction[`${key}/any`] || 0))
-    .toPairs()
-    .value()
-
-  if (!pairedPreds.length) {
-    throw new Error('there should be at least one prediction when converting predictions to tag result')
-  }
-  const [label, probability] = _.maxBy(pairedPreds, (x) => x[1])!
-
-  return {
-    tag: label[0],
-    name: label.slice(2).replace('/any', ''),
-    probability
-  } as TagResult
-}
-
-function removeInvalidTagsForIntent(slot_definitions: SlotDefinition[], tag: TagResult): TagResult {
-  if (tag.tag === BIO.OUT) {
-    return tag
-  }
-
-  const foundInSlotDef = !!slot_definitions.find((s) => s.name === tag.name)
-
-  if (tag.probability < MIN_SLOT_CONFIDENCE || !foundInSlotDef) {
-    tag = {
-      tag: BIO.OUT,
-      name: '',
-      probability: 1 - tag.probability // anything would do here
-    }
-  }
-
-  return tag
-}
-
-export function makeExtractedSlots(
-  slot_entities: string[],
-  utterance: Utterance,
-  slotTagResults: TagResult[]
-): SlotExtractionResult[] {
-  return _.zipWith(
-    utterance.tokens.filter((t) => !t.isSpace),
-    slotTagResults,
-    (token, tagRes) => ({ token, tagRes })
-  )
-    .filter(({ tagRes }) => tagRes.tag !== BIO.OUT)
-    .reduce((combined, { token, tagRes }) => {
-      const last = _.last(combined)
-      const shouldConcatWithPrev = tagRes.tag === BIO.INSIDE && _.get(last, 'slot.name') === tagRes.name
-
-      if (shouldConcatWithPrev && last) {
-        const newEnd = token.offset + token.value.length
-        const newSource = utterance.toString({ strategy: 'keep-token' }).slice(last.start, newEnd) // we use slice in case tokens are space split
-        last.slot.source = newSource
-        last.slot.value = newSource
-        last.end = newEnd
-
-        return [...combined.slice(0, -1), last]
-      } else {
-        return [
-          ...combined,
-          {
-            slot: {
-              name: tagRes.name,
-              confidence: tagRes.probability,
-              source: token.toString(),
-              value: token.toString()
-            },
-            start: token.offset,
-            end: token.offset + token.value.length
-          }
-        ]
-      }
-    }, [] as SlotExtractionResult[])
-    .map((extracted: SlotExtractionResult) => {
-      const associatedEntityInRange = utterance.entities.find(
-        (e) =>
-          ((e.startPos <= extracted.start && e.endPos >= extracted.end) || // slot is fully contained by an entity
-            (e.startPos >= extracted.start && e.endPos <= extracted.end)) && // entity is fully within the tagged slot
-          _.includes(slot_entities, e.type) // entity is part of the possible entities
-      )
-      if (associatedEntityInRange) {
-        extracted.slot.entity = {
-          ..._.omit(associatedEntityInRange, 'startPos', 'endPos', 'startTokenIdx', 'endTokenIdx'),
-          start: associatedEntityInRange.startPos,
-          end: associatedEntityInRange.endPos
-        }
-        extracted.slot.value = associatedEntityInRange.value
-      }
-      return extracted
-    })
+type Model = {
+  crfModel: ModelOf<MLToolkit.CRF.Tagger> | undefined
+  intentFeatures: IntentSlotFeatures
+  slot_definitions: SlotDefinition[]
 }
 
 type TrainInput = {
   intent: Intent<Utterance>
   list_entites: ListEntityModel[]
-}
-
-export type Model = {
-  crfModel: Buffer | undefined
-  intentFeatures: IntentSlotFeatures
-  slot_definitions: SlotDefinition[]
 }
 
 type Predictors = {
@@ -151,52 +60,64 @@ type Predictors = {
   slot_definitions: SlotDefinition[]
 }
 
-const intentSlotFeaturesSchema = Joi.object()
-  .keys({
-    name: Joi.string().required(),
-    vocab: Joi.array().items(Joi.string().allow('')).required(),
-    slot_entities: Joi.array().items(Joi.string()).required()
-  })
-  .required()
+export class SlotTagger
+  implements PipelineComponent<TrainInput, typeof PTBSlotTaggerModel, Utterance, SlotExtractionResult[]> {
+  private static _displayName = 'CRF Slot Tagger'
+  private static _name = 'crf-slot-tagger'
 
-export const modelSchema = Joi.object()
-  .keys({
-    crfModel: Joi.binary().optional(),
-    intentFeatures: intentSlotFeaturesSchema,
-    slot_definitions: Joi.array().items(SlotDefinitionSchema).required()
-  })
-  .required()
-
-export default class SlotTagger {
-  private static _name = 'CRF Slot Tagger'
-
-  private model: Model | undefined
   private predictors: Predictors | undefined
   private mlToolkit: typeof MLToolkit
+
+  public get name() {
+    return SlotTagger._name
+  }
+
+  public static get modelType() {
+    return PTBSlotTaggerModel
+  }
+
+  public get modelType() {
+    return PTBSlotTaggerModel
+  }
 
   constructor(tools: Tools, private logger: Logger) {
     this.mlToolkit = tools.mlToolkit
   }
 
-  public load = async (serialized: string) => {
+  public load = async (serialized: ptb.Infer<typeof PTBSlotTaggerModel>) => {
     try {
-      const raw: Model = JSON.parse(serialized)
-      raw.crfModel = raw.crfModel && Buffer.from(raw.crfModel)
-
-      const model: Model = await validate(raw, modelSchema)
-
+      const model = this.deserializeModel(serialized)
       this.predictors = await this._makePredictors(model)
-      this.model = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      throw new ModelLoadingError(SlotTagger._name, err)
+      throw new ModelLoadingError(SlotTagger._displayName, err)
+    }
+  }
+
+  private deserializeModel = (serialized: ptb.Infer<typeof PTBSlotTaggerModel>): Model => {
+    const { crfModel, intentFeatures, slot_definitions } = serialized
+    return {
+      crfModel,
+      intentFeatures: {
+        ...intentFeatures,
+        vocab: intentFeatures.vocab ?? [],
+        slot_entities: intentFeatures.slot_entities ?? []
+      },
+      slot_definitions: slot_definitions ? slot_definitions.map(this.deserializeSlotDef) : []
+    }
+  }
+
+  private deserializeSlotDef = (encoded: ptb.Infer<typeof PTBSlotDefinition>): SlotDefinition => {
+    const { entities, name } = encoded
+    return {
+      name,
+      entities: entities ?? []
     }
   }
 
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { intentFeatures, crfModel, slot_definitions } = model
-    const crfTagger = crfModel && (await this._makeCrfTagger(crfModel))
-
+    const crfTagger = crfModel ? await this._makeCrfTagger(crfModel) : undefined
     return {
       crfTagger,
       intentFeatures,
@@ -204,35 +125,27 @@ export default class SlotTagger {
     }
   }
 
-  private async _makeCrfTagger(crfModel: Buffer) {
-    const crfModelFn = tmp.tmpNameSync()
-    fse.writeFileSync(crfModelFn, crfModel)
-    const crfTagger = new this.mlToolkit.CRF.Tagger()
-    await crfTagger.initialize()
-    crfTagger.open(crfModelFn)
+  private async _makeCrfTagger(crfModel: ModelOf<MLToolkit.CRF.Tagger>) {
+    const crfTagger = new this.mlToolkit.CRF.Tagger(this.logger)
+    await crfTagger.load(crfModel)
     return crfTagger
   }
 
-  public serialize(): string {
-    if (!this.model) {
-      throw new Error(`${SlotTagger._name} must be trained before calling serialize.`)
-    }
-    return JSON.stringify(this.model)
-  }
-
-  public async train(trainSet: TrainInput, progress: (p: number) => void): Promise<void> {
+  public async train(
+    trainSet: TrainInput,
+    progress: (p: number) => void
+  ): Promise<ptb.Infer<typeof PTBSlotTaggerModel>> {
     const { intent, list_entites } = trainSet
     const intentFeatures = getEntitiesAndVocabOfIntent(intent, list_entites)
     const { slot_definitions } = intent
 
     if (slot_definitions.length <= 0) {
-      this.model = {
+      progress(1)
+      return {
         crfModel: undefined,
         intentFeatures,
         slot_definitions
       }
-      progress(1)
-      return
     }
 
     const elements: MLToolkit.CRF.DataPoint[] = []
@@ -246,20 +159,16 @@ export default class SlotTagger {
       elements.push({ features, labels })
     }
 
-    const trainer = new this.mlToolkit.CRF.Trainer(this.logger)
-    await trainer.initialize()
     const dummyProgress = () => {}
-    const crfModelFn = await trainer.train(elements, CRF_TRAINER_PARAMS, dummyProgress)
+    const crf = new this.mlToolkit.CRF.Tagger(this.logger)
+    const crfModel = await crf.train({ elements, options: CRF_TRAINER_PARAMS }, dummyProgress)
+    progress(1)
 
-    const crfModel = await fse.readFile(crfModelFn)
-
-    this.model = {
+    return {
       crfModel,
       intentFeatures,
       slot_definitions
     }
-
-    progress(1)
   }
 
   private tokenSliceFeatures(
@@ -338,11 +247,7 @@ export default class SlotTagger {
 
   public async predict(utterance: Utterance): Promise<SlotExtractionResult[]> {
     if (!this.predictors) {
-      if (!this.model) {
-        throw new Error(`${SlotTagger._name} must be trained before calling predict.`)
-      }
-
-      this.predictors = await this._makePredictors(this.model)
+      throw new Error(`${SlotTagger._displayName} must load model before calling predict.`)
     }
 
     const { intentFeatures, crfTagger, slot_definitions } = this.predictors
@@ -353,7 +258,7 @@ export default class SlotTagger {
 
     const features = this._getSequenceFeatures(intentFeatures, utterance, true)
 
-    const predictions = crfTagger.marginal(features)
+    const predictions = await crfTagger.marginal(features)
 
     return _.chain(predictions)
       .map(predictionLabelToTagResult)

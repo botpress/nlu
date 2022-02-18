@@ -1,4 +1,3 @@
-import { LoggerLevel } from '@botpress/logger'
 import bytes from 'bytes'
 import { getAppDataPath } from '../app-data'
 import { NLUServerOptions, CommandLineOptions } from '../typings'
@@ -19,9 +18,10 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   bodySize: '2mb',
   batchSize: -1,
   modelCacheSize: '2.5gb',
-  verbose: LoggerLevel.Info,
   doc: false,
-  logFilter: undefined,
+  logLevel: 'info',
+  debugFilter: undefined,
+  logFormat: 'text',
   maxTraining: 2
 })
 

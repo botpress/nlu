@@ -1,7 +1,8 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { ModelOf } from 'src/component'
 import { Override } from 'src/utils/override-type'
-import { MLToolkit } from '../ml/typings'
+import * as MLToolkit from '../ml/toolkit'
 import { Logger } from '../typings'
 
 import { watchDog } from '../utils/watch-dog'
@@ -9,12 +10,12 @@ import { watchDog } from '../utils/watch-dog'
 import { computeKmeans, serializeKmeans } from './clustering'
 import { CustomEntityExtractor } from './entities/custom-extractor'
 import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/multi-thread-extractor'
-import { warmEntityCache } from './entities/entity-cache-manager'
+import { warmEntityCache } from './entities/entity-cache'
 import { makeListEntityModel } from './entities/list-entity-model'
 import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
-import SlotTagger from './slots/slot-tagger'
+import { SlotTagger } from './slots/slot-tagger'
 import { replaceConsecutiveSpaces } from './tools/strings'
 import tfidf from './tools/tfidf'
 import {
@@ -39,7 +40,6 @@ export type TrainInput = {
   list_entities: ListEntityWithCache[]
   contexts: string[]
   intents: Intent<string>[]
-  ctxToTrain: string[]
   minProgressHeartbeat: number
 }
 
@@ -60,10 +60,9 @@ export type TrainOutput = {
   tfidf: TFIDF
   vocab: string[]
   kmeans: SerializedKmeansResult | undefined
-  contexts: string[]
-  ctx_model: string
-  intent_model_by_ctx: _.Dictionary<string>
-  slots_model_by_intent: _.Dictionary<string>
+  ctx_model: ModelOf<SvmIntentClassifier>
+  intent_model_by_ctx: _.Dictionary<ModelOf<OOSIntentClassifier>>
+  slots_model_by_intent: _.Dictionary<ModelOf<SlotTagger>>
 }
 
 type Tools = {
@@ -220,7 +219,11 @@ async function extractEntities(input: ClusterTrainStep, tools: Tools, progress: 
  * ### Steps 3-5 : Parallel ###
  * ############################
  */
-async function trainContextClassifier(input: SerialTrainOuput, tools: Tools, progress: progressCB): Promise<string> {
+async function trainContextClassifier(
+  input: SerialTrainOuput,
+  tools: Tools,
+  progress: progressCB
+): Promise<ModelOf<SvmIntentClassifier>> {
   const { languageCode, intents, contexts, list_entities, pattern_entities, nluSeed } = input
 
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
@@ -240,7 +243,7 @@ async function trainContextClassifier(input: SerialTrainOuput, tools: Tools, pro
   })
 
   const rootIntentClassifier = new SvmIntentClassifier(tools, getCtxFeatures, tools.logger)
-  await rootIntentClassifier.train(
+  const model = await rootIntentClassifier.train(
     {
       intents: rootIntents,
       languageCode,
@@ -254,26 +257,26 @@ async function trainContextClassifier(input: SerialTrainOuput, tools: Tools, pro
   )
 
   progress(1)
-  return rootIntentClassifier.serialize()
+  return model
 }
 
 async function trainIntentClassifiers(
   input: SerialTrainOuput,
   tools: Tools,
   progress: progressCB
-): Promise<_.Dictionary<string>> {
-  const { list_entities, pattern_entities, intents, ctxToTrain, nluSeed, languageCode } = input
+): Promise<_.Dictionary<ModelOf<OOSIntentClassifier>>> {
+  const { list_entities, pattern_entities, intents, contexts, nluSeed, languageCode } = input
 
   const progressPerCtx: _.Dictionary<number> = {}
 
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
   const reportProgress = () => {
-    const n = ctxToTrain.length
+    const n = contexts.length
     const total = _(progressPerCtx).values().sum()
     clampedProgress(total / n)
   }
 
-  const models = await Bluebird.map(ctxToTrain, async (ctx) => {
+  const models = await Bluebird.map(contexts, async (ctx) => {
     const taskName = `train Clf for Ctx "${ctx}"`
     tools.logger.debug(taskStarted(input.trainId, taskName))
 
@@ -281,7 +284,7 @@ async function trainIntentClassifiers(
     const trainableIntents = intents.filter((i) => i.contexts.includes(ctx))
 
     const intentClf = new OOSIntentClassifier(tools, tools.logger)
-    await intentClf.train(
+    const model = await intentClf.train(
       {
         languageCode,
         intents: trainableIntents,
@@ -297,7 +300,6 @@ async function trainIntentClassifiers(
     )
 
     tools.logger.debug(taskDone(input.trainId, taskName))
-    const model = intentClf.serialize()
     return { ctx, model }
   })
 
@@ -313,8 +315,8 @@ async function trainSlotTaggers(
   input: SerialTrainOuput,
   tools: Tools,
   progress: progressCB
-): Promise<_.Dictionary<string>> {
-  const slotModelByIntent: _.Dictionary<string> = {}
+): Promise<_.Dictionary<ModelOf<SlotTagger>>> {
+  const slotModelByIntent: _.Dictionary<ModelOf<SlotTagger>> = {}
 
   const clampedProgress = (p: number) => progress(Math.min(0.99, p))
 
@@ -323,7 +325,7 @@ async function trainSlotTaggers(
 
     const slotTagger = new SlotTagger(tools, tools.logger)
 
-    await slotTagger.train(
+    const model = await slotTagger.train(
       {
         intent,
         list_entites: input.list_entities
@@ -334,7 +336,7 @@ async function trainSlotTaggers(
       }
     )
 
-    slotModelByIntent[intent.name] = slotTagger.serialize()
+    slotModelByIntent[intent.name] = model
   }
 
   progress(1)
@@ -352,9 +354,8 @@ const makeLogDecorator = (trainId: string, logger: Logger) => {
     logger.debug(taskStarted(trainId, fn.name))
     const ret = fn(...args)
 
-    // awaiting is not responsibility of this logger decorator
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    ret.then(() => logger.debug(taskDone(trainId, fn.name))).catch((_err) => {})
+    // awaiting if not responsibility of this logger decorator
+    void ret.then(() => logger.debug(taskDone(trainId, fn.name))).catch((_err) => {})
     return ret
   }
 }
@@ -415,7 +416,6 @@ export const trainingPipeline = async (
     ctx_model,
     intent_model_by_ctx,
     slots_model_by_intent,
-    contexts: input.contexts,
     vocab: Object.keys(serialOutput.vocabVectors),
     kmeans: serialOutput.kmeans && serializeKmeans(serialOutput.kmeans)
   }
