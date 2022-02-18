@@ -6,7 +6,6 @@ export const centerText = (text: string, width: number, indent: number = 0) => {
 }
 
 export * from './typings'
-export { LoggerLevel } from './config'
 export { Logger } from './logger'
 export { JSONFormatter, TextFormatter } from './formatters'
 export { ConsoleTransport } from './transports/console'

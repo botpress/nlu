@@ -10,10 +10,11 @@ export type Logger = {
 }
 
 export type LogEntryType = 'log' | 'stacktrace'
+export type LogLevel = 'critical' | 'error' | 'warning' | 'info' | 'debug'
 
 export type LogEntry = {
   type: LogEntryType
-  level: number
+  level: LogLevel
   message: string
   namespace: string
   metadata?: any
@@ -33,13 +34,13 @@ export type LogTransporter = {
 }
 
 export type LoggerConfig = {
-  level: number
+  level: LogLevel
   formatter: LogEntryFormatter
   transports: LogTransporter[]
   timeFormat: string // moment time format
   namespaceDelimiter: string
-  colors: { [level: number]: string }
+  colors: Record<LogLevel, string>
   indent: boolean
-  filters: { [level: number]: string }
+  filters: Partial<Record<LogLevel, string>>
   prefix: string
 }

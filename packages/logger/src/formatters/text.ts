@@ -3,7 +3,6 @@ import _ from 'lodash'
 import moment from 'moment'
 import os from 'os'
 import util from 'util'
-import { LoggerLevel } from '../config'
 import { FormattedLogEntry, LogEntry, LogEntryFormatter, LoggerConfig } from '../typings'
 
 function _serializeArgs(args: any): string {
@@ -33,7 +32,7 @@ export class TextFormatter implements LogEntryFormatter {
 
     const newLineIndent = chalk.dim(' '.repeat(`${time} ${displayName}`.length))
     let indentedMessage =
-      entry.level === LoggerLevel.Error ? entry.message : entry.message.replace(/\r\n|\n/g, os.EOL + newLineIndent)
+      entry.level === 'error' ? entry.message : entry.message.replace(/\r\n|\n/g, os.EOL + newLineIndent)
 
     if (entry.type === 'stacktrace' && entry.stack) {
       indentedMessage += chalk.grey(os.EOL + 'STACK TRACE')

@@ -1,7 +1,17 @@
 import _ from 'lodash'
 import regexParser from 'regex-parser'
-import { defaultConfig, LoggerLevel } from './config'
+import { LogLevel } from '.'
+import { defaultConfig } from './config'
 import * as types from './typings'
+
+let idx = 0
+const LogLevelValue: Record<LogLevel, number> = {
+  critical: idx++,
+  error: idx++,
+  warning: idx++,
+  info: idx++,
+  debug: idx++
+}
 
 export class Logger implements types.Logger {
   private _loggers = new Map<string, Logger>()
@@ -49,27 +59,27 @@ export class Logger implements types.Logger {
   }
 
   public critical(message: string, metadata?: any): void {
-    this.log({ type: 'log', level: LoggerLevel.Critical, message, metadata })
+    this.log({ type: 'log', level: 'critical', message, metadata })
   }
 
   public debug(message: string, metadata?: any): void {
-    this.log({ type: 'log', level: LoggerLevel.Debug, message, metadata })
+    this.log({ type: 'log', level: 'debug', message, metadata })
   }
 
   public info(message: string, metadata?: any): void {
-    this.log({ type: 'log', level: LoggerLevel.Info, message, metadata })
+    this.log({ type: 'log', level: 'info', message, metadata })
   }
 
   public warn(message: string, metadata?: any): void {
-    this.log({ type: 'log', level: LoggerLevel.Warn, message, metadata })
+    this.log({ type: 'log', level: 'warning', message, metadata })
   }
 
   public error(message: string, metadata?: any): void {
-    this.log({ type: 'log', level: LoggerLevel.Error, message, metadata })
+    this.log({ type: 'log', level: 'error', message, metadata })
   }
 
   public log(entry: Omit<types.LogEntry, 'namespace'>) {
-    if (this._config.level < entry.level) {
+    if (LogLevelValue[this._config.level] < LogLevelValue[entry.level]) {
       return
     }
 

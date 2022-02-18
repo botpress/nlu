@@ -1,9 +1,9 @@
-import { Logger, LoggerLevel } from '@botpress/logger'
+import { Logger } from '@botpress/logger'
 import tests from './tests'
 
 export const listTests = () => {
   const logger = new Logger('e2e', {
-    level: LoggerLevel.Debug
+    level: 'debug'
   })
 
   logger.info('Available tests are:')

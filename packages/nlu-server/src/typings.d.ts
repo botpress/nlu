@@ -1,3 +1,5 @@
+import { LogLevel } from '@botpress/logger'
+
 export type BuildInfo = {
   date: number
   branch: string
@@ -15,7 +17,7 @@ export type NLUServerOptions = {
   dbURL?: string
   modelDir: string
   doc: boolean
-  logLevel: number
+  logLevel: LogLevel
   logFormat: LogFormat
   debugFilter?: string
   apmEnabled?: boolean

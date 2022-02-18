@@ -1,4 +1,4 @@
-import { LoggerLevel, Logger, JSONFormatter, TextFormatter } from '@botpress/logger'
+import { Logger, JSONFormatter, TextFormatter, LogLevel } from '@botpress/logger'
 import { createServer, Server } from 'http'
 import _ from 'lodash'
 import path from 'path'
@@ -39,19 +39,17 @@ export const run: typeof types.run = async (cliOptions: types.CommandLineOptions
   const options = await getConfig(cliOptions)
   validateConfig(options)
 
-  const verbose = Number(options.logLevel)
   const formatter = options.logFormat === 'json' ? new JSONFormatter() : new TextFormatter()
-  const level: LoggerLevel = isNaN(verbose) ? LoggerLevel.Info : verbose
   const baseLogger = new Logger('', {
-    level,
-    filters: options.debugFilter && { [LoggerLevel.Debug]: options.debugFilter },
+    level: options.logLevel,
+    filters: options.debugFilter ? { debug: options.debugFilter } : {},
     prefix: 'NLU',
     formatter
   })
 
   const launcherLogger = baseLogger.sub('Launcher')
   launcherLogger.configure({
-    level: LoggerLevel.Info // Launcher always display
+    level: 'info' // Launcher always display
   })
 
   await logLaunchingMessage({ ...options, version, buildInfo }, launcherLogger)
