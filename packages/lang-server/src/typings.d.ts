@@ -1,3 +1,5 @@
+import { LogLevel } from '@botpress/logger'
+
 type CommonOptions = {
   langDir: string
   metadataLocation: string
@@ -14,7 +16,7 @@ export type LangServerOptions = {
   authToken?: string
   adminToken?: string
   offline: boolean
-  logLevel: number
+  logLevel: LogLevel
   logFormat: LogFormat
   debugFilter?: string
 } & CommonOptions

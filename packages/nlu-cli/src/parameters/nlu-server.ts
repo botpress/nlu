@@ -1,7 +1,9 @@
+import { LogLevel } from '@botpress/logger'
 import { LogFormat } from '@botpress/nlu-server'
 import { asYargs } from '../yargs-utils'
 
 const logFormatChoices: LogFormat[] = ['json', 'text']
+const logLevelChoices: LogLevel[] = ['critical', 'error', 'warning', 'info', 'debug']
 
 export const parameters = asYargs({
   port: {
@@ -78,16 +80,15 @@ export const parameters = asYargs({
     type: 'boolean'
   },
   logLevel: {
-    alias: 'verbose',
-    description: 'Verbosity level of the logging, integer from 0 to 4. Does not apply to booting logs.',
-    type: 'number'
+    description: 'Verbosity level of the logging. Does not apply to booting logs.',
+    choices: logLevelChoices
   },
   logFormat: {
     description: 'Weither to log using JSON or good old fashion formatted text with colors.',
     choices: logFormatChoices
   },
   debugFilter: {
-    description: 'Regexp to filter debug logs by namespace. Only applies if log level is 4.',
+    description: 'Regexp to filter debug logs by namespace. Only applies if log level is "debug".',
     type: 'string'
   },
   maxTraining: {

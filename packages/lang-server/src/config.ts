@@ -1,4 +1,3 @@
-import { LoggerLevel } from '@botpress/logger'
 import path from 'path'
 import { getAppDataPath } from './app-data'
 import { LangServerOptions, DownloadOptions, LangArgv, DownloadArgv } from './typings'
@@ -20,7 +19,7 @@ const DEFAULT_SERVER_OPTIONS = (): LangServerOptions => ({
   offline: false,
   dim: 100,
   domain: 'bp',
-  logLevel: LoggerLevel.Info,
+  logLevel: 'info',
   debugFilter: undefined,
   logFormat: 'text'
 })
