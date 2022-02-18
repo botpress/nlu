@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import path from 'path'
 import Engine from './engine'
-import { DUCKLING_ENTITIES } from './engine/entities/duckling-extractor/enums'
 import {
   TrainingAlreadyStartedError,
   TrainingCanceledError,

@@ -1,0 +1,18 @@
+{
+  "name": "@botpress/ptb-schema",
+  "version": "0.0.1",
+  "main": "./dist/index.js",
+  "author": "franklevasseur <francois_levasseur@hotmail.com>",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rimraf ./dist && rimraf ./node_modules"
+  },
+  "types": "./dist/index.d.ts",
+  "devDependencies": {
+    "@types/protobufjs": "^6.0.0"
+  },
+  "dependencies": {
+    "protobufjs": "^6.11.2"
+  }
+}

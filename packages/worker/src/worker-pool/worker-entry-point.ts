@@ -98,7 +98,7 @@ export abstract class WorkerEntryPoint<I, O, P = void> implements IWorkerEntryPo
       this.messageMain(response)
     },
     warning: (msg: string, err?: Error) => {
-      const warning = `${msg} ${err?.message}`
+      const warning = err ? `${msg} ${err.message}` : msg
       const response: IncomingMessage<'log', O, P> = {
         type: 'log',
         payload: { log: { warning } }
@@ -106,7 +106,7 @@ export abstract class WorkerEntryPoint<I, O, P = void> implements IWorkerEntryPo
       this.messageMain(response)
     },
     error: (msg: string, err?: Error) => {
-      const error = `${msg} ${err?.message}`
+      const error = err ? `${msg} ${err.message}` : msg
       const response: IncomingMessage<'log', O, P> = { type: 'log', payload: { log: { error } } }
       this.messageMain(response)
     },

@@ -1,8 +1,11 @@
+import { LogLevel } from '@botpress/logger'
+
 export type BuildInfo = {
   date: number
   branch: string
 }
 
+export type LogFormat = 'text' | 'json'
 export type NLUServerOptions = {
   host: string
   port: number
@@ -13,9 +16,10 @@ export type NLUServerOptions = {
   modelCacheSize: string
   dbURL?: string
   modelDir: string
-  verbose: number
   doc: boolean
-  logFilter?: string[]
+  logLevel: LogLevel
+  logFormat: LogFormat
+  debugFilter?: string
   apmEnabled?: boolean
   apmSampleRate?: number
   maxTraining: number
@@ -23,6 +27,7 @@ export type NLUServerOptions = {
   languageAuthToken?: string
   ducklingURL: string
   ducklingEnabled: boolean
+  usageURL?: string
 }
 
 export type CommandLineOptions = Partial<NLUServerOptions>

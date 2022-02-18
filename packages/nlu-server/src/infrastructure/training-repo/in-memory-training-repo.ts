@@ -5,9 +5,8 @@ import Bluebird from 'bluebird'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
-import { BaseTrainingRepository } from './base-training-repo'
 
-import { Training, TrainingId, TrainingState, TrainingRepository } from './typings'
+import { Training, TrainingId, TrainingState, TrainingRepository, TrainingListener } from './typings'
 
 const KEY_JOIN_CHAR = '\u2581'
 
@@ -18,16 +17,23 @@ type TrainEntry = TrainingState & { updatedOn: Date } & {
   dataset: TrainInput
 }
 
-export class InMemoryTrainingRepo extends BaseTrainingRepository implements TrainingRepository {
+export class InMemoryTrainingRepo implements TrainingRepository {
+  private _listeners: TrainingListener[] = []
   private _trainSessions: {
     [key: string]: TrainEntry
   } = {}
 
-  constructor(logger: Logger) {
-    super(logger.sub('training-repo'))
+  private _janitorIntervalId: NodeJS.Timeout | undefined
+
+  constructor(private _logger: Logger) {}
+
+  public addListener(listener: TrainingListener) {
+    this._listeners.push(listener)
   }
 
-  private _janitorIntervalId: NodeJS.Timeout | undefined
+  public removeListener(listenerToRemove: TrainingListener) {
+    _.remove(this._listeners, (listener) => listener === listenerToRemove)
+  }
 
   public async initialize(): Promise<void> {
     this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
@@ -57,7 +63,7 @@ export class InMemoryTrainingRepo extends BaseTrainingRepository implements Trai
   }
 
   public async set(training: Training): Promise<void> {
-    await super.set(training)
+    this._onTrainingEvent(training)
     const key = this._makeTrainingKey(training)
     this._trainSessions[key] = { ...training, updatedOn: new Date() }
   }
@@ -110,5 +116,14 @@ export class InMemoryTrainingRepo extends BaseTrainingRepository implements Trai
     const [stringId, appId] = key.split(KEY_JOIN_CHAR)
     const modelId = NLUEngine.modelIdService.fromString(stringId)
     return { modelId, appId }
+  }
+
+  private _onTrainingEvent(training: Training) {
+    this._listeners.forEach((listener) => {
+      // The await keyword isn't used to prevent a listener from blocking the training repo
+      listener(training).catch((e) =>
+        this._logger.attachError(e).error('an error occured in the training repository listener')
+      )
+    })
   }
 }

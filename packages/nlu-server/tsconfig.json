@@ -4,7 +4,8 @@
     { "path": "../distributed" },
     { "path": "../nlu-client" },
     { "path": "../nlu-engine" },
-    { "path": "../logger" }
+    { "path": "../logger" },
+    { "path": "../ptb-schema" }
   ],
   "compilerOptions": {
     "outDir": "./dist" /* Redirect output structure to the directory. */,

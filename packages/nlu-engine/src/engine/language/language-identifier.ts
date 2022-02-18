@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs'
 import _ from 'lodash'
 import tmp from 'tmp'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 import { Predictors } from '../predict-pipeline'
 
 const NA_LANG = 'n/a'

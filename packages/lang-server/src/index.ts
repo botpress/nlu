@@ -1,4 +1,4 @@
-import { centerText, LoggerLevel, Logger, makeLogger } from '@botpress/logger'
+import { centerText, Logger, TextFormatter, JSONFormatter, LogLevel } from '@botpress/logger'
 import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
 import chalk from 'chalk'
 import _ from 'lodash'
@@ -34,17 +34,18 @@ const wrapLogger = (logger: Logger): EngineLogger => {
 
 export const run: typeof types.run = async (argv: types.LangArgv) => {
   const options = getLangServerConfig(argv)
-  const baseLogger = makeLogger({
-    level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
-    filters: options.logFilter,
-    prefix: 'LANG'
+
+  const formatter = options.logFormat === 'json' ? new JSONFormatter() : new TextFormatter()
+  const baseLogger = new Logger('', {
+    level: options.logLevel,
+    filters: options.debugFilter ? { debug: options.debugFilter } : {},
+    prefix: 'LANG',
+    formatter
   })
 
   const launcherLogger = baseLogger.sub('Launcher')
-  // Launcher always display
   launcherLogger.configure({
-    level: LoggerLevel.Info,
-    filters: undefined
+    level: 'info' // Launcher always display
   })
 
   launcherLogger.debug('Language Server Options %o', options)

@@ -1,6 +1,7 @@
-import _bitfan, { DataSetDef, DocumentDef, UnsupervisedProblem, Result } from '@botpress/bitfan'
+import bitfan, { DataSetDef, DocumentDef, UnsupervisedProblem, Result } from '@botpress/bitfan'
 import chalk from 'chalk'
 import yn from 'yn'
+import { Args } from './typings'
 
 const orange = chalk.rgb(255, 150, 50)
 
@@ -17,15 +18,15 @@ const debugResults = (results: Result<'spell'>[]) => {
   }
 }
 
-export default function (bitfan: typeof _bitfan) {
-  const metrics = [bitfan.metrics.accuracy]
+export default function (_bitfan: typeof bitfan, args: Args) {
+  const metrics = [_bitfan.metrics.accuracy]
 
   return {
     name: 'bpds-spell',
 
     computePerformance: async () => {
-      const nluServerEndpoint = process.env.NLU_SERVER_ENDPOINT ?? 'http://localhost:3200'
-      const engine = bitfan.engines.makeBpSpellEngine(nluServerEndpoint)
+      const { nluServerEndpoint } = args
+      const engine = _bitfan.engines.makeBpSpellEngine(nluServerEndpoint)
 
       const trainFileDef: DocumentDef = {
         name: 'A-train',
@@ -46,12 +47,12 @@ export default function (bitfan: typeof _bitfan) {
       const problem: UnsupervisedProblem<'spell'> = {
         name: 'bpds A spelling',
         type: 'spell',
-        corpus: [await bitfan.datasets.readDocument(trainFileDef)],
-        testSet: await bitfan.datasets.readDataset(testFileDef),
+        corpus: [await _bitfan.datasets.readDocument(trainFileDef)],
+        testSet: await _bitfan.datasets.readDataset(testFileDef),
         lang: 'en'
       }
 
-      const results = await bitfan.runSolution(
+      const results = await _bitfan.runSolution(
         {
           name: 'bpds spelling',
           problems: [problem],
@@ -60,8 +61,8 @@ export default function (bitfan: typeof _bitfan) {
         [42]
       )
 
-      const performanceReport = bitfan.evaluateMetrics(results, metrics)
-      bitfan.visualisation.showPerformanceReport(performanceReport)
+      const performanceReport = _bitfan.evaluateMetrics(results, metrics)
+      _bitfan.visualisation.showPerformanceReport(performanceReport)
 
       yn(process.env.DEBUG_RESULTS) && debugResults(results)
 
@@ -70,9 +71,9 @@ export default function (bitfan: typeof _bitfan) {
 
     evaluatePerformance: (currentPerformance, previousPerformance) => {
       const toleranceByMetric = {
-        [bitfan.metrics.accuracy.name]: 0.02
+        [_bitfan.metrics.accuracy.name]: 0.02
       }
-      return bitfan.comparePerformances(currentPerformance, previousPerformance, { toleranceByMetric })
+      return _bitfan.comparePerformances(currentPerformance, previousPerformance, { toleranceByMetric })
     }
   }
 }
