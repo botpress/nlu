@@ -5,10 +5,6 @@ import PGPubSub from 'pg-pubsub'
 const CHANNELS = ['cancel_task', 'run_scheduler_interrupt', 'cancel_task_done'] as const
 type Channel = typeof CHANNELS[number]
 
-type PGQueueEventHandler<TId, C extends Channel> = (
-  data: PGQueueEventData<TId, C>
-) => Promise<'keep-listening' | 'stop-listening'>
-
 type CancelTaskError = {
   message: string
   stack?: string
@@ -25,45 +21,42 @@ type PGQueueEventData<TId, C extends Channel> = C extends 'run_scheduler_interru
 export class PGQueueEventObserver<TId, TInput, TData, TError> {
   constructor(private _pubsub: PGPubSub, private _queueId: string) {}
 
-  protected evEmitter = new EventEmitter2()
+  private _evEmitter = new EventEmitter2()
 
   public initialize = async (): Promise<void> => {
     await Bluebird.map(CHANNELS, (c: Channel) =>
-      this._pubsub.addChannel(this._channelId(c), (x) => this.evEmitter.emit(x))
+      this._pubsub.addChannel(this._pgChannelId(c), (x) => this._evEmitter.emit(c, x))
     )
   }
 
   public teardown = async (): Promise<void> => {
-    await Bluebird.map(CHANNELS, (c: Channel) => this._pubsub.removeChannel(this._channelId(c)))
+    await Bluebird.map(CHANNELS, (c: Channel) => this._pubsub.removeChannel(this._pgChannelId(c)))
   }
 
   public on<C extends Channel>(c: C, handler: (data: PGQueueEventData<TId, C>) => Promise<void>): void {
-    this.evEmitter.on(this._channelId(c), handler)
+    this._evEmitter.on(c, handler)
   }
 
   public off<C extends Channel>(c: C, handler: (data: PGQueueEventData<TId, C>) => Promise<void>): void {
-    this.evEmitter.off(this._channelId(c), handler)
+    this._evEmitter.off(c, handler)
   }
 
   public onceOrMore<C extends Channel>(
     c: C,
     handler: (data: PGQueueEventData<TId, C>) => Promise<'stay' | 'leave'>
   ): void {
-    const channelId = this._channelId(c)
-
     const cb = async (x: PGQueueEventData<TId, C>) => {
       const y = await handler(x)
       if (y === 'leave') {
-        this.evEmitter.off(channelId, cb)
+        this._evEmitter.off(c, cb)
       }
     }
-
-    this.evEmitter.on(channelId, cb)
+    this._evEmitter.on(c, cb)
   }
 
   public async emit<C extends Channel>(c: C, data: PGQueueEventData<TId, C>): Promise<void> {
-    return this._pubsub.publish(this._channelId(c), data)
+    return this._pubsub.publish(this._pgChannelId(c), data)
   }
 
-  private _channelId = (c: Channel) => `${this._queueId}:${c}`
+  private _pgChannelId = (c: Channel) => `${this._queueId}:${c}`
 }
