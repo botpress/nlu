@@ -1,15 +1,67 @@
 name: E2E
 on: [pull_request]
 jobs:
-  run_e2e:
-    name: Run e2e tests using binary executable file
+  fs:
+    name: Run e2e on file system
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '16.13.0'
+      - name: Fetch Node Packages
+        run: |
+          yarn --verbose
+      - name: Build
+        run: |
+          yarn build
+      - name: package
+        run: |
+          yarn package --linux
+      - name: Rename binary
+        id: rename_binary
+        run: |
+          bin_original_name=$(node -e "console.log(require('./scripts/utils/binary').getFileName())")
+          echo "Moving ./dist/$bin_original_name to ./nlu ..."
+          mv ./dist/$bin_original_name ./nlu
+      - name: Download language models
+        run: |
+          ./nlu lang download --lang en --dim 25
+      - name: Start Language Server
+        run: |
+          ./nlu lang --dim 25 &
+          echo "Lang Server started on pid $!"
+      - name: Sleep
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '15s'
+      - name: Run Tests
+        run: |
+          test_and_cleanup() {
+            yarn e2e --nlu-endpoint http://localhost:3200
+            kill -9 $1
+          }
+
+          ./nlu \
+            --verbose 0 \
+            --ducklingEnabled false \
+            --languageURL http://localhost:3100 \
+            --port 3200 >/dev/null &
+          nlu_pid=$!
+          echo "NLU Server started on pid $nlu_pid"
+
+          sleep 10s && (test_and_cleanup $nlu_pid)
+
+  db:
+    name: Run e2e on database
     runs-on: ubuntu-latest
     services:
       postgres:
         # Docker Hub image
         image: postgres
         env:
-          POSTGRES_DB: botpress-nlu
+          POSTGRES_DB: botpress-nlu-1
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
           POSTGRES_PORT: 5432
@@ -53,24 +105,8 @@ jobs:
         uses: jakejarvis/wait-action@master
         with:
           time: '15s'
-      - name: Run Tests on File System
-        run: |
-          test_and_cleanup() {
-            yarn e2e --nlu-endpoint http://localhost:3200
-            kill -9 $1
-          }
 
-          ./nlu \
-            --verbose 0 \
-            --ducklingEnabled false \
-            --languageURL http://localhost:3100 \
-            --port 3200 >/dev/null &
-          nlu_pid=$!
-          echo "NLU Server started on pid $nlu_pid"
-
-          sleep 10s && (test_and_cleanup $nlu_pid)
-
-      - name: Run Tests on Database
+      - name: Run Tests
         run: |
           test_and_cleanup() {
             yarn e2e --nlu-endpoint http://localhost:3200
@@ -82,13 +118,66 @@ jobs:
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3200 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu >/dev/null & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-1 >/dev/null & \
           nlu_pid=$!
           echo "NLU Server started on pid $nlu_pid"
 
           sleep 10s && sleep 10s && (test_and_cleanup $nlu_pid)
 
-      - name: Run Tests on distributed Cluster
+  cluster:
+    name: Run e2e on distributed cluster
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # Docker Hub image
+        image: postgres
+        env:
+          POSTGRES_DB: botpress-nlu-2
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PORT: 5432
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '16.13.0'
+      - name: Fetch Node Packages
+        run: |
+          yarn --verbose
+      - name: Build
+        run: |
+          yarn build
+      - name: package
+        run: |
+          yarn package --linux
+      - name: Rename binary
+        id: rename_binary
+        run: |
+          bin_original_name=$(node -e "console.log(require('./scripts/utils/binary').getFileName())")
+          echo "Moving ./dist/$bin_original_name to ./nlu ..."
+          mv ./dist/$bin_original_name ./nlu
+      - name: Download language models
+        run: |
+          ./nlu lang download --lang en --dim 25
+      - name: Start Language Server
+        run: |
+          ./nlu lang --dim 25 &
+          echo "Lang Server started on pid $!"
+      - name: Sleep
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '15s'
+
+      - name: Run Tests
         run: |
           test_and_cleanup() {
             yarn e2e --nlu-endpoint http://localhost:3201
@@ -106,7 +195,7 @@ jobs:
             --maxLinting 0 \
             --languageURL http://localhost:3100 \
             --port 3201 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu >/dev/null & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 >/dev/null & \
           nlu_pid1=$!
           echo "NLU Server started on pid $nlu_pid1"
 
@@ -115,7 +204,7 @@ jobs:
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3202 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu >/dev/null & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 >/dev/null & \
           nlu_pid2=$!
           echo "NLU Server started on pid $nlu_pid2"
 
