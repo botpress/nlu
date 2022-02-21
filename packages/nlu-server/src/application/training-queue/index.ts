@@ -84,12 +84,13 @@ export class PgTrainingQueue extends TrainingQueue {
     const trainTaskRepo = new TrainTaskRepo(trainingRepo)
     const trainHandler = new TrainHandler(engine, modelRepo, trainingLogger)
 
-    const options = opt.maxTraining
-      ? {
-          ...TASK_OPTIONS,
-          maxTasks: opt.maxTraining
-        }
-      : TASK_OPTIONS
+    const options =
+      opt.maxTraining === undefined
+        ? TASK_OPTIONS
+        : {
+            ...TASK_OPTIONS,
+            maxTasks: opt.maxTraining
+          }
 
     const taskQueue = new q.PGDistributedTaskQueue(
       pgURL,

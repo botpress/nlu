@@ -236,9 +236,7 @@ You can increase your cache size by the CLI or config.
       specifications: this._engine.getSpecifications()
     })
 
-    // unhandled promise to return asap
     await this._lintingQueue.queueLinting(appId, modelId, trainInput)
-
     return modelId
   }
 

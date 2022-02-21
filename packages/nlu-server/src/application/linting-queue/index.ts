@@ -104,12 +104,13 @@ export class LocalLintingQueue extends LintingQueue {
     const lintingLogger = baseLogger.sub(LINTING_PREFIX)
     const lintHandler = new LintHandler(engine, lintingLogger)
 
-    const options = opt.maxLinting
-      ? {
-          ...TASK_OPTIONS,
-          maxTasks: opt.maxLinting
-        }
-      : TASK_OPTIONS
+    const options =
+      opt.maxLinting === undefined
+        ? TASK_OPTIONS
+        : {
+            ...TASK_OPTIONS,
+            maxTasks: opt.maxLinting
+          }
 
     const taskQueue = new q.LocalTaskQueue(lintTaskRepo, lintHandler, lintingLogger, idToString, options)
     super(taskQueue, lintingLogger)
