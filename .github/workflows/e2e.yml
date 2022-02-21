@@ -55,35 +55,46 @@ jobs:
           time: '15s'
       - name: Run Tests on File System
         run: |
+          test_and_cleanup() {
+            yarn e2e --nlu-endpoint http://localhost:3201
+            kill -9 $1
+          }
+
           ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
-            --port 3200 &
+            --port 3200 >/dev/null &
           nlu_pid=$!
           echo "NLU Server started on pid $nlu_pid"
 
-          sleep 10s && \
-          yarn e2e --nlu-endpoint http://localhost:3200 && \
-          kill -9 $nlu_pid
+          sleep 10s && (test_and_cleanup $nlu_pid)
 
       - name: Run Tests on Database
         run: |
+          test_and_cleanup() {
+            yarn e2e --nlu-endpoint http://localhost:3201
+            kill -9 $1
+          }
+
           ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3200 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu >/dev/null & \
           nlu_pid=$!
           echo "NLU Server started on pid $nlu_pid"
 
-          sleep 10s && \
-          yarn e2e --nlu-endpoint http://localhost:3200 && \
-          kill -9 $nlu_pid
+          sleep 10s && sleep 10s && (test_and_cleanup $nlu_pid)
 
       - name: Run Tests on distributed Cluster
         run: |
+          test_and_cleanup() {
+            yarn e2e --nlu-endpoint http://localhost:3201
+            kill -9 $1
+            kill -9 $2
+          }
 
           # we start an instance of nlu-server on port 3201 that receive HTTP calls but is not allowed to train
           # this way we make sure trainings are launched on the second instance, which listens on port 3202
@@ -95,7 +106,7 @@ jobs:
             --maxLinting 0 \
             --languageURL http://localhost:3100 \
             --port 3201 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu >/dev/null & \
           nlu_pid1=$!
           echo "NLU Server started on pid $nlu_pid1"
 
@@ -104,11 +115,8 @@ jobs:
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3202 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu >/dev/null & \
           nlu_pid2=$!
           echo "NLU Server started on pid $nlu_pid2"
 
-          sleep 10s && \
-          yarn e2e --nlu-endpoint http://localhost:3201 && \
-          kill -9 $nlu_pid1
-          kill -9 $nlu_pid2
+          sleep 10s && (test_and_cleanup $nlu_pid1 $nlu_pid2)
