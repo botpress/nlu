@@ -2,7 +2,7 @@ import { Logger } from '@botpress/logger'
 import { TrainingErrorType } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
-import { ModelRepository } from '../../infrastructure'
+import { ModelRepository, TrainingId } from '../../infrastructure'
 import { idToString, MIN_TRAINING_HEARTBEAT } from '.'
 import { TerminatedTrainTask, TrainTask, TrainTaskProgress, TrainTaskRunner } from './typings'
 
@@ -73,7 +73,7 @@ export class TrainHandler implements TrainTaskRunner {
     }
   }
 
-  public cancel(task: TrainTask): Promise<void> {
+  public cancel(task: TrainingId): Promise<void> {
     const trainKey = idToString(task)
     return this.engine.cancelTraining(trainKey)
   }

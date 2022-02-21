@@ -4,7 +4,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import { nanoid } from 'nanoid'
 
-import { TaskAlreadyStartedError, TaskNotFoundError } from './errors'
+import { TaskAlreadyStartedError } from './errors'
 import { createTimer, InterruptTimer } from './interrupt'
 import {
   Task,
@@ -18,16 +18,16 @@ import {
   TaskQueue as ITaskQueue
 } from './typings'
 
-export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId, TInput, TData, TError> {
+export abstract class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId, TInput, TData, TError> {
   private _schedulingTimmer!: InterruptTimer<[]>
   protected _clusterId: string = nanoid()
 
   constructor(
     protected _taskRepo: SafeTaskRepository<TId, TInput, TData, TError>,
-    private _taskRunner: TaskRunner<TId, TInput, TData, TError>,
-    private _logger: Logger,
-    private _idToString: (id: TId) => string,
-    private _options: QueueOptions<TId, TInput, TData, TError>
+    protected _taskRunner: TaskRunner<TId, TInput, TData, TError>,
+    protected _logger: Logger,
+    protected _idToString: (id: TId) => string,
+    protected _options: QueueOptions<TId, TInput, TData, TError>
   ) {}
 
   public async initialize() {
@@ -68,35 +68,15 @@ export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId
     void this.runSchedulerInterrupt()
   }
 
-  public async cancelTask(taskId: TId): Promise<void> {
-    const taskKey = this._idToString(taskId)
-    return this._taskRepo.inTransaction(async (repo) => {
-      const currentTask = await repo.get(taskId)
-      if (!currentTask) {
-        throw new TaskNotFoundError(taskKey)
-      }
-
-      const zombieTasks = await this._getZombies(repo)
-      const isZombie = !!zombieTasks.find((t) => this._idToString(t) === taskKey)
-
-      if (currentTask.status === 'pending' || isZombie) {
-        const newTask = { ...currentTask, status: <TaskStatus>'canceled' }
-        return repo.set(newTask)
-      }
-
-      if (currentTask.cluster !== this._clusterId) {
-        this._logger.debug(`Task "${taskId}" was not launched on this instance`)
-        return
-      }
-
-      if (currentTask.status === 'running') {
-        return this._taskRunner.cancel(currentTask)
-      }
-    }, 'cancelTask')
-  }
+  public abstract cancelTask(taskId: TId): Promise<void>
 
   protected async runSchedulerInterrupt() {
-    return this._schedulingTimmer.run()
+    try {
+      return this._schedulingTimmer.run()
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      this._logger.attachError(err).error('An error occured when running scheduler interrupt.')
+    }
   }
 
   private _runSchedulerInterrupt = async () => {
@@ -168,7 +148,7 @@ export class BaseTaskQueue<TId, TInput, TData, TError> implements ITaskQueue<TId
     }
   }
 
-  private _getZombies = (repo: TaskRepository<TId, TInput, TData, TError>) => {
+  protected _getZombies = (repo: TaskRepository<TId, TInput, TData, TError>) => {
     const zombieThreshold = moment().subtract(this._options.maxProgressDelay, 'ms').toDate()
     return repo.queryOlderThan({ status: 'running' }, zombieThreshold)
   }

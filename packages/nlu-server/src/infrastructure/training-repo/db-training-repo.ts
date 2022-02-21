@@ -5,7 +5,7 @@ import { Knex } from 'knex'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
-import { createTableIfNotExists } from '../../utils/database'
+import { createTableIfNotExists } from '../database-utils'
 import { packTrainSet, unpackTrainSet } from '../dataset-serializer'
 import { Training, TrainingId, TrainingState, TrainingRepository, TrainingListener } from './typings'
 
