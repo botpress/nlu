@@ -56,7 +56,7 @@ jobs:
       - name: Run Tests on File System
         run: |
           test_and_cleanup() {
-            yarn e2e --nlu-endpoint http://localhost:3201
+            yarn e2e --nlu-endpoint http://localhost:3200
             kill -9 $1
           }
 
@@ -73,7 +73,7 @@ jobs:
       - name: Run Tests on Database
         run: |
           test_and_cleanup() {
-            yarn e2e --nlu-endpoint http://localhost:3201
+            yarn e2e --nlu-endpoint http://localhost:3200
             kill -9 $1
           }
 
