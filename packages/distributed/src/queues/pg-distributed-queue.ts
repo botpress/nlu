@@ -5,6 +5,7 @@ import PGPubSub from 'pg-pubsub'
 import { PGTransactionLocker } from '../locks'
 import { TaskNotFoundError } from '.'
 import { BaseTaskQueue } from './base-queue'
+import { TaskNotRunning } from './errors'
 import { PGQueueEventObserver } from './pg-event-observer'
 import { SafeTaskRepo } from './safe-repo'
 import { TaskRunner, TaskRepository, QueueOptions, TaskQueue as ITaskQueue, TaskStatus } from './typings'
@@ -34,7 +35,7 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
     taskRepo: TaskRepository<TId, TInput, TData, TError>,
     logger: Logger
   ) {
-    const logCb = (msg: string) => logger.sub('pg-task-queue').debug(msg)
+    const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)
     return new SafeTaskRepo(taskRepo, new PGTransactionLocker(pgURL, logCb))
   }
 
@@ -49,25 +50,27 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
     const taskKey = this._idToString(taskId)
 
     return this._taskRepo.inTransaction(async (repo) => {
+      await this._queueBackZombies(repo)
+
       const currentTask = await this._taskRepo.get(taskId)
       if (!currentTask) {
         throw new TaskNotFoundError(taskKey)
       }
+      if (!this._isCancelable(currentTask)) {
+        throw new TaskNotRunning(taskKey)
+      }
 
-      const zombieTasks = await this._getZombies(repo)
-      const isZombie = !!zombieTasks.find((t) => this._idToString(t) === taskKey)
-
-      if (currentTask.status === 'pending' || isZombie) {
+      if (currentTask.status === 'pending' || currentTask.status === 'zombie') {
         const newTask = { ...currentTask, status: <TaskStatus>'canceled' }
         return repo.set(newTask)
       }
 
-      if (currentTask.cluster === this._clusterId && currentTask.status === 'running') {
+      if (currentTask.cluster === this._clusterId) {
         return this._taskRunner.cancel(currentTask)
       }
 
       this._logger.debug(`Task "${taskId}" was not launched on this instance`)
-      return Bluebird.race([
+      await Bluebird.race([
         this._cancelAndWaitForResponse(taskId, currentTask.cluster),
         this._timeoutTaskCancelation(DISTRIBUTED_CANCEL_TIMEOUT_DELAY)
       ])

@@ -62,7 +62,7 @@ export abstract class LintingQueue {
       const lintId: LintingId = { appId, modelId }
       await this.taskQueue.cancelTask(lintId)
     } catch (thrown) {
-      if (thrown instanceof q.TaskNotFoundError) {
+      if (thrown instanceof q.TaskNotFoundError || thrown instanceof q.TaskNotRunning) {
         throw new LintingNotFoundError(appId, modelId)
       }
       throw thrown

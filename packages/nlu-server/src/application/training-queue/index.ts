@@ -63,7 +63,7 @@ export abstract class TrainingQueue {
     try {
       await this.taskQueue.cancelTask({ modelId, appId })
     } catch (thrown) {
-      if (thrown instanceof q.TaskNotFoundError) {
+      if (thrown instanceof q.TaskNotFoundError || thrown instanceof q.TaskNotRunning) {
         throw new TrainingNotFoundError(appId, modelId)
       }
       throw thrown

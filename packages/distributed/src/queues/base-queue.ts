@@ -31,6 +31,7 @@ export abstract class BaseTaskQueue<TId, TInput, TData, TError> implements ITask
   ) {}
 
   public async initialize() {
+    this._logger.debug(`cluster id: "${this._clusterId}"`)
     await this._taskRepo.initialize()
     this._schedulingTimmer = createTimer(this._runSchedulerInterrupt.bind(this), this._options.maxProgressDelay * 2)
   }
@@ -81,18 +82,14 @@ export abstract class BaseTaskQueue<TId, TInput, TData, TError> implements ITask
 
   private _runSchedulerInterrupt = async () => {
     return this._taskRepo.inTransaction(async (repo) => {
+      await this._queueBackZombies(repo)
+
       const localTasks = await repo.query({ cluster: this._clusterId, status: 'running' })
       if (localTasks.length >= this._options.maxTasks) {
+        this._logger.debug(
+          `[${this._clusterId}/${this._options.queueId}] max allowed of task already launched in queue.`
+        )
         return
-      }
-
-      const zombieTasks = await this._getZombies(repo)
-      if (zombieTasks.length) {
-        this._logger.debug(`Queuing back ${zombieTasks.length} tasks because they seem to be zombies.`)
-
-        const progress = this._options.initialProgress
-        const newState = { status: <TaskStatus>'zombie', cluster: this._clusterId, progress }
-        await Bluebird.each(zombieTasks, (z) => repo.set({ ...z, ...newState }))
       }
 
       const pendings = await repo.query({ status: 'pending' })
@@ -102,10 +99,10 @@ export abstract class BaseTaskQueue<TId, TInput, TData, TError> implements ITask
 
       const task = pendings[0]
       task.status = 'running'
-
+      task.cluster = this._clusterId
       await repo.set(task)
 
-      // floating promise to return fast from scheduler interrupt
+      // floating promise to return fast from scheduler interrupt and to prevent deadlock
       void this._runTask(task)
     }, '_runSchedulerInterrupt')
   }
@@ -115,9 +112,7 @@ export abstract class BaseTaskQueue<TId, TInput, TData, TError> implements ITask
     this._logger.debug(`task "${taskKey}" is about to start.`)
 
     const updateTask = _.throttle(async () => {
-      await this._taskRepo.inTransaction(async (repo) => {
-        return repo.set(task)
-      }, 'progressCallback')
+      await this._taskRepo.inTransaction((repo) => repo.set(task), 'progressCallback')
     }, this._options.progressThrottle)
 
     try {
@@ -133,9 +128,7 @@ export abstract class BaseTaskQueue<TId, TInput, TData, TError> implements ITask
       updateTask.flush()
 
       if (terminatedTask) {
-        await this._taskRepo.inTransaction(async (repo) => {
-          return repo.set(terminatedTask)
-        }, '_task_terminated')
+        await this._taskRepo.inTransaction((repo) => repo.set(terminatedTask), '_task_terminated')
       }
     } catch (thrown) {
       updateTask.flush()
@@ -148,8 +141,20 @@ export abstract class BaseTaskQueue<TId, TInput, TData, TError> implements ITask
     }
   }
 
-  protected _getZombies = (repo: TaskRepository<TId, TInput, TData, TError>) => {
+  protected _queueBackZombies = async (repo: TaskRepository<TId, TInput, TData, TError>) => {
     const zombieThreshold = moment().subtract(this._options.maxProgressDelay, 'ms').toDate()
-    return repo.queryOlderThan({ status: 'running' }, zombieThreshold)
+    const newZombies = await repo.queryOlderThan({ status: 'running' }, zombieThreshold)
+    if (newZombies.length) {
+      this._logger.debug(`Queuing back ${newZombies.length} tasks because they seem to be zombies.`)
+
+      const progress = this._options.initialProgress
+      const newState = { status: <TaskStatus>'zombie', cluster: this._clusterId, progress }
+      await Bluebird.each(newZombies, (z) => repo.set({ ...z, ...newState }))
+    }
+  }
+
+  protected _isCancelable = (task: Task<TId, TInput, TData, TError>) => {
+    const cancellableStatus: TaskStatus[] = ['running', 'pending', 'zombie']
+    return cancellableStatus.includes(task.status)
   }
 }

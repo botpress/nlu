@@ -4,6 +4,7 @@ import { InMemoryTransactionLocker } from '../locks'
 import { TaskNotFoundError } from '.'
 import { BaseTaskQueue } from './base-queue'
 
+import { TaskNotRunning } from './errors'
 import { SafeTaskRepo } from './safe-repo'
 import { TaskRunner, TaskRepository, QueueOptions, TaskQueue as ITaskQueue, TaskStatus } from './typings'
 
@@ -17,7 +18,7 @@ export class LocalTaskQueue<TId, TInput, TData, TError>
     idToString: (id: TId) => string,
     opt: QueueOptions<TId, TInput, TData, TError>
   ) {
-    const logCb = (msg: string) => logger.sub('local-task-queue').debug(msg)
+    const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)
     const safeRepo = new SafeTaskRepo(taskRepo, new InMemoryTransactionLocker(logCb))
     super(safeRepo, taskRunner, logger, idToString, opt)
   }
@@ -25,22 +26,21 @@ export class LocalTaskQueue<TId, TInput, TData, TError>
   public cancelTask(taskId: TId): Promise<void> {
     const taskKey = this._idToString(taskId)
     return this._taskRepo.inTransaction(async (repo) => {
+      await this._queueBackZombies(repo)
+
       const currentTask = await repo.get(taskId)
       if (!currentTask) {
         throw new TaskNotFoundError(taskKey)
       }
+      if (!this._isCancelable(currentTask)) {
+        throw new TaskNotRunning(taskKey)
+      }
 
-      const zombieTasks = await this._getZombies(repo)
-      const isZombie = !!zombieTasks.find((t) => this._idToString(t) === taskKey)
-
-      if (currentTask.status === 'pending' || isZombie) {
+      if (currentTask.status === 'pending' || currentTask.status === 'zombie') {
         const newTask = { ...currentTask, status: <TaskStatus>'canceled' }
         return repo.set(newTask)
       }
-
-      if (currentTask.status === 'running') {
-        return this._taskRunner.cancel(currentTask)
-      }
+      return this._taskRunner.cancel(currentTask)
     }, 'cancelTask')
   }
 }
