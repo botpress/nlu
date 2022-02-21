@@ -1,6 +1,7 @@
 import ms from 'ms'
 import { AssertionArgs, Test } from 'src/typings'
 import {
+  assertCancelTrainingFails,
   assertModelsInclude,
   assertModelsPrune,
   assertPredictionFails,
@@ -22,6 +23,8 @@ export const modelLifecycleTest: Test = {
     logger.info(`Running test: ${NAME}`)
     const modelLifecycleLogger = logger.sub(NAME)
     const modelLifecycleArgs = { ...args, logger: modelLifecycleLogger }
+
+    await assertCancelTrainingFails(modelLifecycleArgs, 'my-model-id-lol', 'training_not_found')
 
     let clinc150_42_modelId = await assertTrainingStarts(modelLifecycleArgs, clinc50_42_dataset)
 

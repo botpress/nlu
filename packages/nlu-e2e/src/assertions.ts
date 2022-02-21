@@ -170,6 +170,23 @@ export const assertQueueTrainingFails = async (
   chai.expect(error.type).to.equal(expectedError)
 }
 
+export const assertCancelTrainingFails = async (
+  args: AssertionArgs,
+  modelId: string,
+  expectedError: http.ErrorType
+): Promise<void> => {
+  const { client, logger, appId } = args
+  logger.debug('assert cancel training fails')
+
+  const cancelRes = await client.cancelTraining(appId, modelId)
+  if (cancelRes.success) {
+    throw new Error(`Expected training cancel to fail with error: "${expectedError}"`)
+  }
+
+  const { error } = cancelRes
+  chai.expect(error.type).to.equal(expectedError)
+}
+
 export const assertTrainingCancels = async (args: AssertionArgs, modelId: string): Promise<void> => {
   const { client, logger, appId } = args
   logger.debug('assert training cancels')
