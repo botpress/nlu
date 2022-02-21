@@ -91,8 +91,8 @@ jobs:
           ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
-            --maxTraining 0 # no trainings
-            --maxLinting 0 # no lintings
+            --maxTraining 0 \
+            --maxLinting 0 \
             --languageURL http://localhost:3100 \
             --port 3201 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu & \
