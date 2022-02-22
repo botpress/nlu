@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v2.1.0
       - uses: actions/checkout@v2.1.0
         with:
-          repository: botpress/actions
+          repository: botpress/gh-actions
           token: ${{ secrets.PAT }}
           path: '@actions'
       - uses: ./@actions/build/docker
