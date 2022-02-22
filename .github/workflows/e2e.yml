@@ -42,7 +42,7 @@ jobs:
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
-            --port 3200 >/dev/null &
+            --port 3200  &
           nlu_pid=$!
           echo "NLU Server started on pid $nlu_pid"
 
@@ -108,7 +108,7 @@ jobs:
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3201 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-1 >/dev/null & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-1  & \
           nlu_pid=$!
           echo "NLU Server started on pid $nlu_pid"
 
@@ -180,7 +180,7 @@ jobs:
             --maxLinting 0 \
             --languageURL http://localhost:3100 \
             --port 3202 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 >/dev/null & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 & \
           nlu_pid1=$!
           echo "NLU Server started on pid $nlu_pid1"
 
@@ -189,7 +189,7 @@ jobs:
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3203 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 >/dev/null & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 & \
           nlu_pid2=$!
           echo "NLU Server started on pid $nlu_pid2"
 
