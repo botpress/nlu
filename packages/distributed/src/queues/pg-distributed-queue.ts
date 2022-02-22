@@ -79,12 +79,6 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
 
   private _cancelAndWaitForResponse = (taskId: TId, clusterId: string): Promise<void> =>
     new Promise(async (resolve, reject) => {
-      console.log(
-        `############## ${new Date().toISOString()} [${
-          this._clusterId
-        }] Sending cancel_task ################################`
-      )
-      await this._obs.emit('cancel_task', { taskId, clusterId })
       this._obs.onceOrMore('cancel_task_done', async (response) => {
         console.log(
           `############## ${new Date().toISOString()} [${
@@ -107,6 +101,12 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
         resolve()
         return 'leave'
       })
+      console.log(
+        `############## ${new Date().toISOString()} [${
+          this._clusterId
+        }] Sending cancel_task ################################`
+      )
+      await this._obs.emit('cancel_task', { taskId, clusterId })
     })
 
   private _timeoutTaskCancelation = (ms: number): Promise<never> =>
