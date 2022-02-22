@@ -36,7 +36,7 @@ jobs:
         uses: jakejarvis/wait-action@master
         with:
           time: '15s'
-      - name: Run Tests
+      - name: Start NLU Server
         run: |
           ./nlu \
             --verbose 0 \
@@ -45,8 +45,13 @@ jobs:
             --port 3200  &
           nlu_pid=$!
           echo "NLU Server started on pid $nlu_pid"
-
-          sleep 15s && yarn e2e --nlu-endpoint http://localhost:3200
+      - name: Sleep
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '15s'
+      - name: Run Tests
+        run: |
+          yarn e2e --nlu-endpoint http://localhost:3200
 
   db:
     name: database
@@ -100,19 +105,23 @@ jobs:
         uses: jakejarvis/wait-action@master
         with:
           time: '15s'
-
-      - name: Run Tests
+      - name: Start NLU Server
         run: |
           ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3201 \
-            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-1  & \
+            --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-1 & \
           nlu_pid=$!
           echo "NLU Server started on pid $nlu_pid"
-
-          sleep 15s && yarn e2e --nlu-endpoint http://localhost:3201
+      - name: Sleep
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '15s'
+      - name: Run Tests
+        run: |
+          yarn e2e --nlu-endpoint http://localhost:3201
 
   cluster:
     name: cluster
@@ -167,12 +176,8 @@ jobs:
         with:
           time: '15s'
 
-      - name: Run Tests
+      - name: Start First NLU Server on port 3202
         run: |
-
-          # we start an instance of nlu-server on port 3201 that receive HTTP calls but is not allowed to train
-          # this way we make sure trainings are launched on the second instance, which listens on port 3202
-
           ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
@@ -184,6 +189,13 @@ jobs:
           nlu_pid1=$!
           echo "NLU Server started on pid $nlu_pid1"
 
+      - name: Sleep
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '5s'
+
+      - name: Start Second NLU Server on port 3203
+        run: |
           ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
@@ -193,4 +205,11 @@ jobs:
           nlu_pid2=$!
           echo "NLU Server started on pid $nlu_pid2"
 
-          sleep 15s && yarn e2e --nlu-endpoint http://localhost:3202
+      - name: Sleep
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '15s'
+
+      - name: Run Tests
+        run: |
+          yarn e2e --nlu-endpoint http://localhost:3202
