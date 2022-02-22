@@ -79,12 +79,14 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
 
   private _cancelAndWaitForResponse = (taskId: TId, clusterId: string): Promise<void> =>
     new Promise(async (resolve, reject) => {
+      console.log(`############## [${this._clusterId}] Sending cancel_task ################################`)
       await this._obs.emit('cancel_task', { taskId, clusterId })
       this._obs.onceOrMore('cancel_task_done', async (response) => {
         if (this._idToString(response.taskId) !== this._idToString(taskId)) {
           return 'stay' // canceled task is not the one we're waiting for
         }
 
+        console.log(`############## [${this._clusterId}] Receiving cancel_task_done #########################`)
         if (response.err) {
           const { message, stack } = response.err
           const err = new Error(message)
@@ -108,11 +110,17 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
       return // message was not adressed to this instance
     }
 
+    console.log(`############## [${this._clusterId}] Receiving cancel_task ##############################`)
+
     try {
       await this._taskRunner.cancel(taskId)
+
+      console.log(`############## [${this._clusterId}] Sending cancel_task_done with success ##############`)
       await this._obs.emit('cancel_task_done', { taskId })
     } catch (thrown) {
       const { message, stack } = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+
+      console.log(`############## [${this._clusterId}] Sending cancel_task_done with error ################`)
       await this._obs.emit('cancel_task_done', { taskId, err: { message, stack } })
     }
   }
