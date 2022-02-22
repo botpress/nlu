@@ -33,13 +33,35 @@ export type LogTransporter = {
   send(config: LoggerConfig, entry: FormattedLogEntry): Promise<void> | void
 }
 
+type RGBColor = [number, number, number]
+type BuiltinColors =
+  | 'black'
+  | 'red'
+  | 'green'
+  | 'yellow'
+  | 'blue'
+  | 'magenta'
+  | 'cyan'
+  | 'white'
+  | 'gray'
+  | 'grey'
+  | 'blackBright'
+  | 'redBright'
+  | 'greenBright'
+  | 'yellowBright'
+  | 'blueBright'
+  | 'magentaBright'
+  | 'cyanBright'
+  | 'whiteBright'
+type Color = RGBColor | BuiltinColors
+
 export type LoggerConfig = {
   level: LogLevel
   formatter: LogEntryFormatter
   transports: LogTransporter[]
   timeFormat: string // moment time format
   namespaceDelimiter: string
-  colors: Record<LogLevel, string>
+  colors: Record<LogLevel, Color>
   indent: boolean
   filters: Partial<Record<LogLevel, string>>
   prefix: string
