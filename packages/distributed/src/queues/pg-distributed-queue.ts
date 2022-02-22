@@ -80,12 +80,6 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
   private _cancelAndWaitForResponse = (taskId: TId, clusterId: string): Promise<void> =>
     new Promise(async (resolve, reject) => {
       this._obs.onceOrMore('cancel_task_done', async (response) => {
-        console.log(
-          `############## ${new Date().toISOString()} [${
-            this._clusterId
-          }] Receiving cancel_task_done #########################`
-        )
-        console.log(this._idToString(response.taskId), this._idToString(taskId))
         if (this._idToString(response.taskId) !== this._idToString(taskId)) {
           return 'stay' // canceled task is not the one we're waiting for
         }
@@ -101,29 +95,12 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
         resolve()
         return 'leave'
       })
-      console.log(
-        `############## ${new Date().toISOString()} [${
-          this._clusterId
-        }] Sending cancel_task ################################`
-      )
       await this._obs.emit('cancel_task', { taskId, clusterId })
     })
 
   private _timeoutTaskCancelation = (ms: number): Promise<never> =>
     new Promise((_resolve, reject) => {
-      console.log(
-        `############## ${new Date().toISOString()} [${
-          this._clusterId
-        }] Start Timer ########################################`
-      )
-      setTimeout(() => {
-        console.log(
-          `############## ${new Date().toISOString()} [${
-            this._clusterId
-          }] Stop Timer #########################################`
-        )
-        reject(new Error(`Canceling operation took more than ${ms} ms`))
-      }, ms)
+      setTimeout(() => reject(new Error(`Canceling operation took more than ${ms} ms`)), ms)
     })
 
   private _handleCancelTaskEvent = async (taskId: TId, clusterId: string) => {
@@ -131,29 +108,11 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
       return // message was not adressed to this instance
     }
 
-    console.log(
-      `############## ${new Date().toISOString()} [${
-        this._clusterId
-      }] Receiving cancel_task ##############################`
-    )
-
     try {
       await this._taskRunner.cancel(taskId)
-
-      console.log(
-        `############## ${new Date().toISOString()} [${
-          this._clusterId
-        }] Sending cancel_task_done with success ##############`
-      )
       await this._obs.emit('cancel_task_done', { taskId })
     } catch (thrown) {
       const { message, stack } = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-
-      console.log(
-        `############## ${new Date().toISOString()} [${
-          this._clusterId
-        }] Sending cancel_task_done with error ################`
-      )
       await this._obs.emit('cancel_task_done', { taskId, err: { message, stack } })
     }
   }
