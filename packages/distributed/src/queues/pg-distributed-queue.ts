@@ -86,15 +86,16 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
       )
       await this._obs.emit('cancel_task', { taskId, clusterId })
       this._obs.onceOrMore('cancel_task_done', async (response) => {
-        if (this._idToString(response.taskId) !== this._idToString(taskId)) {
-          return 'stay' // canceled task is not the one we're waiting for
-        }
-
         console.log(
           `############## ${new Date().toISOString()} [${
             this._clusterId
           }] Receiving cancel_task_done #########################`
         )
+        console.log(this._idToString(response.taskId), this._idToString(taskId))
+        if (this._idToString(response.taskId) !== this._idToString(taskId)) {
+          return 'stay' // canceled task is not the one we're waiting for
+        }
+
         if (response.err) {
           const { message, stack } = response.err
           const err = new Error(message)
