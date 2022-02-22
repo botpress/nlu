@@ -80,7 +80,9 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
   private _cancelAndWaitForResponse = (taskId: TId, clusterId: string): Promise<void> =>
     new Promise(async (resolve, reject) => {
       console.log(
-        `############## ${new Date()} [${this._clusterId}] Sending cancel_task ################################`
+        `############## ${new Date().toISOString()} [${
+          this._clusterId
+        }] Sending cancel_task ################################`
       )
       await this._obs.emit('cancel_task', { taskId, clusterId })
       this._obs.onceOrMore('cancel_task_done', async (response) => {
@@ -89,7 +91,9 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
         }
 
         console.log(
-          `############## ${new Date()} [${this._clusterId}] Receiving cancel_task_done #########################`
+          `############## ${new Date().toISOString()} [${
+            this._clusterId
+          }] Receiving cancel_task_done #########################`
         )
         if (response.err) {
           const { message, stack } = response.err
@@ -115,21 +119,27 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
     }
 
     console.log(
-      `############## ${new Date()} [${this._clusterId}] Receiving cancel_task ##############################`
+      `############## ${new Date().toISOString()} [${
+        this._clusterId
+      }] Receiving cancel_task ##############################`
     )
 
     try {
       await this._taskRunner.cancel(taskId)
 
       console.log(
-        `############## ${new Date()} [${this._clusterId}] Sending cancel_task_done with success ##############`
+        `############## ${new Date().toISOString()} [${
+          this._clusterId
+        }] Sending cancel_task_done with success ##############`
       )
       await this._obs.emit('cancel_task_done', { taskId })
     } catch (thrown) {
       const { message, stack } = thrown instanceof Error ? thrown : new Error(`${thrown}`)
 
       console.log(
-        `############## ${new Date()} [${this._clusterId}] Sending cancel_task_done with error ################`
+        `############## ${new Date().toISOString()} [${
+          this._clusterId
+        }] Sending cancel_task_done with error ################`
       )
       await this._obs.emit('cancel_task_done', { taskId, err: { message, stack } })
     }
