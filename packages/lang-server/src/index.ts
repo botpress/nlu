@@ -10,6 +10,7 @@ import DownloadManager from './application/download-manager'
 import { getLangServerConfig } from './config'
 import { requireJSON } from './require-json'
 import * as types from './typings'
+import { listenForUncaughtErrors } from './uncaught-errors'
 
 const packageJsonPath = path.resolve(__dirname, '../package.json')
 const packageJson = requireJSON<{ version: string }>(packageJsonPath)
@@ -126,4 +127,6 @@ ${_.repeat(' ', 9)}========================================`)
     adminToken
   })
   await Promise.all([API(apiOptions, baseLogger, langApplication), langApplication.initialize()])
+
+  listenForUncaughtErrors(baseLogger)
 }

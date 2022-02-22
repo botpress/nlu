@@ -11,7 +11,7 @@ export const defaultConfig: LoggerConfig = {
     info: 'green',
     warning: 'yellow',
     error: 'red',
-    critical: 'red'
+    critical: [0x8b, 0, 0]
   },
   formatter: new TextFormatter(),
   transports: [new ConsoleTransport()],

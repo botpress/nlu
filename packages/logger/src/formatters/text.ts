@@ -39,11 +39,15 @@ export class TextFormatter implements LogEntryFormatter {
       indentedMessage += chalk.grey(os.EOL + entry.stack)
     }
 
+    const color = config.colors[entry.level]
+    const coloredDisplayName =
+      typeof color === 'string' ? chalk[color].bold(displayName) : chalk.rgb(...color).bold(displayName)
+
+    const greyTime = chalk.grey(time)
+
     return {
       ...entry,
-      formatted: chalk`{grey ${time}} {${
-        config.colors[entry.level]
-      }.bold ${displayName}}${indentedMessage}${serializedMetadata}`
+      formatted: `${greyTime} ${coloredDisplayName}${indentedMessage}${serializedMetadata}`
     }
   }
 }

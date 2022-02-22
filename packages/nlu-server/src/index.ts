@@ -9,6 +9,7 @@ import { logLaunchingMessage } from './bootstrap/launcher'
 import { makeApplication } from './bootstrap/make-application'
 import { requireJSON } from './require-json'
 import * as types from './typings'
+import { listenForUncaughtErrors } from './uncaught-errors'
 
 const packageJsonPath = path.resolve(__dirname, '../package.json')
 const buildInfoPath = path.resolve(__dirname, '../.buildinfo.json')
@@ -61,4 +62,6 @@ export const run: typeof types.run = async (cliOptions: types.CommandLineOptions
 
   const url = `http://${options.host}:${options.port}/`
   launcherLogger.info(`NLU Server is ready at ${url}. Make sure this URL is not publicly available.`)
+
+  listenForUncaughtErrors(baseLogger)
 }
