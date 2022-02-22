@@ -176,8 +176,43 @@ jobs:
         with:
           time: '15s'
 
-      - name: Start First NLU Server on port 3202
+      # - name: Start First NLU Server on port 3202
+      #   run: |
+      #     ./nlu \
+      #       --verbose 0 \
+      #       --ducklingEnabled false \
+      #       --maxTraining 0 \
+      #       --maxLinting 0 \
+      #       --languageURL http://localhost:3100 \
+      #       --port 3202 \
+      #       --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 & \
+      #     nlu_pid1=$!
+      #     echo "NLU Server started on pid $nlu_pid1"
+
+      # - name: Sleep
+      #   uses: jakejarvis/wait-action@master
+      #   with:
+      #     time: '5s'
+
+      # - name: Start Second NLU Server on port 3203
+      #   run: |
+      #     ./nlu \
+      #       --verbose 0 \
+      #       --ducklingEnabled false \
+      #       --languageURL http://localhost:3100 \
+      #       --port 3203 \
+      #       --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 & \
+      #     nlu_pid2=$!
+      #     echo "NLU Server started on pid $nlu_pid2"
+
+      # - name: Sleep
+      #   uses: jakejarvis/wait-action@master
+      #   with:
+      #     time: '15s'
+
+      - name: Run Tests
         run: |
+
           ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
@@ -189,14 +224,7 @@ jobs:
           nlu_pid1=$!
           echo "NLU Server started on pid $nlu_pid1"
 
-      - name: Sleep
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '5s'
-
-      - name: Start Second NLU Server on port 3203
-        run: |
-          ./nlu \
+          sleep 5s && ./nlu \
             --verbose 0 \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
@@ -205,11 +233,4 @@ jobs:
           nlu_pid2=$!
           echo "NLU Server started on pid $nlu_pid2"
 
-      - name: Sleep
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '15s'
-
-      - name: Run Tests
-        run: |
-          yarn e2e --nlu-endpoint http://localhost:3202
+          sleep 20s && yarn e2e --nlu-endpoint http://localhost:3202
