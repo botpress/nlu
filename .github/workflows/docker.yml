@@ -5,12 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.1.0
-      - uses: actions/checkout@v2.1.0
-        with:
-          repository: botpress/actions
-          token: ${{ secrets.PAT }}
-          path: '@actions'
-      - uses: ./@actions/build/docker
+      - uses: botpress/gh-actions/build/docker@v1
         with:
           repository: nlu
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
