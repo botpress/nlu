@@ -39,7 +39,7 @@ jobs:
       - name: Start NLU Server
         run: |
           ./nlu \
-            --verbose 0 \
+            --log-level "critical" \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3200  &
@@ -108,7 +108,7 @@ jobs:
       - name: Start NLU Server
         run: |
           ./nlu \
-            --verbose 0 \
+            --log-level "critical" \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3201 \
@@ -179,7 +179,7 @@ jobs:
       # - name: Start First NLU Server on port 3202
       #   run: |
       #     ./nlu \
-      #       --verbose 0 \
+      #       --log-level "critical" \
       #       --ducklingEnabled false \
       #       --maxTraining 0 \
       #       --maxLinting 0 \
@@ -197,7 +197,7 @@ jobs:
       # - name: Start Second NLU Server on port 3203
       #   run: |
       #     ./nlu \
-      #       --verbose 0 \
+      #       --log-level "critical" \
       #       --ducklingEnabled false \
       #       --languageURL http://localhost:3100 \
       #       --port 3203 \
@@ -214,7 +214,7 @@ jobs:
         run: |
 
           ./nlu \
-            --verbose 0 \
+            --log-level "critical" \
             --ducklingEnabled false \
             --maxTraining 0 \
             --maxLinting 0 \
@@ -225,7 +225,7 @@ jobs:
           echo "NLU Server started on pid $nlu_pid1"
 
           sleep 5s && ./nlu \
-            --verbose 0 \
+            --log-level "critical" \
             --ducklingEnabled false \
             --languageURL http://localhost:3100 \
             --port 3203 \
