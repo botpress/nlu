@@ -111,7 +111,19 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
 
   private _timeoutTaskCancelation = (ms: number): Promise<never> =>
     new Promise((_resolve, reject) => {
-      setTimeout(() => reject(new Error(`Canceling operation took more than ${ms} ms`)), ms)
+      console.log(
+        `############## ${new Date().toISOString()} [${
+          this._clusterId
+        }] Start Timer ########################################`
+      )
+      setTimeout(() => {
+        console.log(
+          `############## ${new Date().toISOString()} [${
+            this._clusterId
+          }] Stop Timer #########################################`
+        )
+        reject(new Error(`Canceling operation took more than ${ms} ms`))
+      }, ms)
     })
 
   private _handleCancelTaskEvent = async (taskId: TId, clusterId: string) => {
