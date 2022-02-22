@@ -3,7 +3,7 @@ import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import { Knex } from 'knex'
 import _ from 'lodash'
-import { createTableIfNotExists } from '../../utils/database'
+import { createTableIfNotExists } from '../database-utils'
 import { compressModel, decompressModel } from './compress-model'
 import { ModelRepository, PruneOptions } from './typings'
 

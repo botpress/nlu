@@ -46,7 +46,7 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
     launcherLogger.info(`models stored at "${info.modelDir}"`)
   }
 
-  if (info.batchSize > 0) {
+  if (info.batchSize > 1) {
     launcherLogger.info(`batch size: allowing up to ${info.batchSize} predictions in one call to POST /predict`)
   }
 

@@ -62,7 +62,7 @@ export abstract class LintingQueue {
       const lintId: LintingId = { appId, modelId }
       await this.taskQueue.cancelTask(lintId)
     } catch (thrown) {
-      if (thrown instanceof q.TaskNotFoundError) {
+      if (thrown instanceof q.TaskNotFoundError || thrown instanceof q.TaskNotRunning) {
         throw new LintingNotFoundError(appId, modelId)
       }
       throw thrown
@@ -104,12 +104,13 @@ export class LocalLintingQueue extends LintingQueue {
     const lintingLogger = baseLogger.sub(LINTING_PREFIX)
     const lintHandler = new LintHandler(engine, lintingLogger)
 
-    const options = opt.maxLinting
-      ? {
-          ...TASK_OPTIONS,
-          maxTasks: opt.maxLinting
-        }
-      : TASK_OPTIONS
+    const options =
+      opt.maxLinting === undefined
+        ? TASK_OPTIONS
+        : {
+            ...TASK_OPTIONS,
+            maxTasks: opt.maxLinting
+          }
 
     const taskQueue = new q.LocalTaskQueue(lintTaskRepo, lintHandler, lintingLogger, idToString, options)
     super(taskQueue, lintingLogger)

@@ -2,6 +2,7 @@ import { Logger } from '@botpress/logger'
 import { DatasetIssue, IssueCode, LintingError } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
+import { LintingId } from '../../infrastructure'
 import { idToString } from '../training-queue'
 import { LintTask, LintTaskProgress, LintTaskRunner, TerminatedLintTask } from './typings'
 
@@ -28,7 +29,7 @@ export class LintHandler implements LintTaskRunner {
     }
   }
 
-  public async cancel(task: LintTask): Promise<void> {
+  public async cancel(task: LintingId): Promise<void> {
     const trainKey = idToString(task)
     return this._engine.cancelTraining(trainKey)
   }

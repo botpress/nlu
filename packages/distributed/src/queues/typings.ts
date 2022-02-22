@@ -8,7 +8,7 @@ export type TaskRunner<TId, TInput, TData, TError> = {
     task: Task<TId, TInput, TData, TError>,
     progress: ProgressCb<TId, TInput, TData, TError>
   ) => Promise<TerminatedTask<TId, TInput, TData, TError> | undefined>
-  cancel: (task: Task<TId, TInput, TData, TError>) => Promise<void>
+  cancel: (taskId: TId) => Promise<void>
 }
 
 export type TaskTerminatedStatus = 'done' | 'canceled' | 'errored'
