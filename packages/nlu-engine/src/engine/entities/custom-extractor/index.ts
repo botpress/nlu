@@ -1,9 +1,9 @@
 import _ from 'lodash'
+
 import { extractPattern } from '../../tools/patterns-utils'
 import { EntityExtractionResult, ListEntityModel, PatternEntity, WarmedListEntityModel } from '../../typings'
-import Utterance from '../../utterance/utterance'
 import { extractForListModel } from './list-extraction'
-import { serializeUtteranceToken } from './serializable-token'
+import { keepTokenProperties, Utterance } from './token'
 
 type SplittedModels = {
   withCacheHit: WarmedListEntityModel[]
@@ -12,9 +12,9 @@ type SplittedModels = {
 
 export class CustomEntityExtractor {
   public extractListEntities(utterance: Utterance, list_entities: ListEntityModel[]): EntityExtractionResult[] {
-    const serializedTokens = utterance.tokens.map(serializeUtteranceToken)
+    const tokens = utterance.tokens.map(keepTokenProperties)
     return _(list_entities)
-      .map((model) => extractForListModel(serializedTokens, model))
+      .map((model) => extractForListModel(tokens, model))
       .flatten()
       .value()
   }
@@ -24,7 +24,6 @@ export class CustomEntityExtractor {
     pattern_entities: PatternEntity[]
   ): EntityExtractionResult[] => {
     const input = utterance.toString()
-    // taken from pattern_extractor
     return _.flatMap(pattern_entities, (ent) => {
       const regex = new RegExp(ent.pattern!, ent.matchCase ? '' : 'i')
 
@@ -82,8 +81,8 @@ export class CustomEntityExtractor {
 
     const extractedMatches: EntityExtractionResult[] = _(withCacheMiss)
       .map((model) => {
-        const serializedTokens = utterance.tokens.map(serializeUtteranceToken)
-        const extractions = extractForListModel(serializedTokens, model)
+        const tokens = utterance.tokens.map(keepTokenProperties)
+        const extractions = extractForListModel(tokens, model)
         model.cache.set(cacheKey, extractions)
         return extractions
       })

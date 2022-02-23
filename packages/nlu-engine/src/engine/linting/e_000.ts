@@ -90,18 +90,14 @@ const makeSlotValidator = (
 
   const mapListEntities = makeListEntityMapper(lang, tools)
   const listModels = await Bluebird.map(listEntities, mapListEntities)
-  const extractedLists = customEntityExtractor.extractListEntities(utterance, listModels)
-
   const patternModels = patternEntities.map(mapPatternEntity)
-  const extractedPatterns = customEntityExtractor.extractPatternEntities(utterance, patternModels)
 
-  const extractedCustom = [...extractedLists, ...extractedPatterns]
+  const extractedLists = customEntityExtractor.extractListEntities(utterance, listModels)
+  const extractedPatterns = customEntityExtractor.extractPatternEntities(utterance, patternModels)
   const extractedSystem = await systemEntityExtractor.extract(utterance.toString(), lang)
 
-  const customMatch = extractedCustom.some(entityMatchesSlot(slot, slotDef))
-  const systemMatch = extractedSystem.some(entityMatchesSlot(slot, slotDef))
-
-  if (customMatch || systemMatch) {
+  const allExtracted = [...extractedLists, ...extractedPatterns, ...extractedSystem]
+  if (allExtracted.some(entityMatchesSlot(slot, slotDef))) {
     return []
   }
 

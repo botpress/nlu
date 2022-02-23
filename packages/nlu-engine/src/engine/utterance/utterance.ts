@@ -247,7 +247,7 @@ export default class Utterance {
 
   private _validateRange(start: number, end: number) {
     const lastTok = _.last(this._tokens)
-    const maxEnd = _.get(lastTok, 'offset', 0) + _.get(lastTok, 'value.length', 0)
+    const maxEnd = (lastTok?.offset ?? 0) + (lastTok?.value.length ?? 0)
 
     if (start < 0 || start > end || start > maxEnd || end > maxEnd) {
       throw new Error('Invalid range')
