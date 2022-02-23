@@ -12,6 +12,7 @@
     "@botpress/logger": "*",
     "@botpress/nlu-client": "*",
     "@botpress/nlu-engine": "*",
+    "@botpress/ptb-schema": "*",
     "@opentelemetry/api": "^1.0.3",
     "@opentelemetry/exporter-jaeger": "^1.0.1",
     "@opentelemetry/exporter-zipkin": "^1.0.1",

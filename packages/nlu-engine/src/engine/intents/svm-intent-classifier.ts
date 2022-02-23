@@ -1,7 +1,8 @@
-import Joi, { validate } from 'joi'
+import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
+import { ModelOf } from 'src/component'
 import { ModelLoadingError } from '../../errors'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 import { Logger } from '../../typings'
 import { ListEntityModel, PatternEntity, Tools } from '../typings'
 import Utterance from '../utterance/utterance'
@@ -9,30 +10,28 @@ import Utterance from '../utterance/utterance'
 import { IntentClassifier, IntentPredictions, IntentTrainInput } from './intent-classifier'
 
 type Featurizer = (u: Utterance, entities: string[]) => number[]
-export type Model = {
-  svmModel: string | undefined
+type Model = {
+  svmModel: ModelOf<MLToolkit.SVM.Classifier> | undefined
   intentNames: string[]
   entitiesName: string[]
 }
+
+const PTBSvmIntentModel = new ptb.PTBMessage('SvmIntentModel', {
+  svmModel: { type: MLToolkit.SVM.Classifier.modelType, id: 1, rule: 'optional' },
+  intentNames: { type: 'string', id: 2, rule: 'repeated' },
+  entitiesName: { type: 'string', id: 3, rule: 'repeated' }
+})
 
 type Predictors = {
-  svm: MLToolkit.SVM.Predictor | undefined
+  svm: MLToolkit.SVM.Classifier | undefined
   intentNames: string[]
   entitiesName: string[]
 }
 
-const keys: Record<keyof Model, Joi.AnySchema> = {
-  svmModel: Joi.string().allow('').optional(),
-  intentNames: Joi.array().items(Joi.string()).required(),
-  entitiesName: Joi.array().items(Joi.string()).required()
-}
-export const modelSchema = Joi.object().keys(keys).required()
-
-export class SvmIntentClassifier implements IntentClassifier {
+export class SvmIntentClassifier implements IntentClassifier<typeof PTBSvmIntentModel> {
   private static _displayName = 'SVM Intent Classifier'
   private static _name = 'svm-classifier'
 
-  private model: Model | undefined
   private predictors: Predictors | undefined
 
   constructor(private tools: Tools, private featurizer: Featurizer, private _logger: Logger) {}
@@ -41,7 +40,18 @@ export class SvmIntentClassifier implements IntentClassifier {
     return SvmIntentClassifier._name
   }
 
-  public async train(input: IntentTrainInput, progress: (p: number) => void): Promise<void> {
+  public static get modelType() {
+    return PTBSvmIntentModel
+  }
+
+  public get modelType() {
+    return PTBSvmIntentModel
+  }
+
+  public async train(
+    input: IntentTrainInput,
+    progress: (p: number) => void
+  ): Promise<ptb.Infer<typeof PTBSvmIntentModel>> {
     const { intents, nluSeed, list_entities, pattern_entities } = input
 
     const entitiesName = this._getEntitiesName(list_entities, pattern_entities)
@@ -59,40 +69,36 @@ export class SvmIntentClassifier implements IntentClassifier {
     const classCount = _.uniqBy(points, (p) => p.label).length
     if (points.length === 0 || classCount <= 1) {
       this._logger.debug('No SVM to train because there is less than two classes.')
-      this.model = {
+      progress(1)
+      return {
         svmModel: undefined,
         intentNames: intents.map((i) => i.name),
         entitiesName
       }
-      progress(1)
-      return
     }
 
-    const svm = new this.tools.mlToolkit.SVM.Trainer(this._logger)
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
 
-    const seed = nluSeed
-    const svmModel = await svm.train(points, { kernel: 'LINEAR', classifier: 'C_SVC', seed }, progress)
+    const options: MLToolkit.SVM.SVMOptions = { kernel: 'LINEAR', classifier: 'C_SVC', seed: nluSeed }
+    const svmModel = await svm.train({ points, options }, progress)
 
-    this.model = {
+    return {
       svmModel,
       intentNames: intents.map((i) => i.name),
       entitiesName
     }
   }
 
-  public serialize(): string {
-    if (!this.model) {
-      throw new Error(`${SvmIntentClassifier._displayName} must be trained before calling serialize.`)
-    }
-    return JSON.stringify(this.model)
-  }
-
-  public async load(serialized: string): Promise<void> {
+  public async load(serialized: ptb.Infer<typeof PTBSvmIntentModel>): Promise<void> {
     try {
-      const raw = JSON.parse(serialized)
-      const model: Model = await validate(raw, modelSchema)
+      const { entitiesName, intentNames, svmModel } = serialized
+      const model: Model = {
+        svmModel,
+        entitiesName: entitiesName ?? [],
+        intentNames: intentNames ?? []
+      }
+
       this.predictors = await this._makePredictors(model)
-      this.model = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(SvmIntentClassifier._displayName, err)
@@ -101,9 +107,7 @@ export class SvmIntentClassifier implements IntentClassifier {
 
   private async _makePredictors(model: Model): Promise<Predictors> {
     const { svmModel, intentNames, entitiesName } = model
-
-    const svm = svmModel ? new this.tools.mlToolkit.SVM.Predictor(svmModel) : undefined
-    await svm?.initialize()
+    const svm = svmModel ? await this._makeSvmClf(svmModel) : undefined
     return {
       svm,
       intentNames,
@@ -111,13 +115,15 @@ export class SvmIntentClassifier implements IntentClassifier {
     }
   }
 
+  private async _makeSvmClf(svmModel: ModelOf<MLToolkit.SVM.Classifier>): Promise<MLToolkit.SVM.Classifier> {
+    const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
+    await svm.load(svmModel)
+    return svm
+  }
+
   public async predict(utterance: Utterance): Promise<IntentPredictions> {
     if (!this.predictors) {
-      if (!this.model) {
-        throw new Error(`${SvmIntentClassifier._displayName} must be trained before calling predict.`)
-      }
-
-      this.predictors = await this._makePredictors(this.model)
+      throw new Error(`${SvmIntentClassifier._displayName} must load model before calling predict.`)
     }
 
     const { svm, intentNames, entitiesName } = this.predictors

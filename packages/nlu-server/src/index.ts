@@ -1,4 +1,4 @@
-import { LoggerLevel, makeLogger } from '@botpress/logger'
+import { Logger, JSONFormatter, TextFormatter, LogLevel } from '@botpress/logger'
 import { createServer, Server } from 'http'
 import _ from 'lodash'
 import path from 'path'
@@ -9,6 +9,7 @@ import { logLaunchingMessage } from './bootstrap/launcher'
 import { makeApplication } from './bootstrap/make-application'
 import { requireJSON } from './require-json'
 import * as types from './typings'
+import { listenForUncaughtErrors } from './uncaught-errors'
 
 const packageJsonPath = path.resolve(__dirname, '../package.json')
 const buildInfoPath = path.resolve(__dirname, '../.buildinfo.json')
@@ -39,15 +40,17 @@ export const run: typeof types.run = async (cliOptions: types.CommandLineOptions
   const options = await getConfig(cliOptions)
   validateConfig(options)
 
-  const baseLogger = makeLogger({
-    level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
-    minLevel: LoggerLevel.Error,
-    filters: options.logFilter
+  const formatter = options.logFormat === 'json' ? new JSONFormatter() : new TextFormatter()
+  const baseLogger = new Logger('', {
+    level: options.logLevel,
+    filters: options.debugFilter ? { debug: options.debugFilter } : {},
+    prefix: 'NLU',
+    formatter
   })
 
   const launcherLogger = baseLogger.sub('Launcher')
   launcherLogger.configure({
-    minLevel: LoggerLevel.Info // Launcher always display
+    level: 'info' // Launcher always display
   })
 
   await logLaunchingMessage({ ...options, version, buildInfo }, launcherLogger)
@@ -59,4 +62,6 @@ export const run: typeof types.run = async (cliOptions: types.CommandLineOptions
 
   const url = `http://${options.host}:${options.port}/`
   launcherLogger.info(`NLU Server is ready at ${url}. Make sure this URL is not publicly available.`)
+
+  listenForUncaughtErrors(baseLogger)
 }

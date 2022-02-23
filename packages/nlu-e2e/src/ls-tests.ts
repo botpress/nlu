@@ -1,10 +1,10 @@
-import { makeLogger, LoggerLevel } from '@botpress/logger'
+import { Logger } from '@botpress/logger'
 import tests from './tests'
 
 export const listTests = () => {
-  const logger = makeLogger({
-    level: LoggerLevel.Debug
-  }).sub('e2e')
+  const logger = new Logger('e2e', {
+    level: 'debug'
+  })
 
   logger.info('Available tests are:')
   for (const test of tests) {

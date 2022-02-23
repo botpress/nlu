@@ -1,4 +1,9 @@
+import { LogFormat } from '@botpress/lang-server'
+import { LogLevel } from '@botpress/logger'
 import { asYargs } from '../yargs-utils'
+
+const logFormatChoices: LogFormat[] = ['json', 'text']
+const logLevelChoices: LogLevel[] = ['critical', 'error', 'warning', 'info', 'debug']
 
 export const parameters = asYargs({
   port: {
@@ -49,10 +54,16 @@ export const parameters = asYargs({
     description: 'Verbosity level of the logging, integer from 0 to 4. Does not apply to "Launcher" logger.',
     type: 'number'
   },
-  logFilter: {
-    description:
-      'Filter logs by namespace, ex: "--log-filter training:svm api". Namespaces are space separated. Does not apply to "Launcher" logger.',
-    array: true,
+  logLevel: {
+    description: 'Verbosity level of the logging. Does not apply to booting logs.',
+    choices: logLevelChoices
+  },
+  logFormat: {
+    description: 'Weither to log using JSON or good old fashion formatted text with colors.',
+    choices: logFormatChoices
+  },
+  debugFilter: {
+    description: 'Regexp to filter debug logs by namespace. Only applies if log level is "debug".',
     type: 'string'
   }
 })

@@ -1,4 +1,4 @@
-import { LoggerLevel, makeLogger } from '@botpress/logger'
+import { Logger } from '@botpress/logger'
 import { LanguageService } from '@botpress/nlu-engine'
 import cliProgress from 'cli-progress'
 import fse from 'fs-extra'
@@ -10,9 +10,8 @@ import * as types from './typings'
 
 export const download: typeof types.download = async (argv: types.DownloadArgv) => {
   const options = getDownloadConfig(argv)
-  const baseLogger = makeLogger({
-    level: LoggerLevel.Info,
-    filters: undefined
+  const baseLogger = new Logger('', {
+    level: 'info'
   })
 
   const languageDirectory = options.langDir

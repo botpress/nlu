@@ -37,7 +37,7 @@ const isOneHot = (x: number[]) => {
 describe('Exact match intent classifier', () => {
   test('when no match clf returns all confidence 0 and oos 1', async () => {
     let exactMatchIntentClf = new ExactIntenClassifier()
-    await exactMatchIntentClf.train(
+    const model = await exactMatchIntentClf.train(
       {
         intents,
         languageCode: 'en',
@@ -47,8 +47,6 @@ describe('Exact match intent classifier', () => {
       },
       dummyProgress
     )
-
-    const model = exactMatchIntentClf.serialize()
     exactMatchIntentClf = new ExactIntenClassifier()
     await exactMatchIntentClf.load(model)
 
@@ -60,7 +58,7 @@ describe('Exact match intent classifier', () => {
 
   test('when match clf returns one hot vector', async () => {
     let exactMatchIntentClf = new ExactIntenClassifier()
-    await exactMatchIntentClf.train(
+    const model = await exactMatchIntentClf.train(
       {
         intents,
         languageCode: 'en',
@@ -70,8 +68,6 @@ describe('Exact match intent classifier', () => {
       },
       dummyProgress
     )
-
-    const model = exactMatchIntentClf.serialize()
     exactMatchIntentClf = new ExactIntenClassifier()
     await exactMatchIntentClf.load(model)
 
@@ -93,7 +89,7 @@ describe('Exact match intent classifier', () => {
   // This test is dependant of utterance.toString() implementation. Ideally we would mock the utterance class.
   test('clf matches even when casing or special characters', async () => {
     let exactMatchIntentClf = new ExactIntenClassifier()
-    await exactMatchIntentClf.train(
+    const model = await exactMatchIntentClf.train(
       {
         intents,
         languageCode: 'en',
@@ -103,8 +99,6 @@ describe('Exact match intent classifier', () => {
       },
       dummyProgress
     )
-
-    const model = exactMatchIntentClf.serialize()
     exactMatchIntentClf = new ExactIntenClassifier()
     await exactMatchIntentClf.load(model)
 
@@ -125,33 +119,5 @@ describe('Exact match intent classifier', () => {
       const confs = preds.intents.map((i) => i.confidence)
       expect(isOneHot(confs)).toBe(true)
     }
-  })
-
-  test('When model is corrupted, loading a model throws', async () => {
-    // arrange
-    const exactMatchIntentClf = new ExactIntenClassifier()
-    await exactMatchIntentClf.train(
-      {
-        intents,
-        languageCode: 'en',
-        list_entities: [],
-        pattern_entities: [],
-        nluSeed: 42
-      },
-      dummyProgress
-    )
-    const model = exactMatchIntentClf.serialize()
-
-    // act && asert
-    await expect(exactMatchIntentClf.load(`${model} heyhey I will kill this model`)).rejects.toThrowError(
-      ModelLoadingError
-    )
-
-    const parsed = JSON.parse(model)
-    parsed['someKey'] = 'someValue'
-    await expect(exactMatchIntentClf.load(JSON.stringify(parsed))).rejects.toThrowError(ModelLoadingError)
-
-    const undef: unknown = undefined
-    await expect(exactMatchIntentClf.load(undef as string)).rejects.toThrowError(ModelLoadingError)
   })
 })

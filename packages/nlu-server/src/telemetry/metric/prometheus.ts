@@ -1,4 +1,4 @@
-import { createMiddleware, defaultNormalizers } from '@promster/express'
+import { createMiddleware, defaultNormalizers, signalIsUp } from '@promster/express'
 import { getSummary, getContentType } from '@promster/metrics'
 import { Express, Request } from 'express'
 import * as http from 'http'
@@ -113,4 +113,6 @@ export const initPrometheus = async (app: Express, onRequest?: () => Promise<voi
   )
 
   await createServer(onRequest)
+
+  signalIsUp()
 }

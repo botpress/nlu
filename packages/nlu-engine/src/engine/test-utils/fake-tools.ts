@@ -1,12 +1,12 @@
 import _ from 'lodash'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 import { POSClass, POS_CLASSES } from '../language/pos-tagger'
 import { nonSpaceSeparatedLanguages } from '../language/space-separated'
 import { SPACE, splitSpaceToken } from '../tools/token-utils'
 import { SystemEntityExtractor, Tools } from '../typings'
 
 import { fakeKmeans } from './fake-kmeans'
-import { FakeSvmPredictor, FakeSvmTrainer } from './fake-svm'
+import { FakeSvm } from './fake-svm'
 
 /**
  * Basically mimics the language server tokenizer. Use this function for testing purposes
@@ -76,10 +76,7 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
   }
 
   const fakeMlToolkit: Partial<typeof MLToolkit> = {
-    SVM: {
-      Predictor: FakeSvmPredictor,
-      Trainer: FakeSvmTrainer
-    },
+    SVM: { Classifier: FakeSvm },
     KMeans: fakeKmeans
   }
 

@@ -11,9 +11,17 @@ import rateLimit from 'express-rate-limit'
 import _ from 'lodash'
 import ms from 'ms'
 import { Application } from '../application'
+import { ModelLoadedData } from '../application/app-observer'
 import { Training } from '../infrastructure/training-repo/typings'
-import { initPrometheus, trainingCount, trainingDuration } from '../telemetry/metric'
+import {
+  initPrometheus,
+  modelMemoryLoadDuration,
+  modelStorageReadDuration,
+  trainingCount,
+  trainingDuration
+} from '../telemetry/metric'
 import { initTracing } from '../telemetry/trace'
+import { UsageClient } from '../telemetry/usage-client'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
 
@@ -29,31 +37,80 @@ type APIOptions = {
   prometheusEnabled?: boolean
   apmEnabled?: boolean
   apmSampleRate?: number
+  usageURL?: string
 }
 
 const { modelIdService } = NLUEngine
 
+const isTrainingRunning = ({ status }: Training) => status === 'training-pending' || status === 'training'
+
 export const createAPI = async (options: APIOptions, app: Application, baseLogger: Logger): Promise<ExpressApp> => {
-  const requestLogger = baseLogger.sub('api').sub('request')
+  const apiLogger = baseLogger.sub('api')
+  const requestLogger = apiLogger.sub('request')
   const expressApp = express()
 
-  // This must be first, otherwise the /info endpoint can't be called when token is used
   expressApp.use(cors())
 
   if (options.prometheusEnabled) {
-    app.addTrainingListener(async (training: Training) => {
-      if (training.status !== 'canceled' && training.status !== 'done' && training.status !== 'errored') {
+    const prometheusLogger = apiLogger.sub('prometheus')
+    prometheusLogger.debug('prometheus metrics enabled')
+
+    app.on('training_update', async (training: Training) => {
+      if (isTrainingRunning(training) || !training.trainingTime) {
         return
       }
 
-      if (training.trainingTime) {
-        trainingDuration.observe({ status: training.status }, training.trainingTime / 1000)
-      }
+      const trainingTime = training.trainingTime / 1000
+      prometheusLogger.debug(`adding metric "training_duration_seconds" with value: ${trainingTime}`)
+      trainingDuration.observe({ status: training.status }, trainingTime)
+    })
+
+    app.on('model_loaded', async (data: ModelLoadedData) => {
+      prometheusLogger.debug(`adding metric "model_storage_read_duration" with value: ${data.readTime}`)
+      modelStorageReadDuration.observe(data.readTime)
+
+      prometheusLogger.debug(`adding metric "model_memory_load_duration" with value: ${data.loadTime}`)
+      modelMemoryLoadDuration.observe(data.loadTime)
     })
 
     await initPrometheus(expressApp, async () => {
       const count = await app.getLocalTrainingCount()
       trainingCount.set(count)
+    })
+  }
+
+  if (options.usageURL) {
+    const usageLogger = apiLogger.sub('usage')
+    usageLogger.debug('usage endpoint enabled')
+
+    const usageClient = new UsageClient(options.usageURL)
+    app.on('training_update', async (training: Training) => {
+      if (isTrainingRunning(training) || !training.trainingTime) {
+        return
+      }
+
+      const { appId, modelId, trainingTime } = training
+      const app_id = appId
+      const model_id = modelIdService.toString(modelId)
+      const training_time = trainingTime / 1000
+      const timestamp = new Date().toISOString()
+
+      const type = 'training_time'
+      const value = {
+        app_id,
+        model_id,
+        training_time,
+        timestamp
+      }
+
+      usageLogger.debug(`sending usage ${type} with value: ${JSON.stringify(value)}`)
+
+      try {
+        await usageClient.sendUsage('nlu', type, [value])
+      } catch (thrown) {
+        const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+        usageLogger.attachError(err).error(`an error occured when sending "${type}" usage.`)
+      }
     })
   }
 

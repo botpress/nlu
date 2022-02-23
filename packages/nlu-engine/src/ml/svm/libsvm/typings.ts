@@ -34,15 +34,20 @@ type LibConfig = {
   normalize: boolean
   reduce: boolean
   retainedVariance: number
+}
+
+type LibModel = {
   mu?: number[]
   sigma?: number[]
   u?: number[][]
 }
+
 export type SvmConfig = Record<GridSearchParameters, number[]> & OtherParameters & LibConfig
 
-export type SvmModel = Model & {
-  param: SvmParameters
-}
+export type SvmModel = Model &
+  LibModel & {
+    param: Parameters
+  }
 
 export type SvmParameters = Parameters & LibConfig
 

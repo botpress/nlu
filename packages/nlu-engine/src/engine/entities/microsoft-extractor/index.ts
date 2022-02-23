@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { Logger } from '../../../typings'
 
 import { EntityExtractionResult, SystemEntityExtractor, KeyedItem } from '../../typings'
-import { SystemEntityCacheManager } from '../entity-cache-manager'
+import { SystemEntityCacheManager } from '../entity-cache'
 import {
   GlobalRecognizers,
   LanguageDependantRecognizers,

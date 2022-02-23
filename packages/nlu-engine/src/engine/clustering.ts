@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import nearestVector from 'ml-nearest-vector'
-import { MLToolkit } from '../ml/typings'
+import * as MLToolkit from '../ml/toolkit'
 
 import { euclideanDistanceSquared } from './tools/math'
 import { Intent, SerializedKmeansResult, Tools } from './typings'

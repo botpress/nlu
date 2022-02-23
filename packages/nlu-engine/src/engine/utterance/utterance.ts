@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 
 import { POSClass } from '../language/pos-tagger'
 import { computeNorm, scalarDivide, scalarMultiply, vectorAdd, zeroes } from '../tools/math'
