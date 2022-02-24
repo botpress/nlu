@@ -41,6 +41,7 @@ runs:
       shell: bash
       run: ./nlu lang download --lang ${{ inputs.lang_server_name }} --dim ${{ inputs.lang_server_dim }}
     - name: Start Language Server
+      shell: bash
       run: |
         ./nlu lang --dim ${{ inputs.lang_server_dim }} &
         echo "Lang Server started on pid $!"
