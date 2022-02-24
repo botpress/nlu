@@ -1,6 +1,7 @@
 import {
   IntentDefinition,
   ListEntityDefinition,
+  Logger,
   PatternEntityDefinition,
   SlotDefinition,
   TrainInput
@@ -8,11 +9,17 @@ import {
 import { makeFakeTools } from '../test-utils/fake-tools'
 import { lintingPipeline } from './linting-pipeline'
 
+const dummyLogger: Partial<Logger> = { debug: () => {} }
+
 const validateTrainInput = async (ts: TrainInput) => {
   const tools = makeFakeTools(100, ['en'])
-  const issues = await lintingPipeline(ts, tools, {
-    minSpeed: 'fastest'
-  })
+  const issues = await lintingPipeline(
+    ts,
+    { ...tools, logger: dummyLogger as Logger },
+    {
+      minSpeed: 'fastest'
+    }
+  )
 
   if (issues.length) {
     const formatted = issues.map((i) => i.message).join('\n')

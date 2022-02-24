@@ -306,7 +306,7 @@ export default class Engine implements IEngine {
         options.progressCallback
       )
     } else {
-      const issues = await lintingPipeline(trainSet, this._tools, options)
+      const issues = await lintingPipeline(trainSet, { ...this._tools, logger: this._lintLogger }, options)
       lintOutput = { issues }
     }
     return lintOutput
