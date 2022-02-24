@@ -50,9 +50,16 @@ export const trainSet: TrainInput = {
         "I'd like to speak to your manager",
         'Can I talk to your boss? plz',
         'I wanna speak to manager please',
-        'let me speak to your boss or someone'
+        'let me speak to your boss or someone',
+        'can I meet your boss [at 1pm today](appointment_time) ?',
+        'will your manager be available [tomorrow afternoon around 4pm](appointment_time)'
       ],
-      slots: []
+      slots: [
+        {
+          name: 'appointment_time',
+          entities: ['time']
+        }
+      ]
     },
     {
       name: 'where-is',
