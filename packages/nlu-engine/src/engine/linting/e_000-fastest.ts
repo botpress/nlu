@@ -13,7 +13,7 @@ import {
 import { CustomEntityExtractor } from '../entities/custom-extractor'
 import { makeListEntityModel } from '../entities/list-entity-model'
 import { replaceConsecutiveSpaces } from '../tools/strings'
-import { ListEntity, ListEntityModel, PatternEntity, Tools } from '../typings'
+import { EntityExtractionResult, ListEntity, ListEntityModel, PatternEntity, Tools } from '../typings'
 import Utterance, { buildUtteranceBatch, UtteranceSlot } from '../utterance/utterance'
 import { computeId } from './id'
 import { asCode, IssueLinter } from './typings'
@@ -25,13 +25,6 @@ export const E_000: IssueDefinition<typeof code> = {
   severity: 'error',
   name: 'tokens_tagged_with_slot_has_incorrect_type'
 }
-
-const makeIssueFromData = (data: IssueData<typeof code>): DatasetIssue<typeof code> => ({
-  ...E_000,
-  id: computeId(code, data),
-  message: `Tokens "${data.source}" tagged with slot "${data.slot}" do not match expected entities.`,
-  data
-})
 
 type ResolvedSlotDef = {
   name: string
@@ -48,6 +41,22 @@ type VerificationUnit = {
   slotDef: ResolvedSlotDef
   slot: UtteranceSlot
 }
+
+const makeIssueFromData = (data: IssueData<typeof code>): DatasetIssue<typeof code> => ({
+  ...E_000,
+  id: computeId(code, data),
+  message: `Tokens "${data.source}" tagged with slot "${data.slot}" do not match expected entities.`,
+  data
+})
+
+const unitToIssue = ({ intent, utterance, slot, slotDef }: VerificationUnit) =>
+  makeIssueFromData({
+    intent,
+    utterance: utterance.toString(),
+    slot: slotDef.name,
+    entities: mapResolvedToSlotDef(slotDef).entities,
+    source: slot.source
+  })
 
 const splitEntities = (entitieDefs: EntityDefinition[]) => {
   const listEntities = entitieDefs.filter(isListEntity)
@@ -97,7 +106,7 @@ const mapPatternEntity = (pattern: PatternEntityDefinition): PatternEntity => {
   }
 }
 
-const mapSlotDef = (
+const mapSlotDefToResolved = (
   listModels: ListEntityModel[],
   patternModels: PatternEntity[],
   { name, entities }: SlotDefinition
@@ -111,6 +120,24 @@ const mapSlotDef = (
   }
 }
 
+const mapResolvedToSlotDef = ({
+  isAny,
+  listEntities,
+  name,
+  patternEntities,
+  systemEntities
+}: ResolvedSlotDef): SlotDefinition => {
+  const entities: string[] = []
+  entities.push(...listEntities.map((e) => e.entityName))
+  entities.push(...patternEntities.map((e) => e.name))
+  entities.push(...systemEntities)
+  isAny && entities.push('any')
+  return {
+    name,
+    entities
+  }
+}
+
 const resolveEntities = async (ts: TrainInput, tools: Tools) => {
   const { intents, entities, language, seed } = ts
   const { listEntities, patternEntities } = splitEntities(entities)
@@ -120,7 +147,7 @@ const resolveEntities = async (ts: TrainInput, tools: Tools) => {
 
   const resolvedIntents = intents.map(({ slots, ...i }) => ({
     ...i,
-    slots: slots.map((s) => mapSlotDef(listModels, patternModels, s))
+    slots: slots.map((s) => mapSlotDefToResolved(listModels, patternModels, s))
   }))
 
   return {
@@ -131,7 +158,6 @@ const resolveEntities = async (ts: TrainInput, tools: Tools) => {
   }
 }
 
-// TODO: ensure we only get combinations with slot that is tagged as slotDef
 const flattenDataset = async (
   ts: Unpack<ReturnType<typeof resolveEntities>>,
   tools: Tools
@@ -158,7 +184,7 @@ const flattenDataset = async (
     utterance.slots.map((s) => ({ slot: s, utterance, ...x }))
   )
 
-  return flatSlotOccurences
+  return flatSlotOccurences.filter((x) => x.slot.name === x.slotDef.name)
 }
 
 const matchesCustom = (customEntityExtractor: CustomEntityExtractor) => (unit: VerificationUnit) => {
@@ -181,6 +207,9 @@ const matchesCustom = (customEntityExtractor: CustomEntityExtractor) => (unit: V
   return false
 }
 
+const entityMatchesSlot = (u: VerificationUnit) => (e: EntityExtractionResult) =>
+  e.start === u.slot.startPos && e.end === u.slot.endPos && u.slotDef.systemEntities.includes(e.type)
+
 export const E_000_Linter: IssueLinter<typeof code> = {
   ...E_000,
   speed: 'fastest',
@@ -192,8 +221,8 @@ export const E_000_Linter: IssueLinter<typeof code> = {
     const customEntityExtractor = new CustomEntityExtractor()
 
     let potentiallyInvalidSlots = flatDataset
-    potentiallyInvalidSlots = _.reject(flatDataset, (u) => u.slotDef.isAny)
-    potentiallyInvalidSlots = _.reject(flatDataset, matchesCustom(customEntityExtractor))
+    potentiallyInvalidSlots = _.reject(potentiallyInvalidSlots, (u) => u.slotDef.isAny)
+    potentiallyInvalidSlots = _.reject(potentiallyInvalidSlots, matchesCustom(customEntityExtractor))
 
     const [withSystemEntities, withoutSystemEntities] = _.partition(
       potentiallyInvalidSlots,
@@ -207,9 +236,12 @@ export const E_000_Linter: IssueLinter<typeof code> = {
       true
     )
 
-    // withoutSystemEntities are invalid since they are not "any", they don't match custom and have no system entities
-    // use extracted system entities to know which of the remaining slots are valid or not
+    let invalidSlots: VerificationUnit[] = _.zip(extractedSystemEntities, withSystemEntities)
+      .filter(truncateZip)
+      .map(([e, u]) => ({ ...u, extractedSystemEntities: e }))
+      .filter((u) => u.extractedSystemEntities.some(entityMatchesSlot(u)))
+    invalidSlots = [...invalidSlots, ...withoutSystemEntities]
 
-    return []
+    return invalidSlots.map(unitToIssue)
   }
 }
