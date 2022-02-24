@@ -4,6 +4,9 @@ jobs:
   fs:
     name: file system
     runs-on: ubuntu-latest
+    services:
+      duckling:
+        image: rasa/duckling
     steps:
       - name: Checkout code
         uses: actions/checkout@master
@@ -16,7 +19,7 @@ jobs:
         run: |
           ./nlu \
             --log-level "critical" \
-            --ducklingEnabled false \
+            --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
             --port 3200  &
           nlu_pid=$!
@@ -28,11 +31,12 @@ jobs:
       - name: Run Tests
         run: |
           yarn e2e --nlu-endpoint http://localhost:3200
-
   db:
     name: database
     runs-on: ubuntu-latest
     services:
+      duckling:
+        image: rasa/duckling
       postgres:
         # Docker Hub image
         image: postgres
@@ -61,7 +65,7 @@ jobs:
         run: |
           ./nlu \
             --log-level "critical" \
-            --ducklingEnabled false \
+            --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
             --port 3201 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-1 & \
@@ -74,11 +78,12 @@ jobs:
       - name: Run Tests
         run: |
           yarn e2e --nlu-endpoint http://localhost:3201
-
   cluster:
     name: cluster
     runs-on: ubuntu-latest
     services:
+      duckling:
+        image: rasa/duckling
       postgres:
         # Docker Hub image
         image: postgres
@@ -106,37 +111,33 @@ jobs:
       - name: Start First NLU Server on port 3202
         run: |
           ./nlu \
-            --log-level "critical" \
-            --ducklingEnabled false \
             --maxTraining 0 \
             --maxLinting 0 \
+            --log-level "critical" \
+            --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
             --port 3202 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 & \
           nlu_pid1=$!
           echo "NLU Server started on pid $nlu_pid1"
-
       - name: Sleep
         uses: jakejarvis/wait-action@master
         with:
           time: '5s'
-
       - name: Start Second NLU Server on port 3203
         run: |
           ./nlu \
             --log-level "critical" \
-            --ducklingEnabled false \
+            --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
             --port 3203 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 & \
           nlu_pid2=$!
           echo "NLU Server started on pid $nlu_pid2"
-
       - name: Sleep
         uses: jakejarvis/wait-action@master
         with:
           time: '15s'
-
       - name: Run Tests
         run: |
           yarn e2e --nlu-endpoint http://localhost:3202
