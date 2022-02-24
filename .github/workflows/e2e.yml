@@ -7,6 +7,8 @@ jobs:
     services:
       duckling:
         image: rasa/duckling
+        ports:
+          - 8000:8000
     steps:
       - name: Checkout code
         uses: actions/checkout@master
@@ -37,6 +39,8 @@ jobs:
     services:
       duckling:
         image: rasa/duckling
+        ports:
+          - 8000:8000
       postgres:
         # Docker Hub image
         image: postgres
@@ -84,6 +88,8 @@ jobs:
     services:
       duckling:
         image: rasa/duckling
+        ports:
+          - 8000:8000
       postgres:
         # Docker Hub image
         image: postgres
