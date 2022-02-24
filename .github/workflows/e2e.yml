@@ -5,37 +5,11 @@ jobs:
     name: file system
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@master
-      - uses: actions/setup-node@v1
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '16.13.0'
-      - name: Fetch Node Packages
-        run: |
-          yarn --verbose
-      - name: Build
-        run: |
-          yarn build
-      - name: package
-        run: |
-          yarn package --linux
-      - name: Rename binary
-        id: rename_binary
-        run: |
-          bin_original_name=$(node -e "console.log(require('./scripts/utils/binary').getFileName())")
-          echo "Moving ./dist/$bin_original_name to ./nlu ..."
-          mv ./dist/$bin_original_name ./nlu
-      - name: Download language models
-        run: |
-          ./nlu lang download --lang en --dim 25
-      - name: Start Language Server
-        run: |
-          ./nlu lang --dim 25 &
-          echo "Lang Server started on pid $!"
-      - name: Sleep
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '15s'
+          lang_server_dim: 25
+          lang_server_lang: 'en'
       - name: Start NLU Server
         run: |
           ./nlu \
@@ -74,37 +48,11 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - name: Checkout code
-        uses: actions/checkout@master
-      - uses: actions/setup-node@v1
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '16.13.0'
-      - name: Fetch Node Packages
-        run: |
-          yarn --verbose
-      - name: Build
-        run: |
-          yarn build
-      - name: package
-        run: |
-          yarn package --linux
-      - name: Rename binary
-        id: rename_binary
-        run: |
-          bin_original_name=$(node -e "console.log(require('./scripts/utils/binary').getFileName())")
-          echo "Moving ./dist/$bin_original_name to ./nlu ..."
-          mv ./dist/$bin_original_name ./nlu
-      - name: Download language models
-        run: |
-          ./nlu lang download --lang en --dim 25
-      - name: Start Language Server
-        run: |
-          ./nlu lang --dim 25 &
-          echo "Lang Server started on pid $!"
-      - name: Sleep
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '15s'
+          lang_server_dim: 25
+          lang_server_lang: 'en'
       - name: Start NLU Server
         run: |
           ./nlu \
@@ -144,38 +92,11 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - name: Checkout code
-        uses: actions/checkout@master
-      - uses: actions/setup-node@v1
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
         with:
-          node-version: '16.13.0'
-      - name: Fetch Node Packages
-        run: |
-          yarn --verbose
-      - name: Build
-        run: |
-          yarn build
-      - name: package
-        run: |
-          yarn package --linux
-      - name: Rename binary
-        id: rename_binary
-        run: |
-          bin_original_name=$(node -e "console.log(require('./scripts/utils/binary').getFileName())")
-          echo "Moving ./dist/$bin_original_name to ./nlu ..."
-          mv ./dist/$bin_original_name ./nlu
-      - name: Download language models
-        run: |
-          ./nlu lang download --lang en --dim 25
-      - name: Start Language Server
-        run: |
-          ./nlu lang --dim 25 &
-          echo "Lang Server started on pid $!"
-      - name: Sleep
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '15s'
-
+          lang_server_dim: 25
+          lang_server_lang: 'en'
       - name: Start First NLU Server on port 3202
         run: |
           ./nlu \
