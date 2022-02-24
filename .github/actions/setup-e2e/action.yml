@@ -17,8 +17,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout code
-      uses: actions/checkout@master
     - uses: actions/setup-node@v2
       with:
         node-version-file: '.nvmrc'
