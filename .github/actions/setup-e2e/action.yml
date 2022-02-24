@@ -22,23 +22,24 @@ runs:
         node-version-file: '.nvmrc'
         cache: 'yarn'
     - name: Fetch Node Packages
-      run: |
-        yarn --verbose
+      shell: bash
+      run: yarn --verbose
     - name: Build
-      run: |
-        yarn build
+      shell: bash
+      run: yarn build
     - name: package
-      run: |
-        yarn package --linux
+      shell: bash
+      run: yarn package --linux
     - name: Rename binary
       id: rename_binary
+      shell: bash
       run: |
         bin_original_name=$(node -e "console.log(require('./scripts/utils/binary').getFileName())")
         echo "Moving ./dist/$bin_original_name to ./nlu ..."
         mv ./dist/$bin_original_name ./nlu
     - name: Download language models
-      run: |
-        ./nlu lang download --lang ${{ inputs.lang_server_name }} --dim ${{ inputs.lang_server_dim }}
+      shell: bash
+      run: ./nlu lang download --lang ${{ inputs.lang_server_name }} --dim ${{ inputs.lang_server_dim }}
     - name: Start Language Server
       run: |
         ./nlu lang --dim ${{ inputs.lang_server_dim }} &
