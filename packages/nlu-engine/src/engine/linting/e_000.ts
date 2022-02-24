@@ -1,11 +1,10 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
-import { SLOT_ANY } from '../../constants'
+import { SLOT_ANY, SYSTEM_ENTITIES } from '../../constants'
 import { isListEntity, isPatternEntity } from '../../guards'
 import { DatasetIssue, IssueData, IssueDefinition } from '../../linting'
 import {
   EntityDefinition,
-  IntentDefinition,
   ListEntityDefinition,
   PatternEntityDefinition,
   SlotDefinition,
@@ -27,7 +26,58 @@ export const E_000: IssueDefinition<typeof code> = {
   name: 'tokens_tagged_with_slot_has_incorrect_type'
 }
 
-const makeListEntityMapper = (lang: string, tools: Tools) => (list: ListEntityDefinition): Promise<ListEntityModel> => {
+type ResolvedSlotDef = {
+  name: string
+  isAny: boolean
+  listEntities: ListEntityModel[]
+  patternEntities: PatternEntity[]
+  systemEntities: string[]
+}
+
+type VerificationUnit = {
+  intent: string
+  rawUtterance: string
+  utterance: Utterance
+  slotDef: ResolvedSlotDef
+  slot: UtteranceSlot
+}
+
+const makeIssueFromData = (data: IssueData<typeof code>): DatasetIssue<typeof code> => ({
+  ...E_000,
+  id: computeId(code, data),
+  message: `Tokens "${data.source}" tagged with slot "${data.slot}" do not match expected entities.`,
+  data
+})
+
+const unitToIssue = ({ intent, utterance, slot, slotDef }: VerificationUnit) =>
+  makeIssueFromData({
+    intent,
+    utterance: utterance.toString(),
+    slot: slotDef.name,
+    entities: mapResolvedToSlotDef(slotDef).entities,
+    source: slot.source
+  })
+
+const splitEntities = (entitieDefs: EntityDefinition[]) => {
+  const listEntities = entitieDefs.filter(isListEntity)
+  const patternEntities = entitieDefs.filter(isPatternEntity)
+  return {
+    listEntities,
+    patternEntities
+  }
+}
+
+const truncateZip = <A, B>(pair: [A | undefined, B | undefined]): pair is [A, B] => {
+  return pair[0] !== undefined && pair[1] !== undefined
+}
+
+const isDefined = <T>(x: T | undefined): x is T => {
+  return x !== undefined
+}
+
+type Unpack<P> = P extends Promise<infer X> ? X : P
+
+const mapListEntity = (lang: string, tools: Tools, list: ListEntityDefinition): Promise<ListEntityModel> => {
   const { name, values, fuzzy, sensitive } = list
 
   const synonyms = _(values)
@@ -56,112 +106,142 @@ const mapPatternEntity = (pattern: PatternEntityDefinition): PatternEntity => {
   }
 }
 
-const splitEntities = (entitieDefs: EntityDefinition[]) => {
-  const listEntities = entitieDefs.filter(isListEntity)
-  const patternEntities = entitieDefs.filter(isPatternEntity)
+const mapSlotDefToResolved = (
+  listModels: ListEntityModel[],
+  patternModels: PatternEntity[],
+  { name, entities }: SlotDefinition
+): ResolvedSlotDef => {
   return {
-    listEntities,
-    patternEntities
+    name,
+    isAny: entities.includes(SLOT_ANY),
+    listEntities: entities.map((e) => listModels.find((lm) => lm.entityName === e)).filter(isDefined),
+    patternEntities: entities.map((e) => patternModels.find((pm) => pm.name === e)).filter(isDefined),
+    systemEntities: entities.map((e) => SYSTEM_ENTITIES.find((s) => s === e)).filter(isDefined)
   }
 }
 
-const entityMatchesSlot = (slot: UtteranceSlot, slotDef: SlotDefinition) => (entity: EntityExtractionResult) =>
-  entity.start === slot.startPos && entity.end === slot.endPos && slotDef.entities.includes(entity.type)
-
-const makeSlotValidator = (
-  utterance: Utterance,
-  intent: IntentDefinition,
-  entities: EntityDefinition[],
-  lang: string,
-  tools: Tools
-) => async (slot: UtteranceSlot): Promise<DatasetIssue<typeof code>[]> => {
-  const slotDef = intent.slots.find(({ name }) => name === slot.name)
-  if (!slotDef) {
-    return []
+const mapResolvedToSlotDef = ({
+  isAny,
+  listEntities,
+  name,
+  patternEntities,
+  systemEntities
+}: ResolvedSlotDef): SlotDefinition => {
+  const entities: string[] = []
+  entities.push(...listEntities.map((e) => e.entityName))
+  entities.push(...patternEntities.map((e) => e.name))
+  entities.push(...systemEntities)
+  isAny && entities.push('any')
+  return {
+    name,
+    entities
   }
-  if (slotDef.entities.includes(SLOT_ANY)) {
-    return []
-  }
+}
 
+const resolveEntities = async (ts: TrainInput, tools: Tools) => {
+  const { intents, entities, language, seed } = ts
   const { listEntities, patternEntities } = splitEntities(entities)
 
-  const { systemEntityExtractor } = tools
-  const customEntityExtractor = new CustomEntityExtractor()
-
-  const mapListEntities = makeListEntityMapper(lang, tools)
-  const listModels = await Bluebird.map(listEntities, mapListEntities)
+  const listModels = await Bluebird.map(listEntities, (e) => mapListEntity(language, tools, e))
   const patternModels = patternEntities.map(mapPatternEntity)
 
-  const extractedLists = customEntityExtractor.extractListEntities(utterance, listModels)
-  const extractedPatterns = customEntityExtractor.extractPatternEntities(utterance, patternModels)
-  const extractedSystem = await systemEntityExtractor.extract(utterance.toString(), lang)
+  const resolvedIntents = intents.map(({ slots, ...i }) => ({
+    ...i,
+    slots: slots.map((s) => mapSlotDefToResolved(listModels, patternModels, s))
+  }))
 
-  const allExtracted = [...extractedLists, ...extractedPatterns, ...extractedSystem]
-  if (allExtracted.some(entityMatchesSlot(slot, slotDef))) {
-    return []
+  return {
+    entities,
+    language,
+    seed,
+    intents: resolvedIntents
   }
-
-  const data: IssueData<typeof code> = {
-    intent: intent.name,
-    slot: slotDef.name,
-    utterance: utterance.toString(),
-    entities: slotDef.entities,
-    source: slot.value
-  }
-
-  return [
-    {
-      ...E_000,
-      id: computeId(code, data),
-      message: `Tokens "${slot.value}" tagged with slot "${slot.name}" do not match expected entities.`,
-      data
-    }
-  ]
 }
 
-const makeUtteranceValidator = (
-  intent: IntentDefinition,
-  entities: EntityDefinition[],
-  lang: string,
+const flattenDataset = async (
+  ts: Unpack<ReturnType<typeof resolveEntities>>,
   tools: Tools
-) => async (utterance: Utterance): Promise<DatasetIssue<typeof code>[]> => {
-  const validateSlot = makeSlotValidator(utterance, intent, entities, lang, tools)
+): Promise<VerificationUnit[]> => {
+  const flatIntents = ts.intents
+  const flatRawUtterances = _.flatMap(flatIntents, ({ utterances, ...x }) =>
+    utterances.map((u) => ({ rawUtterance: u, intent: x }))
+  )
 
-  let issues: DatasetIssue<typeof code>[] = []
-  for (const s of utterance.slots) {
-    const slotIssues = await validateSlot(s)
-    issues = [...issues, ...slotIssues]
-  }
-  return issues
+  const rawUtterances: string[] = flatRawUtterances
+    .map(({ rawUtterance }) => rawUtterance)
+    .map(_.flow([_.trim, replaceConsecutiveSpaces]))
+  const utteranceBatch = await buildUtteranceBatch(rawUtterances, ts.language, tools)
+
+  const flatUtterances = _.zip(flatRawUtterances, utteranceBatch)
+    .filter(truncateZip)
+    .map(([x, u]) => ({ ...x, utterance: u }))
+
+  const flatSlotDefinitions = _.flatMap(flatUtterances, ({ intent, ...x }) =>
+    intent.slots.map((s) => ({ intent: intent.name, slotDef: s, ...x }))
+  )
+
+  const flatSlotOccurences = _.flatMap(flatSlotDefinitions, ({ utterance, ...x }) =>
+    utterance.slots.map((s) => ({ slot: s, utterance, ...x }))
+  )
+
+  return flatSlotOccurences.filter((x) => x.slot.name === x.slotDef.name)
 }
 
-const makeIntentValidator = (entities: EntityDefinition[], lang: string, tools: Tools) => async (
-  intent: IntentDefinition
-): Promise<DatasetIssue<typeof code>[]> => {
-  const validateUtterance = makeUtteranceValidator(intent, entities, lang, tools)
+const matchesCustom = (customEntityExtractor: CustomEntityExtractor) => (unit: VerificationUnit) => {
+  const { startTokenIdx, endTokenIdx } = unit.slot
+  const slotTokens = unit.utterance.tokens.filter(({ index }) => index >= startTokenIdx && index <= endTokenIdx)
 
-  const cleaned = intent.utterances.map(_.flow([_.trim, replaceConsecutiveSpaces]))
-  const utterances = await buildUtteranceBatch(cleaned, lang, tools)
-
-  let issues: DatasetIssue<typeof code>[] = []
-  for (const u of utterances) {
-    const utteranceIssues = await validateUtterance(u)
-    issues = [...issues, ...utteranceIssues]
+  const listMatches = customEntityExtractor.extractListEntities({ tokens: slotTokens }, unit.slotDef.listEntities)
+  if (listMatches.length) {
+    return true
   }
-  return issues
+
+  const patternMatches = customEntityExtractor.extractPatternEntities(
+    { tokens: slotTokens },
+    unit.slotDef.patternEntities
+  )
+  if (patternMatches.length) {
+    return true
+  }
+
+  return false
 }
+
+const entityMatchesSlot = (u: VerificationUnit) => (e: EntityExtractionResult) =>
+  e.start === u.slot.startPos && e.end === u.slot.endPos && u.slotDef.systemEntities.includes(e.type)
 
 export const E_000_Linter: IssueLinter<typeof code> = {
   ...E_000,
-  speed: 'fast',
+  speed: 'fastest',
   lint: async (ts: TrainInput, tools: Tools) => {
-    const validateIntent = makeIntentValidator(ts.entities, ts.language, tools)
+    const resolvedSet = await resolveEntities(ts, tools)
+    const flatDataset = await flattenDataset(resolvedSet, tools)
 
-    let issues: DatasetIssue<typeof code>[] = []
-    for (const i of ts.intents) {
-      const intentIssues = await validateIntent(i)
-      issues = [...issues, ...intentIssues]
-    }
-    return issues
+    const { systemEntityExtractor } = tools
+    const customEntityExtractor = new CustomEntityExtractor()
+
+    let potentiallyInvalidSlots = flatDataset
+    potentiallyInvalidSlots = _.reject(potentiallyInvalidSlots, (u) => u.slotDef.isAny)
+    potentiallyInvalidSlots = _.reject(potentiallyInvalidSlots, matchesCustom(customEntityExtractor))
+
+    const [withSystemEntities, withoutSystemEntities] = _.partition(
+      potentiallyInvalidSlots,
+      (s) => s.slotDef.systemEntities.length
+    )
+
+    const extractedSystemEntities = await systemEntityExtractor.extractMultiple(
+      withSystemEntities.map((u) => u.utterance.toString()), // use whole utterance here as duckling might be influenced by token postion in utterances and is fast anyway
+      ts.language,
+      () => {},
+      true
+    )
+
+    let invalidSlots: VerificationUnit[] = _.zip(extractedSystemEntities, withSystemEntities)
+      .filter(truncateZip)
+      .map(([e, u]) => ({ ...u, extractedSystemEntities: e }))
+      .filter((u) => u.extractedSystemEntities.some(entityMatchesSlot(u)))
+    invalidSlots = [...invalidSlots, ...withoutSystemEntities]
+
+    return invalidSlots.map(unitToIssue)
   }
 }
