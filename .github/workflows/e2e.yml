@@ -4,43 +4,21 @@ jobs:
   fs:
     name: file system
     runs-on: ubuntu-latest
+    services:
+      duckling:
+        image: rasa/duckling
+        ports:
+          - 8000:8000
     steps:
       - name: Checkout code
         uses: actions/checkout@master
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '16.13.0'
-      - name: Fetch Node Packages
-        run: |
-          yarn --verbose
-      - name: Build
-        run: |
-          yarn build
-      - name: package
-        run: |
-          yarn package --linux
-      - name: Rename binary
-        id: rename_binary
-        run: |
-          bin_original_name=$(node -e "console.log(require('./scripts/utils/binary').getFileName())")
-          echo "Moving ./dist/$bin_original_name to ./nlu ..."
-          mv ./dist/$bin_original_name ./nlu
-      - name: Download language models
-        run: |
-          ./nlu lang download --lang en --dim 25
-      - name: Start Language Server
-        run: |
-          ./nlu lang --dim 25 &
-          echo "Lang Server started on pid $!"
-      - name: Sleep
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '15s'
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
       - name: Start NLU Server
         run: |
           ./nlu \
             --log-level "critical" \
-            --ducklingEnabled false \
+            --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
             --port 3200  &
           nlu_pid=$!
@@ -52,11 +30,14 @@ jobs:
       - name: Run Tests
         run: |
           yarn e2e --nlu-endpoint http://localhost:3200
-
   db:
     name: database
     runs-on: ubuntu-latest
     services:
+      duckling:
+        image: rasa/duckling
+        ports:
+          - 8000:8000
       postgres:
         # Docker Hub image
         image: postgres
@@ -76,40 +57,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '16.13.0'
-      - name: Fetch Node Packages
-        run: |
-          yarn --verbose
-      - name: Build
-        run: |
-          yarn build
-      - name: package
-        run: |
-          yarn package --linux
-      - name: Rename binary
-        id: rename_binary
-        run: |
-          bin_original_name=$(node -e "console.log(require('./scripts/utils/binary').getFileName())")
-          echo "Moving ./dist/$bin_original_name to ./nlu ..."
-          mv ./dist/$bin_original_name ./nlu
-      - name: Download language models
-        run: |
-          ./nlu lang download --lang en --dim 25
-      - name: Start Language Server
-        run: |
-          ./nlu lang --dim 25 &
-          echo "Lang Server started on pid $!"
-      - name: Sleep
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '15s'
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
       - name: Start NLU Server
         run: |
           ./nlu \
             --log-level "critical" \
-            --ducklingEnabled false \
+            --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
             --port 3201 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-1 & \
@@ -122,11 +76,14 @@ jobs:
       - name: Run Tests
         run: |
           yarn e2e --nlu-endpoint http://localhost:3201
-
   cluster:
     name: cluster
     runs-on: ubuntu-latest
     services:
+      duckling:
+        image: rasa/duckling
+        ports:
+          - 8000:8000
       postgres:
         # Docker Hub image
         image: postgres
@@ -146,70 +103,38 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '16.13.0'
-      - name: Fetch Node Packages
-        run: |
-          yarn --verbose
-      - name: Build
-        run: |
-          yarn build
-      - name: package
-        run: |
-          yarn package --linux
-      - name: Rename binary
-        id: rename_binary
-        run: |
-          bin_original_name=$(node -e "console.log(require('./scripts/utils/binary').getFileName())")
-          echo "Moving ./dist/$bin_original_name to ./nlu ..."
-          mv ./dist/$bin_original_name ./nlu
-      - name: Download language models
-        run: |
-          ./nlu lang download --lang en --dim 25
-      - name: Start Language Server
-        run: |
-          ./nlu lang --dim 25 &
-          echo "Lang Server started on pid $!"
-      - name: Sleep
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '15s'
-
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
       - name: Start First NLU Server on port 3202
         run: |
           ./nlu \
-            --log-level "critical" \
-            --ducklingEnabled false \
             --maxTraining 0 \
             --maxLinting 0 \
+            --log-level "critical" \
+            --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
             --port 3202 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 & \
           nlu_pid1=$!
           echo "NLU Server started on pid $nlu_pid1"
-
       - name: Sleep
         uses: jakejarvis/wait-action@master
         with:
           time: '5s'
-
       - name: Start Second NLU Server on port 3203
         run: |
           ./nlu \
             --log-level "critical" \
-            --ducklingEnabled false \
+            --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
             --port 3203 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 & \
           nlu_pid2=$!
           echo "NLU Server started on pid $nlu_pid2"
-
       - name: Sleep
         uses: jakejarvis/wait-action@master
         with:
           time: '15s'
-
       - name: Run Tests
         run: |
           yarn e2e --nlu-endpoint http://localhost:3202
