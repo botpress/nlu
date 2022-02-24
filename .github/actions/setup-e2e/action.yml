@@ -23,7 +23,7 @@ runs:
         cache: 'yarn'
     - name: Fetch Node Packages
       shell: bash
-      run: yarn --verbose
+      run: yarn
     - name: Build
       shell: bash
       run: yarn build
