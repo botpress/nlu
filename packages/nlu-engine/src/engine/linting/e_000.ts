@@ -239,7 +239,7 @@ export const E_000_Linter: IssueLinter<typeof code> = {
     let invalidSlots: VerificationUnit[] = _.zip(extractedSystemEntities, withSystemEntities)
       .filter(truncateZip)
       .map(([e, u]) => ({ ...u, extractedSystemEntities: e }))
-      .filter((u) => u.extractedSystemEntities.some(entityMatchesSlot(u)))
+      .filter((u) => !u.extractedSystemEntities.some(entityMatchesSlot(u)))
     invalidSlots = [...invalidSlots, ...withoutSystemEntities]
 
     return invalidSlots.map(unitToIssue)
