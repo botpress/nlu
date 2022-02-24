@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Test, AssertionArgs } from 'src/typings'
-import { assertModelsPrune, assertQueueTrainingFails, assertTrainingFails } from '../assertions'
+import { assertModelsPrune, assertQueueTrainingFails } from '../assertions'
 import { grocery_dataset } from '../datasets'
 
 const NAME = 'training-errors'
@@ -16,8 +16,7 @@ export const trainingErrorsTest: Test = {
     const invalidDataset = _.cloneDeep(grocery_dataset)
     invalidDataset.intents[0].slots.push({ name: 'some-slot', entities: ['non-existent-entity'] })
     await assertQueueTrainingFails(trainingArgs, invalidDataset, 'dataset_format')
-
-    await assertTrainingFails(trainingArgs, { ...grocery_dataset, language: 'ab' }, 'lang-server')
+    await assertQueueTrainingFails(trainingArgs, { ...grocery_dataset, language: 'ab' }, 'dataset_format')
     await assertModelsPrune(args)
   }
 }

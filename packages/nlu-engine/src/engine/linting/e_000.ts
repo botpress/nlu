@@ -170,7 +170,7 @@ const flattenDataset = async (
   const rawUtterances: string[] = flatRawUtterances
     .map(({ rawUtterance }) => rawUtterance)
     .map(_.flow([_.trim, replaceConsecutiveSpaces]))
-  const utteranceBatch = await buildUtteranceBatch(rawUtterances, ts.language, tools)
+  const utteranceBatch = await buildUtteranceBatch(rawUtterances, ts.language, tools) // TODO: there's no need to do this whole operation
 
   const flatUtterances = _.zip(flatRawUtterances, utteranceBatch)
     .filter(truncateZip)

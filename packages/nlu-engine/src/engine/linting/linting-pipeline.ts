@@ -6,14 +6,17 @@ import { Tools } from '../typings'
 import { C_000_Linter } from './c_000'
 import { C_001_Linter } from './c_001'
 import { C_002_Linter } from './c_002'
+import { C_003_Linter } from './c_003'
 import { E_000_Linter } from './e_000'
+import * as severity from './severity'
 import * as speed from './speed'
 import { IssueLinter, LintingOptions } from './typings'
 
-const allLinters: IssueLinter<IssueCode>[] = [C_000_Linter, C_001_Linter, C_002_Linter, E_000_Linter]
+const allLinters: IssueLinter<IssueCode>[] = [C_000_Linter, C_001_Linter, C_002_Linter, C_003_Linter, E_000_Linter]
 
 const DEFAULT_OPTS: LintingOptions = {
   minSpeed: 'slow',
+  minSeverity: 'warning',
   progressCallback: () => {}
 }
 
@@ -26,7 +29,9 @@ export const lintingPipeline = async (
 
   let idx = 0
 
-  const targetLinters = allLinters.filter((c) => speed.is(c.speed).asFastAs(options.minSpeed))
+  let targetLinters = allLinters
+  targetLinters = targetLinters.filter((c) => speed.is(c.speed).asFastAs(options.minSpeed))
+  targetLinters = targetLinters.filter((c) => severity.is(c.severity).asSevereAs(options.minSeverity))
 
   // TODO: replace this by Promise.all
   const results = await Bluebird.mapSeries(targetLinters, async (linter) => {

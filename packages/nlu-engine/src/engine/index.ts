@@ -50,6 +50,7 @@ const DEFAULT_TRAINING_OPTIONS: TrainingOptions = {
 const DEFAULT_LINTING_OPTIONS: LintingOptions = {
   progressCallback: () => {},
   minSpeed: 'slow',
+  minSeverity: 'warning',
   runInMainProcess: false
 }
 
