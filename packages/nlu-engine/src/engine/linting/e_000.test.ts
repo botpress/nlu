@@ -7,7 +7,9 @@ const utterances = [
   'I want to buy fruits',
   'Can I have a [banana](fruit_to_buy) please ?',
   'Please, get me an [apple](fruit_to_buy)',
-  'Do you have any [melon](fruit_to_buy) left ?'
+  'Do you have any [melon](fruit_to_buy) left ?',
+  'My personal favorite abstract object is [the concept of cheese](favorite_abstract_object).',
+  'I have a strong feeling for the idea of an [apple](favorite_abstract_object).'
 ]
 const cleanedUtterances = utterances.map(parseUtterance).map(({ utterance }) => utterance)
 
@@ -27,7 +29,10 @@ const trainSet: TrainInput = {
     {
       name: 'buy_fruits',
       contexts: ['global'],
-      slots: [{ name: 'fruit_to_buy', entities: ['fruit'] }],
+      slots: [
+        { name: 'fruit_to_buy', entities: ['fruit'] },
+        { name: 'favorite_abstract_object', entities: ['fruit', 'any'] }
+      ],
       utterances
     }
   ],

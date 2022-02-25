@@ -95,11 +95,14 @@ export class Application extends ApplicationObserver {
 
     const stringId = modelIdService.toString(modelId)
     const key = `${appId}/${stringId}`
-    const { issues } = await this._engine.lint(key, trainInput, { minSpeed: 'fastest', runInMainProcess: true })
+    const { issues } = await this._engine.lint(key, trainInput, {
+      minSpeed: 'fastest',
+      minSeverity: 'critical',
+      runInMainProcess: true
+    })
 
-    const criticalErrors = issues.filter((i) => i.severity === 'critical')
-    if (!!criticalErrors.length) {
-      throw new DatasetValidationError(criticalErrors)
+    if (!!issues.length) {
+      throw new DatasetValidationError(issues)
     }
 
     await this._trainingQueue.queueTraining(appId, modelId, trainInput)

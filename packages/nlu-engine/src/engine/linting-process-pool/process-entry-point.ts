@@ -33,10 +33,14 @@ const main = async () => {
           })
         }
 
-        const issues = await lintingPipeline(input.trainSet, tools, {
-          minSpeed: input.minSpeed,
-          progressCallback
-        })
+        const issues = await lintingPipeline(
+          input.trainSet,
+          { ...tools, logger: taskDef.logger },
+          {
+            minSpeed: input.minSpeed,
+            progressCallback
+          }
+        )
         return { issues }
       } finally {
         tools.seededLodashProvider.resetSeed()

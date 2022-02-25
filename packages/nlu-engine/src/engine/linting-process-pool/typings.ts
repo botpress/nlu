@@ -1,6 +1,5 @@
-import { DatasetIssue, IssueCode } from '../../linting'
+import { DatasetIssue, IssueCode, IssueComputationSpeed } from '../../linting'
 import { TrainInput } from '../../typings'
-import { IssueComputationSpeed } from '../linting/typings'
 
 export type LintingInput = {
   lintId: string

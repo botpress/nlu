@@ -6,6 +6,7 @@ export type IssueCode =
   | 'C_000' // tokens tagged with unexisting slot
   | 'C_001' // slot has nonexistent entity
   | 'C_002' // intent has no utterances
+  | 'C_003' // dataset has an unsupported language
   | 'E_000' // token tagged with slot has incorrect type
   | 'E_002' // duplicated utterances (in one or more intents)
   | 'E_001' // utterance has incorrect language
@@ -27,6 +28,10 @@ export type IssueData<C extends IssueCode> = C extends 'C_000'
   : C extends 'C_002'
   ? {
       intent: string
+    }
+  : C extends 'C_003'
+  ? {
+      language: string
     }
   : C extends 'E_000'
   ? {
@@ -73,7 +78,7 @@ export type LintingStatus = 'done' | 'linting-pending' | 'linting' | 'canceled' 
 export type LintingErrorType = 'lang-server' | 'duckling-server' | 'zombie-linting' | 'internal'
 
 export type LintingError = {
-  type: TrainingErrorType
+  type: LintingErrorType
   message: string
   stack?: string
 }
@@ -85,6 +90,8 @@ export type LintingState = {
   error?: LintingError
   issues: DatasetIssue<IssueCode>[]
 }
+
+export type IssueComputationSpeed = 'fastest' | 'fast' | 'slow' | 'slowest'
 
 export type IssueSeverity<C extends IssueCode> = C extends `C_${infer CodeSufix}`
   ? 'critical'

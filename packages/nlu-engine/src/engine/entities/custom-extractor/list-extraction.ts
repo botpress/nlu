@@ -1,15 +1,11 @@
 import _ from 'lodash'
 import { jaroWinklerSimilarity, levenshteinSimilarity } from '../../tools/strings'
 import { EntityExtractionResult, ListEntityModel } from '../../typings'
-import { SerializableUtteranceToken, tokenToString } from './serializable-token'
+import { ListEntityUtteranceToken, tokenToString } from './token'
 
 const ENTITY_SCORE_THRESHOLD = 0.6
 
-function takeUntil(
-  arr: SerializableUtteranceToken[],
-  start: number,
-  desiredLength: number
-): SerializableUtteranceToken[] {
+function takeUntil(arr: ListEntityUtteranceToken[], start: number, desiredLength: number): ListEntityUtteranceToken[] {
   let total = 0
   const result = _.takeWhile(arr.slice(start), (t) => {
     const toAdd = tokenToString(t).length
@@ -82,7 +78,7 @@ type Candidate = {
 }
 
 export function extractForListModel(
-  tokens: SerializableUtteranceToken[],
+  tokens: ListEntityUtteranceToken[],
   listModel: ListEntityModel
 ): EntityExtractionResult[] {
   const candidates: Candidate[] = []
@@ -94,7 +90,12 @@ export function extractForListModel(
         if (tokens[i].isSpace) {
           continue
         }
-        const workset = takeUntil(tokens, i, _.sumBy(occurrence, 'length'))
+
+        const workset = takeUntil(
+          tokens,
+          i,
+          _.sumBy(occurrence, (o) => o.length)
+        )
         const worksetStrLow = workset.map((x) => tokenToString(x, { lowerCase: true, realSpaces: true, trim: false }))
         const worksetStrWCase = workset.map((x) =>
           tokenToString(x, { lowerCase: false, realSpaces: true, trim: false })
@@ -142,7 +143,7 @@ export function extractForListModel(
     }
   }
 
-  return candidates
+  const results: EntityExtractionResult[] = candidates
     .filter((x) => !x.eliminated && x.score >= ENTITY_SCORE_THRESHOLD)
     .map((match) => ({
       confidence: match.score,
@@ -157,5 +158,6 @@ export function extractForListModel(
       },
       sensitive: listModel.sensitive,
       type: listModel.entityName
-    })) as EntityExtractionResult[]
+    }))
+  return results
 }

@@ -50,6 +50,7 @@ const DEFAULT_TRAINING_OPTIONS: TrainingOptions = {
 const DEFAULT_LINTING_OPTIONS: LintingOptions = {
   progressCallback: () => {},
   minSpeed: 'slow',
+  minSeverity: 'warning',
   runInMainProcess: false
 }
 
@@ -306,7 +307,7 @@ export default class Engine implements IEngine {
         options.progressCallback
       )
     } else {
-      const issues = await lintingPipeline(trainSet, this._tools, options)
+      const issues = await lintingPipeline(trainSet, { ...this._tools, logger: this._lintLogger }, options)
       lintOutput = { issues }
     }
     return lintOutput
