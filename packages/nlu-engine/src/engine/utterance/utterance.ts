@@ -68,6 +68,52 @@ export default class Utterance {
   private _kmeans?: MLToolkit.KMeans.KmeansResult
   private _sentenceEmbedding?: number[]
 
+  public static toString(tokens: ReadonlyArray<UtteranceToken>, opt?: Partial<UtteranceToStringOptions>): string {
+    const nonEmptyOptions = _.pickBy(opt, (v) => v !== undefined)
+    const options: UtteranceToStringOptions = { ...DEFAULT_UTT_TO_STRING_OPTIONS, ...nonEmptyOptions }
+
+    let final = ''
+    let ret = [...tokens]
+    if (options.onlyWords) {
+      ret = ret.filter((tok) => tok.slots.length || tok.isWord)
+    }
+
+    for (const tok of ret) {
+      final += this._replaceToken(tok, options)
+    }
+
+    if (options.lowerCase) {
+      final = final.toLowerCase()
+    }
+
+    return final.replace(new RegExp(SPACE, 'g'), ' ')
+  }
+
+  private static _replaceToken(tok: UtteranceToken, options: UtteranceToStringOptions): string {
+    if (!tok.slots.length && !tok.entities.length) {
+      return tok.value
+    }
+
+    if (options.strategy === 'keep-token') {
+      return tok.value
+    }
+
+    if (tok.entities.length && options.strategy === 'replace-entity-name') {
+      return tok.entities[0].type
+    }
+
+    if (tok.entities.length && options.strategy === 'replace-entity-value') {
+      return tok.entities[0].value.toString()
+    }
+
+    if (tok.slots.length && options.strategy === 'replace-slot-name') {
+      return tok.slots[0].name
+    }
+
+    // options.strategy === 'ignore'
+    return ''
+  }
+
   constructor(tokens: string[], vectors: number[][], posTags: POSClass[], public languageCode: Readonly<string>) {
     const allSameLength = [tokens, vectors, posTags].every((arr) => arr.length === tokens.length)
     if (!allSameLength) {
@@ -180,51 +226,8 @@ export default class Utterance {
     this._kmeans = kmeans
   }
 
-  private _replaceToken(tok: UtteranceToken, options: UtteranceToStringOptions): string {
-    if (!tok.slots.length && !tok.entities.length) {
-      return tok.value
-    }
-
-    if (options.strategy === 'keep-token') {
-      return tok.value
-    }
-
-    if (tok.entities.length && options.strategy === 'replace-entity-name') {
-      return tok.entities[0].type
-    }
-
-    if (tok.entities.length && options.strategy === 'replace-entity-value') {
-      return tok.entities[0].value.toString()
-    }
-
-    if (tok.slots.length && options.strategy === 'replace-slot-name') {
-      return tok.slots[0].name
-    }
-
-    // options.strategy === 'ignore'
-    return ''
-  }
-
-  // TODO memoize this for better perf
   public toString(opt?: Partial<UtteranceToStringOptions>): string {
-    const nonEmptyOptions = _.pickBy(opt, (v) => v !== undefined)
-    const options: UtteranceToStringOptions = { ...DEFAULT_UTT_TO_STRING_OPTIONS, ...nonEmptyOptions }
-
-    let final = ''
-    let ret = [...this.tokens]
-    if (options.onlyWords) {
-      ret = ret.filter((tok) => tok.slots.length || tok.isWord)
-    }
-
-    for (const tok of ret) {
-      final += this._replaceToken(tok, options)
-    }
-
-    if (options.lowerCase) {
-      final = final.toLowerCase()
-    }
-
-    return final.replace(new RegExp(SPACE, 'g'), ' ')
+    return Utterance.toString(this.tokens, opt)
   }
 
   public clone(copyEntities: boolean, copySlots: boolean): Utterance {

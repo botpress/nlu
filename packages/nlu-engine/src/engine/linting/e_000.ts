@@ -14,7 +14,7 @@ import { CustomEntityExtractor } from '../entities/custom-extractor'
 import { makeListEntityModel } from '../entities/list-entity-model'
 import { replaceConsecutiveSpaces } from '../tools/strings'
 import { EntityExtractionResult, ListEntity, ListEntityModel, PatternEntity, Tools } from '../typings'
-import Utterance, { buildUtteranceBatch, UtteranceSlot } from '../utterance/utterance'
+import Utterance, { buildUtteranceBatch, UtteranceSlot, UtteranceToStringOptions } from '../utterance/utterance'
 import { computeId } from './id'
 import { asCode, IssueLinter } from './typings'
 
@@ -36,7 +36,7 @@ type ResolvedSlotDef = {
 
 type VerificationUnit = {
   intent: string
-  rawUtterance: string
+  utteranceIdx: number
   utterance: Utterance
   slotDef: ResolvedSlotDef
   slot: UtteranceSlot
@@ -49,10 +49,13 @@ const makeIssueFromData = (data: IssueData<typeof code>): DatasetIssue<typeof co
   data
 })
 
-const unitToIssue = ({ intent, utterance, slot, slotDef }: VerificationUnit) =>
+const unitToIssue = ({ intent, utterance, utteranceIdx, slot, slotDef }: VerificationUnit) =>
   makeIssueFromData({
     intent,
+    utteranceIdx,
     utterance: utterance.toString(),
+    charStart: slot.startPos,
+    charEnd: slot.endPos,
     slot: slotDef.name,
     entities: mapResolvedToSlotDef(slotDef).entities,
     source: slot.source
@@ -164,7 +167,7 @@ const flattenDataset = async (
 ): Promise<VerificationUnit[]> => {
   const flatIntents = ts.intents
   const flatRawUtterances = _.flatMap(flatIntents, ({ utterances, ...x }) =>
-    utterances.map((u) => ({ rawUtterance: u, intent: x }))
+    utterances.map((u, i) => ({ rawUtterance: u, intent: x, utteranceIdx: i }))
   )
 
   const rawUtterances: string[] = flatRawUtterances
@@ -191,15 +194,14 @@ const matchesCustom = (customEntityExtractor: CustomEntityExtractor) => (unit: V
   const { startTokenIdx, endTokenIdx } = unit.slot
   const slotTokens = unit.utterance.tokens.filter(({ index }) => index >= startTokenIdx && index <= endTokenIdx)
 
-  const listMatches = customEntityExtractor.extractListEntities({ tokens: slotTokens }, unit.slotDef.listEntities)
+  const toString = (opt?: Partial<UtteranceToStringOptions>) => Utterance.toString(slotTokens, opt)
+  const entityUtterance = { tokens: slotTokens, toString }
+  const listMatches = customEntityExtractor.extractListEntities(entityUtterance, unit.slotDef.listEntities)
   if (listMatches.length) {
     return true
   }
 
-  const patternMatches = customEntityExtractor.extractPatternEntities(
-    { tokens: slotTokens },
-    unit.slotDef.patternEntities
-  )
+  const patternMatches = customEntityExtractor.extractPatternEntities(entityUtterance, unit.slotDef.patternEntities)
   if (patternMatches.length) {
     return true
   }
