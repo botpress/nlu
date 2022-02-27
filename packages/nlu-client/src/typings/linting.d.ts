@@ -36,7 +36,10 @@ export type IssueData<C extends IssueCode> = C extends 'C_000'
   : C extends 'E_000'
   ? {
       intent: string
+      utteranceIdx: number
       utterance: string
+      charStart: number
+      charEnd: number
       slot: string
       entities: string[]
       source: string
