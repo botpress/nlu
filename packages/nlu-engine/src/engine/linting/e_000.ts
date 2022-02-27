@@ -12,7 +12,6 @@ import {
 } from '../../typings'
 import { CustomEntityExtractor } from '../entities/custom-extractor'
 import { makeListEntityModel } from '../entities/list-entity-model'
-import { replaceConsecutiveSpaces } from '../tools/strings'
 import { EntityExtractionResult, ListEntity, ListEntityModel, PatternEntity, Tools } from '../typings'
 import Utterance, { buildUtteranceBatch, UtteranceSlot, UtteranceToStringOptions } from '../utterance/utterance'
 import { computeId } from './id'

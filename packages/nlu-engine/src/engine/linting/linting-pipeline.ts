@@ -8,11 +8,19 @@ import { C_001_Linter } from './c_001'
 import { C_002_Linter } from './c_002'
 import { C_003_Linter } from './c_003'
 import { E_000_Linter } from './e_000'
+import { E_004_Linter } from './e_004'
 import * as severity from './severity'
 import * as speed from './speed'
 import { IssueLinter, LintingOptions } from './typings'
 
-const allLinters: IssueLinter<IssueCode>[] = [C_000_Linter, C_001_Linter, C_002_Linter, C_003_Linter, E_000_Linter]
+const allLinters: IssueLinter<IssueCode>[] = [
+  C_000_Linter,
+  C_001_Linter,
+  C_002_Linter,
+  C_003_Linter,
+  E_000_Linter,
+  E_004_Linter
+]
 
 const DEFAULT_OPTS: LintingOptions = {
   minSpeed: 'slow',
