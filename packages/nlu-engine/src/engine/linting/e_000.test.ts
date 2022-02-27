@@ -1,6 +1,5 @@
 import { TrainInput } from '../../typings'
 import { makeFakeTools } from '../test-utils/fake-tools'
-import { parseUtterance } from '../utterance/utterance-parser'
 import { E_000_Linter } from './e_000'
 
 const utterances = [
@@ -13,7 +12,6 @@ const utterances = [
   'Do you have item [abc-123](fruit_to_buy) left ?',
   'Do you have item [abc-12c](fruit_to_buy) in stock ?'
 ]
-const cleanedUtterances = utterances.map(parseUtterance).map(({ utterance }) => utterance)
 
 const trainSet: TrainInput = {
   entities: [
@@ -56,15 +54,15 @@ test('linter for E_000 only flags tokens incorrectly tagged as a slot', async ()
 
   expect(lintResults.length).toBe(3)
 
-  expect(lintResults[0].data.utterance).toBe(cleanedUtterances[1])
+  expect(lintResults[0].data.utterance).toBe(utterances[1])
   expect(lintResults[0].data.slot).toBe('fruit_to_buy')
   expect(lintResults[0].data.source).toBe('banana')
 
-  expect(lintResults[1].data.utterance).toBe(cleanedUtterances[2])
+  expect(lintResults[1].data.utterance).toBe(utterances[2])
   expect(lintResults[1].data.slot).toBe('fruit_to_buy')
   expect(lintResults[1].data.source).toBe('apple')
 
-  expect(lintResults[2].data.utterance).toBe(cleanedUtterances[7])
+  expect(lintResults[2].data.utterance).toBe(utterances[7])
   expect(lintResults[2].data.slot).toBe('fruit_to_buy')
   expect(lintResults[2].data.source).toBe('abc-12c')
 })

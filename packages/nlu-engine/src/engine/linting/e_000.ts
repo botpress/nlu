@@ -36,6 +36,7 @@ type ResolvedSlotDef = {
 type VerificationUnit = {
   intent: string
   utteranceIdx: number
+  rawUtterance: string
   utterance: Utterance
   slotDef: ResolvedSlotDef
   slot: UtteranceSlot
@@ -48,13 +49,13 @@ const makeIssueFromData = (data: IssueData<typeof code>): DatasetIssue<typeof co
   data
 })
 
-const unitToIssue = ({ intent, utterance, utteranceIdx, slot, slotDef }: VerificationUnit) =>
+const unitToIssue = ({ intent, rawUtterance, utteranceIdx, slot, slotDef }: VerificationUnit) =>
   makeIssueFromData({
     intent,
     utteranceIdx,
-    utterance: utterance.toString(),
-    charStart: slot.startPos,
-    charEnd: slot.endPos,
+    utterance: rawUtterance,
+    cleanCharStart: slot.startPos,
+    cleanCharEnd: slot.endPos,
     slot: slotDef.name,
     entities: mapResolvedToSlotDef(slotDef).entities,
     source: slot.source

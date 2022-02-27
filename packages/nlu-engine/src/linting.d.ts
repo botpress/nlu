@@ -38,9 +38,9 @@ export type IssueData<C extends IssueCode> = C extends 'C_000'
   ? {
       intent: string
       utteranceIdx: number
-      utterance: string // TODO: return raw utterance instead
-      charStart: number // TODO: make this the raw position
-      charEnd: number // TODO: make this the raw position
+      utterance: string
+      cleanCharStart: number
+      cleanCharEnd: number
       slot: string
       entities: string[]
       source: string
