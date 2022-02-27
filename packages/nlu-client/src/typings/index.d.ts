@@ -30,7 +30,13 @@ export class Client {
   listTrainings(appId: string, lang?: string): Promise<ListTrainingsResponseBody | ErrorResponse>
   cancelTraining(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse>
 
+  /**
+   * @experimental still subject to breaking changes
+   */
   startLinting(appId: string, lintRequestBody: LintRequestBody): Promise<LintResponseBody | ErrorResponse>
+  /**
+   * @experimental still subject to breaking changes
+   */
   getLintingStatus(appId: string, modelId: string): Promise<LintProgressResponseBody | ErrorResponse>
 
   listModels(appId: string): Promise<ListModelsResponseBody | ErrorResponse>

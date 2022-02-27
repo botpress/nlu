@@ -52,6 +52,9 @@ export class NLUClient implements IClient {
     return validateResponse<TrainResponseBody>(call, res)
   }
 
+  /**
+   * @experimental still subject to breaking changes
+   */
   public async startLinting(appId: string, body: LintRequestBody): Promise<LintResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
     const ressource = 'lint'
@@ -77,6 +80,9 @@ export class NLUClient implements IClient {
     return validateResponse<TrainProgressResponseBody>(call, res)
   }
 
+  /**
+   * @experimental still subject to breaking changes
+   */
   public async getLintingStatus(appId: string, modelId: string): Promise<LintProgressResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
     const ressource = `lint/${modelId}`
