@@ -16,7 +16,7 @@ import { getCtxFeatures } from './intents/context-featurizer'
 import { OOSIntentClassifier } from './intents/oos-intent-classfier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
 import { SlotTagger } from './slots/slot-tagger'
-import { replaceConsecutiveSpaces } from './tools/strings'
+
 import tfidf from './tools/tfidf'
 import {
   ColdListEntityModel,
@@ -93,8 +93,8 @@ async function processIntents(
   tools: Tools
 ): Promise<Intent<Utterance>[]> {
   return Bluebird.map(intents, async (intent) => {
-    const cleaned = intent.utterances.map(_.flow([_.trim, replaceConsecutiveSpaces]))
-    const utterances = await buildUtteranceBatch(cleaned, languageCode, tools)
+    const cleaned = intent.utterances.map((u) => u.trim())
+    const utterances = await buildUtteranceBatch(cleaned, languageCode, tools, [])
     return { ...intent, utterances }
   })
 }

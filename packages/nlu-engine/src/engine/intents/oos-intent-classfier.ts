@@ -161,7 +161,8 @@ export class OOSIntentClassifier implements NoneableIntentClassifier<typeof PTBO
       utterances: await buildUtteranceBatch(
         [...mixedUtts, ...vocabUtts, ...junkWordsUtts, ...stopWords],
         languageCode,
-        this.tools
+        this.tools,
+        []
       ),
       contexts: []
     }
