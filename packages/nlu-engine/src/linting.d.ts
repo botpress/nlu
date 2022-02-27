@@ -8,9 +8,10 @@ export type IssueCode =
   | 'C_002' // intent has no utterances
   | 'C_003' // dataset has an unsupported language
   | 'E_000' // token tagged with slot has incorrect type
-  | 'E_002' // duplicated utterances (in one or more intents)
   | 'E_001' // utterance has incorrect language
+  | 'E_002' // duplicated utterances (in one or more intents)
   | 'E_003' // the whole utterance is tagged as a slot
+  | 'E_004' // utterance contains dupplicated or untrimed spaces
   | 'W_000' // intents are overlapping
 
 export type IssueData<C extends IssueCode> = C extends 'C_000'
@@ -38,8 +39,8 @@ export type IssueData<C extends IssueCode> = C extends 'C_000'
       intent: string
       utteranceIdx: number
       utterance: string
-      charStart: number
-      charEnd: number
+      cleanCharStart: number
+      cleanCharEnd: number
       slot: string
       entities: string[]
       source: string
@@ -62,6 +63,14 @@ export type IssueData<C extends IssueCode> = C extends 'C_000'
       intent: string
       utterance: string
       slot: string
+    }
+  : C extends 'E_004'
+  ? {
+      intent: string
+      utteranceIdx: number
+      utterance: string
+      charStart: number
+      charEnd: number
     }
   : never
 

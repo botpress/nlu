@@ -299,18 +299,23 @@ export async function buildUtteranceBatch(
   raw_utterances: string[],
   language: string,
   tools: Tools,
-  vocab?: string[]
+  vocab: string[],
+  opt: { vectorize: boolean } = { vectorize: true }
 ): Promise<Utterance[]> {
   const preprocessed = raw_utterances.map(preprocessRawUtterance)
   const parsed = preprocessed.map(parseUtterance)
   const tokenUtterances = await tools.tokenize_utterances(
     parsed.map((p) => p.utterance),
     language,
-    vocab ?? []
+    vocab
   )
   const POSUtterances = (await tools.pos_utterances(tokenUtterances, language)) as POSClass[][]
   const uniqTokens = _.uniq(_.flatten(tokenUtterances))
-  const vectors = await tools.vectorize_tokens(uniqTokens, language)
+
+  const vectorDim = tools.getLangServerSpecs().dimensions
+  const vectors = opt.vectorize
+    ? await tools.vectorize_tokens(uniqTokens, language)
+    : uniqTokens.map(() => zeroes(vectorDim))
   const vectorMap = _.zipObject(uniqTokens, vectors)
 
   return _.zipWith(tokenUtterances, POSUtterances, parsed, (tokUtt, POSUtt, parsed) => ({ tokUtt, POSUtt, parsed }))

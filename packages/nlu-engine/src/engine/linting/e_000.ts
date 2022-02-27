@@ -12,7 +12,6 @@ import {
 } from '../../typings'
 import { CustomEntityExtractor } from '../entities/custom-extractor'
 import { makeListEntityModel } from '../entities/list-entity-model'
-import { replaceConsecutiveSpaces } from '../tools/strings'
 import { EntityExtractionResult, ListEntity, ListEntityModel, PatternEntity, Tools } from '../typings'
 import Utterance, { buildUtteranceBatch, UtteranceSlot, UtteranceToStringOptions } from '../utterance/utterance'
 import { computeId } from './id'
@@ -37,6 +36,7 @@ type ResolvedSlotDef = {
 type VerificationUnit = {
   intent: string
   utteranceIdx: number
+  rawUtterance: string
   utterance: Utterance
   slotDef: ResolvedSlotDef
   slot: UtteranceSlot
@@ -49,13 +49,13 @@ const makeIssueFromData = (data: IssueData<typeof code>): DatasetIssue<typeof co
   data
 })
 
-const unitToIssue = ({ intent, utterance, utteranceIdx, slot, slotDef }: VerificationUnit) =>
+const unitToIssue = ({ intent, rawUtterance, utteranceIdx, slot, slotDef }: VerificationUnit) =>
   makeIssueFromData({
     intent,
     utteranceIdx,
-    utterance: utterance.toString(),
-    charStart: slot.startPos,
-    charEnd: slot.endPos,
+    utterance: rawUtterance,
+    cleanCharStart: slot.startPos,
+    cleanCharEnd: slot.endPos,
     slot: slotDef.name,
     entities: mapResolvedToSlotDef(slotDef).entities,
     source: slot.source
@@ -170,10 +170,10 @@ const flattenDataset = async (
     utterances.map((u, i) => ({ rawUtterance: u, intent: x, utteranceIdx: i }))
   )
 
-  const rawUtterances: string[] = flatRawUtterances
-    .map(({ rawUtterance }) => rawUtterance)
-    .map(_.flow([_.trim, replaceConsecutiveSpaces]))
-  const utteranceBatch = await buildUtteranceBatch(rawUtterances, ts.language, tools) // TODO: there's no need to do this whole operation
+  const rawUtterances: string[] = flatRawUtterances.map(({ rawUtterance }) => rawUtterance).map((u) => u.trim())
+  const utteranceBatch = await buildUtteranceBatch(rawUtterances, ts.language, tools, [], {
+    vectorize: false // no need for vectors to go faster
+  })
 
   const flatUtterances = _.zip(flatRawUtterances, utteranceBatch)
     .filter(truncateZip)
