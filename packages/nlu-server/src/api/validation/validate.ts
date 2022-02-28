@@ -41,7 +41,11 @@ export async function validateTrainInput(rawInput: any): Promise<http.TrainReque
 }
 
 export async function validateLintInput(rawInput: any): Promise<http.LintRequestBody> {
-  return _validateTrainset<http.LintRequestBody>(rawInput, LintInputSchema)
+  const validated = await _validateTrainset<http.LintRequestBody>(rawInput, LintInputSchema)
+  if (!isLintingSpeed(validated.speed)) {
+    throw new InvalidRequestFormatError(`path param "${validated.speed}" is not a valid linting speed.`)
+  }
+  return validated
 }
 
 export async function validatePredictInput(rawInput: any): Promise<http.PredictRequestBody> {
