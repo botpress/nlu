@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 import _ from 'lodash'
-import { Client as IClient } from './typings'
+import { Client as IClient, IssueComputationSpeed } from './typings'
 import {
   TrainResponseBody,
   TrainRequestBody,
@@ -83,9 +83,13 @@ export class NLUClient implements IClient {
   /**
    * @experimental still subject to breaking changes
    */
-  public async getLintingStatus(appId: string, modelId: string): Promise<LintProgressResponseBody | ErrorResponse> {
+  public async getLintingStatus(
+    appId: string,
+    modelId: string,
+    speed: IssueComputationSpeed
+  ): Promise<LintProgressResponseBody | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const ressource = `lint/${modelId}`
+    const ressource = `lint/${modelId}/${speed}`
     const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const res = await this._get(call, { headers })
     return validateResponse<LintProgressResponseBody>(call, res)
@@ -99,9 +103,13 @@ export class NLUClient implements IClient {
     return validateResponse<SuccessReponse>(call, res)
   }
 
-  public async cancelLinting(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse> {
+  public async cancelLinting(
+    appId: string,
+    modelId: string,
+    speed: IssueComputationSpeed
+  ): Promise<SuccessReponse | ErrorResponse> {
     const headers = this._appIdHeader(appId)
-    const ressource = `lint/${modelId}/cancel`
+    const ressource = `lint/${modelId}/${speed}/cancel`
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, {}, { headers })
     return validateResponse<SuccessReponse>(call, res)

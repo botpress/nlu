@@ -31,11 +31,12 @@ const mapTaskStatusToLintStatus = (taskStatus: Exclude<q.TaskStatus, 'zombie'>):
 }
 
 const mapLintingToTask = (linting: Linting): LintTask => {
-  const { appId, modelId, status, cluster, currentCount, totalCount, dataset, error, issues } = linting
+  const { appId, modelId, speed, status, cluster, currentCount, totalCount, dataset, error, issues } = linting
   const isZombie = error?.type === 'zombie-linting'
   return {
     appId,
     modelId,
+    speed,
     cluster,
     status: isZombie ? 'zombie' : mapLintStatusToTaskStatus(status),
     data: {
@@ -48,12 +49,13 @@ const mapLintingToTask = (linting: Linting): LintTask => {
 }
 
 const mapTaskToLinting = (task: LintTask): Linting => {
-  const { appId, modelId, status, cluster, progress, input, data, error } = task
+  const { appId, modelId, speed, status, cluster, progress, input, data, error } = task
   const { issues } = data
   const isZombie = status === 'zombie'
   return {
     appId,
     modelId,
+    speed,
     cluster,
     status: isZombie ? 'errored' : mapTaskStatusToLintStatus(status),
     dataset: input,

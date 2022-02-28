@@ -2,6 +2,7 @@ import {
   DatasetIssue,
   http,
   IssueCode,
+  IssueComputationSpeed,
   LintingState,
   LintingStatus,
   TrainingErrorType,
@@ -94,12 +95,16 @@ export const assertTrainingStarts = async (args: AssertionArgs, trainSet: TrainI
   return modelId
 }
 
-export const assertLintingStarts = async (args: AssertionArgs, trainSet: TrainInput): Promise<string> => {
+export const assertLintingStarts = async (
+  args: AssertionArgs,
+  speed: IssueComputationSpeed,
+  trainSet: TrainInput
+): Promise<string> => {
   const { client, logger, appId } = args
   logger.debug('assert linting starts')
 
   const contexts = _getContexts(trainSet)
-  const trainRes = await client.startLinting(appId, { ...trainSet, contexts })
+  const trainRes = await client.startLinting(appId, { ...trainSet, contexts, speed })
   if (!trainRes.success) {
     throw new UnsuccessfullAPICall(trainRes.error)
   }
@@ -111,6 +116,7 @@ export const assertLintingStarts = async (args: AssertionArgs, trainSet: TrainIn
     nluClient: client,
     modelId,
     appId,
+    speed,
     maxTime: ms('5s'),
     condition: (ts: LintingState) => ts.status !== 'linting-pending'
   })
@@ -248,6 +254,7 @@ export const assertTrainingFinishes = async (args: AssertionArgs, modelId: strin
 
 export const assertLintingFinishes = async (
   args: AssertionArgs,
+  speed: IssueComputationSpeed,
   modelId: string
 ): Promise<DatasetIssue<IssueCode>[]> => {
   const { client, logger, appId } = args
@@ -257,6 +264,7 @@ export const assertLintingFinishes = async (
     nluClient: client,
     modelId,
     appId,
+    speed,
     maxTime: -1,
     condition: (ts: LintingState) => {
       return ts.status !== 'linting'

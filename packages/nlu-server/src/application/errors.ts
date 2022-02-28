@@ -1,4 +1,4 @@
-import { DatasetIssue, IssueCode } from '@botpress/nlu-client'
+import { DatasetIssue, IssueCode, IssueComputationSpeed } from '@botpress/nlu-client'
 import { ModelId, modelIdService } from '@botpress/nlu-engine'
 import { ResponseError } from '../api/errors'
 
@@ -19,10 +19,10 @@ export class TrainingNotFoundError extends ResponseError {
 }
 
 export class LintingNotFoundError extends ResponseError {
-  constructor(appId: string, modelId: ModelId) {
+  constructor(appId: string, modelId: ModelId, speed: IssueComputationSpeed) {
     const stringId = modelIdService.toString(modelId)
     const trainKey = `${appId}/${stringId}`
-    super(`no current linting for: ${trainKey}`, 404)
+    super(`no current linting with speed "${speed}" for: ${trainKey}`, 404)
   }
 }
 

@@ -1,4 +1,4 @@
-import { LintingState as ClientLintingState, TrainInput } from '@botpress/nlu-client'
+import { IssueComputationSpeed, LintingState as ClientLintingState, TrainInput } from '@botpress/nlu-client'
 import { ModelId } from '@botpress/nlu-engine'
 
 export type LintingRepository = {
@@ -14,6 +14,7 @@ export type LintingRepository = {
 export type LintingId = {
   modelId: ModelId
   appId: string
+  speed: IssueComputationSpeed
 }
 
 export type LintingState = ClientLintingState & {

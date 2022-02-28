@@ -1,4 +1,4 @@
-import { DatasetIssue, IntentDefinition, IssueCode, TrainInput } from '@botpress/nlu-client'
+import { DatasetIssue, IntentDefinition, IssueCode, IssueComputationSpeed, TrainInput } from '@botpress/nlu-client'
 import chai from 'chai'
 import _ from 'lodash'
 import { AssertionArgs, Test } from 'src/typings'
@@ -26,23 +26,24 @@ export const lintingTest: Test = {
     logger.info(`Running test: ${NAME}`)
     const lintingLogger = logger.sub(NAME)
     const lintingArgs = { ...args, logger: lintingLogger }
+    const speed: IssueComputationSpeed = 'slow'
 
-    const modelId = await assertLintingStarts(lintingArgs, grocery_dataset)
-    const dataset_issues = await assertLintingFinishes(lintingArgs, modelId)
+    const modelId = await assertLintingStarts(lintingArgs, speed, grocery_dataset)
+    const dataset_issues = await assertLintingFinishes(lintingArgs, speed, modelId)
     chai.expect(dataset_issues).to.have.length(0, 'original dataset should have no issues')
 
     const c_000_dataset = _.cloneDeep(grocery_dataset)
     getIntent(c_000_dataset, 'fruit-is-moldy').utterances.push('I love [bananas](some_fruit_lol)')
-    const c000_modelId = await assertLintingStarts(lintingArgs, c_000_dataset)
-    const c_000_dataset_issues = await assertLintingFinishes(lintingArgs, c000_modelId)
+    const c000_modelId = await assertLintingStarts(lintingArgs, speed, c_000_dataset)
+    const c_000_dataset_issues = await assertLintingFinishes(lintingArgs, speed, c000_modelId)
     const c000_issues = c_000_dataset_issues.filter(issueGuard('C_000'))
     chai.expect(c000_issues).to.have.length(1, 'c000 issue count is incorrect')
     chai.expect(c000_issues[0]).to.have.property('code', 'C_000')
 
     const c_001_dataset = _.cloneDeep(grocery_dataset)
     getIntent(c_001_dataset, 'fruit-is-moldy').slots.push({ name: 'some-slot', entities: ['non-existent-entity'] })
-    const c001_modelId = await assertLintingStarts(lintingArgs, c_001_dataset)
-    const c001_dataset_issues = await assertLintingFinishes(lintingArgs, c001_modelId)
+    const c001_modelId = await assertLintingStarts(lintingArgs, speed, c_001_dataset)
+    const c001_dataset_issues = await assertLintingFinishes(lintingArgs, speed, c001_modelId)
     const c001_issues = c001_dataset_issues.filter(issueGuard('C_001'))
     chai.expect(c001_issues).to.have.length(1, 'c001 issue count is incorrect')
     chai.expect(c001_issues[0]).to.have.property('code', 'C_001')
@@ -52,8 +53,8 @@ export const lintingTest: Test = {
     getIntent(e_000_dataset, 'talk-to-manager').utterances.push(
       'Can I talk with your boss [in Quebec city](appointment_time)?'
     )
-    const e000_modelId = await assertLintingStarts(lintingArgs, e_000_dataset)
-    const e_000_dataset_issues = await assertLintingFinishes(lintingArgs, e000_modelId)
+    const e000_modelId = await assertLintingStarts(lintingArgs, speed, e_000_dataset)
+    const e_000_dataset_issues = await assertLintingFinishes(lintingArgs, speed, e000_modelId)
     const e000_issues = _(e_000_dataset_issues)
       .filter(issueGuard('E_000'))
       .orderBy((i) => i.data.source)

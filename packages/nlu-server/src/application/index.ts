@@ -5,7 +5,8 @@ import {
   TrainInput,
   ServerInfo,
   TrainingStatus,
-  LintingState
+  LintingState,
+  IssueComputationSpeed
 } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
@@ -161,8 +162,8 @@ export class Application extends ApplicationObserver {
     return this._trainingQueue.cancelTraining(appId, modelId)
   }
 
-  public async cancelLinting(appId: string, modelId: ModelId): Promise<void> {
-    return this._lintingQueue.cancelLinting(appId, modelId)
+  public async cancelLinting(appId: string, modelId: ModelId, speed: IssueComputationSpeed): Promise<void> {
+    return this._lintingQueue.cancelLinting(appId, modelId, speed)
   }
 
   public async predict(appId: string, modelId: ModelId, utterances: string[]): Promise<PredictOutput[]> {
@@ -233,18 +234,18 @@ You can increase your cache size by the CLI or config.
     return detectedLanguages
   }
 
-  public async startLinting(appId: string, trainInput: TrainInput): Promise<ModelId> {
+  public async startLinting(appId: string, speed: IssueComputationSpeed, trainInput: TrainInput): Promise<ModelId> {
     const modelId = modelIdService.makeId({
       ...trainInput,
       specifications: this._engine.getSpecifications()
     })
 
-    await this._lintingQueue.queueLinting(appId, modelId, trainInput)
+    await this._lintingQueue.queueLinting(appId, modelId, speed, trainInput)
     return modelId
   }
 
-  public async getLintingState(appId: string, modelId: ModelId): Promise<LintingState> {
-    const linting = await this._lintingRepo.get({ appId, modelId })
+  public async getLintingState(appId: string, modelId: ModelId, speed: IssueComputationSpeed): Promise<LintingState> {
+    const linting = await this._lintingRepo.get({ appId, modelId, speed })
     if (linting) {
       const { status, error, currentCount, totalCount, issues } = linting
       return { status, error, currentCount, totalCount, issues }
@@ -255,7 +256,7 @@ You can increase your cache size by the CLI or config.
       throw new InvalidModelSpecError(modelId, currentSpec)
     }
 
-    throw new LintingNotFoundError(appId, modelId)
+    throw new LintingNotFoundError(appId, modelId, speed)
   }
 
   private _listenTrainingUpdates: TrainingListener = async (training: Training) => {

@@ -18,6 +18,7 @@ export type TrainRequestBody = {
 }
 
 export type LintRequestBody = {
+  speed: IssueComputationSpeed
   language: string
   contexts: string[]
   intents: IntentDefinition[]
