@@ -85,7 +85,7 @@ export class DatabaseLintingRepo implements LintingRepository {
       table.text('error_stack').nullable()
       table.timestamp('startedOn').notNullable()
       table.timestamp('updatedOn').notNullable()
-      table.primary(['appId', 'modelId'])
+      table.primary(['appId', 'modelId', 'speed'])
     })
 
     await createTableIfNotExists(this._database, ISSUES_TABLE_NAME, (table: Knex.CreateTableBuilder) => {
