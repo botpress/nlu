@@ -171,7 +171,9 @@ export class DatabaseLintingRepo implements LintingRepository {
       return
     }
 
-    const issueRows = issues.map(this._issueToRow.bind(this)).map((r) => ({ appId, modelId: stringId, ...r }))
+    const issueRows: IssuesRow[] = issues
+      .map(this._issueToRow.bind(this))
+      .map((r) => ({ speed, appId, modelId: stringId, ...r }))
     await this._issues.insert(issueRows).onConflict('id').merge()
   }
 
