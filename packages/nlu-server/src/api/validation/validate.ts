@@ -1,5 +1,6 @@
-import { IntentDefinition, http } from '@botpress/nlu-client'
+import { IntentDefinition, http, IssueComputationSpeed } from '@botpress/nlu-client'
 import { ObjectSchema, validate } from 'joi'
+import _ from 'lodash'
 import { InvalidRequestFormatError, InvalidTrainSetError } from '../errors'
 
 import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema, LintInputSchema } from './schemas'
@@ -65,4 +66,14 @@ export async function validateDetectLangInput(rawInput: any): Promise<http.Detec
     }
     throw new InvalidRequestFormatError('invalid detect language format')
   }
+}
+
+export function isLintingSpeed(s: string): s is IssueComputationSpeed {
+  const allSpeeds: { [s in IssueComputationSpeed]: s } = {
+    fastest: 'fastest',
+    fast: 'fast',
+    slow: 'slow',
+    slowest: 'slowest'
+  }
+  return Object.keys(allSpeeds).includes(s)
 }

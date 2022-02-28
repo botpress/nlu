@@ -1,5 +1,5 @@
 import { Logger } from '@botpress/logger'
-import { LintingState } from '@botpress/nlu-client'
+import { IssueComputationSpeed, LintingState } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import moment from 'moment'
@@ -33,14 +33,14 @@ export class InMemoryLintingRepo implements LintingRepository {
   }
 
   public async has(id: LintingId): Promise<boolean> {
-    const { appId, modelId } = id
-    const taskId = this._makeLintingKey({ appId, modelId })
+    const { appId, modelId, speed } = id
+    const taskId = this._makeLintingKey({ appId, modelId, speed })
     return !!this._lintingTable[taskId]
   }
 
   public async get(id: LintingId): Promise<Linting | undefined> {
-    const { appId, modelId } = id
-    const taskId = this._makeLintingKey({ appId, modelId })
+    const { appId, modelId, speed } = id
+    const taskId = this._makeLintingKey({ appId, modelId, speed })
     const linting = this._lintingTable[taskId]
     if (!linting) {
       return
@@ -49,11 +49,11 @@ export class InMemoryLintingRepo implements LintingRepository {
   }
 
   public async set(linting: Linting): Promise<void> {
-    const { appId, modelId } = linting
-    const current = await this.get({ appId, modelId })
+    const { appId, modelId, speed } = linting
+    const current = await this.get({ appId, modelId, speed })
     const currentIssues = current?.issues ?? []
     const updatedIssues = _.uniqBy([...currentIssues, ...linting.issues], (i) => i.id)
-    return this._set(appId, modelId, { ...linting, issues: updatedIssues })
+    return this._set(appId, modelId, speed, { ...linting, issues: updatedIssues })
   }
 
   public async query(query: Partial<LintingState>): Promise<Linting[]> {
@@ -100,20 +100,20 @@ export class InMemoryLintingRepo implements LintingRepository {
       .value()
   }
 
-  private async _set(appId: string, modelId: NLUEngine.ModelId, linting: Linting) {
-    const taskId = this._makeLintingKey({ appId, modelId })
+  private async _set(appId: string, modelId: NLUEngine.ModelId, speed: IssueComputationSpeed, linting: Linting) {
+    const taskId = this._makeLintingKey({ appId, modelId, speed })
     this._lintingTable[taskId] = { ...linting, updatedOn: new Date() }
   }
 
-  private _makeLintingKey = (id: LintingId) => {
-    const { appId, modelId } = id
+  private _makeLintingKey = (id: LintingId): string => {
+    const { appId, modelId, speed } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    return [stringId, appId].join(KEY_JOIN_CHAR)
+    return [stringId, appId, speed].join(KEY_JOIN_CHAR)
   }
 
   private _parseLintingKey(key: string): LintingId {
-    const [stringId, appId] = key.split(KEY_JOIN_CHAR)
+    const [stringId, appId, speed] = key.split(KEY_JOIN_CHAR)
     const modelId = NLUEngine.modelIdService.fromString(stringId)
-    return { modelId, appId }
+    return { modelId, appId, speed: speed as IssueComputationSpeed }
   }
 }

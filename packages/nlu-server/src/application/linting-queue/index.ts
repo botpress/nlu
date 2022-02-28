@@ -1,6 +1,6 @@
 import * as q from '@botpress/distributed'
 import { Logger } from '@botpress/logger'
-import { TrainInput } from '@botpress/nlu-client'
+import { IssueComputationSpeed, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import ms from 'ms'
@@ -43,9 +43,14 @@ export abstract class LintingQueue {
   public teardown = this.taskQueue.teardown.bind(this.taskQueue)
   public getLocalLintingCount = this.taskQueue.getLocalTaskCount.bind(this.taskQueue)
 
-  public queueLinting = async (appId: string, modelId: NLUEngine.ModelId, trainInput: TrainInput) => {
+  public queueLinting = async (
+    appId: string,
+    modelId: NLUEngine.ModelId,
+    speed: IssueComputationSpeed,
+    trainInput: TrainInput
+  ) => {
     try {
-      const lintId: LintingId = { appId, modelId }
+      const lintId: LintingId = { appId, modelId, speed }
       const lintKey = idToString(lintId)
       await this.taskQueue.queueTask(lintId, trainInput)
       this.logger.info(`[${lintKey}] Linting Queued.`)
@@ -57,13 +62,13 @@ export abstract class LintingQueue {
     }
   }
 
-  public async cancelLinting(appId: string, modelId: NLUEngine.ModelId): Promise<void> {
+  public async cancelLinting(appId: string, modelId: NLUEngine.ModelId, speed: IssueComputationSpeed): Promise<void> {
     try {
-      const lintId: LintingId = { appId, modelId }
+      const lintId: LintingId = { appId, modelId, speed }
       await this.taskQueue.cancelTask(lintId)
     } catch (thrown) {
       if (thrown instanceof q.TaskNotFoundError || thrown instanceof q.TaskNotRunning) {
-        throw new LintingNotFoundError(appId, modelId)
+        throw new LintingNotFoundError(appId, modelId, speed)
       }
       throw thrown
     }

@@ -6,7 +6,8 @@ import {
   IssueCode,
   IssueData,
   IssueDefinition,
-  LintingError
+  LintingError,
+  IssueComputationSpeed
 } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
@@ -31,6 +32,7 @@ type IssuesRow = {
 type LintingRowId = {
   appId: string
   modelId: string
+  speed: IssueComputationSpeed
 }
 
 type LintingRow = LintingRowId & {
@@ -72,6 +74,7 @@ export class DatabaseLintingRepo implements LintingRepository {
     await createTableIfNotExists(this._database, LINTINGS_TABLE_NAME, (table: Knex.CreateTableBuilder) => {
       table.string('appId').notNullable()
       table.string('modelId').notNullable()
+      table.string('speed').notNullable()
       table.string('status').notNullable()
       table.string('currentCount').notNullable()
       table.string('totalCount').notNullable()
@@ -94,8 +97,8 @@ export class DatabaseLintingRepo implements LintingRepository {
       table.json('data').notNullable()
 
       table
-        .foreign(['appId', 'modelId'])
-        .references(['appId', 'modelId'])
+        .foreign(['appId', 'modelId', 'speed'])
+        .references(['appId', 'modelId', 'speed'])
         .inTable(LINTINGS_TABLE_NAME)
         .onDelete('CASCADE')
     })
@@ -109,17 +112,17 @@ export class DatabaseLintingRepo implements LintingRepository {
   }
 
   public async has(id: LintingId): Promise<boolean> {
-    const { appId, modelId } = id
+    const { appId, modelId, speed } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    const lintingId: LintingRowId = { appId, modelId: stringId }
+    const lintingId: LintingRowId = { appId, modelId: stringId, speed }
     const linting = await this._lintings.select('*').where(lintingId).first()
     return !!linting
   }
 
   public async get(id: LintingId): Promise<Linting | undefined> {
-    const { appId, modelId } = id
+    const { appId, modelId, speed } = id
     const stringId = NLUEngine.modelIdService.toString(modelId)
-    const lintingId: LintingRowId = { appId, modelId: stringId }
+    const lintingId: LintingRowId = { appId, modelId: stringId, speed }
     const lintingRow = await this._lintings.select('*').where(lintingId).first()
     if (!lintingRow) {
       return
@@ -128,13 +131,14 @@ export class DatabaseLintingRepo implements LintingRepository {
   }
 
   public async set(linting: Linting): Promise<void> {
-    const { modelId, appId, currentCount, cluster, dataset, issues, totalCount, status, error } = linting
+    const { modelId, appId, speed, currentCount, cluster, dataset, issues, totalCount, status, error } = linting
     const { type: error_type, message: error_message, stack: error_stack } = error ?? {}
     const stringId = NLUEngine.modelIdService.toString(modelId)
 
     const lintingTaskRow: LintingRow = {
       appId,
       modelId: stringId,
+      speed,
       currentCount,
       totalCount,
       cluster,
@@ -149,7 +153,7 @@ export class DatabaseLintingRepo implements LintingRepository {
 
     await this._lintings
       .insert(lintingTaskRow)
-      .onConflict(['appId', 'modelId'])
+      .onConflict(['appId', 'modelId', 'speed'])
       .merge([
         'status',
         'currentCount',
@@ -189,6 +193,7 @@ export class DatabaseLintingRepo implements LintingRepository {
     const {
       appId,
       modelId,
+      speed,
       status,
       currentCount,
       cluster,
@@ -206,6 +211,7 @@ export class DatabaseLintingRepo implements LintingRepository {
     const state: Linting = {
       appId,
       modelId: NLUEngine.modelIdService.fromString(modelId),
+      speed,
       status,
       currentCount,
       totalCount,
@@ -261,7 +267,7 @@ export class DatabaseLintingRepo implements LintingRepository {
     }
   }
 
-  private _issueToRow = (issue: DatasetIssue<IssueCode>): Omit<IssuesRow, 'appId' | 'modelId'> => {
+  private _issueToRow = (issue: DatasetIssue<IssueCode>): Omit<IssuesRow, 'appId' | 'modelId' | 'speed'> => {
     const { code, message, data, id } = issue
     return { id, code, message, data: data as object }
   }

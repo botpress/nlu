@@ -1,4 +1,4 @@
-import { Client as NLUClient, LintingState, TrainingState } from '@botpress/nlu-client'
+import { Client as NLUClient, IssueComputationSpeed, LintingState, TrainingState } from '@botpress/nlu-client'
 import Bluebird from 'bluebird'
 import { UnsuccessfullAPICall } from './errors'
 
@@ -53,14 +53,16 @@ export const pollTrainingUntil = async (args: PollingArgs<TrainingState>): Promi
   return Bluebird.race([timeout(maxTime), trainUntilPromise])
 }
 
-export const pollLintingUntil = async (args: PollingArgs<LintingState>): Promise<LintingState> => {
-  const { appId, condition, maxTime, modelId, nluClient } = args
+export const pollLintingUntil = async (
+  args: PollingArgs<LintingState> & { speed: IssueComputationSpeed }
+): Promise<LintingState> => {
+  const { appId, condition, maxTime, modelId, nluClient, speed } = args
   const interval = maxTime < 0 ? DEFAULT_POLLING_INTERVAL : maxTime / 20
 
   const lintUntilPromise = new Promise<LintingState>((resolve, reject) => {
     const int = setInterval(async () => {
       try {
-        const lintStatusRes = await nluClient.getLintingStatus(appId, modelId)
+        const lintStatusRes = await nluClient.getLintingStatus(appId, modelId, speed)
         if (!lintStatusRes.success) {
           clearInterval(int)
           reject(new UnsuccessfullAPICall(lintStatusRes.error))

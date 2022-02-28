@@ -37,7 +37,15 @@ export class Client {
   /**
    * @experimental still subject to breaking changes
    */
-  getLintingStatus(appId: string, modelId: string): Promise<LintProgressResponseBody | ErrorResponse>
+  getLintingStatus(
+    appId: string,
+    modelId: string,
+    speed: IssueComputationSpeed
+  ): Promise<LintProgressResponseBody | ErrorResponse>
+  /**
+   * @experimental still subject to breaking changes
+   */
+  cancelLinting(appId: string, modelId: string, speed: IssueComputationSpeed): Promise<SuccessReponse | ErrorResponse>
 
   listModels(appId: string): Promise<ListModelsResponseBody | ErrorResponse>
   pruneModels(appId: string): Promise<PruneModelsResponseBody | ErrorResponse>
