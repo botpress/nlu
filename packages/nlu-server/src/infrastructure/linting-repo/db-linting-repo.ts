@@ -92,6 +92,7 @@ export class DatabaseLintingRepo implements LintingRepository {
       table.string('id').primary()
       table.string('appId').notNullable()
       table.string('modelId').notNullable()
+      table.string('speed').notNullable()
       table.string('code').notNullable()
       table.text('message').notNullable()
       table.json('data').notNullable()
