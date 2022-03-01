@@ -1,4 +1,4 @@
-export type Span = {
+type Span = {
   charStart: number
   charEnd: number
   length: number

@@ -54,15 +54,15 @@ test('linter for E_000 only flags tokens incorrectly tagged as a slot', async ()
 
   expect(lintResults.length).toBe(3)
 
-  expect(lintResults[0].data.utterance).toBe(utterances[1])
+  expect(lintResults[0].data.utterance.idx).toBe(1)
   expect(lintResults[0].data.slot).toBe('fruit_to_buy')
   expect(lintResults[0].data.source).toBe('banana')
 
-  expect(lintResults[1].data.utterance).toBe(utterances[2])
+  expect(lintResults[1].data.utterance.idx).toBe(2)
   expect(lintResults[1].data.slot).toBe('fruit_to_buy')
   expect(lintResults[1].data.source).toBe('apple')
 
-  expect(lintResults[2].data.utterance).toBe(utterances[7])
+  expect(lintResults[2].data.utterance.idx).toBe(7)
   expect(lintResults[2].data.slot).toBe('fruit_to_buy')
   expect(lintResults[2].data.source).toBe('abc-12c')
 })

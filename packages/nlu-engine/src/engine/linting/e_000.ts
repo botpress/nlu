@@ -49,13 +49,13 @@ const makeIssueFromData = (data: IssueData<typeof code>): DatasetIssue<typeof co
   data
 })
 
-const unitToIssue = ({ intent, rawUtterance, utteranceIdx, slot, slotDef }: VerificationUnit) =>
+const unitToIssue = ({ intent, utterance, utteranceIdx, slot, slotDef }: VerificationUnit) =>
   makeIssueFromData({
     intent,
-    utteranceIdx,
-    utterance: rawUtterance,
-    cleanCharStart: slot.startPos,
-    cleanCharEnd: slot.endPos,
+    utterance: { idx: utteranceIdx, clean: utterance.toString() },
+    charPos: {
+      clean: { start: slot.startPos, end: slot.endPos }
+    },
     slot: slotDef.name,
     entities: mapResolvedToSlotDef(slotDef).entities,
     source: slot.source

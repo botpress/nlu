@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { TrainInput } from 'src/typings'
-import { DatasetIssue, IssueData, IssueDefinition } from '../../linting'
+import { DatasetIssue, IssueData, IssueDefinition, Span } from '../../linting'
 import { computeId } from './id'
 import { asCode, IssueLinter } from './typings'
 
@@ -32,16 +32,24 @@ const flattenDataset = (ts: TrainInput): VerificationUnit[] => {
   )
 }
 
-const makeIssue = (data: IssueData<typeof code>, message: string): DatasetIssue<typeof code> => ({
-  ...E_004,
-  id: computeId(code, data),
-  data,
-  message
-})
+const makeIssue = (x: VerificationUnit & Span, message: string): DatasetIssue<typeof code> => {
+  const { intent, utteranceIdx, utterance, start, end } = x
+  const data: IssueData<typeof code> = {
+    intent,
+    utterance: { idx: utteranceIdx, raw: utterance },
+    charPos: { raw: { start, end } }
+  }
+  return {
+    ...E_004,
+    id: computeId(code, data),
+    data,
+    message
+  }
+}
 
 const getSpan = (regexpMatch: RegExpExecArray) => ({
-  charStart: regexpMatch.index,
-  charEnd: regexpMatch.index + regexpMatch[0].length
+  start: regexpMatch.index,
+  end: regexpMatch.index + regexpMatch[0].length
 })
 
 const checkUtterance = (unit: VerificationUnit): DatasetIssue<typeof code>[] => {
@@ -78,13 +86,13 @@ const checkUtterance = (unit: VerificationUnit): DatasetIssue<typeof code>[] => 
   while (dupplicatedSpacesMatch) {
     const span = getSpan(dupplicatedSpacesMatch)
 
-    if (span.charStart !== 0 && span.charEnd !== unit.utterance.length) {
+    if (span.start !== 0 && span.end !== unit.utterance.length) {
       issues.push(
         makeIssue(
           {
             ...unit,
-            charStart: span.charStart + 1,
-            charEnd: span.charEnd
+            start: span.start + 1,
+            end: span.end
           },
           'utterance has consecutive spaces.'
         )

@@ -54,11 +54,11 @@ test('linter for E_004 flags all reduntant spaces', async () => {
 
   for (let i = 0; i < samples.length; i++) {
     const sample = samples[i]
-    const issues = lintResults.filter((r) => r.data.utteranceIdx === i)
+    const issues = lintResults.filter((r) => r.data.utterance.idx === i)
 
     for (const [issue, span] of _.zip(issues, sample.spans)) {
-      expect(issue?.data.charStart).toBe(span?.start)
-      expect(issue?.data.charEnd).toBe(span?.end)
+      expect(issue?.data.charPos.raw.start).toBe(span?.start)
+      expect(issue?.data.charPos.raw.end).toBe(span?.end)
     }
   }
 })

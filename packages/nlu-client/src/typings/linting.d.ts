@@ -14,6 +14,11 @@ export type IssueCode =
   | 'E_004' // utterance contains dupplicated or untrimed spaces
   | 'W_000' // intents are overlapping
 
+export type Raw<T> = { raw: T }
+export type Clean<T> = { clean: T }
+export type CleanOrRaw<T> = Clean<T> & Raw<T>
+export type Span = { start: number; end: number }
+
 export type IssueData<C extends IssueCode> = C extends 'C_000'
   ? {
       intent: string
@@ -37,10 +42,8 @@ export type IssueData<C extends IssueCode> = C extends 'C_000'
   : C extends 'E_000'
   ? {
       intent: string
-      utteranceIdx: number
-      utterance: string
-      cleanCharStart: number
-      cleanCharEnd: number
+      utterance: Clean<string> & { idx: number }
+      charPos: Clean<Span>
       slot: string
       entities: string[]
       source: string
@@ -67,10 +70,8 @@ export type IssueData<C extends IssueCode> = C extends 'C_000'
   : C extends 'E_004'
   ? {
       intent: string
-      utteranceIdx: number
-      utterance: string
-      charStart: number
-      charEnd: number
+      utterance: Raw<string> & { idx: number }
+      charPos: Raw<Span>
     }
   : never
 

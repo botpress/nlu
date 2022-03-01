@@ -5,7 +5,7 @@
  */
 
 import { ServerInfo } from './info'
-import { LintingState } from './linting'
+import { LintingState, IssueComputationSpeed } from './linting'
 import { PredictOutput } from './prediction'
 import { TrainingState, IntentDefinition, EntityDefinition, Training } from './training'
 
