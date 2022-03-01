@@ -3,7 +3,7 @@ import { convertToRealSpaces } from '../tools/token-utils'
 import { ListEntity, ListEntityModel, Tools } from '../typings'
 
 export async function makeListEntityModel(entity: ListEntity, languageCode: string, tools: Tools) {
-  const allValues = _.uniq(Object.keys(entity.synonyms).concat(..._.values(entity.synonyms)))
+  const allValues = _.uniq(Object.keys(entity.synonyms).concat(..._.values(entity.synonyms))).map((t) => t.trim())
   const allTokens = (await tools.tokenize_utterances(allValues, languageCode)).map((toks) =>
     toks.map(convertToRealSpaces)
   )
