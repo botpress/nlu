@@ -170,9 +170,10 @@ const flattenDataset = async (
     utterances.map((u, i) => ({ rawUtterance: u, intent: x, utteranceIdx: i }))
   )
 
-  const rawUtterances: string[] = flatRawUtterances.map(({ rawUtterance }) => rawUtterance).map((u) => u.trim())
+  const rawUtterances: string[] = flatRawUtterances.map(({ rawUtterance }) => rawUtterance)
   const utteranceBatch = await buildUtteranceBatch(rawUtterances, ts.language, tools, [], {
-    vectorize: false // no need for vectors to go faster
+    vectorize: false, // no need for vectors to go faster
+    preprocess: false // all characters must be kept
   })
 
   const flatUtterances = _.zip(flatRawUtterances, utteranceBatch)

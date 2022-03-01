@@ -1,8 +1,10 @@
+import _ from 'lodash'
 import { LATIN_CHARSET } from './chars'
 import {
   isWord,
   mergeSimilarCharsetTokens,
   processUtteranceTokens,
+  restoreOriginalSpaces,
   restoreOriginalUtteranceCasing,
   SPACE
 } from './token-utils'
@@ -118,7 +120,47 @@ describe('Raw token processing', () => {
     expect(processUtteranceTokens(moreToks)).toEqual(['jag', SPACE, 'är', SPACE, 'väldigt', SPACE, 'hungrig'])
   })
 
-  test('restoreUtteranceTokens', () => {
+  test('restoreUtteranceTokensSpacing', () => {
+    const original = ' I left NASA   to work at  Botpress  '
+    const tokens = [
+      'I',
+      SPACE,
+      'left',
+      SPACE,
+      'NASA',
+      SPACE,
+      'to',
+      SPACE,
+      'work',
+      SPACE,
+      'at',
+      SPACE,
+      'Bot',
+      'press',
+      SPACE
+    ]
+
+    expect(restoreOriginalSpaces(tokens, original)).toEqual([
+      SPACE,
+      'I',
+      SPACE,
+      'left',
+      SPACE,
+      'NASA',
+      _.repeat(SPACE, 3),
+      'to',
+      SPACE,
+      'work',
+      SPACE,
+      'at',
+      _.repeat(SPACE, 2),
+      'Bot',
+      'press',
+      _.repeat(SPACE, 2)
+    ])
+  })
+
+  test('restoreUtteranceTokensCasing', () => {
     const original = 'I left NASA to work at Botpress'
     const tokens = ['i', SPACE, 'left', SPACE, 'nasa', SPACE, 'to', SPACE, 'work', SPACE, 'at', SPACE, 'bot', 'press']
 
