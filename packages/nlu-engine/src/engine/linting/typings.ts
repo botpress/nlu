@@ -1,8 +1,7 @@
 import _ from 'lodash'
-import { DatasetIssue, IssueCode, IssueComputationSpeed, IssueDefinition } from '../../linting'
+import { DatasetIssue, IssueCode, IssueComputationSpeed, IssueDefinition, IssueSeverity } from '../../linting'
 import { LintingProgressCb, TrainInput } from '../../typings'
 import { Tools } from '../typings'
-import { AllSeverities } from './severity'
 
 export const asCode = <C extends IssueCode>(c: C): C => c
 
@@ -13,6 +12,6 @@ export type IssueLinter<C extends IssueCode> = IssueDefinition<C> & {
 
 export type LintingOptions = {
   minSpeed: IssueComputationSpeed
-  minSeverity: AllSeverities
+  minSeverity: IssueSeverity<IssueCode>
   progressCallback: LintingProgressCb
 }

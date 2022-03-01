@@ -7,7 +7,7 @@ import { E_000 } from './e_000'
 import { E_001 } from './e_001'
 import { E_002 } from './e_002'
 import { E_003 } from './e_003'
-import { E_004 } from './e_004'
+import { I_000 } from './i_000'
 import { W_000 } from './w_000'
 
 type IssueDefinitions = {
@@ -23,6 +23,6 @@ export const allIssues: IssueDefinitions = {
   E_001,
   E_002,
   E_003,
-  E_004,
-  W_000
+  W_000,
+  I_000
 }

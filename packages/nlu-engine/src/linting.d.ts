@@ -11,8 +11,8 @@ export type IssueCode =
   | 'E_001' // utterance has incorrect language
   | 'E_002' // duplicated utterances (in one or more intents)
   | 'E_003' // the whole utterance is tagged as a slot
-  | 'E_004' // utterance contains dupplicated or untrimed spaces
   | 'W_000' // intents are overlapping
+  | 'I_000' // utterance contains dupplicated or untrimed spaces
 
 export type Raw<T> = { raw: T }
 export type Clean<T> = { clean: T }
@@ -67,7 +67,7 @@ export type IssueData<C extends IssueCode> = C extends 'C_000'
       utterance: string
       slot: string
     }
-  : C extends 'E_004'
+  : C extends 'I_000'
   ? {
       intent: string
       utterance: Raw<string> & { idx: number }

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { TrainInput } from '../../typings'
 import { makeFakeTools } from '../test-utils/fake-tools'
-import { E_004_Linter } from './e_004'
+import { I_000_Linter } from './i_000'
 
 type TestSample = {
   utt: string
@@ -49,8 +49,8 @@ const trainSet: TrainInput = {
 
 const fakeTools = makeFakeTools(300, ['en'])
 
-test('linter for E_004 flags all reduntant spaces', async () => {
-  const lintResults = await E_004_Linter.lint(trainSet, fakeTools)
+test('linter for I_000 flags all reduntant spaces', async () => {
+  const lintResults = await I_000_Linter.lint(trainSet, fakeTools)
 
   for (let i = 0; i < samples.length; i++) {
     const sample = samples[i]
