@@ -1,3 +1,5 @@
+import { SPACE } from './token-utils'
+
 type Span = {
   charStart: number
   charEnd: number
@@ -10,9 +12,8 @@ const getSpan = (regexpMatch: RegExpExecArray): Span => ({
   length: regexpMatch[0].length
 })
 
-const SPACE_GROUP = /\s{1,}/g
-
 export const tagAllSpaces = (utt: string): Span[] => {
+  const SPACE_GROUP = new RegExp(`[\\s${SPACE}]{1,}`, 'g')
   const spans: Span[] = []
   let match = SPACE_GROUP.exec(utt)
   while (match) {
