@@ -1,4 +1,5 @@
 import { AxiosRequestConfig, AxiosInstance } from 'axios'
+import { IssueComputationSpeed } from './linting'
 import {
   TrainRequestBody,
   LintRequestBody,

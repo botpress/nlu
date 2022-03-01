@@ -49,13 +49,13 @@ const makeIssueFromData = (data: IssueData<typeof code>): DatasetIssue<typeof co
   data
 })
 
-const unitToIssue = ({ intent, rawUtterance, utteranceIdx, slot, slotDef }: VerificationUnit) =>
+const unitToIssue = ({ intent, utterance, utteranceIdx, slot, slotDef }: VerificationUnit) =>
   makeIssueFromData({
     intent,
-    utteranceIdx,
-    utterance: rawUtterance,
-    cleanCharStart: slot.startPos,
-    cleanCharEnd: slot.endPos,
+    utterance: { idx: utteranceIdx, clean: utterance.toString() },
+    charPos: {
+      clean: { start: slot.startPos, end: slot.endPos }
+    },
     slot: slotDef.name,
     entities: mapResolvedToSlotDef(slotDef).entities,
     source: slot.source
@@ -170,9 +170,10 @@ const flattenDataset = async (
     utterances.map((u, i) => ({ rawUtterance: u, intent: x, utteranceIdx: i }))
   )
 
-  const rawUtterances: string[] = flatRawUtterances.map(({ rawUtterance }) => rawUtterance).map((u) => u.trim())
+  const rawUtterances: string[] = flatRawUtterances.map(({ rawUtterance }) => rawUtterance)
   const utteranceBatch = await buildUtteranceBatch(rawUtterances, ts.language, tools, [], {
-    vectorize: false // no need for vectors to go faster
+    vectorize: false, // no need for vectors to go faster
+    preprocess: false // all characters must be kept
   })
 
   const flatUtterances = _.zip(flatRawUtterances, utteranceBatch)

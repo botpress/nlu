@@ -300,9 +300,9 @@ export async function buildUtteranceBatch(
   language: string,
   tools: Tools,
   vocab: string[],
-  opt: { vectorize: boolean } = { vectorize: true }
+  opt: { vectorize: boolean; preprocess: boolean } = { vectorize: true, preprocess: true }
 ): Promise<Utterance[]> {
-  const preprocessed = raw_utterances.map(preprocessRawUtterance)
+  const preprocessed = opt.preprocess ? raw_utterances.map(preprocessRawUtterance) : raw_utterances
   const parsed = preprocessed.map(parseUtterance)
   const tokenUtterances = await tools.tokenize_utterances(
     parsed.map((p) => p.utterance),

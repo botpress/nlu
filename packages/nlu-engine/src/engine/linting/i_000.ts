@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { TrainInput } from 'src/typings'
-import { DatasetIssue, IssueData, IssueDefinition } from '../../linting'
+import { DatasetIssue, IssueData, IssueDefinition, Span } from '../../linting'
 import { computeId } from './id'
 import { asCode, IssueLinter } from './typings'
 
@@ -8,7 +8,7 @@ const LEADING_SPACES = /^ +/
 const TRAILING_SPACES = / +$/
 const CONSECUTIVE_SPACES = /\s{2,}/g
 
-const code = asCode('E_004')
+const code = asCode('I_000')
 
 type VerificationUnit = {
   intent: string
@@ -16,9 +16,9 @@ type VerificationUnit = {
   utterance: string
 }
 
-export const E_004: IssueDefinition<typeof code> = {
+export const I_000: IssueDefinition<typeof code> = {
   code,
-  severity: 'error',
+  severity: 'info',
   name: 'dupplicated_or_untrimed_spaces'
 }
 
@@ -32,16 +32,24 @@ const flattenDataset = (ts: TrainInput): VerificationUnit[] => {
   )
 }
 
-const makeIssue = (data: IssueData<typeof code>, message: string): DatasetIssue<typeof code> => ({
-  ...E_004,
-  id: computeId(code, data),
-  data,
-  message
-})
+const makeIssue = (x: VerificationUnit & Span): DatasetIssue<typeof code> => {
+  const { intent, utteranceIdx, utterance, start, end } = x
+  const data: IssueData<typeof code> = {
+    intent,
+    utterance: { idx: utteranceIdx, raw: utterance },
+    charPos: { raw: { start, end } }
+  }
+  return {
+    ...I_000,
+    id: computeId(code, data),
+    data,
+    message: 'All leading, trailing and consecutives spaces are removed by the NLU engine.'
+  }
+}
 
 const getSpan = (regexpMatch: RegExpExecArray) => ({
-  charStart: regexpMatch.index,
-  charEnd: regexpMatch.index + regexpMatch[0].length
+  start: regexpMatch.index,
+  end: regexpMatch.index + regexpMatch[0].length
 })
 
 const checkUtterance = (unit: VerificationUnit): DatasetIssue<typeof code>[] => {
@@ -50,13 +58,10 @@ const checkUtterance = (unit: VerificationUnit): DatasetIssue<typeof code>[] => 
   if (leadingSpacesMatch) {
     const span = getSpan(leadingSpacesMatch)
     issues.push(
-      makeIssue(
-        {
-          ...unit,
-          ...span
-        },
-        'utterance should not start with spaces.'
-      )
+      makeIssue({
+        ...unit,
+        ...span
+      })
     )
   }
 
@@ -64,13 +69,10 @@ const checkUtterance = (unit: VerificationUnit): DatasetIssue<typeof code>[] => 
   if (trailingSpaceMatch) {
     const span = getSpan(trailingSpaceMatch)
     issues.push(
-      makeIssue(
-        {
-          ...unit,
-          ...span
-        },
-        'utterance should not end with spaces.'
-      )
+      makeIssue({
+        ...unit,
+        ...span
+      })
     )
   }
 
@@ -78,16 +80,13 @@ const checkUtterance = (unit: VerificationUnit): DatasetIssue<typeof code>[] => 
   while (dupplicatedSpacesMatch) {
     const span = getSpan(dupplicatedSpacesMatch)
 
-    if (span.charStart !== 0 && span.charEnd !== unit.utterance.length) {
+    if (span.start !== 0 && span.end !== unit.utterance.length) {
       issues.push(
-        makeIssue(
-          {
-            ...unit,
-            charStart: span.charStart + 1,
-            charEnd: span.charEnd
-          },
-          'utterance has consecutive spaces.'
-        )
+        makeIssue({
+          ...unit,
+          start: span.start + 1,
+          end: span.end
+        })
       )
     }
 
@@ -97,8 +96,8 @@ const checkUtterance = (unit: VerificationUnit): DatasetIssue<typeof code>[] => 
   return issues
 }
 
-export const E_004_Linter: IssueLinter<typeof code> = {
-  ...E_004,
+export const I_000_Linter: IssueLinter<typeof code> = {
+  ...I_000,
   speed: 'fastest',
   lint: async (ts: TrainInput) => {
     const units = flattenDataset(ts)
