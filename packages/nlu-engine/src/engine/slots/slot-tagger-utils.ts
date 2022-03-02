@@ -109,10 +109,11 @@ export function makeExtractedSlots(
           _.includes(slot_entities, e.type) // entity is part of the possible entities
       )
       if (associatedEntityInRange) {
+        const { startPos, endPos, startTokenIdx, endTokenIdx, ...x } = associatedEntityInRange
         extracted.slot.entity = {
-          ..._.omit(associatedEntityInRange, 'startPos', 'endPos', 'startTokenIdx', 'endTokenIdx'),
-          start: associatedEntityInRange.startPos,
-          end: associatedEntityInRange.endPos
+          ...x,
+          start: startPos,
+          end: endPos
         }
         extracted.slot.value = associatedEntityInRange.value
       }

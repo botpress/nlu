@@ -9,7 +9,7 @@ const threadEntryPoint = makeThreadEntryPoint<TaskInput, TaskOutput>()
 
 const main = async () => {
   try {
-    threadEntryPoint.listenForTask(async (taskDef: TaskDefinition<TaskInput>) => {
+    threadEntryPoint.listenForTask(async (taskDef: TaskDefinition<TaskInput, TaskOutput>) => {
       const { input, progress } = taskDef
 
       if (input.trainingType === 'svm') {

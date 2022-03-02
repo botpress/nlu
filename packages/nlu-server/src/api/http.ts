@@ -1,5 +1,4 @@
 import { http } from '@botpress/nlu-client'
-import { NLUError } from '@botpress/nlu-client/src/typings/http'
 import { Request, Response, NextFunction } from 'express'
 import _ from 'lodash'
 
@@ -8,11 +7,13 @@ import {
   TrainingNotFoundError,
   TrainingAlreadyStartedError,
   LangServerCommError,
-  DucklingCommError
+  DucklingCommError,
+  DatasetValidationError,
+  LintingNotFoundError
 } from '../application/errors'
 import { InvalidRequestFormatError, InvalidTrainSetError } from './errors'
 
-const serializeError = (err: Error): NLUError => {
+const serializeError = (err: Error): http.NLUError => {
   const { message, stack } = err
   if (err instanceof ModelDoesNotExistError) {
     const { statusCode } = err
@@ -22,6 +23,10 @@ const serializeError = (err: Error): NLUError => {
     const { statusCode } = err
     return { message, stack, type: 'training_not_found', code: statusCode }
   }
+  if (err instanceof LintingNotFoundError) {
+    const { statusCode } = err
+    return { message, stack, type: 'linting_not_found', code: statusCode }
+  }
   if (err instanceof TrainingAlreadyStartedError) {
     const { statusCode } = err
     return { message, stack, type: 'training_already_started', code: statusCode }
@@ -30,10 +35,6 @@ const serializeError = (err: Error): NLUError => {
     const { statusCode } = err
     return { message, stack, type: 'request_format', code: statusCode }
   }
-  if (err instanceof InvalidTrainSetError) {
-    const { statusCode } = err
-    return { message, stack, type: 'invalid_train_set', code: statusCode }
-  }
   if (err instanceof LangServerCommError) {
     const { statusCode } = err
     return { message, stack, type: 'lang-server', code: statusCode }
@@ -41,6 +42,10 @@ const serializeError = (err: Error): NLUError => {
   if (err instanceof DucklingCommError) {
     const { statusCode } = err
     return { message, stack, type: 'duckling-server', code: statusCode }
+  }
+  if (err instanceof DatasetValidationError || err instanceof InvalidTrainSetError) {
+    const { statusCode } = err
+    return { message, stack, type: 'dataset_format', code: statusCode }
   }
   return { message, stack, type: 'internal', code: 500 }
 }

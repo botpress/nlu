@@ -1,14 +1,13 @@
-import { Client as NLUClient, TrainingState } from '@botpress/nlu-client'
+import { Client as NLUClient, IssueComputationSpeed, LintingState, TrainingState } from '@botpress/nlu-client'
 import Bluebird from 'bluebird'
 import { UnsuccessfullAPICall } from './errors'
 
-export type TrainPredicate = (ts: TrainingState) => boolean
-
-export type PollingArgs = {
+export type TrainLintPredicate<T extends LintingState | TrainingState> = (state: T) => boolean
+export type PollingArgs<T extends LintingState | TrainingState> = {
   appId: string
   modelId: string
   nluClient: NLUClient
-  condition: TrainPredicate
+  condition: TrainLintPredicate<T>
   maxTime: number
 }
 
@@ -21,9 +20,9 @@ const timeout = (ms: number) =>
     }, ms)
   )
 
-export const pollTrainingUntil = async (args: PollingArgs): Promise<TrainingState> => {
+export const pollTrainingUntil = async (args: PollingArgs<TrainingState>): Promise<TrainingState> => {
   const { appId, condition, maxTime, modelId, nluClient } = args
-  const interval = maxTime < 0 ? DEFAULT_POLLING_INTERVAL : maxTime / 10
+  const interval = maxTime < 0 ? DEFAULT_POLLING_INTERVAL : maxTime / 20
 
   const trainUntilPromise = new Promise<TrainingState>((resolve, reject) => {
     const int = setInterval(async () => {
@@ -52,6 +51,41 @@ export const pollTrainingUntil = async (args: PollingArgs): Promise<TrainingStat
     return trainUntilPromise
   }
   return Bluebird.race([timeout(maxTime), trainUntilPromise])
+}
+
+export const pollLintingUntil = async (
+  args: PollingArgs<LintingState> & { speed: IssueComputationSpeed }
+): Promise<LintingState> => {
+  const { appId, condition, maxTime, modelId, nluClient, speed } = args
+  const interval = maxTime < 0 ? DEFAULT_POLLING_INTERVAL : maxTime / 20
+
+  const lintUntilPromise = new Promise<LintingState>((resolve, reject) => {
+    const int = setInterval(async () => {
+      try {
+        const lintStatusRes = await nluClient.getLintingStatus(appId, modelId, speed)
+        if (!lintStatusRes.success) {
+          clearInterval(int)
+          reject(new UnsuccessfullAPICall(lintStatusRes.error))
+          return
+        }
+
+        const { session } = lintStatusRes
+        if (condition(session)) {
+          clearInterval(int)
+          resolve(session)
+          return
+        }
+      } catch (thrown) {
+        clearInterval(int)
+        reject(thrown)
+      }
+    }, interval)
+  })
+
+  if (maxTime < 0) {
+    return lintUntilPromise
+  }
+  return Bluebird.race([timeout(maxTime), lintUntilPromise])
 }
 
 export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))

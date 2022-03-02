@@ -23,6 +23,7 @@ export type NLUServerOptions = {
   apmEnabled?: boolean
   apmSampleRate?: number
   maxTraining: number
+  maxLinting: number
   languageURL: string
   languageAuthToken?: string
   ducklingURL: string

@@ -1,27 +1,41 @@
 import { Logger } from '@botpress/logger'
-import { TrainingState, PredictOutput, TrainInput, ServerInfo, TrainingStatus } from '@botpress/nlu-client'
+import {
+  TrainingState,
+  PredictOutput,
+  TrainInput,
+  ServerInfo,
+  TrainingStatus,
+  LintingState,
+  IssueComputationSpeed
+} from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { TrainingRepository, TrainingListener, Training } from '../infrastructure'
+import { LintingRepository } from '../infrastructure/linting-repo'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { ReadonlyTrainingRepository, Training, TrainingListener } from '../infrastructure/training-repo/typings'
 import { ApplicationObserver } from './app-observer'
 import {
   ModelDoesNotExistError,
   TrainingNotFoundError,
   LangServerCommError,
   DucklingCommError,
-  InvalidModelSpecError
+  InvalidModelSpecError,
+  DatasetValidationError,
+  LintingNotFoundError
 } from './errors'
-import TrainingQueue from './training-queue'
+import { LintingQueue } from './linting-queue'
+import { TrainingQueue } from './training-queue'
 
 export class Application extends ApplicationObserver {
   private _logger: Logger
 
   constructor(
     private _modelRepo: ModelRepository,
-    private _trainingRepo: ReadonlyTrainingRepository,
+    private _trainingRepo: TrainingRepository,
+    private _lintingRepo: LintingRepository,
     private _trainingQueue: TrainingQueue,
+    private _lintingQueue: LintingQueue,
     private _engine: Engine,
     private _serverVersion: string,
     baseLogger: Logger
@@ -34,6 +48,8 @@ export class Application extends ApplicationObserver {
     await this._modelRepo.initialize()
     await this._trainingRepo.initialize()
     await this._trainingQueue.initialize()
+    await this._lintingRepo.initialize()
+    await this._lintingQueue.initialize()
     this._trainingQueue.addListener(this._listenTrainingUpdates)
   }
 
@@ -78,6 +94,18 @@ export class Application extends ApplicationObserver {
       specifications: this._engine.getSpecifications()
     })
 
+    const stringId = modelIdService.toString(modelId)
+    const key = `${appId}/${stringId}`
+    const { issues } = await this._engine.lint(key, trainInput, {
+      minSpeed: 'fastest',
+      minSeverity: 'critical',
+      runInMainProcess: true
+    })
+
+    if (!!issues.length) {
+      throw new DatasetValidationError(issues)
+    }
+
     await this._trainingQueue.queueTraining(appId, modelId, trainInput)
     return modelId
   }
@@ -121,7 +149,7 @@ export class Application extends ApplicationObserver {
 
     const model = await this._modelRepo.getModel(appId, modelId)
     if (!model) {
-      throw new TrainingNotFoundError(modelId)
+      throw new TrainingNotFoundError(appId, modelId)
     }
 
     return {
@@ -134,10 +162,14 @@ export class Application extends ApplicationObserver {
     return this._trainingQueue.cancelTraining(appId, modelId)
   }
 
+  public async cancelLinting(appId: string, modelId: ModelId, speed: IssueComputationSpeed): Promise<void> {
+    return this._lintingQueue.cancelLinting(appId, modelId, speed)
+  }
+
   public async predict(appId: string, modelId: ModelId, utterances: string[]): Promise<PredictOutput[]> {
     const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
     if (!modelExists) {
-      throw new ModelDoesNotExistError(modelId)
+      throw new ModelDoesNotExistError(appId, modelId)
     }
 
     const { specificationHash: currentSpec } = this._getSpecFilter()
@@ -152,10 +184,10 @@ export class Application extends ApplicationObserver {
       return predictions
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      if (engineErrors.isLangServerError(err)) {
+      if (err instanceof engineErrors.LangServerError) {
         throw new LangServerCommError(err)
       }
-      if (engineErrors.isDucklingServerError(err)) {
+      if (err instanceof engineErrors.DucklingServerError) {
         throw new DucklingCommError(err)
       }
       throw thrown
@@ -166,7 +198,7 @@ export class Application extends ApplicationObserver {
     for (const modelId of modelIds) {
       const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
       if (!modelExists) {
-        throw new ModelDoesNotExistError(modelId)
+        throw new ModelDoesNotExistError(appId, modelId)
       }
 
       const { specificationHash: currentSpec } = this._getSpecFilter()
@@ -202,6 +234,31 @@ You can increase your cache size by the CLI or config.
     return detectedLanguages
   }
 
+  public async startLinting(appId: string, speed: IssueComputationSpeed, trainInput: TrainInput): Promise<ModelId> {
+    const modelId = modelIdService.makeId({
+      ...trainInput,
+      specifications: this._engine.getSpecifications()
+    })
+
+    await this._lintingQueue.queueLinting(appId, modelId, speed, trainInput)
+    return modelId
+  }
+
+  public async getLintingState(appId: string, modelId: ModelId, speed: IssueComputationSpeed): Promise<LintingState> {
+    const linting = await this._lintingRepo.get({ appId, modelId, speed })
+    if (linting) {
+      const { status, error, currentCount, totalCount, issues } = linting
+      return { status, error, currentCount, totalCount, issues }
+    }
+
+    const { specificationHash: currentSpec } = this._getSpecFilter()
+    if (modelId.specificationHash !== currentSpec) {
+      throw new InvalidModelSpecError(modelId, currentSpec)
+    }
+
+    throw new LintingNotFoundError(appId, modelId, speed)
+  }
+
   private _listenTrainingUpdates: TrainingListener = async (training: Training) => {
     this.emit('training_update', training)
   }
@@ -212,7 +269,7 @@ You can increase your cache size by the CLI or config.
 
       const model = await this._modelRepo.getModel(appId, modelId)
       if (!model) {
-        throw new ModelDoesNotExistError(modelId)
+        throw new ModelDoesNotExistError(appId, modelId)
       }
 
       const modelLoadStartTime = Date.now()

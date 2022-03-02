@@ -1,7 +1,7 @@
 import { LanguageInfo, LanguageState, VectorizeResult, TokenizeResult } from '@botpress/lang-client'
 import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios'
 import httpsProxyAgent from 'https-proxy-agent'
-import { LangServerError } from '../../errors'
+import { LangServerError } from '../errors'
 
 type HTTPVerb = 'GET' | 'POST' | 'PUT' | 'DELETE'
 type HTTPCall<V extends HTTPVerb> = {

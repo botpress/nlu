@@ -8,7 +8,12 @@ import path from 'path'
 import semver from 'semver'
 
 import { Logger as ILogger } from '../../typings'
-import { isSpace, processUtteranceTokens, restoreOriginalUtteranceCasing } from '../tools/token-utils'
+import {
+  isSpace,
+  processUtteranceTokens,
+  restoreOriginalSpaces,
+  restoreOriginalUtteranceCasing
+} from '../tools/token-utils'
 import { LangServerInfo } from '../typings'
 import { LanguageClient } from './lang-client'
 import { LegacyLanguageClient } from './legacy-lang-client'
@@ -206,8 +211,9 @@ export class LanguageProvider {
       await this._onTokensCacheChanged()
     }
 
-    // we restore original chars and casing
-    return tokenUtterances.map((tokens, i) => restoreOriginalUtteranceCasing(tokens, utterances[i]))
+    const spaceRestored = tokenUtterances.map((tokens, i) => restoreOriginalSpaces(tokens, utterances[i]))
+    const caseRestored = spaceRestored.map((tokens, i) => restoreOriginalUtteranceCasing(tokens, utterances[i]))
+    return caseRestored
   }
 
   private _makeVectorCache = (): lru<string, Float32Array> => {

@@ -1,14 +1,13 @@
-import { isTaskAlreadyStarted, isTaskCanceled, isTaskExitedUnexpectedly } from './errors'
-
+import { TaskCanceledError, TaskAlreadyStartedError, TaskExitedUnexpectedlyError } from './errors'
 import { ProcessEntyPoint, ProcessPool } from './process-pool'
 import { ThreadEntyPoint, ThreadPool } from './thread-pool'
 
 import * as types from './typings'
 
-export const errors = {
-  isTaskAlreadyStarted,
-  isTaskCanceled,
-  isTaskExitedUnexpectedly
+export const errors: typeof types.errors = {
+  TaskCanceledError,
+  TaskAlreadyStartedError,
+  TaskExitedUnexpectedlyError
 }
 
 export const makeProcessPool: typeof types.makeProcessPool = (logger: types.Logger, config: types.PoolOptions) =>

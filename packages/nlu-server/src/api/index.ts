@@ -25,7 +25,14 @@ import { UsageClient } from '../telemetry/usage-client'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
 
-import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
+import {
+  validatePredictInput,
+  validateTrainInput,
+  validateDetectLangInput,
+  validateLintInput,
+  isLintingSpeed
+} from './validation/validate'
+
 type APIOptions = {
   host: string
   port: number
@@ -330,6 +337,75 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
       const resp: http.DetectLangResponseBody = { success: true, detectedLanguages }
       res.send(resp)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
+  router.post('/lint', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+      const input = await validateLintInput(req.body)
+      const { intents, entities, language, speed } = input
+
+      const trainInput: TrainInput = {
+        intents,
+        entities,
+        language,
+        seed: 0
+      }
+
+      const modelId = await app.startLinting(appId, speed, trainInput)
+
+      const resp: http.LintResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
+      return res.send(resp)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
+  router.get('/lint/:modelId/:speed', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+      const { modelId: stringId, speed } = req.params
+      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
+        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
+      }
+      if (!isLintingSpeed(speed)) {
+        throw new InvalidRequestFormatError(`path param "${speed}" is not a valid linting speed.`)
+      }
+
+      const modelId = NLUEngine.modelIdService.fromString(stringId)
+      const session = await app.getLintingState(appId, modelId, speed)
+
+      const resp: http.LintProgressResponseBody = {
+        success: true,
+        session
+      }
+      res.send(resp)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
+  router.post('/lint/:modelId/:speed/cancel', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+
+      const { modelId: stringId, speed } = req.params
+      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
+        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
+      }
+      if (!isLintingSpeed(speed)) {
+        throw new InvalidRequestFormatError(`path param "${speed}" is not a valid linting speed.`)
+      }
+
+      const modelId = NLUEngine.modelIdService.fromString(stringId)
+
+      await app.cancelLinting(appId, modelId, speed)
+
+      const resp: http.SuccessReponse = { success: true }
+      return res.send(resp)
     } catch (err) {
       return handleError(err, req, res, next)
     }

@@ -1,9 +1,9 @@
 import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
 import { ModelOf } from 'src/component'
-import { ModelLoadingError } from '../../errors'
 import * as MLToolkit from '../../ml/toolkit'
 import { Logger } from '../../typings'
+import { ModelLoadingError } from '../errors'
 import { ListEntityModel, PatternEntity, Tools } from '../typings'
 import Utterance from '../utterance/utterance'
 

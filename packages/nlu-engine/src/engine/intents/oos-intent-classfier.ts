@@ -1,9 +1,9 @@
 import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
 import { ModelOf } from 'src/component'
-import { ModelLoadingError } from '../../errors'
 import * as MLToolkit from '../../ml/toolkit'
 import { Logger } from '../../typings'
+import { ModelLoadingError } from '../errors'
 import { isPOSAvailable } from '../language/pos-tagger'
 import { vocabNGram } from '../tools/strings'
 import { SMALL_TFIDF } from '../tools/tfidf'
@@ -161,7 +161,8 @@ export class OOSIntentClassifier implements NoneableIntentClassifier<typeof PTBO
       utterances: await buildUtteranceBatch(
         [...mixedUtts, ...vocabUtts, ...junkWordsUtts, ...stopWords],
         languageCode,
-        this.tools
+        this.tools,
+        []
       ),
       contexts: []
     }

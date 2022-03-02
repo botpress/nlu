@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Botpress Standalone NLU Server",
   "main": "./dist/index.js",
   "author": "Botpress, Inc.",
@@ -8,10 +8,10 @@
   "types": "./src/typings.d.ts",
   "bin": "./dist/index.js",
   "dependencies": {
-    "@botpress/locks": "*",
     "@botpress/logger": "*",
     "@botpress/nlu-client": "*",
     "@botpress/nlu-engine": "*",
+    "@botpress/distributed": "*",
     "@botpress/ptb-schema": "*",
     "@opentelemetry/api": "^1.0.3",
     "@opentelemetry/exporter-jaeger": "^1.0.1",
@@ -44,7 +44,7 @@
     "joi": "^13.6.0",
     "jsonlint-mod": "^1.7.5",
     "jsonpack": "^1.1.5",
-    "knex": "^0.20.1",
+    "knex": "^0.95.15",
     "lodash": "^4.17.19",
     "lru-cache": "^5.1.1",
     "mkdirp": "^1.0.4",

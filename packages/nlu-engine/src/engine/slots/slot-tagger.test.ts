@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Logger } from 'src/typings'
-import { ModelLoadingError } from '../../errors'
+import { ModelLoadingError } from '../errors'
 import { makeFakeTools } from '../test-utils/fake-tools'
 import { makeTestUtterance } from '../test-utils/fake-utterance'
 

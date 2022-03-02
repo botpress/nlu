@@ -1,6 +1,6 @@
 import { Client, LanguageInfo, VectorizeResult, TokenizeResult, LanguageState } from '@botpress/lang-client'
 import httpsProxyAgent from 'https-proxy-agent'
-import { LangServerError } from '../../errors'
+import { LangServerError } from '../errors'
 
 export class LanguageClient {
   private _client: Client

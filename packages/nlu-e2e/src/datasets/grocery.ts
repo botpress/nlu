@@ -9,10 +9,10 @@ export const trainSet: TrainInput = {
       utterances: [
         'fruit is moldy',
         'this fruit is moldy',
-        'this [banana](fruit) is not good to eat',
-        'theses [oranges](fruit) have passed',
-        'theses [grapes](fruit) look bad',
-        'theses [apples](fruit) look so moldy'
+        'this [banana](moldy_fruit) is not good to eat',
+        'theses [oranges](moldy_fruit) have passed',
+        'theses [grapes](moldy_fruit) look bad',
+        'theses [apples](moldy_fruit) look so moldy'
       ],
       slots: [
         {
@@ -50,9 +50,16 @@ export const trainSet: TrainInput = {
         "I'd like to speak to your manager",
         'Can I talk to your boss? plz',
         'I wanna speak to manager please',
-        'let me speak to your boss or someone'
+        'let me speak to your boss or someone',
+        'can I meet your boss [at 1pm today](appointment_time) ?',
+        'will your manager be available [tomorrow afternoon around 4pm](appointment_time)'
       ],
-      slots: []
+      slots: [
+        {
+          name: 'appointment_time',
+          entities: ['time']
+        }
+      ]
     },
     {
       name: 'where-is',

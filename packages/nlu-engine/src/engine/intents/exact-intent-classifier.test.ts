@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { ModelLoadingError } from '../../errors'
+import { ModelLoadingError } from '../errors'
 import { makeTestUtterance } from '../test-utils/fake-utterance'
 
 import { Intent } from '../typings'

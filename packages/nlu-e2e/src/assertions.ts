@@ -1,4 +1,15 @@
-import { http, TrainingErrorType, TrainingState, TrainingStatus, TrainInput } from '@botpress/nlu-client'
+import {
+  DatasetIssue,
+  http,
+  IssueCode,
+  IssueComputationSpeed,
+  LintingState,
+  LintingStatus,
+  TrainingErrorType,
+  TrainingState,
+  TrainingStatus,
+  TrainInput
+} from '@botpress/nlu-client'
 import chai from 'chai'
 import cliProgress from 'cli-progress'
 import _ from 'lodash'
@@ -6,7 +17,7 @@ import ms from 'ms'
 import semver from 'semver'
 import { UnsuccessfullAPICall } from './errors'
 import { AssertionArgs } from './typings'
-import { pollTrainingUntil } from './utils'
+import { pollLintingUntil, pollTrainingUntil } from './utils'
 
 export const assertServerIsReachable = async (args: AssertionArgs, requiredLanguages: string[]) => {
   const { client, logger, appId } = args
@@ -84,6 +95,39 @@ export const assertTrainingStarts = async (args: AssertionArgs, trainSet: TrainI
   return modelId
 }
 
+export const assertLintingStarts = async (
+  args: AssertionArgs,
+  speed: IssueComputationSpeed,
+  trainSet: TrainInput
+): Promise<string> => {
+  const { client, logger, appId } = args
+  logger.debug('assert linting starts')
+
+  const contexts = _getContexts(trainSet)
+  const trainRes = await client.startLinting(appId, { ...trainSet, contexts, speed })
+  if (!trainRes.success) {
+    throw new UnsuccessfullAPICall(trainRes.error)
+  }
+
+  const { modelId } = trainRes
+  chai.expect(modelId).to.be.a('string').and.not.to.be.empty
+
+  const ts = await pollLintingUntil({
+    nluClient: client,
+    modelId,
+    appId,
+    speed,
+    maxTime: ms('5s'),
+    condition: (ts: LintingState) => ts.status !== 'linting-pending'
+  })
+
+  const allowed: LintingStatus[] = ['linting', 'done'] // linting process is currently to short
+  chai.expect(ts.status).to.be.oneOf(allowed)
+  chai.expect(ts.error).to.be.undefined
+
+  return modelId
+}
+
 export const assertTrainingFails = async (
   args: AssertionArgs,
   trainSet: TrainInput,
@@ -129,6 +173,23 @@ export const assertQueueTrainingFails = async (
   }
 
   const { error } = trainRes
+  chai.expect(error.type).to.equal(expectedError)
+}
+
+export const assertCancelTrainingFails = async (
+  args: AssertionArgs,
+  modelId: string,
+  expectedError: http.ErrorType
+): Promise<void> => {
+  const { client, logger, appId } = args
+  logger.debug('assert cancel training fails')
+
+  const cancelRes = await client.cancelTraining(appId, modelId)
+  if (cancelRes.success) {
+    throw new Error(`Expected training cancel to fail with error: "${expectedError}"`)
+  }
+
+  const { error } = cancelRes
   chai.expect(error.type).to.equal(expectedError)
 }
 
@@ -189,6 +250,30 @@ export const assertTrainingFinishes = async (args: AssertionArgs, modelId: strin
   } finally {
     trainProgressBar.stop()
   }
+}
+
+export const assertLintingFinishes = async (
+  args: AssertionArgs,
+  speed: IssueComputationSpeed,
+  modelId: string
+): Promise<DatasetIssue<IssueCode>[]> => {
+  const { client, logger, appId } = args
+  logger.debug('asserts linting finishes')
+
+  const ts = await pollLintingUntil({
+    nluClient: client,
+    modelId,
+    appId,
+    speed,
+    maxTime: -1,
+    condition: (ts: LintingState) => {
+      return ts.status !== 'linting'
+    }
+  })
+
+  chai.expect(ts.status).to.equal(<TrainingStatus>'done')
+  chai.expect(ts.error).to.be.undefined
+  return ts.issues
 }
 
 export const assertTrainingsAre = async (args: AssertionArgs, expectedTrainings: TrainingStatus[]) => {

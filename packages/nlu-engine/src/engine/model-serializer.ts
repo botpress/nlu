@@ -56,11 +56,10 @@ const PTBSynonym = new ptb.PTBMessage('ListEntitySynonym', {
 const PTBListEntityModel = new ptb.PTBMessage('ListEntityModel', {
   type: { type: 'string', id: 1 },
   id: { type: 'string', id: 2 },
-  languageCode: { type: 'string', id: 3 },
-  entityName: { type: 'string', id: 4 },
-  fuzzyTolerance: { type: 'double', id: 5 },
-  sensitive: { type: 'bool', id: 6 },
-  mappingsTokens: { keyType: 'string', type: PTBSynonym, id: 7 }
+  entityName: { type: 'string', id: 3 },
+  fuzzyTolerance: { type: 'double', id: 4 },
+  sensitive: { type: 'bool', id: 5 },
+  mappingsTokens: { keyType: 'string', type: PTBSynonym, id: 6 }
 })
 
 const PTBCentroid = new ptb.PTBMessage('KmeanCentroid', {

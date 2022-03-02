@@ -1,9 +1,9 @@
 import { Logger } from '@botpress/logger'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import _ from 'lodash'
-import { createTableIfNotExists } from '../../utils/database'
+import { createTableIfNotExists } from '../database-utils'
 import { compressModel, decompressModel } from './compress-model'
 import { ModelRepository, PruneOptions } from './typings'
 
@@ -92,7 +92,7 @@ export class DbModelRepository implements ModelRepository {
   public async listModels(appId: string, filters: Partial<NLUEngine.ModelId> = {}): Promise<NLUEngine.ModelId[]> {
     const rowfilters: Partial<TableKey> = { appId }
     const columns = ['appId', 'modelId', 'updatedOn'] as const
-    const queryResult: Result<typeof columns>[] = await this.table.select(columns).where(rowfilters)
+    const queryResult: Result<typeof columns>[] = await this.table.select(...columns).where(rowfilters)
 
     return _(queryResult)
       .orderBy(({ updatedOn }) => new Date(updatedOn).getTime(), 'asc')
@@ -117,7 +117,10 @@ export class DbModelRepository implements ModelRepository {
     const stringId = modelIdService.toString(modelId)
     const filter: TableKey = { appId, modelId: stringId }
     const columns = ['appId', 'modelId'] as const
-    const row: Result<typeof columns> | undefined = await this.table.select(columns).where(filter).first()
+    const row: Result<typeof columns> | undefined = await this.table
+      .select(...columns)
+      .where(filter)
+      .first()
     return !!row
   }
 

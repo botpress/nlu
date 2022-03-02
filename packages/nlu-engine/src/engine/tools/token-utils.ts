@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
 import { LATIN_CHARSET, SPECIAL_CHARSET } from './chars'
+import { tagAllSpaces } from './tag-spaces'
 import getVocabTokenizer from './vocab-tokenizer'
 
 export const SPACE = '\u2581'
@@ -70,6 +71,30 @@ export const processUtteranceTokens = (tokens: string[], vocab: string[] = []): 
     .thru((tokens) => mergeLatin(tokens, vocab))
     .thru((tokens) => (tokens.length && tokens[0].startsWith(SPACE) ? tokens.slice(1) : tokens)) // remove 1st token if space, even if input trimmed, sometimes tokenizer returns space char
     .value()
+}
+
+export const restoreOriginalSpaces = (utteranceTokens: string[], utterance: string): string[] => {
+  const nonSpaceTokens = utteranceTokens.filter((t) => !isSpace(t))
+  const spans = tagAllSpaces(utterance)
+
+  const tokens: string[] = []
+
+  let idx = 0
+  for (const span of spans) {
+    let next = nonSpaceTokens[0]
+    while (next && idx + next.length <= span.charStart) {
+      nonSpaceTokens.shift()
+      tokens.push(next)
+      idx += next.length
+      next = nonSpaceTokens[0]
+    }
+    const spaceToken = _.repeat(SPACE, span.length)
+    tokens.push(spaceToken)
+    idx += spaceToken.length
+  }
+
+  tokens.push(...nonSpaceTokens)
+  return tokens
 }
 
 export const restoreOriginalUtteranceCasing = (utteranceTokens: string[], utterance: string): string[] => {

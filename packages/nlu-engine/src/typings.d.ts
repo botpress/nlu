@@ -1,10 +1,19 @@
+import { LangServerErrorType, SerializedError } from '@botpress/lang-client'
+import * as linting from './linting'
+
 export const SYSTEM_ENTITIES: string[]
 
-export const errors: {
-  isTrainingAlreadyStarted: (err: Error) => boolean
-  isTrainingCanceled: (err: Error) => boolean
-  isLangServerError: (err: Error) => boolean
-  isDucklingServerError: (err: Error) => boolean
+export namespace errors {
+  export class TrainingAlreadyStartedError extends Error {}
+  export class TrainingCanceledError extends Error {}
+  export class LangServerError extends Error {
+    public code: number
+    public type: LangServerErrorType
+    constructor(serializedError: SerializedError)
+  }
+  export class DucklingServerError extends Error {
+    constructor(message: string, stack?: string)
+  }
 }
 
 export const makeEngine: (config: Config, logger: Logger) => Promise<Engine>
@@ -53,9 +62,23 @@ export type ModelIdArgs = {
   specifications: Specifications
 } & TrainInput
 
+export type TrainingProgress = (p: number) => void
 export type TrainingOptions = {
   progressCallback: (x: number) => void
   minProgressHeartbeat: number
+}
+
+export type LintingProgressCb = (
+  current: number,
+  total: number,
+  issues: linting.DatasetIssue<linting.IssueCode>[]
+) => void | Promise<void>
+
+export type LintingOptions = {
+  progressCallback: LintingProgressCb
+  minSpeed: linting.IssueComputationSpeed
+  minSeverity: linting.IssueSeverity<IssueCode>
+  runInMainProcess: boolean
 }
 
 export type Engine = {
@@ -66,8 +89,12 @@ export type Engine = {
   unloadModel: (modelId: ModelId) => void
   hasModel: (modelId: ModelId) => boolean
 
-  train: (trainSessionId: string, trainSet: TrainInput, options?: Partial<TrainingOptions>) => Promise<Model>
-  cancelTraining: (trainSessionId: string) => Promise<void>
+  train: (trainingId: string, trainSet: TrainInput, options?: Partial<TrainingOptions>) => Promise<Model>
+  cancelTraining: (trainingId: string) => Promise<void>
+
+  lint: (lintingId: string, trainSet: TrainInput, options?: Partial<LintingOptions>) => Promise<linting.DatasetReport>
+  cancelLinting: (lintingId: string) => Promise<void>
+  getIssueDetails: <C extends IssueCode>(code: C) => linting.IssueDefinition<C> | undefined
 
   detectLanguage: (text: string, modelByLang: { [key: string]: ModelId }) => Promise<string>
   predict: (text: string, modelId: ModelId) => Promise<PredictOutput>

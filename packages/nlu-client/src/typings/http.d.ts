@@ -4,16 +4,10 @@
  * ############
  */
 
-import {
-  TrainingState,
-  PredictOutput,
-  IntentDefinition,
-  EntityDefinition,
-  Specifications,
-  Health,
-  ServerInfo,
-  Training
-} from './sdk'
+import { ServerInfo } from './info'
+import { LintingState, IssueComputationSpeed } from './linting'
+import { PredictOutput } from './prediction'
+import { TrainingState, IntentDefinition, EntityDefinition, Training } from './training'
 
 export type TrainRequestBody = {
   language: string
@@ -21,6 +15,14 @@ export type TrainRequestBody = {
   intents: IntentDefinition[]
   entities: EntityDefinition[]
   seed?: number
+}
+
+export type LintRequestBody = {
+  speed: IssueComputationSpeed
+  language: string
+  contexts: string[]
+  intents: IntentDefinition[]
+  entities: EntityDefinition[]
 }
 
 export type PredictRequestBody = {
@@ -34,12 +36,13 @@ export type DetectLangRequestBody = {
 export type ErrorType =
   | 'model_not_found'
   | 'training_not_found'
+  | 'linting_not_found'
   | 'training_already_started'
-  | 'invalid_train_set'
   | 'request_format'
   | 'lang-server'
   | 'duckling-server'
   | 'internal'
+  | 'dataset_format'
 
 export type NLUError = {
   message: string
@@ -65,8 +68,16 @@ export type TrainResponseBody = {
   modelId: string
 } & SuccessReponse
 
+export type LintResponseBody = {
+  modelId: string
+} & SuccessReponse
+
 export type TrainProgressResponseBody = {
   session: TrainingState
+} & SuccessReponse
+
+export type LintProgressResponseBody = {
+  session: LintingState
 } & SuccessReponse
 
 export type ListTrainingsResponseBody = {
