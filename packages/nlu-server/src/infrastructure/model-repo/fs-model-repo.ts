@@ -31,11 +31,6 @@ export class FileSystemModelRepository implements ModelRepository {
     this._logger.debug('Model repo teardown...')
   }
 
-  public async hasModel(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
-    const fileName = this._computeFilePath(appId, modelId)
-    return fse.existsSync(fileName)
-  }
-
   public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<NLUEngine.Model | undefined> {
     const fileName = this._computeFilePath(appId, modelId)
     if (!fse.existsSync(fileName)) {

@@ -7,7 +7,6 @@ export type PruneOptions = {
 export type ModelRepository = {
   initialize(): Promise<void>
   teardown(): Promise<void>
-  hasModel(appId: string, modelId: ModelId): Promise<boolean>
   getModel(appId: string, modelId: ModelId): Promise<Model | undefined>
   saveModel(appId: string, model: Model): Promise<void | void[]>
   listModels(appId: string, filters?: Partial<ModelId>): Promise<ModelId[]>
