@@ -147,8 +147,8 @@ export class Application extends ApplicationObserver {
       throw new InvalidModelSpecError(modelId, currentSpec)
     }
 
-    const model = await this._modelRepo.getModel(appId, modelId)
-    if (!model) {
+    const modelExists = await this._modelRepo.hasModel(appId, modelId)
+    if (!modelExists) {
       throw new TrainingNotFoundError(appId, modelId)
     }
 

@@ -53,6 +53,16 @@ export class DbModelRepository implements ModelRepository {
     return this._database.destroy()
   }
 
+  public async hasModel(appId: string, modelId: NLUEngine.ModelId): Promise<boolean> {
+    const stringId = modelIdService.toString(modelId)
+    const filter: Partial<TableRow> = { appId, modelId: stringId }
+    const row = await this.table
+      .select(['appId', 'modelId', 'updatedOn'] as const) // do not select content as its too big
+      .where(filter)
+      .first()
+    return row !== undefined
+  }
+
   public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<NLUEngine.Model | undefined> {
     const stringId = modelIdService.toString(modelId)
     const filter: Partial<TableRow> = { appId, modelId: stringId }
