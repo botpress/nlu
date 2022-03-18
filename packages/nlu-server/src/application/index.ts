@@ -25,6 +25,7 @@ import {
   LintingNotFoundError
 } from './errors'
 import { LintingQueue } from './linting-queue'
+import { deserializeModel } from './serialize-model'
 import { TrainingQueue } from './training-queue'
 
 export class Application extends ApplicationObserver {
@@ -267,13 +268,14 @@ You can increase your cache size by the CLI or config.
     if (!this._engine.hasModel(modelId)) {
       const modelReadStartTime = Date.now()
 
-      const model = await this._modelRepo.getModel(appId, modelId)
-      if (!model) {
+      const modelBuffer = await this._modelRepo.getModel(appId, modelId)
+      if (!modelBuffer) {
         throw new ModelDoesNotExistError(appId, modelId)
       }
 
       const modelLoadStartTime = Date.now()
 
+      const model = await deserializeModel(modelBuffer)
       await this._engine.loadModel(model)
 
       const modelLoadEndTime = Date.now()

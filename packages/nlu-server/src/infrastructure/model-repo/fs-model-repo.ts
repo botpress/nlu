@@ -4,7 +4,6 @@ import Bluebird from 'bluebird'
 import fse from 'fs-extra'
 import _ from 'lodash'
 import path from 'path'
-import { compressModel, decompressModel } from './compress-model'
 import { ModelRepository, PruneOptions } from './typings'
 
 const MODELS_DIR = 'models'
@@ -31,30 +30,19 @@ export class FileSystemModelRepository implements ModelRepository {
     this._logger.debug('Model repo teardown...')
   }
 
-  public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<NLUEngine.Model | undefined> {
+  public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<Buffer | undefined> {
     const fileName = this._computeFilePath(appId, modelId)
     if (!fse.existsSync(fileName)) {
       return
     }
-
-    const buffer: Buffer = await fse.readFile(fileName)
-
-    let mod
-    try {
-      mod = await decompressModel(buffer)
-    } catch (err) {
-      return
-    }
-
-    return mod
+    return fse.readFile(fileName)
   }
 
-  public async saveModel(appId: string, model: NLUEngine.Model): Promise<void | void[]> {
-    const filePath = this._computeFilePath(appId, model.id)
-    const buffer: Buffer = await compressModel(model)
+  public async saveModel(appId: string, modelId: NLUEngine.ModelId, modelBuffer: Buffer): Promise<void | void[]> {
+    const filePath = this._computeFilePath(appId, modelId)
 
     await this._syncDir(this._computeDirPath(appId))
-    return fse.writeFile(filePath, buffer)
+    return fse.writeFile(filePath, modelBuffer)
   }
 
   public async listModels(appId: string, filters: Partial<NLUEngine.ModelId> = {}): Promise<NLUEngine.ModelId[]> {
