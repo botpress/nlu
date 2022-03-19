@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 import _ from 'lodash'
-import { ModelStreamer } from './model-streamer'
+import { ModelTransferClient } from './model-transfer-client'
 import { BufferOpts, Client as IClient, DownloadOpts, IssueComputationSpeed, ModelStream, StreamOpts } from './typings'
 import {
   TrainResponseBody,
@@ -21,26 +21,21 @@ import {
   LintResponseBody,
   LintProgressResponseBody
 } from './typings/http'
-import { validateJSONResponse, HTTPCall, HTTPVerb, ClientResponseError } from './validation'
+import { appHeader, mapErr } from './utils'
+import { validateJSONResponse, HTTPCall } from './validation'
 
 const DEFAULT_CONFIG: AxiosRequestConfig = {
   validateStatus: () => true
 }
 
-export const APP_HEADER = (appId: string) => {
-  return {
-    'X-App-Id': appId
-  }
-}
-
 export class NLUClient implements IClient {
   protected _axios: AxiosInstance
 
-  private _modelStreamer: ModelStreamer
+  private _modelStreamer: ModelTransferClient
 
   constructor(config: AxiosRequestConfig) {
     this._axios = axios.create({ ...DEFAULT_CONFIG, ...config })
-    this._modelStreamer = new ModelStreamer(this._axios)
+    this._modelStreamer = new ModelTransferClient(this._axios)
   }
 
   public get axios() {
@@ -55,18 +50,14 @@ export class NLUClient implements IClient {
     modelId: string,
     opt?: DownloadOpts
   ): Promise<ModelStream | Buffer | ErrorResponse> {
-    const ressource = `model/${modelId}`
-    const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
-
-    try {
-      if (!opt || opt.responseType === 'stream') {
-        return this._modelStreamer.downloadStreamModel(appId, modelId)
-      }
-      return this._modelStreamer.downloadBufferModel(appId, modelId)
-    } catch (err) {
-      // axios validate status does not prevent all exceptions
-      throw this._mapErr(call, err)
+    if (!opt || opt.responseType === 'stream') {
+      return this._modelStreamer.downloadStreamModel(appId, modelId)
     }
+    return this._modelStreamer.downloadBufferModel(appId, modelId)
+  }
+
+  public async uploadModel(appId: string, modelBuffer: Buffer): Promise<SuccessReponse | ErrorResponse> {
+    return this._modelStreamer.uploadBufferModel(appId, modelBuffer)
   }
 
   public async getInfo(): Promise<InfoResponseBody | ErrorResponse> {
@@ -77,7 +68,7 @@ export class NLUClient implements IClient {
   }
 
   public async startTraining(appId: string, body: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = 'train'
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, body, { headers })
@@ -88,7 +79,7 @@ export class NLUClient implements IClient {
    * @experimental still subject to breaking changes
    */
   public async startLinting(appId: string, body: LintRequestBody): Promise<LintResponseBody | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = 'lint'
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, body, { headers })
@@ -96,7 +87,7 @@ export class NLUClient implements IClient {
   }
 
   public async listTrainings(appId: string, lang?: string): Promise<ListTrainingsResponseBody | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = 'train'
     const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const params = lang && { lang }
@@ -105,7 +96,7 @@ export class NLUClient implements IClient {
   }
 
   public async getTrainingStatus(appId: string, modelId: string): Promise<TrainProgressResponseBody | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = `train/${modelId}`
     const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const res = await this._get(call, { headers })
@@ -120,7 +111,7 @@ export class NLUClient implements IClient {
     modelId: string,
     speed: IssueComputationSpeed
   ): Promise<LintProgressResponseBody | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = `lint/${modelId}/${speed}`
     const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const res = await this._get(call, { headers })
@@ -128,7 +119,7 @@ export class NLUClient implements IClient {
   }
 
   public async cancelTraining(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = `train/${modelId}/cancel`
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, {}, { headers })
@@ -140,7 +131,7 @@ export class NLUClient implements IClient {
     modelId: string,
     speed: IssueComputationSpeed
   ): Promise<SuccessReponse | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = `lint/${modelId}/${speed}/cancel`
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, {}, { headers })
@@ -148,7 +139,7 @@ export class NLUClient implements IClient {
   }
 
   public async listModels(appId: string): Promise<ListModelsResponseBody | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = 'models'
     const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const res = await this._get(call, { headers })
@@ -156,7 +147,7 @@ export class NLUClient implements IClient {
   }
 
   public async pruneModels(appId: string): Promise<PruneModelsResponseBody | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = 'models/prune'
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, {}, { headers })
@@ -167,7 +158,7 @@ export class NLUClient implements IClient {
     appId: string,
     body: DetectLangRequestBody
   ): Promise<DetectLangResponseBody | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = 'detect-lang'
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, body, { headers })
@@ -179,7 +170,7 @@ export class NLUClient implements IClient {
     modelId: string,
     body: PredictRequestBody
   ): Promise<PredictResponseBody | ErrorResponse> {
-    const headers = APP_HEADER(appId)
+    const headers = appHeader(appId)
     const ressource = `predict/${modelId}`
     const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
     const res = await this._post(call, body, { headers })
@@ -197,7 +188,7 @@ export class NLUClient implements IClient {
       return res
     } catch (err) {
       // axios validate status does not prevent all exceptions
-      throw this._mapErr(call, err)
+      throw mapErr(call, err)
     }
   }
 
@@ -208,13 +199,7 @@ export class NLUClient implements IClient {
       return res
     } catch (err) {
       // axios validate status does not prevent all exceptions
-      throw this._mapErr(call, err)
+      throw mapErr(call, err)
     }
-  }
-
-  private _mapErr = (call: HTTPCall<HTTPVerb>, thrown: any): ClientResponseError => {
-    const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-    const httpStatus = -1
-    return new ClientResponseError(call, httpStatus, err.message)
   }
 }

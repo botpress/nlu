@@ -80,6 +80,11 @@ export class Application extends ApplicationObserver {
     return modelBuffer
   }
 
+  public async setModelWeigths(appId: string, modelBuffer: Buffer) {
+    const model = await deserializeModel(modelBuffer) // TODO: validate model format
+    return this._modelRepo.saveModel(appId, model.id, modelBuffer)
+  }
+
   public async getModels(appId: string): Promise<ModelId[]> {
     return this._modelRepo.listModels(appId, this._getSpecFilter())
   }

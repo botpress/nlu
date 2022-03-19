@@ -24,6 +24,8 @@ import { initTracing } from '../telemetry/trace'
 import { UsageClient } from '../telemetry/usage-client'
 import { InvalidRequestFormatError } from './errors'
 import { handleError, getAppId } from './http'
+import { createModelTransferRouter } from './model-transfer-router'
+import { APIOptions } from './options'
 
 import {
   validatePredictInput,
@@ -32,20 +34,6 @@ import {
   validateLintInput,
   isLintingSpeed
 } from './validation/validate'
-
-type APIOptions = {
-  host: string
-  port: number
-  limitWindow: string
-  limit: number
-  bodySize: string
-  batchSize: number
-  tracingEnabled?: boolean
-  prometheusEnabled?: boolean
-  apmEnabled?: boolean
-  apmSampleRate?: number
-  usageURL?: string
-}
 
 const { modelIdService } = NLUEngine
 
@@ -138,8 +126,6 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     expressApp.use(Sentry.Handlers.tracingHandler())
   }
 
-  expressApp.use(bodyParser.json({ limit: options.bodySize }))
-
   expressApp.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress NLU')
     requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
@@ -149,8 +135,6 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   if (options.apmEnabled) {
     expressApp.use(Sentry.Handlers.errorHandler())
   }
-
-  expressApp.use(handleError)
 
   if (process.env.REVERSE_PROXY) {
     expressApp.set('trust proxy', process.env.REVERSE_PROXY)
@@ -167,8 +151,13 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   }
 
   const router = express.Router({ mergeParams: true })
+  const modelTransferRouter = createModelTransferRouter(options, app, baseLogger)
 
-  expressApp.use(['/v1', '/'], router)
+  expressApp.use(['/'], router)
+  expressApp.use(['/model'], modelTransferRouter)
+
+  router.use(bodyParser.json({ limit: options.bodySize }))
+  router.use(handleError)
 
   router.get('/', async (req, res, next) => {
     try {
@@ -207,24 +196,6 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const stringIds = modelIds.map(modelIdService.toString)
       const resp: http.PruneModelsResponseBody = { success: true, models: stringIds }
       return res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.get('/model/:modelId', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const { modelId: stringId } = req.params
-      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
-        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
-      }
-
-      const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const modelBuffer = await app.getModelWeigths(appId, modelId)
-
-      // express takes care of setting proper headers and chunking
-      res.send(modelBuffer)
     } catch (err) {
       return handleError(err, req, res, next)
     }
