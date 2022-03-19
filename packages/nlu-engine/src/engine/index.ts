@@ -5,7 +5,7 @@ import LRUCache from 'lru-cache'
 import ms from 'ms'
 import v8 from 'v8'
 import { isListEntity, isPatternEntity } from '../guards'
-import { DatasetIssue, IssueCode } from '../linting'
+import { DatasetIssue, IssueCode, IssueDefinition } from '../linting'
 
 import modelIdService from '../model-id-service'
 
@@ -317,8 +317,8 @@ export default class Engine implements IEngine {
     return this._lintingWorkerQueue.cancelLinting(lintingId)
   }
 
-  public getIssueDetails<C extends IssueCode>(code: C) {
-    return allIssues[code]
+  public getIssueDetails<C extends IssueCode>(code: C): IssueDefinition<C> | undefined {
+    return allIssues[code] as IssueDefinition<C> | undefined
   }
 
   private async _makePredictors(modelData: PredictableModel['data']): Promise<Predictors> {
