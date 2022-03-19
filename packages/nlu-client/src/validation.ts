@@ -1,6 +1,7 @@
 import { AxiosResponse } from 'axios'
 import Joi from 'joi'
 import _ from 'lodash'
+import { Readable } from 'stream'
 import { SuccessReponse, ErrorResponse } from './typings/http'
 
 const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
@@ -25,9 +26,10 @@ export class ClientResponseError extends Error {
   }
 }
 
-export const validateResponse = <S extends SuccessReponse>(
+/** Manual validation for clean error messages */
+export const validateJSONResponse = <S extends SuccessReponse>(
   call: HTTPCall<HTTPVerb>,
-  res: AxiosResponse<S | ErrorResponse>
+  res: AxiosResponse
 ): S | ErrorResponse => {
   const { status, data } = res
 
@@ -57,7 +59,14 @@ export const validateResponse = <S extends SuccessReponse>(
         'Received unsuccessfull HTTP response with no error. Expected response.error to be an object.'
       )
     }
-    Joi.assert(error, ERROR_RESPONSE_SCHEMA)
+    const { error: validationError } = ERROR_RESPONSE_SCHEMA.validate(error)
+    if (validationError) {
+      throw new ClientResponseError(
+        call,
+        status,
+        `Received response with incorrect error format: ${validationError.message}`
+      )
+    }
     return data
   }
 
@@ -66,4 +75,20 @@ export const validateResponse = <S extends SuccessReponse>(
     status,
     'Received HTTP response body has no attribute "success". Expected response.success to be a boolean.'
   )
+}
+
+export const validateBinResponse = (call: HTTPCall<HTTPVerb>, res: AxiosResponse): Buffer | ErrorResponse => {
+  const { data } = res
+  if (data instanceof Buffer) {
+    return data
+  }
+  return validateJSONResponse(call, res) as ErrorResponse
+}
+
+export const validateStreamResponse = (call: HTTPCall<HTTPVerb>, res: AxiosResponse): Readable | ErrorResponse => {
+  const { data } = res
+  if (data instanceof Readable) {
+    return data
+  }
+  return validateJSONResponse(call, res) as ErrorResponse
 }

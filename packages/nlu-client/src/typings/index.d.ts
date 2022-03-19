@@ -18,6 +18,8 @@ import {
   ListTrainingsResponseBody,
   LintProgressResponseBody
 } from './http'
+import { Readable } from 'stream'
+import { ModelStream } from './model'
 
 export class Client {
   readonly axios: AxiosInstance
@@ -25,6 +27,10 @@ export class Client {
   constructor(config: AxiosRequestConfig)
 
   getInfo(): Promise<InfoResponseBody | ErrorResponse>
+
+  downloadModel(appId: string, modelId: string): Promise<ModelStream | ErrorResponse>
+  downloadModel(appId: string, modelId: string, opt: StreamOpts): Promise<ModelStream | ErrorResponse>
+  downloadModel(appId: string, modelId: string, opt: BufferOpts): Promise<Buffer | ErrorResponse>
 
   startTraining(appId: string, trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse>
   getTrainingStatus(appId: string, modelId: string): Promise<TrainProgressResponseBody | ErrorResponse>
@@ -67,3 +73,4 @@ export * from './training'
 export * from './prediction'
 export * from './linting'
 export * from './info'
+export * from './model'

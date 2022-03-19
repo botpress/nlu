@@ -72,6 +72,14 @@ export class Application extends ApplicationObserver {
     return { specs, languages, version }
   }
 
+  public async getModelWeigths(appId: string, modelId: ModelId): Promise<Buffer> {
+    const modelBuffer = await this._modelRepo.getModel(appId, modelId)
+    if (!modelBuffer) {
+      throw new ModelDoesNotExistError(appId, modelId)
+    }
+    return modelBuffer
+  }
+
   public async getModels(appId: string): Promise<ModelId[]> {
     return this._modelRepo.listModels(appId, this._getSpecFilter())
   }

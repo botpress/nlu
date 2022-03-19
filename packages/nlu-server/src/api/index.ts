@@ -212,6 +212,24 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     }
   })
 
+  router.get('/model/:modelId', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+      const { modelId: stringId } = req.params
+      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
+        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
+      }
+
+      const modelId = NLUEngine.modelIdService.fromString(stringId)
+      const modelBuffer = await app.getModelWeigths(appId, modelId)
+
+      // express takes care of setting proper headers and chunking
+      res.send(modelBuffer)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
   router.post('/train', async (req, res, next) => {
     try {
       const appId = getAppId(req)
