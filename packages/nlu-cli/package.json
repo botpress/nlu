@@ -10,6 +10,7 @@
     "@botpress/lang-server": "*",
     "@botpress/logger": "*",
     "@botpress/nlu-server": "*",
+    "@botpress/mt-server": "*",
     "decamelize": "5.0.1",
     "json-schema": "^0.4.0",
     "wtfnode": "^0.9.1",
