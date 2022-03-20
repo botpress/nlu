@@ -168,7 +168,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   const router = express.Router({ mergeParams: true })
 
-  expressApp.use(['/v1', '/'], router)
+  expressApp.use('/', router)
 
   router.get('/', async (req, res, next) => {
     try {
