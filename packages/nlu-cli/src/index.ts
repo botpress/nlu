@@ -1,18 +1,12 @@
 import './rewire'
 import { run as runLanguageServer, download as downloadLang, version as langServerVersion } from '@botpress/lang-server'
 import { Logger } from '@botpress/logger'
-import { run as runModelTransferServer, version as modelTransferVersion } from '@botpress/mt-server'
 import { run as runNLUServer, version as nluServerVersion } from '@botpress/nlu-server'
 import path from 'path'
 import yargs from 'yargs'
 import { getAppDataPath } from './app-data'
 import { writeConfigFile, readConfigFile } from './config-file'
-import {
-  nluServerParameters,
-  langServerParameters,
-  langDownloadParameters,
-  modelTransferParameters
-} from './parameters'
+import { nluServerParameters, langServerParameters, langDownloadParameters } from './parameters'
 import { parseEnv } from './parse-env'
 
 void yargs
@@ -169,78 +163,5 @@ void yargs
           process.exit(1)
         })
       })
-  })
-  .command('mt', 'Launch a local model transfer server', (yargs) => {
-    const langLogger = new Logger('', { prefix: 'MT' })
-    return yargs
-      .command(
-        '$0',
-        'Launch a local model transfer server',
-        {
-          version: {
-            description: "Prints the Model Transfer Server's version",
-            type: 'boolean',
-            default: false
-          },
-          config: {
-            description: 'Path to your config file. If defined, rest of the CLI arguments are ignored.',
-            type: 'string',
-            alias: 'c'
-          },
-          ...modelTransferParameters
-        },
-        async (argv) => {
-          if (argv.version) {
-            langLogger.sub('Version').info(modelTransferVersion)
-            return
-          }
-          if (argv.config) {
-            const fileArgs = await readConfigFile({
-              fileLocation: argv.config,
-              yargSchema: modelTransferParameters
-            })
-            argv = { ...fileArgs, ...argv }
-          }
-
-          argv = { ...parseEnv(modelTransferParameters), ...argv }
-          void runModelTransferServer(argv).catch((err) => {
-            langLogger.sub('Exit').attachError(err).critical('Model Transfer Server exits after an error occured.')
-            process.exit(1)
-          })
-        }
-      )
-      .command(
-        'init',
-        'create configuration file in current working directory',
-        {
-          config: {
-            alias: 'c',
-            description: 'Path to where you want your config file to be created.',
-            type: 'string'
-          },
-          force: {
-            alias: 'f',
-            description: 'Weither or not to override current file.',
-            type: 'boolean'
-          }
-        },
-        (argv) => {
-          const { force, config } = argv
-
-          const defaultFileLocation = path.join(process.cwd(), 'mt.config.json')
-          const fileLocation = config || defaultFileLocation
-
-          const cachePath = getAppDataPath()
-          void writeConfigFile({
-            fileLocation,
-            schemaLocation: path.join(cachePath, 'mt.config.schema.json'),
-            yargSchema: modelTransferParameters,
-            force
-          }).catch((err) => {
-            langLogger.sub('Exit').attachError(err).critical('Could not initialize configuration file.')
-            process.exit(1)
-          })
-        }
-      )
   })
   .help().argv
