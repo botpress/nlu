@@ -88,6 +88,14 @@ export type ListModelsResponseBody = {
   models: string[]
 } & SuccessReponse
 
+export type DownloadModelResponseBody = {
+  ressourceURI: string
+} & SuccessReponse
+
+export type UploadModelRequestBody = {
+  ressourceURI: string
+} & SuccessReponse
+
 export type PruneModelsResponseBody = {
   models: string[]
 } & SuccessReponse

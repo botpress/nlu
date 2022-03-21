@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 import _ from 'lodash'
-import { Client as IClient, IssueComputationSpeed } from './typings'
 import {
   TrainResponseBody,
   TrainRequestBody,
@@ -20,13 +19,14 @@ import {
   LintResponseBody,
   LintProgressResponseBody
 } from './typings/http'
+import { IssueComputationSpeed } from './typings/linting'
 import { validateResponse, HTTPCall, HTTPVerb, ClientResponseError } from './validation'
 
 const DEFAULT_CONFIG: AxiosRequestConfig = {
-  validateStatus: () => true
+  validateStatus: () => true // return error datastructure instead of throwing
 }
 
-export class NLUClient implements IClient {
+export class NLUClient {
   protected _axios: AxiosInstance
 
   constructor(config: AxiosRequestConfig) {
@@ -103,6 +103,9 @@ export class NLUClient implements IClient {
     return validateResponse<SuccessReponse>(call, res)
   }
 
+  /**
+   * @experimental still subject to breaking changes
+   */
   public async cancelLinting(
     appId: string,
     modelId: string,
