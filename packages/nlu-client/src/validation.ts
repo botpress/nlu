@@ -25,6 +25,7 @@ export class ClientResponseError extends Error {
   }
 }
 
+/** Manual validation for clean error messages */
 export const validateResponse = <S extends SuccessReponse>(
   call: HTTPCall<HTTPVerb>,
   res: AxiosResponse<S | ErrorResponse>
@@ -57,7 +58,15 @@ export const validateResponse = <S extends SuccessReponse>(
         'Received unsuccessfull HTTP response with no error. Expected response.error to be an object.'
       )
     }
-    Joi.assert(error, ERROR_RESPONSE_SCHEMA)
+
+    const { error: validationError } = ERROR_RESPONSE_SCHEMA.validate(error)
+    if (validationError) {
+      throw new ClientResponseError(
+        call,
+        status,
+        `Received response with incorrect error format: ${validationError.message}`
+      )
+    }
     return data
   }
 

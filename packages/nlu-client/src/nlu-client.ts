@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 import _ from 'lodash'
+import { ModelTransferClient } from './model-client'
 import {
   TrainResponseBody,
   TrainRequestBody,
@@ -17,7 +18,9 @@ import {
   ListTrainingsResponseBody,
   LintRequestBody,
   LintResponseBody,
-  LintProgressResponseBody
+  LintProgressResponseBody,
+  DownloadModelResponseBody,
+  UploadModelRequestBody
 } from './typings/http'
 import { IssueComputationSpeed } from './typings/linting'
 import { validateResponse, HTTPCall, HTTPVerb, ClientResponseError } from './validation'
@@ -28,9 +31,14 @@ const DEFAULT_CONFIG: AxiosRequestConfig = {
 
 export class NLUClient {
   protected _axios: AxiosInstance
+  public readonly modelTransfer: ModelTransferClient
 
-  constructor(config: AxiosRequestConfig) {
-    this._axios = axios.create({ ...DEFAULT_CONFIG, ...config })
+  constructor(config: AxiosRequestConfig & { baseURL: string }) {
+    config = { ...DEFAULT_CONFIG, ...config }
+    this._axios = axios.create(config)
+
+    const modelTransferURL = `${config.baseURL}/modelweights`
+    this.modelTransfer = new ModelTransferClient({ baseURL: modelTransferURL })
   }
 
   public get axios() {
@@ -42,6 +50,23 @@ export class NLUClient {
     const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
     const res = await this._get(call)
     return validateResponse<InfoResponseBody>(call, res)
+  }
+
+  public async getModelWeightsInfo(appId: string, modelId: string): Promise<DownloadModelResponseBody | ErrorResponse> {
+    const headers = this._appIdHeader(appId)
+    const ressource = `model/${modelId}`
+    const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
+    const res = await this._get(call, { headers })
+    return validateResponse<DownloadModelResponseBody>(call, res)
+  }
+
+  public async setModelWeightsInfo(appId: string, ressourceUUID: string): Promise<SuccessReponse | ErrorResponse> {
+    const headers = this._appIdHeader(appId)
+    const ressource = 'model'
+    const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
+    const body: UploadModelRequestBody = { ressourceUUID }
+    const res = await this._post(call, body, { headers })
+    return validateResponse<SuccessReponse>(call, res)
   }
 
   public async startTraining(appId: string, body: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse> {

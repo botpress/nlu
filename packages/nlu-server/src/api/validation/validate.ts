@@ -3,7 +3,13 @@ import { ObjectSchema, validate } from 'joi'
 import _ from 'lodash'
 import { InvalidRequestFormatError, InvalidTrainSetError } from '../errors'
 
-import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema, LintInputSchema } from './schemas'
+import {
+  PredictInputSchema,
+  TrainInputSchema,
+  DetectLangInputSchema,
+  LintInputSchema,
+  UploadModelSchema
+} from './schemas'
 
 const validateIntent = (contexts: string[], intent: IntentDefinition) => {
   for (const ctx of intent.contexts) {
@@ -69,6 +75,18 @@ export async function validateDetectLangInput(rawInput: any): Promise<http.Detec
       throw new InvalidRequestFormatError(thrown.message)
     }
     throw new InvalidRequestFormatError('invalid detect language format')
+  }
+}
+
+export async function validateUploadModelSchema(rawInput: any): Promise<http.UploadModelRequestBody> {
+  try {
+    const validated: http.UploadModelRequestBody = await validate(rawInput, UploadModelSchema, {})
+    return validated
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid upload model request format')
   }
 }
 

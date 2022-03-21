@@ -10,7 +10,7 @@ export type ModelTransferOptions = {
   limitWindow: string
   limit: number
   bodySize: string | number
-  reverseProxy: string | undefined
+  reverseProxy?: string
   modelDir: string
   modelTTL: string | number
   logLevel: LogLevel

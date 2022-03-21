@@ -14,6 +14,10 @@ export const parameters = asYargs({
     description: 'Binds the nlu server to a specific hostname',
     type: 'string'
   },
+  reverseProxy: {
+    description: 'Allows trusting the specified reverse proxy',
+    type: 'string'
+  },
   dbURL: {
     description: 'URL of database where to persist models. If undefined, models are stored on FS.',
     type: 'string'
@@ -101,6 +105,10 @@ export const parameters = asYargs({
   },
   usageURL: {
     description: 'Endpoint to send usage info to.',
+    type: 'string'
+  },
+  modelTransferURL: {
+    description: 'URL of the model transfer server resposible for model weights download / upload.',
     type: 'string'
   }
 })

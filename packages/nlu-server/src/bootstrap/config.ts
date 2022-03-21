@@ -23,7 +23,8 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   debugFilter: undefined,
   logFormat: 'text',
   maxTraining: 2,
-  maxLinting: 2
+  maxLinting: 2,
+  modelTransferURL: undefined
 })
 
 export const getConfig = async (cliOptions: CommandLineOptions): Promise<NLUServerOptions> => {

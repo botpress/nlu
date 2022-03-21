@@ -1,4 +1,5 @@
 import { Logger } from '@botpress/logger'
+import { ModelClient } from '@botpress/nlu-client'
 import { Engine } from '@botpress/nlu-engine'
 import Knex from 'knex'
 import { Application } from '../application'
@@ -78,6 +79,8 @@ export const makeApplication = async (
     options
   )
 
+  const modelClient = options.modelTransferURL ? new ModelClient({ baseURL: options.modelTransferURL }) : undefined
+
   const application = new Application(
     modelRepo,
     trainRepo,
@@ -86,7 +89,8 @@ export const makeApplication = async (
     lintingQueue,
     engine,
     serverVersion,
-    baseLogger
+    baseLogger,
+    modelClient
   )
   await application.initialize()
   return application

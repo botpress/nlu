@@ -29,6 +29,8 @@ export type NLUServerOptions = {
   ducklingURL: string
   ducklingEnabled: boolean
   usageURL?: string
+  modelTransferURL?: string
+  reverseProxy?: string
 }
 
 export type CommandLineOptions = Partial<NLUServerOptions>

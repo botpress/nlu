@@ -18,6 +18,10 @@ export const parameters = asYargs({
     description: 'Directory where to persist models',
     type: 'string'
   },
+  reverseProxy: {
+    description: 'Allows trusting the specified reverse proxy',
+    type: 'string'
+  },
   modelTTL: {
     description: 'Time in ms before model is deleted',
     type: 'string'

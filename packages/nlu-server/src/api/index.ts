@@ -6,6 +6,7 @@ import * as Tracing from '@sentry/tracing'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application as ExpressApp } from 'express'
+import proxy from 'express-http-proxy'
 import rateLimit from 'express-rate-limit'
 
 import _ from 'lodash'
@@ -30,7 +31,8 @@ import {
   validateTrainInput,
   validateDetectLangInput,
   validateLintInput,
-  isLintingSpeed
+  isLintingSpeed,
+  validateUploadModelSchema
 } from './validation/validate'
 
 type APIOptions = {
@@ -45,6 +47,8 @@ type APIOptions = {
   apmEnabled?: boolean
   apmSampleRate?: number
   usageURL?: string
+  modelTransferURL?: string
+  reverseProxy?: string
 }
 
 const { modelIdService } = NLUEngine
@@ -138,6 +142,10 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     expressApp.use(Sentry.Handlers.tracingHandler())
   }
 
+  if (options.modelTransferURL) {
+    expressApp.use('/modelweights', proxy(options.modelTransferURL, { limit: Infinity })) // This consumes a lot of memory
+  }
+
   expressApp.use(bodyParser.json({ limit: options.bodySize }))
 
   expressApp.use((req, res, next) => {
@@ -152,8 +160,8 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   expressApp.use(handleError)
 
-  if (process.env.REVERSE_PROXY) {
-    expressApp.set('trust proxy', process.env.REVERSE_PROXY)
+  if (options.reverseProxy) {
+    expressApp.set('trust proxy', options.reverseProxy)
   }
 
   if (options.limit > 0) {
@@ -206,6 +214,36 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const modelIds = await app.pruneModels(appId)
       const stringIds = modelIds.map(modelIdService.toString)
       const resp: http.PruneModelsResponseBody = { success: true, models: stringIds }
+      return res.send(resp)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
+  router.get('/model/:modelId', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+      const { modelId: stringId } = req.params
+      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
+        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
+      }
+
+      const modelId = NLUEngine.modelIdService.fromString(stringId)
+      const { uuid, ttl } = await app.prepareModelForDownload(appId, modelId)
+
+      const resp: http.DownloadModelResponseBody = { success: true, ressourceUUID: uuid, ressourceTTL: ttl }
+      res.send(resp)
+    } catch (err) {
+      return handleError(err, req, res, next)
+    }
+  })
+
+  router.post('/model', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+      const fileInfo = await validateUploadModelSchema(req.body)
+      await app.recoverUploadedModel(appId, fileInfo.ressourceUUID)
+      const resp: http.SuccessReponse = { success: true }
       return res.send(resp)
     } catch (err) {
       return handleError(err, req, res, next)

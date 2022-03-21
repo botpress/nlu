@@ -1,5 +1,6 @@
 import { DatasetIssue, IssueCode, IssueComputationSpeed } from '@botpress/nlu-client'
 import { ModelId, modelIdService } from '@botpress/nlu-engine'
+import { AxiosError } from 'axios'
 import { ResponseError } from '../api/errors'
 
 export class ModelDoesNotExistError extends ResponseError {
@@ -66,5 +67,15 @@ export class DatasetValidationError extends ResponseError {
   constructor(issues: DatasetIssue<IssueCode>[]) {
     const message = issues.map(({ code, message }) => `[${code}] ${message}`).join('\n')
     super(message, 400)
+  }
+}
+
+export class ModelTransferError extends ResponseError {
+  constructor(axiosError: AxiosError) {
+    if (axiosError.code === '404') {
+      super("Unable to recover model weights. Make sure to upload theme before calling 'POST <base>/model'", 400)
+      return
+    }
+    super(`An error occured when proceeding to model transfer: ${axiosError.message}`, 500)
   }
 }

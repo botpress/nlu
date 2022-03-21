@@ -33,3 +33,9 @@ export class InvalidTrainSetError extends ResponseError {
     super(`Invalid Training Set: ${message}`, 400)
   }
 }
+
+export class ModelTransferDisabled extends ResponseError {
+  constructor() {
+    super('Model Transfer is diabled.', 403)
+  }
+}

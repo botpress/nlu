@@ -6,11 +6,16 @@ import {
   ServerInfo,
   TrainingStatus,
   LintingState,
-  IssueComputationSpeed
+  IssueComputationSpeed,
+  ModelClient,
+  ModelTransferInfo
 } from '@botpress/nlu-client'
+import { UploadModelResponse } from '@botpress/nlu-client/src/typings/model'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
+import axios from 'axios'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { ModelTransferDisabled } from '../api/errors'
 import { TrainingRepository, TrainingListener, Training } from '../infrastructure'
 import { LintingRepository } from '../infrastructure/linting-repo'
 import { ModelRepository } from '../infrastructure/model-repo'
@@ -22,7 +27,8 @@ import {
   DucklingCommError,
   InvalidModelSpecError,
   DatasetValidationError,
-  LintingNotFoundError
+  LintingNotFoundError,
+  ModelTransferError
 } from './errors'
 import { LintingQueue } from './linting-queue'
 import { deserializeModel } from './serialize-model'
@@ -30,6 +36,7 @@ import { TrainingQueue } from './training-queue'
 
 export class Application extends ApplicationObserver {
   private _logger: Logger
+  private _modelTransfer: ModelTransferInfo = { enabled: false }
 
   constructor(
     private _modelRepo: ModelRepository,
@@ -39,7 +46,8 @@ export class Application extends ApplicationObserver {
     private _lintingQueue: LintingQueue,
     private _engine: Engine,
     private _serverVersion: string,
-    baseLogger: Logger
+    baseLogger: Logger,
+    private _modelClient?: ModelClient
   ) {
     super()
     this._logger = baseLogger.sub('app')
@@ -52,6 +60,11 @@ export class Application extends ApplicationObserver {
     await this._lintingRepo.initialize()
     await this._lintingQueue.initialize()
     this._trainingQueue.addListener(this._listenTrainingUpdates)
+
+    if (this._modelClient) {
+      const { version } = await this._modelClient.getInfo()
+      this._modelTransfer = { enabled: true, version }
+    }
   }
 
   public async teardown() {
@@ -69,7 +82,40 @@ export class Application extends ApplicationObserver {
     const specs = this._engine.getSpecifications()
     const languages = this._engine.getLanguages()
     const version = this._serverVersion
-    return { specs, languages, version }
+    return { specs, languages, version, modelTransfer: this._modelTransfer }
+  }
+
+  public async prepareModelForDownload(appId: string, modelId: ModelId): Promise<UploadModelResponse> {
+    if (!this._modelClient) {
+      throw new ModelTransferDisabled()
+    }
+
+    const modelWeights = await this._modelRepo.getModel(appId, modelId)
+    if (!modelWeights) {
+      throw new ModelDoesNotExistError(appId, modelId)
+    }
+
+    return this._modelClient.uploadModelWeights(modelWeights)
+  }
+
+  public async recoverUploadedModel(appId: string, uuid: string) {
+    if (!this._modelClient) {
+      throw new ModelTransferDisabled()
+    }
+
+    try {
+      const modelWeights = await this._modelClient.downloadModelWeights(uuid, { responseType: 'arraybuffer' })
+
+      // TODO: validate model weights
+      const model = await deserializeModel(modelWeights)
+
+      return this._modelRepo.saveModel(appId, model.id, modelWeights)
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        throw new ModelTransferError(err)
+      }
+      throw err
+    }
   }
 
   public async getModels(appId: string): Promise<ModelId[]> {

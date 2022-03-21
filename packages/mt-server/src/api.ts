@@ -1,4 +1,5 @@
 import { Logger } from '@botpress/logger'
+import { models } from '@botpress/nlu-client'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application as ExpressApp, Request, Response, NextFunction } from 'express'
@@ -17,7 +18,7 @@ type APIOptions = {
   limitWindow: string
   limit: number
   bodySize: string | number
-  reverseProxy: string | undefined
+  reverseProxy?: string
   modelDir: string
   modelTTL: string | number
 }
@@ -31,7 +32,11 @@ const handleError = (logger: Logger) => (thrownObject: any, _req: Request, res: 
   res.sendStatus(code)
 }
 
-export const createAPI = async (options: APIOptions, baseLogger: Logger): Promise<ExpressApp> => {
+export const createAPI = async (
+  options: APIOptions,
+  serverVersion: string,
+  baseLogger: Logger
+): Promise<ExpressApp> => {
   const apiLogger = baseLogger.sub('api')
   const requestLogger = apiLogger.sub('request')
   const expressApp = express()
@@ -64,6 +69,23 @@ export const createAPI = async (options: APIOptions, baseLogger: Logger): Promis
 
   const getFilePath = (uuid: string) => path.join(modelDir, uuid)
 
+  expressApp.get('/', async (req, res, next) => {
+    try {
+      return res.redirect('/info')
+    } catch (thrown) {
+      next(thrown)
+    }
+  })
+
+  expressApp.get('/info', async (req, res, next) => {
+    try {
+      const resp: models.ModelServerInfo = { version: serverVersion }
+      res.send(resp)
+    } catch (thrown) {
+      next(thrown)
+    }
+  })
+
   expressApp.get('/:uuid', async (req, res, next) => {
     try {
       const { uuid } = req.params
@@ -83,10 +105,8 @@ export const createAPI = async (options: APIOptions, baseLogger: Logger): Promis
       const uuid = nanoid()
       const ttl = _.isNumber(modelTTL) ? modelTTL : ms(modelTTL)
       await fs.promises.writeFile(getFilePath(uuid), model)
-      res.send({
-        uuid,
-        ttl
-      })
+      const resp: models.UploadModelResponse = { uuid, ttl }
+      res.send(resp)
     } catch (thrown) {
       next(thrown)
     }

@@ -64,7 +64,7 @@ export const run = async (cliOptions: CommandLineOptions) => {
 
   startJanitor(options, baseLogger)
 
-  const app = await createAPI(options, baseLogger)
+  const app = await createAPI(options, version, baseLogger)
   const httpServer = createServer(app)
   await serverListen(httpServer, options)
 

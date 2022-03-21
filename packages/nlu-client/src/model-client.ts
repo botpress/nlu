@@ -7,7 +7,7 @@ import { ModelServerInfo, UploadModelResponse } from './typings/model'
 export class ModelTransferClient {
   protected _axios: AxiosInstance
 
-  constructor(config: AxiosRequestConfig = {}) {
+  constructor(config: AxiosRequestConfig & { baseURL: string }) {
     this._axios = axios.create({ ...config })
   }
 

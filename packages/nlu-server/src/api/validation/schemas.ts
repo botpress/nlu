@@ -63,3 +63,7 @@ export const DetectLangInputSchema = Joi.object().keys({
   utterances: Joi.array().items(Joi.string()).required().min(1),
   models: Joi.array().items(Joi.string()).optional().default([])
 })
+
+export const UploadModelSchema = Joi.object().keys({
+  ressourceUUID: Joi.string().required()
+})
