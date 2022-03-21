@@ -20,7 +20,7 @@ export const parameters = asYargs({
   },
   modelTTL: {
     description: 'Time in ms before model is deleted',
-    type: 'number'
+    type: 'string'
   },
   limit: {
     description: 'Maximum number of requests per IP per "limitWindow" interval (0 means unlimited)',

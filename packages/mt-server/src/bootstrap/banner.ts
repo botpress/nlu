@@ -2,7 +2,6 @@ import { centerText, Logger } from '@botpress/logger'
 import chalk from 'chalk'
 
 import _ from 'lodash'
-import moment from 'moment'
 
 type BannerConfig = {
   title: string

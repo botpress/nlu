@@ -1,5 +1,6 @@
 import { LogLevel } from '@botpress/logger'
-import ms from 'ms'
+import bytes from 'bytes'
+import path from 'path'
 import { getAppDataPath } from '../app-data'
 
 export type LogFormat = 'text' | 'json'
@@ -11,21 +12,21 @@ export type ModelTransferOptions = {
   bodySize: string | number
   reverseProxy: string | undefined
   modelDir: string
-  modelTTL: number
+  modelTTL: string | number
   logLevel: LogLevel
   logFormat: LogFormat
   debugFilter?: string
 }
 
 const DEFAULT_OPTIONS = (): ModelTransferOptions => ({
-  port: 3200,
+  port: 3300,
   host: 'localhost',
   limitWindow: '1h',
   limit: 0,
-  bodySize: Infinity,
+  bodySize: bytes('2gb'),
   reverseProxy: undefined,
-  modelDir: getAppDataPath(),
-  modelTTL: ms('5m'),
+  modelDir: path.join(getAppDataPath(), 'modelweights'),
+  modelTTL: '5m',
   logLevel: 'info',
   debugFilter: undefined,
   logFormat: 'text'

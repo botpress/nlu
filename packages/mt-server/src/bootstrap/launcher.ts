@@ -30,6 +30,9 @@ export const logLaunchingMessage = async (info: ModelTransferOptions & Launching
 
   launcherLogger.info(`models stored at "${info.modelDir}"`)
 
+  const stringTTL = _.isString(info.modelTTL) ? info.modelTTL : ms(info.modelTTL)
+  launcherLogger.info(`models ttl ${stringTTL}`)
+
   if (info.bodySize) {
     launcherLogger.info(`body size: allowing HTTP requests body of size ${info.bodySize}`)
   }
