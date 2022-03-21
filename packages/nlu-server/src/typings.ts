@@ -32,6 +32,3 @@ export type NLUServerOptions = {
 }
 
 export type CommandLineOptions = Partial<NLUServerOptions>
-
-export const version: string
-export const run: (argv: CommandLineOptions) => Promise<void>

@@ -1,5 +1,5 @@
-import { Logger, JSONFormatter, TextFormatter, LogLevel } from '@botpress/logger'
-import { createServer, Server } from 'http'
+import { Logger, JSONFormatter, TextFormatter } from '@botpress/logger'
+import { createServer } from 'http'
 import _ from 'lodash'
 import path from 'path'
 
@@ -7,6 +7,7 @@ import { createAPI } from './api'
 import { getConfig, validateConfig } from './bootstrap/config'
 import { logLaunchingMessage } from './bootstrap/launcher'
 import { makeApplication } from './bootstrap/make-application'
+import { serverListen } from './bootstrap/server-listen'
 import { requireJSON } from './require-json'
 import * as types from './typings'
 import { listenForUncaughtErrors } from './uncaught-errors'
@@ -21,22 +22,10 @@ if (!packageJson) {
 
 const { version: pkgVersion } = packageJson
 
+export * from './typings'
 export const version = pkgVersion
 
-const serverListen = (httpServer: Server, options: types.NLUServerOptions): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    try {
-      const hostname = options.host === 'localhost' ? undefined : options.host
-      httpServer.listen(options.port, hostname, undefined, () => {
-        resolve()
-      })
-    } catch (err) {
-      reject(err)
-    }
-  })
-}
-
-export const run: typeof types.run = async (cliOptions: types.CommandLineOptions) => {
+export const run = async (cliOptions: types.CommandLineOptions) => {
   const options = await getConfig(cliOptions)
   validateConfig(options)
 
