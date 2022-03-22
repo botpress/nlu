@@ -15,7 +15,7 @@ void yargs
     const nluLogger = new Logger('', { prefix: 'NLU' })
     return yargs
       .command(
-        '$0',
+        ['start', '$0'],
         'Launch a local standalone nlu server',
         {
           version: {
@@ -88,7 +88,7 @@ void yargs
     const langLogger = new Logger('', { prefix: 'LANG' })
     return yargs
       .command(
-        '$0',
+        ['start', '$0'],
         'Launch a local language server',
         {
           version: {
