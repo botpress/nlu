@@ -1,5 +1,12 @@
 name: Codestyle
-on: [pull_request]
+on:
+  workflow_dispatch: {}
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
 jobs:
   run_prettier:
     name: Run Prettier on codebase

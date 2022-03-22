@@ -1,5 +1,12 @@
 name: Bench
-on: [pull_request]
+on:
+  workflow_dispatch: {}
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
 jobs:
   benchmark:
     name: Run benchmark
