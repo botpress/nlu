@@ -1,8 +1,8 @@
+import fs from 'fs'
 import path from 'path'
 import { AssertionArgs, Test } from 'src/typings'
 import {
   assertIntentPredictionWorks,
-  assertModelsAreEmpty,
   assertModelsInclude,
   assertModelsPrune,
   assertModelTransferIsEnabled,
@@ -14,7 +14,6 @@ import {
   assertTrainingFinishes,
   assertTrainingStarts
 } from '../assertions'
-import fs from 'fs'
 import { grocery_dataset, grocery_test_sample } from '../datasets'
 import { corruptBuffer, getE2ECachePath } from '../utils'
 
@@ -64,12 +63,12 @@ export const modelWeightsTransferTest: Test = {
       grocery_test_sample.intent
     )
 
-    // TODO: ensure uploading a corrupted buffer fails
-    // const modelWeights = await fs.promises.readFile(fileLocation)
-    // const corruptedWeights = corruptBuffer(modelWeights)
-    // const corruptedFileLocation = path.join(cachePath, `${modelId}.corrupted.model`)
-    // await fs.promises.writeFile(corruptedFileLocation, corruptedWeights)
-    // await assertModelWeightsUploadFails(modelWeightsTransferArgs, corruptedFileLocation, 'INVALID_MODEL_FORMAT')
+    // ensure uploading a corrupted buffer fails
+    const modelWeights = await fs.promises.readFile(fileLocation)
+    const corruptedWeights = corruptBuffer(modelWeights)
+    const corruptedFileLocation = path.join(cachePath, `${modelId}.corrupted.model`)
+    await fs.promises.writeFile(corruptedFileLocation, corruptedWeights)
+    await assertModelWeightsUploadFails(modelWeightsTransferArgs, corruptedFileLocation, 'INVALID_MODEL_FORMAT')
 
     // cleanup
     await assertModelsPrune(modelWeightsTransferArgs)

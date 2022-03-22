@@ -8,7 +8,7 @@ import {
   LintingState,
   IssueComputationSpeed
 } from '@botpress/nlu-client'
-import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
+import { Engine, ModelId, modelIdService, errors as engineErrors, Model } from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelTransferDisabled } from '../api/errors'
@@ -23,10 +23,11 @@ import {
   DucklingCommError,
   InvalidModelSpecError,
   DatasetValidationError,
-  LintingNotFoundError
+  LintingNotFoundError,
+  InvalidModelFormatError
 } from './errors'
 import { LintingQueue } from './linting-queue'
-import { deserializeModel } from './serialize-model'
+import { deserializeModel, deserializeModelId } from './serialize-model'
 import { TrainingQueue } from './training-queue'
 
 type AppOptions = {
@@ -97,8 +98,28 @@ export class Application extends ApplicationObserver {
     if (!this._opts.modelTransferEnabled) {
       throw new ModelTransferDisabled()
     }
-    // TODO: validate model weights
-    const model = await deserializeModel(modelWeights)
+
+    let modelId: ModelId
+    try {
+      modelId = deserializeModelId(modelWeights)
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      throw new InvalidModelFormatError(err.message)
+    }
+
+    const { specificationHash: currentSpec } = this._getSpecFilter()
+    if (modelId.specificationHash !== currentSpec) {
+      throw new InvalidModelSpecError(modelId, currentSpec)
+    }
+
+    let model: Model
+    try {
+      model = deserializeModel(modelWeights)
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      throw new InvalidModelFormatError(err.message)
+    }
+
     return this._modelRepo.saveModel(appId, model.id, modelWeights)
   }
 
@@ -305,7 +326,7 @@ You can increase your cache size by the CLI or config.
 
       const modelLoadStartTime = Date.now()
 
-      const model = await deserializeModel(modelBuffer)
+      const model = deserializeModel(modelBuffer)
       await this._engine.loadModel(model)
 
       const modelLoadEndTime = Date.now()

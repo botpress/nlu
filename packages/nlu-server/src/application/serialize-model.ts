@@ -1,4 +1,4 @@
-import { Model } from '@botpress/nlu-engine'
+import { Model, ModelId } from '@botpress/nlu-engine'
 import * as ptb from '@botpress/ptb-schema'
 import _ from 'lodash'
 
@@ -16,7 +16,12 @@ const PTBModel = new ptb.PTBMessage('Model', {
   data: { type: 'bytes', id: 4, rule: 'required' }
 })
 
-export const serializeModel = async (model: Model): Promise<Buffer> => {
+/** usefull to retreive only model id from binary */
+const PTBPartialModel = new ptb.PTBMessage('Model', {
+  id: { type: PTBModelId, id: 1, rule: 'required' }
+})
+
+export const serializeModel = (model: Model): Buffer => {
   const { id, startedAt, finishedAt, data } = model
   const serialized = PTBModel.encode({
     id,
@@ -27,7 +32,12 @@ export const serializeModel = async (model: Model): Promise<Buffer> => {
   return Buffer.from(serialized)
 }
 
-export const deserializeModel = async (buffer: Buffer): Promise<Model> => {
+export const deserializeModel = (buffer: Buffer): Model => {
   const { id, finishedAt, startedAt, data } = PTBModel.decode(buffer)
   return { id, finishedAt: new Date(finishedAt), startedAt: new Date(startedAt), data: Buffer.from(data) }
+}
+
+export const deserializeModelId = (buffer: Buffer): ModelId => {
+  const { id } = PTBPartialModel.decode(buffer)
+  return id
 }

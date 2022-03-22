@@ -26,7 +26,7 @@ export class TrainHandler implements TrainTaskRunner {
         minProgressHeartbeat: MIN_TRAINING_HEARTBEAT
       })
 
-      const modelBuffer = await serializeModel(model)
+      const modelBuffer = serializeModel(model)
       const { language: languageCode } = input
 
       const keep = MAX_MODEL_PER_USER_PER_LANG - 1 // TODO: make the max amount of models on FS (by appId + lang) configurable
