@@ -1,5 +1,10 @@
+import { Logger } from '@botpress/logger'
 import { Client as NLUClient, IssueComputationSpeed, LintingState, TrainingState } from '@botpress/nlu-client'
 import Bluebird from 'bluebird'
+import crypto from 'crypto'
+import fs from 'fs'
+import path from 'path'
+import { getAppDataPath } from './app-data'
 import { UnsuccessfullAPICall } from './errors'
 
 export type TrainLintPredicate<T extends LintingState | TrainingState> = (state: T) => boolean
@@ -12,6 +17,7 @@ export type PollingArgs<T extends LintingState | TrainingState> = {
 }
 
 const DEFAULT_POLLING_INTERVAL = 500
+const E2E_CACHE_DIR = 'e2e'
 
 const timeout = (ms: number) =>
   new Promise<never>((_resolve, reject) =>
@@ -89,3 +95,45 @@ export const pollLintingUntil = async (
 }
 
 export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+export const getE2ECachePath = (appId?: string) => {
+  const bpCachePath = getAppDataPath()
+  if (!appId) {
+    return path.join(bpCachePath, E2E_CACHE_DIR)
+  }
+  const uriEncodedAppId = encodeURIComponent(appId)
+  return path.join(bpCachePath, E2E_CACHE_DIR, uriEncodedAppId)
+}
+
+export const syncE2ECachePath = async (logger: Logger, appId?: string) => {
+  const bpCachePath = getAppDataPath()
+  if (!fs.existsSync(bpCachePath)) {
+    throw new Error('APP_DATA_PATH does not exist')
+  }
+
+  const e2eCachePath = getE2ECachePath()
+  if (!fs.existsSync(e2eCachePath)) {
+    logger.info('making e2e cache directory')
+    await fs.promises.mkdir(e2eCachePath)
+  } else {
+    logger.debug('e2e cache directory already exists')
+  }
+
+  if (appId) {
+    const uriEncodedAppId = encodeURIComponent(appId)
+    await fs.promises.mkdir(path.join(e2eCachePath, uriEncodedAppId))
+  }
+}
+
+export const corruptBuffer = (buffer: Buffer): Buffer => {
+  const algorithm = 'aes-256-gcm'
+  const key = crypto.randomBytes(32)
+  const iv = crypto.randomBytes(16)
+
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv)
+  let encrypted = cipher.update(buffer)
+
+  encrypted = Buffer.concat([encrypted, cipher.final()])
+
+  return encrypted
+}

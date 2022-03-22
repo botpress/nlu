@@ -6,7 +6,7 @@ import {
   assertTrainingFinishes,
   assertTrainingStarts
 } from '../assertions'
-import { grocery_dataset } from '../datasets'
+import { grocery_dataset, grocery_test_sample } from '../datasets'
 
 const NAME = 'prediction'
 
@@ -23,7 +23,12 @@ export const predictionTest: Test = {
 
     await assertModelsInclude(predictionArgs, [grocery_modelId])
 
-    await assertIntentPredictionWorks(predictionArgs, grocery_modelId, 'these grapes look moldy!', 'fruit-is-moldy')
+    await assertIntentPredictionWorks(
+      predictionArgs,
+      grocery_modelId,
+      grocery_test_sample.utterance,
+      grocery_test_sample.intent
+    )
 
     await assertModelsPrune(predictionArgs)
   }

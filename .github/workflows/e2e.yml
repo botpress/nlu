@@ -27,6 +27,7 @@ jobs:
             --log-level "critical" \
             --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
+            --modelTransferEnabled \
             --port 3200  &
           nlu_pid=$!
           echo "NLU Server started on pid $nlu_pid"
@@ -72,6 +73,7 @@ jobs:
             --log-level "critical" \
             --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
+            --modelTransferEnabled \
             --port 3201 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-1 & \
           nlu_pid=$!
@@ -120,6 +122,7 @@ jobs:
             --log-level "critical" \
             --ducklingURL http://localhost:8000 \
             --languageURL http://localhost:3100 \
+            --modelTransferEnabled \
             --port 3202 \
             --dbURL postgres://postgres:postgres@localhost:5432/botpress-nlu-2 & \
           nlu_pid1=$!
