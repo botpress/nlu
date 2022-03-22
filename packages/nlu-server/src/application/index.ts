@@ -6,11 +6,9 @@ import {
   ServerInfo,
   TrainingStatus,
   LintingState,
-  IssueComputationSpeed,
-  ModelTransferInfo
+  IssueComputationSpeed
 } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
-import axios from 'axios'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelTransferDisabled } from '../api/errors'
@@ -79,7 +77,7 @@ export class Application extends ApplicationObserver {
     const version = this._serverVersion
 
     const { modelTransferEnabled } = this._opts
-    return { specs, languages, version, modelTransfer: { enabled: !!modelTransferEnabled } }
+    return { specs, languages, version, modelTransferEnabled: !!modelTransferEnabled }
   }
 
   public async getModelWeights(appId: string, modelId: ModelId): Promise<Buffer> {
