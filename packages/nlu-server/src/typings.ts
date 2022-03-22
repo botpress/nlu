@@ -12,6 +12,7 @@ export type NLUServerOptions = {
   limitWindow: string
   limit: number
   bodySize: string
+  modelSize: string
   batchSize: number
   modelCacheSize: string
   dbURL?: string
@@ -20,7 +21,9 @@ export type NLUServerOptions = {
   logLevel: LogLevel
   logFormat: LogFormat
   debugFilter?: string
-  apmEnabled?: boolean
+  prometheusEnabled: boolean
+  tracingEnabled: boolean
+  apmEnabled: boolean
   apmSampleRate?: number
   maxTraining: number
   maxLinting: number
@@ -29,9 +32,8 @@ export type NLUServerOptions = {
   ducklingURL: string
   ducklingEnabled: boolean
   usageURL?: string
+  modelTransferEnabled: boolean
+  reverseProxy?: string
 }
 
 export type CommandLineOptions = Partial<NLUServerOptions>
-
-export const version: string
-export const run: (argv: CommandLineOptions) => Promise<void>

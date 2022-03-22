@@ -47,7 +47,7 @@ export class TextFormatter implements LogEntryFormatter {
 
     return {
       ...entry,
-      formatted: `${greyTime} ${coloredDisplayName}${indentedMessage}${serializedMetadata}`
+      formatted: `${greyTime} ${coloredDisplayName}${indentedMessage} ${serializedMetadata}`
     }
   }
 }

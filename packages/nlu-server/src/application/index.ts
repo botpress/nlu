@@ -6,11 +6,14 @@ import {
   ServerInfo,
   TrainingStatus,
   LintingState,
-  IssueComputationSpeed
+  IssueComputationSpeed,
+  ModelTransferInfo
 } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors } from '@botpress/nlu-engine'
+import axios from 'axios'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { ModelTransferDisabled } from '../api/errors'
 import { TrainingRepository, TrainingListener, Training } from '../infrastructure'
 import { LintingRepository } from '../infrastructure/linting-repo'
 import { ModelRepository } from '../infrastructure/model-repo'
@@ -25,7 +28,12 @@ import {
   LintingNotFoundError
 } from './errors'
 import { LintingQueue } from './linting-queue'
+import { deserializeModel } from './serialize-model'
 import { TrainingQueue } from './training-queue'
+
+type AppOptions = {
+  modelTransferEnabled: boolean
+}
 
 export class Application extends ApplicationObserver {
   private _logger: Logger
@@ -38,7 +46,8 @@ export class Application extends ApplicationObserver {
     private _lintingQueue: LintingQueue,
     private _engine: Engine,
     private _serverVersion: string,
-    baseLogger: Logger
+    baseLogger: Logger,
+    private _opts: Partial<AppOptions> = {}
   ) {
     super()
     this._logger = baseLogger.sub('app')
@@ -68,7 +77,31 @@ export class Application extends ApplicationObserver {
     const specs = this._engine.getSpecifications()
     const languages = this._engine.getLanguages()
     const version = this._serverVersion
-    return { specs, languages, version }
+
+    const { modelTransferEnabled } = this._opts
+    return { specs, languages, version, modelTransfer: { enabled: !!modelTransferEnabled } }
+  }
+
+  public async getModelWeights(appId: string, modelId: ModelId): Promise<Buffer> {
+    if (!this._opts.modelTransferEnabled) {
+      throw new ModelTransferDisabled()
+    }
+
+    const modelWeights = await this._modelRepo.getModel(appId, modelId)
+    if (!modelWeights) {
+      throw new ModelDoesNotExistError(appId, modelId)
+    }
+
+    return modelWeights
+  }
+
+  public async setModelWeights(appId: string, modelWeights: Buffer) {
+    if (!this._opts.modelTransferEnabled) {
+      throw new ModelTransferDisabled()
+    }
+    // TODO: validate model weights
+    const model = await deserializeModel(modelWeights)
+    return this._modelRepo.saveModel(appId, model.id, modelWeights)
   }
 
   public async getModels(appId: string): Promise<ModelId[]> {
@@ -267,13 +300,14 @@ You can increase your cache size by the CLI or config.
     if (!this._engine.hasModel(modelId)) {
       const modelReadStartTime = Date.now()
 
-      const model = await this._modelRepo.getModel(appId, modelId)
-      if (!model) {
+      const modelBuffer = await this._modelRepo.getModel(appId, modelId)
+      if (!modelBuffer) {
         throw new ModelDoesNotExistError(appId, modelId)
       }
 
       const modelLoadStartTime = Date.now()
 
+      const model = await deserializeModel(modelBuffer)
       await this._engine.loadModel(model)
 
       const modelLoadEndTime = Date.now()
