@@ -11,19 +11,23 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   limitWindow: '1h',
   languageURL: 'https://lang-01.botpress.io',
   languageAuthToken: undefined,
-  apmEnabled: undefined,
+  apmEnabled: false,
   apmSampleRate: undefined,
   ducklingURL: 'https://duckling.botpress.io',
   ducklingEnabled: true,
   bodySize: '2mb',
+  modelSize: '1gb',
   batchSize: -1,
   modelCacheSize: '2.5gb',
   doc: false,
   logLevel: 'info',
+  prometheusEnabled: false,
+  tracingEnabled: false,
   debugFilter: undefined,
   logFormat: 'text',
   maxTraining: 2,
-  maxLinting: 2
+  maxLinting: 2,
+  modelTransferEnabled: false
 })
 
 export const getConfig = async (cliOptions: CommandLineOptions): Promise<NLUServerOptions> => {

@@ -50,6 +50,12 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
     launcherLogger.info(`batch size: allowing up to ${info.batchSize} predictions in one call to POST /predict`)
   }
 
+  if (info.modelTransferEnabled) {
+    launcherLogger.info(`model transfer: ${chalk.greenBright('enabled')}`)
+  } else {
+    launcherLogger.info(`model transfer: ${chalk.redBright('disabled')}`)
+  }
+
   if (info.doc) {
     const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
     await sleep(ms('1s'))

@@ -1,6 +1,8 @@
 import { AxiosResponse } from 'axios'
 import Joi from 'joi'
 import _ from 'lodash'
+import { ClientResponseError } from './error'
+import { HTTPCall, HTTPVerb } from './http-call'
 import { SuccessReponse, ErrorResponse } from './typings/http'
 
 const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
@@ -10,21 +12,7 @@ const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
   type: Joi.string().required()
 })
 
-export type HTTPVerb = 'GET' | 'POST' | 'PUT' | 'DELETE'
-export type HTTPCall<V extends HTTPVerb> = {
-  verb: V
-  ressource: string
-}
-
-export class ClientResponseError extends Error {
-  constructor(call: HTTPCall<HTTPVerb>, status: number, message: string) {
-    const { verb, ressource } = call
-    const ressourcePath = `nlu-server/${ressource}`
-    const prefix = status >= 300 ? `${verb} ${ressourcePath} -> ${status}` : `${verb} ${ressourcePath}`
-    super(`(${prefix}) ${message}`)
-  }
-}
-
+/** Manual validation for clean error messages */
 export const validateResponse = <S extends SuccessReponse>(
   call: HTTPCall<HTTPVerb>,
   res: AxiosResponse<S | ErrorResponse>
@@ -57,7 +45,15 @@ export const validateResponse = <S extends SuccessReponse>(
         'Received unsuccessfull HTTP response with no error. Expected response.error to be an object.'
       )
     }
-    Joi.assert(error, ERROR_RESPONSE_SCHEMA)
+
+    const { error: validationError } = ERROR_RESPONSE_SCHEMA.validate(error)
+    if (validationError) {
+      throw new ClientResponseError(
+        call,
+        status,
+        `Received response with incorrect error format: ${validationError.message}`
+      )
+    }
     return data
   }
 

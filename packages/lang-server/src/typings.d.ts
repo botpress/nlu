@@ -11,6 +11,7 @@ export type LogFormat = 'text' | 'json'
 export type LangServerOptions = {
   port: number
   host: string
+  reverseProxy?: string
   limit: number
   limitWindow: string
   authToken?: string

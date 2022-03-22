@@ -4,7 +4,6 @@ import Bluebird from 'bluebird'
 import { Knex } from 'knex'
 import _ from 'lodash'
 import { createTableIfNotExists } from '../database-utils'
-import { compressModel, decompressModel } from './compress-model'
 import { ModelRepository, PruneOptions } from './typings'
 
 const TABLE_NAME = 'nlu_models'
@@ -53,7 +52,7 @@ export class DbModelRepository implements ModelRepository {
     return this._database.destroy()
   }
 
-  public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<NLUEngine.Model | undefined> {
+  public async getModel(appId: string, modelId: NLUEngine.ModelId): Promise<Buffer | undefined> {
     const stringId = modelIdService.toString(modelId)
     const filter: Partial<TableRow> = { appId, modelId: stringId }
     const row = await this.table.select('*').where(filter).first()
@@ -62,30 +61,20 @@ export class DbModelRepository implements ModelRepository {
     }
 
     const { content } = row
-    const buffer = Buffer.from(content)
-
-    let mod
-    try {
-      mod = await decompressModel(buffer)
-    } catch (err) {
-      return
-    }
-
-    return mod
+    return Buffer.from(content)
   }
 
-  public async saveModel(appId: string, model: NLUEngine.Model): Promise<void | void[]> {
-    const modelExists = await this.exists(appId, model.id)
-    const content: Buffer = await compressModel(model)
-    const modelId = modelIdService.toString(model.id)
+  public async saveModel(appId: string, modelId: NLUEngine.ModelId, modelBuffer: Buffer): Promise<void | void[]> {
+    const modelExists = await this.exists(appId, modelId)
+    const stringId = modelIdService.toString(modelId)
     const iso = new Date().toISOString()
     if (modelExists) {
-      const filter: TableKey = { appId, modelId }
-      const row: Partial<TableRow> = { content, updatedOn: iso }
+      const filter: TableKey = { appId, modelId: stringId }
+      const row: Partial<TableRow> = { content: modelBuffer, updatedOn: iso }
       await this.table.update(row).where(filter)
       return
     }
-    const row: TableRow = { appId, modelId, content, updatedOn: iso }
+    const row: TableRow = { appId, modelId: stringId, content: modelBuffer, updatedOn: iso }
     return this.table.insert(row)
   }
 

@@ -15,7 +15,6 @@ import rateLimit from 'express-rate-limit'
 import { createServer } from 'http'
 import _ from 'lodash'
 import ms from 'ms'
-import yn from 'yn'
 
 import { LangApplication } from '../application'
 
@@ -34,6 +33,7 @@ export type APIOptions = {
   limitWindow: string
   limit: number
   adminToken: string
+  reverseProxy?: string
 }
 
 const cachePolicy = { 'Cache-Control': `max-age=${ms('1d')}` }
@@ -55,9 +55,8 @@ const createExpressApp = (options: APIOptions, baseLogger: Logger): Application 
 
   app.use(monitoringMiddleware)
 
-  if (process.env.REVERSE_PROXY) {
-    const boolVal = yn(process.env.REVERSE_PROXY)
-    app.set('trust proxy', boolVal === null ? process.env.REVERSE_PROXY : boolVal)
+  if (options.reverseProxy) {
+    app.set('trust proxy', options.reverseProxy)
   }
 
   if (options.limit > 0) {
