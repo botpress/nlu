@@ -12,6 +12,7 @@ export type NLUServerOptions = {
   limitWindow: string
   limit: number
   bodySize: string
+  modelSize: string
   batchSize: number
   modelCacheSize: string
   dbURL?: string
@@ -20,7 +21,9 @@ export type NLUServerOptions = {
   logLevel: LogLevel
   logFormat: LogFormat
   debugFilter?: string
-  apmEnabled?: boolean
+  prometheusEnabled: boolean
+  tracingEnabled: boolean
+  apmEnabled: boolean
   apmSampleRate?: number
   maxTraining: number
   maxLinting: number
@@ -29,7 +32,7 @@ export type NLUServerOptions = {
   ducklingURL: string
   ducklingEnabled: boolean
   usageURL?: string
-  modelTransferURL?: string
+  modelTransferEnabled: boolean
   reverseProxy?: string
 }
 

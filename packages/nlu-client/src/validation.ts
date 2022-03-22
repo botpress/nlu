@@ -1,6 +1,8 @@
 import { AxiosResponse } from 'axios'
 import Joi from 'joi'
 import _ from 'lodash'
+import { ClientResponseError } from './error'
+import { HTTPCall, HTTPVerb } from './http-call'
 import { SuccessReponse, ErrorResponse } from './typings/http'
 
 const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
@@ -9,21 +11,6 @@ const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
   code: Joi.number().required(),
   type: Joi.string().required()
 })
-
-export type HTTPVerb = 'GET' | 'POST' | 'PUT' | 'DELETE'
-export type HTTPCall<V extends HTTPVerb> = {
-  verb: V
-  ressource: string
-}
-
-export class ClientResponseError extends Error {
-  constructor(call: HTTPCall<HTTPVerb>, status: number, message: string) {
-    const { verb, ressource } = call
-    const ressourcePath = `nlu-server/${ressource}`
-    const prefix = status >= 300 ? `${verb} ${ressourcePath} -> ${status}` : `${verb} ${ressourcePath}`
-    super(`(${prefix}) ${message}`)
-  }
-}
 
 /** Manual validation for clean error messages */
 export const validateResponse = <S extends SuccessReponse>(

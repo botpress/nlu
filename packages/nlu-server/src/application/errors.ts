@@ -69,13 +69,3 @@ export class DatasetValidationError extends ResponseError {
     super(message, 400)
   }
 }
-
-export class ModelTransferError extends ResponseError {
-  constructor(axiosError: AxiosError) {
-    if (axiosError.code === '404') {
-      super("Unable to recover model weights. Make sure to upload theme before calling 'POST <base>/model'", 400)
-      return
-    }
-    super(`An error occured when proceeding to model transfer: ${axiosError.message}`, 500)
-  }
-}

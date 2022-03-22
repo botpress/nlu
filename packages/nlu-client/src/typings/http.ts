@@ -88,15 +88,6 @@ export type ListModelsResponseBody = {
   models: string[]
 } & SuccessReponse
 
-export type DownloadModelResponseBody = {
-  ressourceUUID: string
-  ressourceTTL: number
-} & SuccessReponse
-
-export type UploadModelRequestBody = {
-  ressourceUUID: string
-}
-
 export type PruneModelsResponseBody = {
   models: string[]
 } & SuccessReponse

@@ -50,8 +50,8 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
     launcherLogger.info(`batch size: allowing up to ${info.batchSize} predictions in one call to POST /predict`)
   }
 
-  if (info.modelTransferURL) {
-    launcherLogger.info(`model transfer: ${chalk.greenBright('enabled')} url=${info.modelTransferURL}`)
+  if (info.modelTransferEnabled) {
+    launcherLogger.info(`model transfer: ${chalk.greenBright('enabled')}`)
   } else {
     launcherLogger.info(`model transfer: ${chalk.redBright('disabled')}`)
   }
