@@ -1,0 +1,17 @@
+name: Install yarn
+description: Install Yarn if needed
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Yarn
+      id: install_yarn
+      shell: bash
+      run: |
+        yarn_path=$(which yarn)
+        if [ -z $yarn_path ]; then
+          echo "Yarn needs to be installed."
+          npm install -g yarn
+        else
+          echo "Yarn already available."
+        fi

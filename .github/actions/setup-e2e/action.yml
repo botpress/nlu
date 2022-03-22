@@ -17,6 +17,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Install Yarn
+        uses: ./.github/actions/install-yarn
     - uses: actions/setup-node@v2
       with:
         node-version-file: '.nvmrc'
