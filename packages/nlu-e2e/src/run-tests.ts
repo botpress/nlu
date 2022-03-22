@@ -7,6 +7,7 @@ import { assertModelsAreEmpty, assertServerIsReachable } from './assertions'
 import { clinc50_42_dataset, clinc50_666_dataset, grocery_dataset } from './datasets'
 import tests from './tests'
 import { AssertionArgs, Test } from './typings'
+import { syncE2ECachePath } from './utils'
 
 type CommandLineArgs = {
   nluEndpoint: string
@@ -22,6 +23,7 @@ export const runTests = async (cliArgs: CommandLineArgs) => {
   })
 
   logger.info(`Running e2e tests on server located at "${nluEndpoint}"`)
+  await syncE2ECachePath(logger, appId)
 
   const client = new NLUClient({
     baseURL: nluEndpoint
