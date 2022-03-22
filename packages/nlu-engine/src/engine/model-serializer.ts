@@ -26,23 +26,23 @@ export type PredictableModel = Omit<Model, 'data'> & {
 }
 
 const PTBSlotDef = new ptb.PTBMessage('SlotDef', {
-  name: { type: 'string', id: 1 },
+  name: { type: 'string', id: 1, rule: 'required' },
   entities: { type: 'string', id: 2, rule: 'repeated' }
 })
 
 const PTBIntentDef = new ptb.PTBMessage('IntentDef', {
-  name: { type: 'string', id: 1 },
+  name: { type: 'string', id: 1, rule: 'required' },
   contexts: { type: 'string', id: 2, rule: 'repeated' },
   slot_definitions: { type: PTBSlotDef, id: 3, rule: 'repeated' },
   utterances: { type: 'string', id: 4, rule: 'repeated' }
 })
 
 const PTBPatternEntityDef = new ptb.PTBMessage('PatternEntityDef', {
-  name: { type: 'string', id: 1 },
-  pattern: { type: 'string', id: 2 },
+  name: { type: 'string', id: 1, rule: 'required' },
+  pattern: { type: 'string', id: 2, rule: 'required' },
   examples: { type: 'string', id: 3, rule: 'repeated' },
-  matchCase: { type: 'bool', id: 4 },
-  sensitive: { type: 'bool', id: 5 }
+  matchCase: { type: 'bool', id: 4, rule: 'required' },
+  sensitive: { type: 'bool', id: 5, rule: 'required' }
 })
 
 const PTBSynonymValue = new ptb.PTBMessage('ListEntitySynonymValue', {
@@ -54,37 +54,37 @@ const PTBSynonym = new ptb.PTBMessage('ListEntitySynonym', {
 })
 
 const PTBListEntityModel = new ptb.PTBMessage('ListEntityModel', {
-  type: { type: 'string', id: 1 },
-  id: { type: 'string', id: 2 },
-  entityName: { type: 'string', id: 3 },
-  fuzzyTolerance: { type: 'double', id: 4 },
-  sensitive: { type: 'bool', id: 5 },
+  type: { type: 'string', id: 1, rule: 'required' },
+  id: { type: 'string', id: 2, rule: 'required' },
+  entityName: { type: 'string', id: 3, rule: 'required' },
+  fuzzyTolerance: { type: 'double', id: 4, rule: 'required' },
+  sensitive: { type: 'bool', id: 5, rule: 'required' },
   mappingsTokens: { keyType: 'string', type: PTBSynonym, id: 6 }
 })
 
 const PTBCentroid = new ptb.PTBMessage('KmeanCentroid', {
   centroid: { type: 'double', id: 1, rule: 'repeated' },
-  error: { type: 'double', id: 2 },
-  size: { type: 'int32', id: 3 }
+  error: { type: 'double', id: 2, rule: 'required' },
+  size: { type: 'int32', id: 3, rule: 'required' }
 })
 
 const PTBKmeansResult = new ptb.PTBMessage('KmeansResult', {
   clusters: { type: 'int32', id: 1, rule: 'repeated' },
   centroids: { type: PTBCentroid, id: 2, rule: 'repeated' },
-  iterations: { type: 'int32', id: 3 }
+  iterations: { type: 'int32', id: 3, rule: 'required' }
 })
 
 let model_data_idx = 0
 const PTBPredictableModelData = new ptb.PTBMessage('PredictableModelData', {
   intents: { type: PTBIntentDef, id: model_data_idx++, rule: 'repeated' },
-  languageCode: { type: 'string', id: model_data_idx++ },
+  languageCode: { type: 'string', id: model_data_idx++, rule: 'required' },
   pattern_entities: { type: PTBPatternEntityDef, id: model_data_idx++, rule: 'repeated' },
   contexts: { type: 'string', id: model_data_idx++, rule: 'repeated' },
   list_entities: { type: PTBListEntityModel, id: model_data_idx++, rule: 'repeated' },
   tfidf: { keyType: 'string', type: 'double', id: model_data_idx++ },
   vocab: { type: 'string', id: model_data_idx++, rule: 'repeated' },
   kmeans: { type: PTBKmeansResult, id: model_data_idx++, rule: 'optional' },
-  ctx_model: { type: SvmIntentClassifier.modelType, id: model_data_idx++ },
+  ctx_model: { type: SvmIntentClassifier.modelType, id: model_data_idx++, rule: 'required' },
   intent_model_by_ctx: { keyType: 'string', type: OOSIntentClassifier.modelType, id: model_data_idx++ },
   slots_model_by_intent: { keyType: 'string', type: SlotTagger.modelType, id: model_data_idx++ }
 })

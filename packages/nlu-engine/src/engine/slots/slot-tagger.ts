@@ -27,19 +27,19 @@ const CRF_TRAINER_PARAMS = {
 }
 
 const PTBSlotDefinition = new ptb.PTBMessage('SlotDefinition', {
-  name: { type: 'string', id: 1 },
+  name: { type: 'string', id: 1, rule: 'required' },
   entities: { type: 'string', id: 2, rule: 'repeated' }
 })
 
 const PTBIntentSlotFeatures = new ptb.PTBMessage('IntentSlotFeatures', {
-  name: { type: 'string', id: 1 },
+  name: { type: 'string', id: 1, rule: 'required' },
   vocab: { type: 'string', id: 2, rule: 'repeated' },
   slot_entities: { type: 'string', id: 3, rule: 'repeated' }
 })
 
 const PTBSlotTaggerModel = new ptb.PTBMessage('SlotTaggerModel', {
   crfModel: { type: MLToolkit.CRF.Tagger.modelType, id: 1, rule: 'optional' },
-  intentFeatures: { type: PTBIntentSlotFeatures, id: 2 },
+  intentFeatures: { type: PTBIntentSlotFeatures, id: 2, rule: 'required' },
   slot_definitions: { type: PTBSlotDefinition, id: 3, rule: 'repeated' }
 })
 
