@@ -12,10 +12,11 @@ import {
 } from '@botpress/nlu-client'
 import chai from 'chai'
 import cliProgress from 'cli-progress'
+import fs from 'fs'
 import _ from 'lodash'
 import ms from 'ms'
 import semver from 'semver'
-import { UnsuccessfullAPICall } from './errors'
+import { PrecondtionFailed, UnsuccessfullAPICall, UnsuccessfullModelTransfer } from './errors'
 import { AssertionArgs } from './typings'
 import { pollLintingUntil, pollTrainingUntil } from './utils'
 
@@ -34,6 +35,21 @@ export const assertServerIsReachable = async (args: AssertionArgs, requiredLangu
     .expect(info.languages)
     .to.be.a('array')
     .and.to.include.any.members(requiredLanguages, 'Test requires nlu server to have some expected languages')
+}
+
+export const assertModelTransferIsEnabled = async (args: AssertionArgs) => {
+  const { client, logger, appId } = args
+  logger.debug('assert model transfer is enabled')
+
+  const infoRes = await client.getInfo()
+  if (!infoRes.success) {
+    throw new UnsuccessfullAPICall(infoRes.error, 'Make sure the NLU Server is reachable.')
+  }
+
+  const { info } = infoRes
+  if (!info.modelTransferEnabled) {
+    throw new PrecondtionFailed('Expected model transfer to be enabled on server.')
+  }
 }
 
 export const assertModelsInclude = async (args: AssertionArgs, expectedModels: string[]) => {
@@ -358,4 +374,64 @@ export const assertModelsPrune = async (args: AssertionArgs) => {
 
   const { models } = modelRes
   chai.expect(models).to.have.length(0)
+}
+
+export const assertModelWeightsDownloadFails = async (args: AssertionArgs, modelId: string, expectedStatus: string) => {
+  const { client, logger, appId } = args
+  logger.debug('assert model weights download fails')
+
+  const downloadRes = await client.modelWeights.download(appId, modelId, { responseType: 'stream' })
+  if (downloadRes.status === 'OK') {
+    throw new Error(`Expected Model Download to fail with error: "${expectedStatus}"`)
+  }
+
+  const { status } = downloadRes
+  chai.expect(status).to.be.eq(expectedStatus)
+}
+
+export const assertModelWeightsDownload = async (args: AssertionArgs, modelId: string, fileLocation: string) => {
+  const { client, logger, appId } = args
+  logger.debug('assert model weights download')
+
+  const downloadRes = await client.modelWeights.download(appId, modelId, { responseType: 'stream' })
+  if (downloadRes.status !== 'OK') {
+    throw new UnsuccessfullModelTransfer(downloadRes.status, 'GET')
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    downloadRes.weights.on('end', resolve)
+    downloadRes.weights.on('error', reject)
+    downloadRes.weights.pipe(fs.createWriteStream(fileLocation))
+  })
+}
+
+export const assertModelWeightsUploadFails = async (
+  args: AssertionArgs,
+  fileLocation: string,
+  expectedStatus: string
+) => {
+  const { client, logger, appId } = args
+  logger.debug('assert model weights upload fails')
+
+  const modelWeights = await fs.promises.readFile(fileLocation)
+
+  const uploadRes = await client.modelWeights.upload(appId, modelWeights)
+  if (uploadRes.status === 'OK') {
+    throw new Error(`Expected Model Download to fail with error: "${expectedStatus}"`)
+  }
+
+  const { status } = uploadRes
+  chai.expect(status).to.be.eq(expectedStatus)
+}
+
+export const assertModelWeightsUpload = async (args: AssertionArgs, fileLocation: string) => {
+  const { client, logger, appId } = args
+  logger.debug('assert model weights upload')
+
+  const modelWeights = await fs.promises.readFile(fileLocation)
+
+  const uploadRes = await client.modelWeights.upload(appId, modelWeights)
+  if (uploadRes.status !== 'OK') {
+    throw new UnsuccessfullModelTransfer(uploadRes.status, 'GET')
+  }
 }

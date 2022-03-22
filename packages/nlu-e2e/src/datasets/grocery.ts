@@ -1,5 +1,10 @@
 import { TrainInput } from '@botpress/nlu-client'
 
+export const sample = {
+  utterance: 'these grapes look moldy!',
+  intent: 'fruit-is-moldy'
+}
+
 export const trainSet: TrainInput = {
   language: 'en',
   intents: [
