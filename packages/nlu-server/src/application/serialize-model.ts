@@ -16,7 +16,7 @@ const PTBModel = new ptb.PTBMessage('Model', {
   data: { type: 'bytes', id: 4 }
 })
 
-export const compressModel = async (model: Model): Promise<Buffer> => {
+export const serializeModel = async (model: Model): Promise<Buffer> => {
   const { id, startedAt, finishedAt, data } = model
   const serialized = PTBModel.encode({
     id,
@@ -27,7 +27,7 @@ export const compressModel = async (model: Model): Promise<Buffer> => {
   return Buffer.from(serialized)
 }
 
-export const decompressModel = async (buffer: Buffer): Promise<Model> => {
+export const deserializeModel = async (buffer: Buffer): Promise<Model> => {
   const { id, finishedAt, startedAt, data } = PTBModel.decode(buffer)
   return { id, finishedAt: new Date(finishedAt), startedAt: new Date(startedAt), data: Buffer.from(data) }
 }

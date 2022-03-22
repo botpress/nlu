@@ -5,6 +5,7 @@ import _ from 'lodash'
 import { ModelRepository, TrainingId } from '../../infrastructure'
 import { idToString, MIN_TRAINING_HEARTBEAT } from '.'
 import { TerminatedTrainTask, TrainTask, TrainTaskProgress, TrainTaskRunner } from './typings'
+import { serializeModel } from '../serialize-model'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
 
@@ -25,11 +26,12 @@ export class TrainHandler implements TrainTaskRunner {
         minProgressHeartbeat: MIN_TRAINING_HEARTBEAT
       })
 
+      const modelBuffer = await serializeModel(model)
       const { language: languageCode } = input
 
       const keep = MAX_MODEL_PER_USER_PER_LANG - 1 // TODO: make the max amount of models on FS (by appId + lang) configurable
       await this.modelRepo.pruneModels(appId, { keep }, { languageCode })
-      await this.modelRepo.saveModel(appId, model)
+      await this.modelRepo.saveModel(appId, model.id, modelBuffer)
 
       task.data.trainingTime = this._getTrainingTime(startTime)
 

@@ -14,6 +14,10 @@ export const parameters = asYargs({
     description: 'Binds the language server to a specific hostname',
     type: 'string'
   },
+  reverseProxy: {
+    description: 'Allows trusting the specified reverse proxy',
+    type: 'string'
+  },
   langDir: {
     description: 'Directory where language embeddings will be saved',
     type: 'string'

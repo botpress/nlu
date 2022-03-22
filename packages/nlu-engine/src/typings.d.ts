@@ -1,4 +1,4 @@
-import { LangServerErrorType, SerializedError } from '@botpress/lang-client'
+import { ErrorType as LangServerErrorType, LangError as SerializedLangError } from '@botpress/lang-client'
 import * as linting from './linting'
 
 export const SYSTEM_ENTITIES: string[]
@@ -9,7 +9,7 @@ export namespace errors {
   export class LangServerError extends Error {
     public code: number
     public type: LangServerErrorType
-    constructor(serializedError: SerializedError)
+    constructor(serializedError: SerializedLangError)
   }
   export class DucklingServerError extends Error {
     constructor(message: string, stack?: string)
@@ -62,7 +62,7 @@ export type ModelIdArgs = {
   specifications: Specifications
 } & TrainInput
 
-export type TrainingProgress = (p: number) => void
+export type TrainingProgressCb = (p: number) => void
 export type TrainingOptions = {
   progressCallback: (x: number) => void
   minProgressHeartbeat: number
@@ -77,7 +77,7 @@ export type LintingProgressCb = (
 export type LintingOptions = {
   progressCallback: LintingProgressCb
   minSpeed: linting.IssueComputationSpeed
-  minSeverity: linting.IssueSeverity<IssueCode>
+  minSeverity: linting.IssueSeverity<linting.IssueCode>
   runInMainProcess: boolean
 }
 
@@ -94,7 +94,7 @@ export type Engine = {
 
   lint: (lintingId: string, trainSet: TrainInput, options?: Partial<LintingOptions>) => Promise<linting.DatasetReport>
   cancelLinting: (lintingId: string) => Promise<void>
-  getIssueDetails: <C extends IssueCode>(code: C) => linting.IssueDefinition<C> | undefined
+  getIssueDetails: <C extends linting.IssueCode>(code: C) => linting.IssueDefinition<C> | undefined
 
   detectLanguage: (text: string, modelByLang: { [key: string]: ModelId }) => Promise<string>
   predict: (text: string, modelId: ModelId) => Promise<PredictOutput>

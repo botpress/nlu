@@ -4,12 +4,11 @@ import Module from 'module'
 if (process.env.TS_NODE_DEV) {
   const originalRequire = Module.prototype.require
 
-  const rewire = function (this: NodeRequireFunction, mod: string) {
+  const rewire: NodeRequire = function (this: NodeRequire, mod: string) {
     if (mod.startsWith('@botpress')) {
       return originalRequire.apply(this, [mod + '/src/index.ts'])
     }
     return originalRequire.apply(this, [mod])
-  }
-
+  } as NodeRequire
   Module.prototype.require = rewire
 }

@@ -78,6 +78,7 @@ export const makeApplication = async (
     options
   )
 
+  const { modelTransferEnabled } = options
   const application = new Application(
     modelRepo,
     trainRepo,
@@ -86,7 +87,8 @@ export const makeApplication = async (
     lintingQueue,
     engine,
     serverVersion,
-    baseLogger
+    baseLogger,
+    { modelTransferEnabled }
   )
   await application.initialize()
   return application
