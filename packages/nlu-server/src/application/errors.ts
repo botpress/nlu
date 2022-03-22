@@ -1,6 +1,5 @@
 import { DatasetIssue, IssueCode, IssueComputationSpeed } from '@botpress/nlu-client'
 import { ModelId, modelIdService } from '@botpress/nlu-engine'
-import { AxiosError } from 'axios'
 import { ResponseError } from '../api/errors'
 
 export class ModelDoesNotExistError extends ResponseError {

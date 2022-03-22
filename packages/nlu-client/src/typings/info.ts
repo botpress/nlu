@@ -2,11 +2,7 @@ export type ServerInfo = {
   specs: Specifications
   languages: string[]
   version: string
-  modelTransfer: ModelTransferInfo
-}
-
-export type ModelTransferInfo = {
-  enabled: boolean
+  modelTransferEnabled: boolean
 }
 
 export type Specifications = {
