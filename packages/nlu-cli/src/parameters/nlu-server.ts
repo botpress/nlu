@@ -107,8 +107,8 @@ export const parameters = asYargs({
     description: 'Endpoint to send usage info to.',
     type: 'string'
   },
-  modelTransferURL: {
-    description: 'URL of the model transfer server resposible for model weights download / upload.',
-    type: 'string'
+  modelTransferEnabled: {
+    description: 'Weither or not to allow model weights download / upload',
+    type: 'boolean'
   }
 })

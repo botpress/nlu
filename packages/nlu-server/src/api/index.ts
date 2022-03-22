@@ -6,11 +6,11 @@ import * as Tracing from '@sentry/tracing'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application as ExpressApp } from 'express'
-import proxy from 'express-http-proxy'
 import rateLimit from 'express-rate-limit'
 
 import _ from 'lodash'
 import ms from 'ms'
+import { NLUServerOptions } from '..'
 import { Application } from '../application'
 import { ModelLoadedData } from '../application/app-observer'
 import { Training } from '../infrastructure/training-repo/typings'
@@ -23,39 +23,18 @@ import {
 } from '../telemetry/metric'
 import { initTracing } from '../telemetry/trace'
 import { UsageClient } from '../telemetry/usage-client'
-import { InvalidRequestFormatError } from './errors'
-import { handleError, getAppId } from './http'
-
-import {
-  validatePredictInput,
-  validateTrainInput,
-  validateDetectLangInput,
-  validateLintInput,
-  isLintingSpeed,
-  validateUploadModelSchema
-} from './validation/validate'
-
-type APIOptions = {
-  host: string
-  port: number
-  limitWindow: string
-  limit: number
-  bodySize: string
-  batchSize: number
-  tracingEnabled?: boolean
-  prometheusEnabled?: boolean
-  apmEnabled?: boolean
-  apmSampleRate?: number
-  usageURL?: string
-  modelTransferURL?: string
-  reverseProxy?: string
-}
+import { createModelTransferRouter } from './routers/model-transfer'
+import { createRootRouter } from './routers/root'
 
 const { modelIdService } = NLUEngine
 
 const isTrainingRunning = ({ status }: Training) => status === 'training-pending' || status === 'training'
 
-export const createAPI = async (options: APIOptions, app: Application, baseLogger: Logger): Promise<ExpressApp> => {
+export const createAPI = async (
+  options: NLUServerOptions,
+  app: Application,
+  baseLogger: Logger
+): Promise<ExpressApp> => {
   const apiLogger = baseLogger.sub('api')
   const requestLogger = apiLogger.sub('request')
   const expressApp = express()
@@ -142,12 +121,6 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     expressApp.use(Sentry.Handlers.tracingHandler())
   }
 
-  if (options.modelTransferURL) {
-    expressApp.use('/modelweights', proxy(options.modelTransferURL, { limit: Infinity })) // This consumes a lot of memory
-  }
-
-  expressApp.use(bodyParser.json({ limit: options.bodySize }))
-
   expressApp.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress NLU')
     requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
@@ -157,8 +130,6 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
   if (options.apmEnabled) {
     expressApp.use(Sentry.Handlers.errorHandler())
   }
-
-  expressApp.use(handleError)
 
   if (options.reverseProxy) {
     expressApp.set('trust proxy', options.reverseProxy)
@@ -174,280 +145,11 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     )
   }
 
-  const router = express.Router({ mergeParams: true })
+  const rootRouter = createRootRouter(options, app, baseLogger)
+  const modelRouter = createModelTransferRouter(options, app, baseLogger)
 
-  expressApp.use('/', router)
-
-  router.get('/', async (req, res, next) => {
-    try {
-      return res.redirect('/info')
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.get('/info', async (req, res, next) => {
-    try {
-      const info = app.getInfo()
-      const resp: http.InfoResponseBody = { success: true, info }
-      res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.get('/models', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const modelIds = await app.getModels(appId)
-      const stringIds = modelIds.map(modelIdService.toString)
-      const resp: http.ListModelsResponseBody = { success: true, models: stringIds }
-      res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.post('/models/prune', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const modelIds = await app.pruneModels(appId)
-      const stringIds = modelIds.map(modelIdService.toString)
-      const resp: http.PruneModelsResponseBody = { success: true, models: stringIds }
-      return res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.get('/model/:modelId', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const { modelId: stringId } = req.params
-      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
-        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
-      }
-
-      const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const { uuid, ttl } = await app.prepareModelForDownload(appId, modelId)
-
-      const resp: http.DownloadModelResponseBody = { success: true, ressourceUUID: uuid, ressourceTTL: ttl }
-      res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.post('/model', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const fileInfo = await validateUploadModelSchema(req.body)
-      await app.recoverUploadedModel(appId, fileInfo.ressourceUUID)
-      const resp: http.SuccessReponse = { success: true }
-      return res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.post('/train', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const input = await validateTrainInput(req.body)
-      const { intents, entities, seed, language } = input
-
-      const pickedSeed = seed ?? Math.round(Math.random() * 10000)
-
-      const trainInput: TrainInput = {
-        intents,
-        entities,
-        language,
-        seed: pickedSeed
-      }
-
-      const modelId = await app.startTraining(appId, trainInput)
-
-      const resp: http.TrainResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
-      return res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.get('/train', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const { lang } = req.query
-      if (lang && !_.isString(lang)) {
-        throw new InvalidRequestFormatError(`query parameter lang: "${lang}" has invalid format`)
-      }
-
-      const trainings = await app.getAllTrainings(appId, lang)
-      const serialized = trainings.map(({ modelId, ...state }) => ({
-        modelId: modelIdService.toString(modelId),
-        ...state
-      }))
-
-      const resp: http.ListTrainingsResponseBody = { success: true, trainings: serialized }
-      res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.get('/train/:modelId', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const { modelId: stringId } = req.params
-      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
-        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
-      }
-
-      const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const session = await app.getTrainingState(appId, modelId)
-
-      const resp: http.TrainProgressResponseBody = { success: true, session }
-      res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.post('/train/:modelId/cancel', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-
-      const { modelId: stringId } = req.params
-
-      const modelId = NLUEngine.modelIdService.fromString(stringId)
-
-      await app.cancelTraining(appId, modelId)
-
-      const resp: http.SuccessReponse = { success: true }
-      return res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.post('/predict/:modelId', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-
-      const { modelId: stringId } = req.params
-      const { utterances } = await validatePredictInput(req.body)
-
-      if (!_.isArray(utterances) || (options.batchSize > 0 && utterances.length > options.batchSize)) {
-        throw new InvalidRequestFormatError(
-          `Batch size of ${utterances.length} is larger than the allowed maximum batch size (${options.batchSize}).`
-        )
-      }
-
-      const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const predictions = await app.predict(appId, modelId, utterances)
-
-      const resp: http.PredictResponseBody = { success: true, predictions }
-      res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.post('/detect-lang', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-
-      const { utterances, models } = await validateDetectLangInput(req.body)
-
-      const invalidIds = models.filter(_.negate(modelIdService.isId))
-      if (invalidIds.length) {
-        throw new InvalidRequestFormatError(`The following model ids are invalid: [${invalidIds.join(', ')}]`)
-      }
-
-      const modelIds = models.map(modelIdService.fromString)
-
-      if (!_.isArray(utterances) || (options.batchSize > 0 && utterances.length > options.batchSize)) {
-        const error = `Batch size of ${utterances.length} is larger than the allowed maximum batch size (${options.batchSize}).`
-        return res.status(400).send({ success: false, error })
-      }
-
-      const detectedLanguages = await app.detectLanguage(appId, modelIds, utterances)
-
-      const resp: http.DetectLangResponseBody = { success: true, detectedLanguages }
-      res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.post('/lint', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const input = await validateLintInput(req.body)
-      const { intents, entities, language, speed } = input
-
-      const trainInput: TrainInput = {
-        intents,
-        entities,
-        language,
-        seed: 0
-      }
-
-      const modelId = await app.startLinting(appId, speed, trainInput)
-
-      const resp: http.LintResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
-      return res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.get('/lint/:modelId/:speed', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-      const { modelId: stringId, speed } = req.params
-      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
-        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
-      }
-      if (!isLintingSpeed(speed)) {
-        throw new InvalidRequestFormatError(`path param "${speed}" is not a valid linting speed.`)
-      }
-
-      const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const session = await app.getLintingState(appId, modelId, speed)
-
-      const resp: http.LintProgressResponseBody = {
-        success: true,
-        session
-      }
-      res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
-
-  router.post('/lint/:modelId/:speed/cancel', async (req, res, next) => {
-    try {
-      const appId = getAppId(req)
-
-      const { modelId: stringId, speed } = req.params
-      if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
-        throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
-      }
-      if (!isLintingSpeed(speed)) {
-        throw new InvalidRequestFormatError(`path param "${speed}" is not a valid linting speed.`)
-      }
-
-      const modelId = NLUEngine.modelIdService.fromString(stringId)
-
-      await app.cancelLinting(appId, modelId, speed)
-
-      const resp: http.SuccessReponse = { success: true }
-      return res.send(resp)
-    } catch (err) {
-      return handleError(err, req, res, next)
-    }
-  })
+  expressApp.use('/', rootRouter)
+  expressApp.use('/modelweights', modelRouter)
 
   return expressApp
 }

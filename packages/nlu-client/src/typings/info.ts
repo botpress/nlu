@@ -5,14 +5,9 @@ export type ServerInfo = {
   modelTransfer: ModelTransferInfo
 }
 
-export type ModelTransferInfo =
-  | {
-      enabled: false
-    }
-  | {
-      enabled: true
-      version: string
-    }
+export type ModelTransferInfo = {
+  enabled: boolean
+}
 
 export type Specifications = {
   engineVersion: string // semver string

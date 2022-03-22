@@ -36,6 +36,6 @@ export class InvalidTrainSetError extends ResponseError {
 
 export class ModelTransferDisabled extends ResponseError {
   constructor() {
-    super('Model Transfer is diabled.', 403)
+    super('Model Transfer is disabled.', 403)
   }
 }
