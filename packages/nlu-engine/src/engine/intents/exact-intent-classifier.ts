@@ -16,7 +16,7 @@ type Predictors = Model
 type ExactMatchIndex = _.Dictionary<{ intent: string }>
 
 const PTBExactIndexValue = new ptb.PTBMessage('ExactIndexValue', {
-  intent: { type: 'string', id: 1 }
+  intent: { type: 'string', id: 1, rule: 'required' }
 })
 
 const PTBExactIntentModel = new ptb.PTBMessage('ExactIntentModel', {

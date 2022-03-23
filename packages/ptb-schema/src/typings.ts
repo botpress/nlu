@@ -28,7 +28,7 @@ export type NumberFieldType =
 
 export type FieldType = 'bool' | 'string' | 'bytes' | NumberFieldType
 
-export type BasicField = Override<ptb.IField, { type: FieldType; rule?: FieldRule }>
+export type BasicField = Override<ptb.IField, { type: FieldType; rule: FieldRule }>
 export type Field = Override<BasicField, { type: FieldType | PTBMessage<any> }>
 
 export type BasicMapField = { type: FieldType; id: number; keyType: NumberFieldType | 'string' }

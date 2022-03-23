@@ -3,7 +3,7 @@ import _ from 'lodash'
 
 let matrix_idx = 0
 export const PTBFlatMatrixMsg = new ptb.PTBMessage('Matrix', {
-  nCol: { type: 'int32', id: matrix_idx++ },
+  nCol: { type: 'int32', id: matrix_idx++, rule: 'required' },
   data: { type: 'double', id: matrix_idx++, rule: 'repeated' }
 })
 export type PTBFlatMatrix = ptb.Infer<typeof PTBFlatMatrixMsg>
