@@ -103,7 +103,7 @@ export class Application extends ApplicationObserver {
     try {
       modelId = deserializeModelId(modelWeights)
     } catch (thrown) {
-      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      const err = this._toErr(thrown)
       throw new InvalidModelFormatError(err.message)
     }
 
@@ -116,7 +116,14 @@ export class Application extends ApplicationObserver {
     try {
       model = deserializeModel(modelWeights)
     } catch (thrown) {
-      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      const err = this._toErr(thrown)
+      throw new InvalidModelFormatError(err.message)
+    }
+
+    try {
+      this._engine.validateModel(model)
+    } catch (thrown) {
+      const err = this._toErr(thrown)
       throw new InvalidModelFormatError(err.message)
     }
 
@@ -353,4 +360,6 @@ You can increase your cache size by the CLI or config.
     const specFilter = modelIdService.briefId({ specifications }) as { specificationHash: string }
     return specFilter
   }
+
+  private _toErr = (thrown: any): Error => (thrown instanceof Error ? thrown : new Error(`${thrown}`))
 }
