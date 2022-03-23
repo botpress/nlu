@@ -137,3 +137,21 @@ export const corruptBuffer = (buffer: Buffer): Buffer => {
 
   return encrypted
 }
+
+export const bufferReplace = (buffer: Buffer, from: Buffer, to: Buffer): Buffer => {
+  const patternStart = buffer.indexOf(from)
+  if (patternStart < 0) {
+    return buffer
+  }
+
+  const patternEnd = patternStart + from.length
+
+  let result = Buffer.from([])
+  buffer.copy(result)
+
+  result = Buffer.concat([result, buffer.slice(0, patternStart)])
+  result = Buffer.concat([result, to])
+  result = Buffer.concat([result, buffer.slice(patternEnd, buffer.length)])
+
+  return result
+}

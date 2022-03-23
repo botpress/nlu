@@ -1,4 +1,5 @@
 import fs from 'fs'
+import _ from 'lodash'
 import path from 'path'
 import { AssertionArgs, Test } from 'src/typings'
 import {
@@ -15,7 +16,7 @@ import {
   assertTrainingStarts
 } from '../assertions'
 import { grocery_dataset, grocery_test_sample } from '../datasets'
-import { corruptBuffer, getE2ECachePath } from '../utils'
+import { bufferReplace, corruptBuffer, getE2ECachePath } from '../utils'
 
 const NAME = 'modelweights-transfer'
 
@@ -64,11 +65,23 @@ export const modelWeightsTransferTest: Test = {
     )
 
     // ensure uploading a corrupted buffer fails
-    const modelWeights = await fs.promises.readFile(fileLocation)
-    const corruptedWeights = corruptBuffer(modelWeights)
+    const originalModelWeights = await fs.promises.readFile(fileLocation)
+    const corruptedWeights = corruptBuffer(originalModelWeights)
     const corruptedFileLocation = path.join(cachePath, `${modelId}.corrupted.model`)
     await fs.promises.writeFile(corruptedFileLocation, corruptedWeights)
     await assertModelWeightsUploadFails(modelWeightsTransferArgs, corruptedFileLocation, 'INVALID_MODEL_FORMAT')
+
+    // ensure uploading a older version buffer fails
+    const specHash = modelId.split('.')[1]
+    const dummySpecHash = 'ffffff9999999999'
+    const deprecatedWeights = bufferReplace(
+      originalModelWeights,
+      Buffer.from(specHash, 'utf8'),
+      Buffer.from(dummySpecHash, 'utf8')
+    )
+    const deprecatedFileLocation = path.join(cachePath, `${modelId}.deprecated.model`)
+    await fs.promises.writeFile(deprecatedFileLocation, deprecatedWeights)
+    await assertModelWeightsUploadFails(modelWeightsTransferArgs, deprecatedFileLocation, 'UNSUPORTED_MODEL_SPEC')
 
     // cleanup
     await assertModelsPrune(modelWeightsTransferArgs)

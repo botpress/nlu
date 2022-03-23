@@ -1,13 +1,14 @@
 import { Logger } from '@botpress/logger'
 import { Client as NLUClient } from '@botpress/nlu-client'
 
+import fs from 'fs'
 import _ from 'lodash'
 import { nanoid } from 'nanoid'
 import { assertModelsAreEmpty, assertServerIsReachable } from './assertions'
 import { clinc50_42_dataset, clinc50_666_dataset, grocery_dataset } from './datasets'
 import tests from './tests'
 import { AssertionArgs, Test } from './typings'
-import { syncE2ECachePath } from './utils'
+import { getE2ECachePath, syncE2ECachePath } from './utils'
 
 type CommandLineArgs = {
   nluEndpoint: string
@@ -46,4 +47,6 @@ export const runTests = async (cliArgs: CommandLineArgs) => {
   for (const test of testToRun) {
     await test.handler(args)
   }
+
+  fs.rmSync(getE2ECachePath(appId), { recursive: true, force: true })
 }
