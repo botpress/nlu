@@ -1,3 +1,12 @@
+## [0.1.10](https://github.com/botpress/nlu/compare/v1.0.0-rc.4...v0.1.10) (2022-03-23)
+
+
+### Bug Fixes
+
+* **worker:** do not reuse a process if it exited since last usage ([#199](https://github.com/botpress/nlu/issues/199)) ([baaa759](https://github.com/botpress/nlu/commit/baaa7592dc25c6fe8fee2740ecb544b103ef988b))
+
+
+
 ## [0.1.9](https://github.com/botpress/nlu/compare/v0.1.8...v0.1.9) (2021-10-29)
 
 
