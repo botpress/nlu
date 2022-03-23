@@ -8,7 +8,7 @@ import { MarginalPrediction, TagPrediction } from '.'
 import { CRFTrainInput } from './typings'
 
 const PTBCRFTaggerModel = new ptb.PTBMessage('CRFTaggerModel', {
-  content: { type: 'bytes', id: 1 }
+  content: { type: 'bytes', id: 1, rule: 'required' }
 })
 
 type CRFTaggerModel = ptb.Infer<typeof PTBCRFTaggerModel>

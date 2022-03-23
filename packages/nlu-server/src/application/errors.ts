@@ -26,9 +26,16 @@ export class LintingNotFoundError extends ResponseError {
   }
 }
 
+export class InvalidModelFormatError extends ResponseError {
+  constructor(message: string) {
+    super(`model weights have an invalid format: ${message}`, 400)
+  }
+}
+
 export class InvalidModelSpecError extends ResponseError {
   constructor(modelId: ModelId, currentSpec: string) {
-    super(`expected spec hash to be "${currentSpec}". target model has spec "${modelId.specificationHash}".`, 400)
+    const code = 455 // custom status code
+    super(`expected spec hash to be "${currentSpec}". target model has spec "${modelId.specificationHash}".`, code)
   }
 }
 

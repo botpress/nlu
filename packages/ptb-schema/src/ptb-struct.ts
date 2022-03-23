@@ -1,6 +1,6 @@
-import ptb, { MapField } from 'protobufjs'
+import ptb from 'protobufjs'
 import { InferFromStructSchema } from './inference'
-import { BasicStructSchema, Field, StructSchema, BasicField, BasicMapField } from './typings'
+import { BasicStructSchema, Field, StructSchema, BasicField, BasicMapField, MapField } from './typings'
 
 type Props = {
   namespace: ptb.Namespace
@@ -42,7 +42,7 @@ export class PTBMessage<S extends StructSchema> {
     const fields: { [k: string]: ptb.IField } = {}
 
     for (const fieldName in schema) {
-      const fieldValue: Field = schema[fieldName]
+      const fieldValue: Field | MapField = schema[fieldName]
       const fieldType = fieldValue.type instanceof PTBMessage ? fieldValue.type.clone() : fieldValue.type
 
       let currentField: ptb.IField

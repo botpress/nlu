@@ -85,6 +85,7 @@ export type Engine = {
   getLanguages: () => string[]
   getSpecifications: () => Specifications
 
+  validateModel(serialized: Model): void
   loadModel: (model: Model) => Promise<void>
   unloadModel: (modelId: ModelId) => void
   hasModel: (modelId: ModelId) => boolean

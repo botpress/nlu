@@ -237,6 +237,10 @@ export default class Engine implements IEngine {
     return this._trainingWorkerQueue.cancelTraining(trainSessionId)
   }
 
+  public validateModel(serialized: Model): void {
+    deserializeModel(serialized) // try to deserialize a model to see if it throws
+  }
+
   public async loadModel(serialized: Model) {
     const stringId = modelIdService.toString(serialized.id)
     this._logger.debug(`Load model ${stringId}`)

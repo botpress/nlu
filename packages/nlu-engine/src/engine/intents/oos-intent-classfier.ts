@@ -30,9 +30,9 @@ type Model = {
 
 const PTBOOSIntentModel = new ptb.PTBMessage('OOSIntentModel', {
   trainingVocab: { type: 'string', id: 1, rule: 'repeated' },
-  baseIntentClfModel: { type: SvmIntentClassifier.modelType, id: 2 },
+  baseIntentClfModel: { type: SvmIntentClassifier.modelType, id: 2, rule: 'required' },
   oosSvmModel: { type: MLToolkit.SVM.Classifier.modelType, id: 3, rule: 'optional' },
-  exactMatchModel: { type: ExactIntenClassifier.modelType, id: 4 }
+  exactMatchModel: { type: ExactIntenClassifier.modelType, id: 4, rule: 'required' }
 })
 
 type Predictors = {
