@@ -10,7 +10,7 @@ The source code is structured in a mono-repo fashion using yarn workspaces. The 
 
 - [nlu-server](./packages/nlu-server/readme.md): Contains the Botpress Standalone NLU Server
 - [lang-server](./packages/lang-server/readme.md): Contains the Botpress Language Server
-- [nlu-cli](./packages/nlu-cli/readme.md): Small CLI to use as an entry point for both `nlu-server` and `lang-server`
+- [nlu-bin](./packages/nlu-bin/readme.md): Small CLI to use as an entry point for both `nlu-server` and `lang-server`
 
 Check out each individual packages for more details.
 

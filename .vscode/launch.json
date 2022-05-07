@@ -8,37 +8,61 @@
       "type": "pwa-node",
       "request": "launch",
       "name": "Debug NLU Server",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/packages/nlu-cli/dist/index.js",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/packages/nlu-bin/dist/index.js",
       "console": "integratedTerminal",
       "sourceMaps": true,
       "autoAttachChildProcesses": true,
-      "args": ["--config=./nlu.config.json"],
-      "outFiles": ["${workspaceRoot}/packages/**/*.js", "${workspaceRoot}/node_modules/**/*.js"]
+      "args": [
+        "--config=./nlu.config.json"
+      ],
+      "outFiles": [
+        "${workspaceRoot}/packages/**/*.js",
+        "${workspaceRoot}/node_modules/**/*.js"
+      ]
     },
     {
       "type": "pwa-node",
       "request": "launch",
       "name": "Debug Lang Server",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/packages/nlu-cli/dist/index.js",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/packages/nlu-bin/dist/index.js",
       "console": "integratedTerminal",
       "sourceMaps": true,
       "autoAttachChildProcesses": true,
-      "args": ["lang", "--dim=100"],
-      "outFiles": ["${workspaceRoot}/packages/**/*.js", "${workspaceRoot}/node_modules/**/*.js"]
+      "args": [
+        "lang",
+        "--dim=100"
+      ],
+      "outFiles": [
+        "${workspaceRoot}/packages/**/*.js",
+        "${workspaceRoot}/node_modules/**/*.js"
+      ]
     },
     {
       "type": "pwa-node",
       "request": "launch",
       "name": "Debug Download Model",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/packages/nlu-cli/dist/index.js",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/packages/nlu-bin/dist/index.js",
       "console": "integratedTerminal",
       "sourceMaps": true,
       "autoAttachChildProcesses": true,
-      "args": ["download", "--lang=en", "--dim=100"],
-      "outFiles": ["${workspaceRoot}/packages/**/*.js", "${workspaceRoot}/node_modules/**/*.js"]
+      "args": [
+        "download",
+        "--lang=en",
+        "--dim=100"
+      ],
+      "outFiles": [
+        "${workspaceRoot}/packages/**/*.js",
+        "${workspaceRoot}/node_modules/**/*.js"
+      ]
     },
     {
       "type": "pwa-node",
@@ -46,31 +70,56 @@
       "name": "Debug All Tests",
       "program": "${workspaceFolder}/node_modules/.bin/jest",
       "console": "integratedTerminal",
-      "args": ["-c", "${workspaceFolder}/jest.config.js", "--runInBand", "--no-cache", "${input:testFilter}"],
+      "args": [
+        "-c",
+        "${workspaceFolder}/jest.config.js",
+        "--runInBand",
+        "--no-cache",
+        "${input:testFilter}"
+      ],
       "sourceMaps": true
     },
     {
       "type": "pwa-node",
       "request": "launch",
       "name": "Debug E2E Tests",
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
       "program": "${workspaceFolder}/packages/nlu-e2e/dist/index.js",
       "console": "integratedTerminal",
       "sourceMaps": true,
       "autoAttachChildProcesses": true,
-      "args": ["--nlu-endpoint", "${input:nluEndpoint}", "--pattern", "${input:testFilter}"],
-      "outFiles": ["${workspaceRoot}/packages/**/*.js", "${workspaceRoot}/node_modules/**/*.js"]
+      "args": [
+        "--nlu-endpoint",
+        "${input:nluEndpoint}",
+        "--pattern",
+        "${input:testFilter}"
+      ],
+      "outFiles": [
+        "${workspaceRoot}/packages/**/*.js",
+        "${workspaceRoot}/node_modules/**/*.js"
+      ]
     },
     {
       "name": "Run TS-Node",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["--nolazy", "-r", "ts-node/register/transpile-only"],
-      "args": ["${input:tsfile}"],
+      "runtimeArgs": [
+        "--nolazy",
+        "-r",
+        "ts-node/register/transpile-only"
+      ],
+      "args": [
+        "${input:tsfile}"
+      ],
       "cwd": "${workspaceRoot}",
       "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**", "node_modules/**"]
+      "skipFiles": [
+        "<node_internals>/**",
+        "node_modules/**"
+      ]
     }
   ],
   "inputs": [
