@@ -8,10 +8,10 @@
     "type": "git",
     "url": "https://github.com/botpress/nlu.git"
   },
-  "bin": "./packages/nlu-cli/dist/index.js",
+  "bin": "./packages/nlu-bin/dist/index.js",
   "pkg": {
     "scripts": [
-      "./packages/nlu-cli/dist/**/*.js",
+      "./packages/nlu-bin/dist/**/*.js",
       "node_modules/@botpress/*/dist/**/*.js",
       "node_modules/pg-format/lib/*.js"
     ],
@@ -23,8 +23,8 @@
   },
   "scripts": {
     "cmd": "yarn run gulp",
-    "dev": "cross-env tsnd --transpile-only --exit-child --watch ./packages/**/*.ts ./packages/nlu-cli/src/index.ts",
-    "start": "cross-env node ./packages/nlu-cli/dist/index.js",
+    "dev": "cross-env tsnd --transpile-only --exit-child --watch ./packages/**/*.ts ./packages/nlu-bin/src/index.ts",
+    "start": "cross-env node ./packages/nlu-bin/dist/index.js",
     "build": "tsc --build ./tsconfig.json",
     "clean": "yarn workspaces -p run clean && rimraf ./dist && rimraf ./node_modules",
     "rebuild": "yarn clean && yarn && yarn build --force",

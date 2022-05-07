@@ -1,7 +1,7 @@
 {
-  "name": "@botpress/nlu-cli",
+  "name": "@botpress/nlu-bin",
   "version": "1.0.0-rc.6",
-  "description": "CLI/entry-point to both nlu server or language-server",
+  "description": "entry-point to both nlu server and language-server",
   "main": "./dist/index.js",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
