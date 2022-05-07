@@ -1,8 +1,8 @@
+import { generateSchema, YargsSchema, YargsArgv } from '@botpress/yargs-extra'
 import fse from 'fs-extra'
 import { validate } from 'json-schema'
 import os from 'os'
-import { YargsSchema, YargsArgv } from '../yargs-utils'
-import { generateSchema } from './schema'
+
 import { toUnix } from './to-unix'
 
 type WriteConfigFileProps<S extends YargsSchema> = {

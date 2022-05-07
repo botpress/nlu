@@ -2,12 +2,11 @@ import './rewire'
 import { run as runLanguageServer, download as downloadLang, version as langServerVersion } from '@botpress/lang-server'
 import { Logger } from '@botpress/logger'
 import { run as runNLUServer, version as nluServerVersion } from '@botpress/nlu-server'
+import yargs, { parseEnv } from '@botpress/yargs-extra'
 import path from 'path'
-import yargs from 'yargs'
 import { getAppDataPath } from './app-data'
 import { writeConfigFile, readConfigFile } from './config-file'
 import { nluServerParameters, langServerParameters, langDownloadParameters } from './parameters'
-import { parseEnv } from './parse-env'
 
 void yargs
   .version(false)
