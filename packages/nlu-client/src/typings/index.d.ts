@@ -1,5 +1,4 @@
 import {
-  Credentials,
   TrainRequestBody,
   PredictRequestBody,
   DetectLangRequestBody,
@@ -11,19 +10,32 @@ import {
   ListModelsResponseBody,
   PruneModelsResponseBody,
   PredictResponseBody,
-  DetectLangResponseBody
+  DetectLangResponseBody,
+  ListTrainingsResponseBody
 } from './http'
+import { AxiosRequestConfig, AxiosInstance } from 'axios'
 
 export class Client {
-  constructor(endpoint: string, authToken?: string)
+  readonly axios: AxiosInstance
+
+  constructor(config: AxiosRequestConfig)
+
   getInfo(): Promise<InfoResponseBody | ErrorResponse>
-  startTraining(trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse>
-  getTrainingStatus(modelId: string, credentials: Credentials): Promise<TrainProgressResponseBody | ErrorResponse>
-  cancelTraining(modelId: string, credentials: Credentials): Promise<SuccessReponse | ErrorResponse>
-  listModels(credentials: Credentials): Promise<ListModelsResponseBody | ErrorResponse>
-  pruneModels(credentials: Credentials): Promise<PruneModelsResponseBody | ErrorResponse>
-  detectLanguage(detectLangRequestBody: DetectLangRequestBody): Promise<DetectLangResponseBody | ErrorResponse>
-  predict(modelId: string, predictRequestBody: PredictRequestBody): Promise<PredictResponseBody | ErrorResponse>
+  startTraining(appId: string, trainRequestBody: TrainRequestBody): Promise<TrainResponseBody | ErrorResponse>
+  listTrainings(appId: string, lang?: string): Promise<ListTrainingsResponseBody | ErrorResponse>
+  getTrainingStatus(appId: string, modelId: string): Promise<TrainProgressResponseBody | ErrorResponse>
+  cancelTraining(appId: string, modelId: string): Promise<SuccessReponse | ErrorResponse>
+  listModels(appId: string): Promise<ListModelsResponseBody | ErrorResponse>
+  pruneModels(appId: string): Promise<PruneModelsResponseBody | ErrorResponse>
+  detectLanguage(
+    appId: string,
+    detectLangRequestBody: DetectLangRequestBody
+  ): Promise<DetectLangResponseBody | ErrorResponse>
+  predict(
+    appId: string,
+    modelId: string,
+    predictRequestBody: PredictRequestBody
+  ): Promise<PredictResponseBody | ErrorResponse>
 }
 
 export * as http from './http'

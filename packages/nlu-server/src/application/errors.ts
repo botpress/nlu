@@ -14,3 +14,17 @@ export class TrainingNotFoundError extends ResponseError {
     super(`no current training for model: ${stringId}`, 404)
   }
 }
+
+export class InvalidModelSpecError extends ResponseError {
+  constructor(modelId: ModelId, currentSpec: string) {
+    super(`expected spec hash to be "${currentSpec}". target model has spec "${modelId.specificationHash}".`, 400)
+  }
+}
+
+export class TrainingAlreadyStartedError extends ResponseError {
+  constructor(appId: string, modelId: ModelId) {
+    const stringId = modelIdService.toString(modelId)
+    const trainKey = `${appId}/${stringId}`
+    super(`Training "${trainKey}" already started...`, 409)
+  }
+}

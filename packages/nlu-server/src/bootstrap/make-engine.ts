@@ -31,12 +31,11 @@ export const makeEngine = async (options: NLUServerOptions, logger: Logger) => {
     const engine = await NLUEngine.makeEngine(config, loggerWrapper)
     return engine
   } catch (err) {
-    // TODO: Make lang provider throw if it can't connect.
     logger
       .attachError(err)
       .error(
         'There was an error while initializing Engine tools. Check out the connection to your language and Duckling server.'
       )
-    process.exit(1)
+    throw err
   }
 }

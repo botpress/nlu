@@ -18,3 +18,7 @@ Offers functions and callback that makes handling a worker as easy as calling a 
 - log task progress
 - return task result
 - throw an error
+
+## Licensing
+
+This software is protected by the same license as the [main Botpress repository](https://github.com/botpress/botpress). You can find the license file [here](https://github.com/botpress/botpress/blob/master/LICENSE).

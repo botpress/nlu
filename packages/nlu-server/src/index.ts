@@ -30,6 +30,7 @@ export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
 
   const baseLogger = makeLogger({
     level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
+    minLevel: LoggerLevel.Error,
     filters: options.logFilter
   })
 
@@ -41,7 +42,7 @@ export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
   const watcher = buildWatcher()
 
   const launchingMessageInfo = { ...options, version, buildInfo, configSource, configFile: cliOptions.config }
-  logLaunchingMessage(launchingMessageInfo, launcherLogger)
+  await logLaunchingMessage(launchingMessageInfo, launcherLogger)
 
   const application = await makeApplication(options, version, baseLogger, watcher)
   const app = await createAPI(options, application, baseLogger)
@@ -54,5 +55,6 @@ export const run: typeof types.run = async (cliOptions: CommandLineOptions) => {
     })
   })
 
-  launcherLogger.info(`NLU Server is ready at http://${options.host}:${options.port}/`)
+  const url = `http://${options.host}:${options.port}/`
+  launcherLogger.info(`NLU Server is ready at ${url}. Make sure this URL is not publicly available.`)
 }

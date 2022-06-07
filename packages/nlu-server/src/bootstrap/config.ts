@@ -1,6 +1,5 @@
 import bytes from 'bytes'
 import fse from 'fs-extra'
-import { APIOptions } from '../api'
 import { getAppDataPath } from '../app-data'
 
 interface LanguageSource {
@@ -8,7 +7,25 @@ interface LanguageSource {
   authToken?: string
 }
 
-export type CommandLineOptions = APIOptions & {
+interface BaseOptions {
+  host: string
+  port: number
+  limitWindow: string
+  limit: number
+  bodySize: string
+  batchSize: number
+  modelCacheSize: string
+  dbURL?: string
+  modelDir: string
+  verbose: number
+  doc: boolean
+  logFilter?: string[]
+  apmEnabled?: boolean
+  apmSampleRate?: number
+  maxTraining: number
+}
+
+export type CommandLineOptions = Partial<BaseOptions> & {
   languageURL: string
   languageAuthToken?: string
   ducklingURL: string
@@ -16,35 +33,36 @@ export type CommandLineOptions = APIOptions & {
   config?: string
 }
 
-export type NLUServerOptions = APIOptions & {
+export type NLUServerOptions = BaseOptions & {
   languageSources: LanguageSource[] // when passed by env variable, there can be more than one lang server
   ducklingURL: string
   ducklingEnabled: boolean
   legacyElection: boolean // not available from CLI
 }
 
-const DEFAULT_OPTIONS: NLUServerOptions = {
+const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   host: 'localhost',
   port: 3200,
   limit: 0,
   limitWindow: '1h',
   bodySize: '2mb',
   batchSize: 1,
-  languageSources: [{ endpoint: 'http://localhost:3100' }],
-  ducklingURL: 'http://localhost:8000',
+  languageSources: [{ endpoint: 'https://lang-01.botpress.io' }],
+  ducklingURL: 'https://duckling.botpress.io',
   ducklingEnabled: true,
   modelCacheSize: '2.5gb',
   verbose: 3,
   doc: false,
   logFilter: undefined,
   legacyElection: false,
-  modelDir: getAppDataPath()
-}
+  modelDir: getAppDataPath(),
+  maxTraining: 2
+})
 
 export type ConfigSource = 'environment' | 'cli' | 'file'
 
-const _mapCli = (c: CommandLineOptions): NLUServerOptions => {
-  const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken } = c
+const _mapCli = (c: CommandLineOptions): Partial<NLUServerOptions> => {
+  const { ducklingEnabled, ducklingURL, languageURL, languageAuthToken } = c
   return {
     ...c,
     languageSources: [
@@ -55,7 +73,6 @@ const _mapCli = (c: CommandLineOptions): NLUServerOptions => {
     ],
     ducklingEnabled,
     ducklingURL,
-    modelCacheSize,
     legacyElection: false
   }
 }
@@ -67,7 +84,8 @@ const readEnvJSONConfig = (): NLUServerOptions | null => {
   }
   try {
     const parsedContent = JSON.parse(rawContent)
-    return { ...DEFAULT_OPTIONS, ...parsedContent }
+    const defaults = DEFAULT_OPTIONS()
+    return { ...defaults, ...parsedContent }
   } catch {
     return null
   }
@@ -77,7 +95,8 @@ const readFileConfig = async (configPath: string): Promise<NLUServerOptions> => 
   try {
     const rawContent = await fse.readFile(configPath, 'utf8')
     const parsedContent = JSON.parse(rawContent)
-    return { ...DEFAULT_OPTIONS, ...parsedContent }
+    const defaults = DEFAULT_OPTIONS()
+    return { ...defaults, ...parsedContent }
   } catch (err) {
     const e = new Error(`The following errored occured when reading config file "${configPath}": ${err.message}`)
     e.stack = err.stack
@@ -98,7 +117,9 @@ export const getConfig = async (
     return { options, source: 'file' }
   }
 
-  const options = _mapCli(c)
+  const cliOptions = _mapCli(c)
+  const defaults = DEFAULT_OPTIONS()
+  const options: NLUServerOptions = { ...defaults, ...cliOptions }
   return { options, source: 'cli' }
 }
 

@@ -1,3 +1,4 @@
+const { makeFileName, semverToUnderscores } = require('./utils/binary')
 const { spawn } = require('./utils/spawn')
 const { version } = require('../package.json')
 const path = require('path')
@@ -28,12 +29,12 @@ const computeDistributions = () => {
 }
 
 const package = async (cb) => {
-  const underscores = version.split('.').join('_')
   try {
+    const underscores = semverToUnderscores(version)
     const distributions = computeDistributions()
 
     for (const [dist, target] of Object.entries(distributions)) {
-      const fileName = `nlu-v${underscores}-${dist}-x64`
+      const fileName = makeFileName(underscores, dist)
 
       console.log(chalk.green(`Packaging ${fileName}`))
 

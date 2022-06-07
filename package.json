@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu",
-  "version": "0.1.10",
+  "version": "1.0.0",
   "description": "Botpress NLU; Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
@@ -12,7 +12,8 @@
   "pkg": {
     "scripts": [
       "./packages/nlu-cli/dist/**/*.js",
-      "node_modules/@botpress/*/dist/**/*.js"
+      "node_modules/@botpress/*/dist/**/*.js",
+      "node_modules/pg-format/lib/*.js"
     ],
     "assets": [
       "node_modules/@botpress/node-*/**/*.node",
@@ -23,7 +24,7 @@
   "scripts": {
     "postinstall": "yarn cmd config",
     "cmd": "yarn run gulp",
-    "dev": "yarn workspace @botpress/nlu-cli dev",
+    "dev": "cross-env tsnd --transpile-only --watch ./packages/**/*.ts ./packages/nlu-cli/src/index.ts",
     "start": "cross-env node ./packages/nlu-cli/dist/index.js",
     "build": "tsc --build",
     "postbuild": "yarn workspace @botpress/nlu-server postbuild",
@@ -41,7 +42,10 @@
     "gulp-cli": "^2.0.1",
     "pkg": "^4.5.1",
     "prepend-file": "^2.0.0",
-    "semver": "^7.3.5"
+    "semver": "^7.3.5",
+    "ts-node": "10.4.0",
+    "ts-node-dev": "^1.1.6",
+    "yargs": "^17.2.1"
   },
   "private": true,
   "workspaces": [

@@ -29,12 +29,12 @@ export const patchKnex = (knex: Knex): KnexExtended => {
   }
 
   const createTableIfNotExists = async (tableName: string, cb: Knex.KnexCallback): Promise<boolean> => {
-    return knex.schema.hasTable(tableName).then((exists) => {
-      if (exists) {
-        return false
-      }
-      return knex.schema.createTable(tableName, cb).then(() => true)
-    })
+    const exists = await knex.schema.hasTable(tableName)
+    if (exists) {
+      return false
+    }
+    await knex.schema.createTable(tableName, cb)
+    return true
   }
 
   // only works for single insert because of SQLite

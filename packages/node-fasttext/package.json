@@ -1,15 +1,15 @@
 {
   "name": "@botpress/node-fasttext",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Nodejs binding for Fasttext representation and classification",
   "main": "./dist/index.js",
-  "types": "typings.d.ts",
+  "types": "./src/typings.d.ts",
   "engines": {
     "node": ">=8.0.0"
   },
   "scripts": {
     "install": ":",
-    "build-native": "node-gyp install && node-gyp rebuild",
+    "build:native": "node-gyp install && node-gyp rebuild",
     "build": "tsc --build",
     "test": "echo \"no tests\""
   },
@@ -27,6 +27,11 @@
     "url": "https://github.com/botpress/nlu/issues"
   },
   "homepage": "https://github.com/botpress/nlu/packages/node-fasttext#readme",
+  "dependencies": {
+    "getos": "^3.2.1",
+    "lock": "1.1.0",
+    "yn": "^4.0.0"
+  },
   "devDependencies": {
     "@types/node": "^12.13.0",
     "node-addon-api": "^3.0.0",
@@ -34,7 +39,7 @@
     "typescript": "^3.9.10"
   },
   "files": [
-    "src",
+    "cppsrc",
     "fastText/src",
     "index.js",
     "index.d.ts",

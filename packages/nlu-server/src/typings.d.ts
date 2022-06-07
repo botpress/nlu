@@ -6,7 +6,6 @@ interface BuildInfo {
 interface Options {
   host: string
   port: number
-  authToken?: string
   limitWindow: string
   limit: number
   bodySize: string
@@ -22,6 +21,7 @@ interface Options {
   ducklingURL: string
   ducklingEnabled: boolean
   config?: string
+  maxTraining: number
 }
 
 export const version: string

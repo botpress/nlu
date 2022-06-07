@@ -43,25 +43,14 @@ export const TrainInputSchema = Joi.object().keys({
   intents: Joi.array().items(IntentSchema).required().min(0),
   contexts: Joi.array().items(Joi.string()).required().min(0),
   entities: Joi.array().items(EntitySchema).optional().default([]),
-  appSecret: Joi.string().allow('').optional().default(''),
-  appId: Joi.string().allow('').optional().default(''),
   seed: Joi.number().optional()
 })
 
-export const CredentialsSchema = Joi.object().keys({
-  appSecret: Joi.string().allow('').optional().default(''),
-  appId: Joi.string().allow('').optional().default('')
-})
-
 export const PredictInputSchema = Joi.object().keys({
-  appSecret: Joi.string().allow('').optional().default(''),
-  appId: Joi.string().allow('').optional().default(''),
   utterances: Joi.array().items(Joi.string()).required().min(1)
 })
 
 export const DetectLangInputSchema = Joi.object().keys({
-  appSecret: Joi.string().allow('').optional().default(''),
-  appId: Joi.string().allow('').optional().default(''),
   utterances: Joi.array().items(Joi.string()).required().min(1),
   models: Joi.array().items(Joi.string()).optional().default([])
 })

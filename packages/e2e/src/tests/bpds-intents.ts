@@ -32,7 +32,7 @@ export default function (bitfan) {
 
     computePerformance: async () => {
       const makeProblem = problemMaker(bitfan)
-      const problems = [
+      let problems = [
         await makeProblem('bpsd A-en', 'en', 'A-train', 'A-test'),
         await makeProblem('bpds A imbalanced-en', 'en', 'A-imbalanced-train', 'A-test'),
         await makeProblem('bpds A fewshot-en', 'en', 'A-fewshot-train', 'A-test'),
@@ -41,6 +41,11 @@ export default function (bitfan) {
         await makeProblem('bpds A imbalanced-fr', 'fr', 'A-imbalanced-train', 'A-test'),
         await makeProblem('bpds A fewshot-fr', 'fr', 'A-fewshot-train', 'A-test')
       ]
+
+      const usedLang = process.env.BITFAN_LANG
+      if (usedLang) {
+        problems = problems.filter((p) => p.lang === usedLang)
+      }
 
       const nluServerEndpoint = process.env.NLU_SERVER_ENDPOINT ?? 'http://localhost:3200'
       const password = '123456'

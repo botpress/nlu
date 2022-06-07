@@ -75,7 +75,7 @@ export type EntityDefinition = ListEntityDefinition | PatternEntityDefinition
  */
 export type TrainingStatus = 'done' | 'training-pending' | 'training' | 'canceled' | 'errored'
 
-export type TrainingErrorType = 'already-started' | 'unknown'
+export type TrainingErrorType = 'zombie-training' | 'unknown'
 
 export interface TrainingError {
   type: TrainingErrorType
@@ -83,10 +83,14 @@ export interface TrainingError {
   stackTrace?: string
 }
 
-export interface TrainingProgress {
+export interface TrainingState {
   status: TrainingStatus
   progress: number
   error?: TrainingError
+}
+
+export interface Training extends TrainingState {
+  modelId: string
 }
 
 /**

@@ -20,10 +20,6 @@ import { ObjectCache } from './memory-cache'
 import { createArchive, filterByGlobs, forceForwardSlashes, sanitize } from './misc'
 import { DirectoryListingOptions, ListenHandle, UpsertOptions } from './typings'
 
-export const BOTID_REGEX = /^[A-Z0-9]+[A-Z0-9_-]{1,}[A-Z0-9]+$/i
-
-export const isValidBotId = (botId: string): boolean => BOTID_REGEX.test(botId)
-
 export interface BpfsScopedChange {
   // An undefined bot ID = global
   botId: string | undefined
@@ -71,6 +67,10 @@ export class GhostService {
   async initialize(useDbDriver: boolean, ignoreSync?: boolean) {
     this.useDbDriver = useDbDriver
     this._scopedGhosts.clear()
+
+    if (useDbDriver) {
+      await this.dbDriver.initialize()
+    }
 
     const global = await this.global().directoryListing('/')
 
@@ -265,10 +265,6 @@ export class GhostService {
   }
 
   forBot(botId: string): ScopedGhostService {
-    if (!isValidBotId(botId)) {
-      throw new Error(`Invalid botId "${botId}"`)
-    }
-
     if (this._scopedGhosts.has(botId)) {
       return this._scopedGhosts.get(botId)!
     }

@@ -1,28 +1,21 @@
 {
   "name": "@botpress/nlu-cli",
-  "version": "0.1.10",
+  "version": "1.0.0",
   "description": "CLI/entry-point to both nlu server or language-server",
   "main": "./dist/index.js",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "bin": "./dist/index.js",
-  "pkg": {
-    "scripts": "./dist/**/*.js",
-    "targets": [
-      "node12-macos-x64",
-      "node12-linux-x64",
-      "node12-win-x64"
-    ],
-    "outputPath": "../dist"
-  },
   "dependencies": {
     "@botpress/lang-server": "*",
     "@botpress/logger": "*",
     "@botpress/nlu-server": "*",
+    "wtfnode": "^0.9.1",
     "yargs": "^17.2.1"
   },
   "devDependencies": {
     "@types/node": "^12.13.0",
+    "@types/wtfnode": "^0.7.0",
     "@types/yargs": "^17.0.4",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
@@ -35,11 +28,9 @@
     "pkg": "^4.3.7",
     "prettier": "^2.2.1",
     "ts-jest": "^26.5.5",
-    "ts-node-dev": "^1.1.6",
     "typescript": "^3.9.10"
   },
   "scripts": {
-    "dev": "cross-env ts-node-dev ./src/index.ts",
     "build": "tsc --build",
     "start": "cross-env node ./dist/index.js",
     "test": "echo \"no tests\""

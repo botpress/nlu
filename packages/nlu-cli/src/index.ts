@@ -1,10 +1,9 @@
+import './rewire'
 import { run as runLanguageServer, download as downloadLang, version as langServerVersion } from '@botpress/lang-server'
 import { makeLogger, LoggerLevel } from '@botpress/logger'
 import { run as runNLUServer, version as nluServerVersion } from '@botpress/nlu-server'
 import yargs from 'yargs'
 import yn from 'yn'
-
-import { getAppDataPath } from './app-data'
 
 void yargs
   .version(false)
@@ -36,10 +35,6 @@ void yargs
       },
       modelDir: {
         description: 'Directory where to persist models, ignored if dbURL is set.',
-        default: getAppDataPath()
-      },
-      authToken: {
-        description: 'When enabled, this token is required for clients to query your nlu server',
         type: 'string'
       },
       limit: {
@@ -55,7 +50,7 @@ void yargs
         default: 'https://lang-01.botpress.io'
       },
       languageAuthToken: {
-        description: 'Authentification token for your language server',
+        description: 'Authentication token for your language server',
         type: 'string'
       },
       apmEnabled: {
@@ -104,6 +99,11 @@ void yargs
           'Filter logs by namespace, ex: "--log-filter training:svm api". Namespaces are space separated. Does not apply to "Launcher" logger.',
         array: true,
         type: 'string'
+      },
+      maxTraining: {
+        description: 'The max allowed amount of simultaneous trainings on a single instance',
+        default: 2,
+        type: 'number'
       }
     },
     (argv) => {
@@ -115,6 +115,7 @@ void yargs
 
       void runNLUServer(argv).catch((err) => {
         baseLogger.sub('Exit').attachError(err).critical('NLU Server exits after an error occured.')
+        process.exit(1)
       })
     }
   )
@@ -178,7 +179,7 @@ void yargs
         type: 'string'
       }
     },
-    async (argv) => {
+    (argv) => {
       const baseLogger = makeLogger({ prefix: 'LANG' })
       if (argv.version) {
         baseLogger.sub('Version').info(langServerVersion)
@@ -187,6 +188,7 @@ void yargs
 
       void runLanguageServer(argv).catch((err) => {
         baseLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occured.')
+        process.exit(1)
       })
     }
   )
@@ -217,15 +219,12 @@ void yargs
         demandOption: true
       }
     },
-    async (argv) => {
-      void downloadLang(argv)
-        .then(() => {
-          process.exit(0)
-        })
-        .catch((err) => {
-          const baseLogger = makeLogger({ prefix: 'LANG' })
-          baseLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occured.')
-        })
+    (argv) => {
+      void downloadLang(argv).catch((err) => {
+        const baseLogger = makeLogger({ prefix: 'LANG' })
+        baseLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occured.')
+        process.exit(1)
+      })
     }
   )
   .help().argv

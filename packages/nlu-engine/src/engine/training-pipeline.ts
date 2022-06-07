@@ -3,7 +3,10 @@ import _ from 'lodash'
 import { MLToolkit } from '../ml/typings'
 import { Logger } from '../typings'
 
+import { watchDog } from '../utils/watch-dog'
+
 import { serializeKmeans } from './clustering'
+import { CustomEntityExtractor } from './entities/custom-extractor'
 import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/multi-thread-extractor'
 import { warmEntityCache } from './entities/entity-cache-manager'
 import { getCtxFeatures } from './intents/context-featurizer'
@@ -41,6 +44,7 @@ export type TrainInput = Readonly<{
   contexts: string[]
   intents: Intent<string>[]
   ctxToTrain: string[]
+  minProgressHeartbeat: number
 }>
 
 export type TrainStep = Readonly<{
@@ -285,7 +289,10 @@ async function ExtractEntities(input: TrainStep, tools: Tools, progress: progres
   tools.logger?.debug('Extracting list entities')
 
   step = 1
-  const customEntityExtractor = new MultiThreadCustomEntityExtractor(tools.logger)
+  const customEntityExtractor = process.env.TS_NODE_DEV
+    ? new CustomEntityExtractor() // worker_threads do not work with ts-node
+    : new MultiThreadCustomEntityExtractor(tools.logger)
+
   const allListEntities = await customEntityExtractor.extractMultipleListEntities(
     utterances,
     input.list_entities,
@@ -379,7 +386,7 @@ const makeLogger = (trainId: string, logger: Logger) => {
 
     // awaiting if not responsibility of this logger decorator
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    ret.then(() => logger.debug(taskDone(trainId, fn.name)))
+    ret.then(() => logger.debug(taskDone(trainId, fn.name))).catch((_err) => {})
 
     return ret
   }
@@ -391,6 +398,11 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
   let totalProgress = 0
   let normalizedProgress = 0
 
+  const progressWatchDog = watchDog(async () => {
+    const rounded = _.round(normalizedProgress, 2)
+    progress(rounded)
+  }, input.minProgressHeartbeat)
+
   const reportProgress: progressCB = (stepProgress = 1) => {
     totalProgress = Math.max(totalProgress, Math.floor(totalProgress) + stepProgress)
     const scaledProgress = Math.min(1, totalProgress / NB_STEPS)
@@ -398,9 +410,7 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
       return
     }
     normalizedProgress = scaledProgress
-
-    const rounded = _.round(normalizedProgress, 2)
-    progress(rounded)
+    progressWatchDog.run()
   }
   const logger = makeLogger(input.trainId, tools.logger)
 
@@ -417,6 +427,7 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
     logger(TrainIntentClassifiers)(step, tools, reportProgress),
     logger(TrainSlotTaggers)(step, tools, reportProgress)
   ])
+  progressWatchDog.stop()
 
   const [ctx_model, intent_model_by_ctx, slots_model_by_intent] = models
 

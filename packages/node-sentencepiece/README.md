@@ -9,7 +9,6 @@ Nodejs binding for sentencepiece tokenization.
 **Prerequisites**: Yarn, node and cmake  
 note : windows users also need [Build Tools for Visual Studio package](https://visualstudio.microsoft.com/fr/downloads/?rr=https%3A%2F%2Fwww.google.com%2F)
 
-1. clone the repo using the `--recursive` arg to fetch [google/sentencepiece](https://github.com/google/sentencepiece) submodule
 1. Run `yarn` to fetch node packages.
 1. Run `yarn build` to build google/sentencepiece and the node binding
 1. step outside the directory:  

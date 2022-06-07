@@ -95,19 +95,19 @@
       "metric": "avgScore:slotsAre",
       "problem": "bpds slot G",
       "seed": 42,
-      "score": 0.4444444444444444
+      "score": 0.5555555555555556
     },
     {
       "metric": "avgScore:slotIncludes",
       "problem": "bpds slot G",
       "seed": 42,
-      "score": 0.5
+      "score": 0.5555555555555556
     },
     {
       "metric": "avgScore:slotCountIs",
       "problem": "bpds slot G",
       "seed": 42,
-      "score": 0.6666666666666666
+      "score": 0.7777777777777778
     },
     {
       "metric": "avgScore:slotsAre",

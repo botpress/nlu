@@ -1,9 +1,9 @@
 {
   "name": "@botpress/node-sentencepiece",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "nodejs addon for sentencepiece",
   "main": "./dist/index.js",
-  "types": "typings.d.ts",
+  "types": "./src/typings.d.ts",
   "author": "Botpress, Inc.",
   "license": "MIT",
   "gypfile": true,
@@ -11,11 +11,16 @@
     "build": "tsc --build",
     "install": ":",
     "clean": "node-gyp clean",
-    "build-native": "run-script-os",
-    "build-native:linux": "./scripts/linux_build_sentencepiece.sh && node-gyp rebuild",
-    "build-native:darwin": "./scripts/macos_build_sentencepiece.sh && node-gyp rebuild",
-    "build-native:win32": "(.\\scripts\\win_build_sentencepiece.bat || true) && node-gyp rebuild",
+    "build:native": "run-script-os",
+    "build:native:linux": "./scripts/linux_build_sentencepiece.sh && node-gyp rebuild",
+    "build:native:darwin": "./scripts/macos_build_sentencepiece.sh && node-gyp rebuild",
+    "build:native:win32": "(.\\scripts\\win_build_sentencepiece.bat || true) && node-gyp rebuild",
     "test": "echo \"no tests\""
+  },
+  "dependencies": {
+    "getos": "^3.2.1",
+    "yn": "^4.0.0",
+    "lock": "1.1.0"
   },
   "devDependencies": {
     "node-gyp": "^4.0.0",

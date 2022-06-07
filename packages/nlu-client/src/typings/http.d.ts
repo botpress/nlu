@@ -4,14 +4,18 @@
  * ############
  */
 
-import { TrainingProgress, PredictOutput, IntentDefinition, EntityDefinition, Specifications, Health } from './sdk'
+import {
+  TrainingState,
+  PredictOutput,
+  IntentDefinition,
+  EntityDefinition,
+  Specifications,
+  Health,
+  ServerInfo,
+  Training
+} from './sdk'
 
-export interface Credentials {
-  appId: string
-  appSecret: string
-}
-
-export interface TrainRequestBody extends Credentials {
+export interface TrainRequestBody {
   language: string
   contexts: string[]
   intents: IntentDefinition[]
@@ -19,7 +23,7 @@ export interface TrainRequestBody extends Credentials {
   seed?: number
 }
 
-export interface PredictRequestBody extends Credentials {
+export interface PredictRequestBody {
   utterances: string[]
 }
 
@@ -45,7 +49,11 @@ export interface TrainResponseBody extends SuccessReponse {
 }
 
 export interface TrainProgressResponseBody extends SuccessReponse {
-  session: TrainingProgress
+  session: TrainingState
+}
+
+export interface ListTrainingsResponseBody extends SuccessReponse {
+  trainings: Training[]
 }
 
 export interface ListModelsResponseBody extends SuccessReponse {

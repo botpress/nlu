@@ -2,6 +2,7 @@ import Bluebird from 'bluebird'
 import bytes from 'bytes'
 import _ from 'lodash'
 import LRUCache from 'lru-cache'
+import ms from 'ms'
 import sizeof from 'object-sizeof'
 import { PredictOutput, TrainInput } from 'src/typings'
 
@@ -40,7 +41,8 @@ const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
 
 const DEFAULT_TRAINING_OPTIONS: TrainingOptions = {
   progressCallback: () => {},
-  previousModel: undefined
+  previousModel: undefined,
+  minProgressHeartbeat: ms('10s')
 }
 
 interface EngineOptions {
@@ -111,7 +113,7 @@ export default class Engine implements IEngine {
       this._logger.warning('Either the nlu version or the lang server version is not set correctly.')
     }
 
-    this._trainingWorkerQueue = new TrainingProcessPool(this._logger, config)
+    this._trainingWorkerQueue = new TrainingProcessPool(this._trainLogger, config)
   }
 
   public hasModel(modelId: ModelId) {
@@ -125,7 +127,7 @@ export default class Engine implements IEngine {
 
     const options = { ...DEFAULT_TRAINING_OPTIONS, ...opt }
 
-    const { previousModel: previousModelId, progressCallback } = options
+    const { previousModel: previousModelId, progressCallback, minProgressHeartbeat } = options
     const previousModel = previousModelId && this.modelsById.get(modelIdService.toString(previousModelId))
 
     const list_entities = entities.filter(isListEntity).map((e) => {
@@ -186,7 +188,8 @@ export default class Engine implements IEngine {
       pattern_entities,
       contexts,
       intents: pipelineIntents,
-      ctxToTrain
+      ctxToTrain,
+      minProgressHeartbeat
     }
 
     const startedAt = new Date()

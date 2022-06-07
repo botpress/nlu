@@ -13,28 +13,15 @@ import ms from 'ms'
 import { Application } from '../application'
 import { InvalidRequestFormatError } from './errors'
 
-import { authMiddleware, handleError } from './http'
-import {
-  validateCredentialsFormat,
-  validatePredictInput,
-  validateTrainInput,
-  validateDetectLangInput
-} from './validation/validate'
-
-export interface APIOptions {
+import { handleError, getAppId } from './http'
+import { validatePredictInput, validateTrainInput, validateDetectLangInput } from './validation/validate'
+interface APIOptions {
   host: string
   port: number
-  authToken?: string
   limitWindow: string
   limit: number
   bodySize: string
   batchSize: number
-  modelCacheSize: string
-  dbURL?: string
-  modelDir?: string
-  verbose: number
-  doc: boolean
-  logFilter?: string[]
   apmEnabled?: boolean
   apmSampleRate?: number
 }
@@ -65,7 +52,7 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
   expressApp.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress NLU')
-    requestLogger.debug(`incoming ${req.path}`, { ip: req.ip })
+    requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
     next()
   })
 
@@ -89,13 +76,17 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
     )
   }
 
-  if (options.authToken?.length) {
-    expressApp.use(authMiddleware(options.authToken, baseLogger))
-  }
-
   const router = express.Router({ mergeParams: true })
 
   expressApp.use(['/v1', '/'], router)
+
+  router.get('/', async (req, res, next) => {
+    try {
+      return res.redirect('/info')
+    } catch (err) {
+      return handleError(err as Error, req, res, next)
+    }
+  })
 
   router.get('/info', async (req, res, next) => {
     try {
@@ -103,38 +94,39 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       const resp: http.InfoResponseBody = { success: true, info }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
   router.get('/models', async (req, res, next) => {
     try {
-      const { appSecret, appId } = await validateCredentialsFormat(req.query)
-      const modelIds = await app.getModels({ appSecret, appId })
+      const appId = getAppId(req)
+      const modelIds = await app.getModels(appId)
       const stringIds = modelIds.map(modelIdService.toString)
       const resp: http.ListModelsResponseBody = { success: true, models: stringIds }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
   router.post('/models/prune', async (req, res, next) => {
     try {
-      const { appSecret, appId } = await validateCredentialsFormat(req.body)
-      const modelIds = await app.pruneModels({ appSecret, appId })
+      const appId = getAppId(req)
+      const modelIds = await app.pruneModels(appId)
       const stringIds = modelIds.map(modelIdService.toString)
       const resp: http.PruneModelsResponseBody = { success: true, models: stringIds }
       return res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
   router.post('/train', async (req, res, next) => {
     try {
+      const appId = getAppId(req)
       const input = await validateTrainInput(req.body)
-      const { intents, entities, seed, language, appSecret, appId } = input
+      const { intents, entities, seed, language } = input
 
       const pickedSeed = seed ?? Math.round(Math.random() * 10000)
 
@@ -145,51 +137,77 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         seed: pickedSeed
       }
 
-      const modelId = app.startTraining(trainInput, { appId, appSecret })
+      const modelId = await app.startTraining(appId, trainInput)
 
       const resp: http.TrainResponseBody = { success: true, modelId: NLUEngine.modelIdService.toString(modelId) }
       return res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
+    }
+  })
+
+  router.get('/train', async (req, res, next) => {
+    try {
+      const appId = getAppId(req)
+      const { lang } = req.query
+      if (lang && !_.isString(lang)) {
+        throw new InvalidRequestFormatError(`query parameter lang: "${lang}" has invalid format`)
+      }
+
+      const trainings = await app.getAllTrainings(appId, lang)
+      const serialized = trainings.map(({ modelId, ...state }) => ({
+        modelId: modelIdService.toString(modelId),
+        ...state
+      }))
+
+      const resp: http.ListTrainingsResponseBody = { success: true, trainings: serialized }
+      res.send(resp)
+    } catch (err) {
+      return handleError(err as Error, req, res, next)
     }
   })
 
   router.get('/train/:modelId', async (req, res, next) => {
     try {
+      const appId = getAppId(req)
       const { modelId: stringId } = req.params
       if (!_.isString(stringId) || !NLUEngine.modelIdService.isId(stringId)) {
         throw new InvalidRequestFormatError(`model id "${stringId}" has invalid format`)
       }
 
-      const { appSecret, appId } = await validateCredentialsFormat(req.query)
-
       const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const session = await app.getTrainingState(modelId, { appId, appSecret })
+      const session = await app.getTrainingState(appId, modelId)
 
       const resp: http.TrainProgressResponseBody = { success: true, session }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
   router.post('/train/:modelId/cancel', async (req, res, next) => {
     try {
+      const appId = getAppId(req)
+
       const { modelId: stringId } = req.params
-      const { appSecret, appId } = await validateCredentialsFormat(req.body)
 
       const modelId = NLUEngine.modelIdService.fromString(stringId)
 
-      await app.cancelTraining(modelId, { appId, appSecret })
+      await app.cancelTraining(appId, modelId)
+
+      const resp: http.SuccessReponse = { success: true }
+      return res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
   router.post('/predict/:modelId', async (req, res, next) => {
     try {
+      const appId = getAppId(req)
+
       const { modelId: stringId } = req.params
-      const { utterances, appId, appSecret } = await validatePredictInput(req.body)
+      const { utterances } = await validatePredictInput(req.body)
 
       if (!_.isArray(utterances) || (options.batchSize > 0 && utterances.length > options.batchSize)) {
         throw new InvalidRequestFormatError(
@@ -198,18 +216,20 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
       }
 
       const modelId = NLUEngine.modelIdService.fromString(stringId)
-      const predictions = await app.predict(utterances, modelId, { appId, appSecret })
+      const predictions = await app.predict(appId, modelId, utterances)
 
       const resp: http.PredictResponseBody = { success: true, predictions }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 
   router.post('/detect-lang', async (req, res, next) => {
     try {
-      const { utterances, appId, appSecret, models } = await validateDetectLangInput(req.body)
+      const appId = getAppId(req)
+
+      const { utterances, models } = await validateDetectLangInput(req.body)
 
       const invalidIds = models.filter(_.negate(modelIdService.isId))
       if (invalidIds.length) {
@@ -223,12 +243,12 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
         return res.status(400).send({ success: false, error })
       }
 
-      const detectedLanguages = await app.detectLanguage(utterances, modelIds, { appId, appSecret })
+      const detectedLanguages = await app.detectLanguage(appId, modelIds, utterances)
 
       const resp: http.DetectLangResponseBody = { success: true, detectedLanguages }
       res.send(resp)
     } catch (err) {
-      return handleError(err, req, res, next)
+      return handleError(err as Error, req, res, next)
     }
   })
 

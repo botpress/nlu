@@ -24,8 +24,7 @@ export default function (bitfan: typeof _bitfan) {
 
     computePerformance: async () => {
       const nluServerEndpoint = process.env.NLU_SERVER_ENDPOINT ?? 'http://localhost:3200'
-      const password = '123456'
-      const engine = bitfan.engines.makeBpSpellEngine(nluServerEndpoint, password)
+      const engine = bitfan.engines.makeBpSpellEngine(nluServerEndpoint)
 
       const trainFileDef: DocumentDef = {
         name: 'A-train',
