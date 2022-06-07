@@ -20,6 +20,8 @@ export type LangServerOptions = {
   logLevel: LogLevel
   logFormat: LogFormat
   debugFilter?: string
+  prometheusEnabled: boolean
+  apmEnabled: boolean
 } & CommonOptions
 
 export type DownloadOptions = {

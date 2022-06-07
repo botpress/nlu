@@ -19,6 +19,8 @@ const DEFAULT_SERVER_OPTIONS = (): LangServerOptions => ({
   offline: false,
   dim: 100,
   domain: 'bp',
+  apmEnabled: false,
+  prometheusEnabled: false,
   logLevel: 'info',
   debugFilter: undefined,
   logFormat: 'text'

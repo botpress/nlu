@@ -1,13 +1,13 @@
 import { FormattedLogEntry, LogEntry, LogEntryFormatter, LoggerConfig } from '../typings'
 
 export class JSONFormatter implements LogEntryFormatter {
-  constructor() {}
+  constructor() { }
   public format(config: LoggerConfig, entry: LogEntry): FormattedLogEntry {
     const { prefix } = config
     const { namespace, level, type, message, stack, metadata } = entry
     return {
       ...entry,
-      formatted: JSON.stringify({ prefix, namespace, level, type, message, stack, metadata })
+      formatted: JSON.stringify({ ...metadata, prefix, namespace, level, type, message, stack })
     }
   }
 }

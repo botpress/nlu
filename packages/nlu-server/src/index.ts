@@ -1,3 +1,6 @@
+import { trace } from '@botpress/telemetry'
+trace.init()
+
 import { Logger, JSONFormatter, TextFormatter } from '@botpress/logger'
 import { createServer } from 'http'
 import _ from 'lodash'

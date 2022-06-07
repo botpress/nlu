@@ -1,4 +1,7 @@
-import { centerText, Logger, TextFormatter, JSONFormatter, LogLevel } from '@botpress/logger'
+import { trace } from '@botpress/telemetry'
+trace.init()
+
+import { centerText, Logger, TextFormatter, JSONFormatter } from '@botpress/logger'
 import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
 import chalk from 'chalk'
 import _ from 'lodash'
@@ -74,6 +77,8 @@ export const run: typeof types.run = async (argv: types.LangArgv) => {
     authToken: options.authToken,
     limit: options.limit,
     limitWindow: options.limitWindow,
+    prometheusEnabled: options.prometheusEnabled,
+    apmEnabled: options.apmEnabled,
     adminToken: options.adminToken || ''
   }
 
@@ -98,8 +103,7 @@ ${_.repeat(' ', 9)}========================================`)
 
   if (options.limit) {
     launcherLogger.info(
-      `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${
-        options.limitWindow
+      `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${options.limitWindow
       } timeframe `
     )
   } else {
