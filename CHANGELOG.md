@@ -1,3 +1,64 @@
+# [1.0.0](https://github.com/botpress/nlu/compare/v0.1.10...v1.0.0) (2022-06-07)
+
+
+### Bug Fixes
+
+* dockerfile now reference correct path ([#203](https://github.com/botpress/nlu/issues/203)) ([dcd94e8](https://github.com/botpress/nlu/commit/dcd94e807d93641430ff5e1b5c2a51b347008eb1))
+
+
+
+# [1.0.0-rc.5](https://github.com/botpress/nlu/compare/v1.0.0-rc.4...v1.0.0-rc.5) (2022-01-27)
+
+
+### Bug Fixes
+
+* **docker:** fix docker entrypoint execution ([#128](https://github.com/botpress/nlu/issues/128)) ([31ae0e0](https://github.com/botpress/nlu/commit/31ae0e045bea6c5493150893c36aed8c7fd7e6a2))
+* **nlu-server:** fix usage of postgres database ([a2209f7](https://github.com/botpress/nlu/commit/a2209f784f335c2243624354b8111d93125c9123))
+* **node-bindings:** rhel bindings are used on rhel ([#141](https://github.com/botpress/nlu/issues/141)) ([35c8601](https://github.com/botpress/nlu/commit/35c86011c8a9d4c5465dcb78ee9a152585c1639d))
+* wrong merge of master in next ([#122](https://github.com/botpress/nlu/issues/122)) ([9cb3a5d](https://github.com/botpress/nlu/commit/9cb3a5dbc314d62374b38a5d2f0ea2897739f18a))
+
+
+### Features
+
+* **nlu-server:** nlu-server won't serve models of invalid spec ([#130](https://github.com/botpress/nlu/issues/130)) ([16fdf10](https://github.com/botpress/nlu/commit/16fdf10c8c77c7a418613e3dc797d59997506028))
+
+
+
+# [1.0.0-rc.3](https://github.com/botpress/nlu/compare/v0.1.9...v1.0.0-rc.3) (2021-10-29)
+
+
+### Bug Fixes
+
+* **nlu-cli:** upgrade version of nlu-cli ([272638b](https://github.com/botpress/nlu/commit/272638be57eae78154f100ff1e1e27afc6f8307f))
+* **nlu-server:** fix unit tests by initializing app once ([85469f7](https://github.com/botpress/nlu/commit/85469f71e5930537eafcfacd83da7719760cc674))
+* **nlu-server:** no maximum size for trainset in database ([#99](https://github.com/botpress/nlu/issues/99)) ([6d7bb32](https://github.com/botpress/nlu/commit/6d7bb3286935c4507b047b528f09dc8314349055))
+* **nlu-server:** rm consecutive dots in model files extensions ([#95](https://github.com/botpress/nlu/issues/95)) ([1a96d13](https://github.com/botpress/nlu/commit/1a96d13e05e7640bf945228de1652d362c3a3630))
+
+
+### Features
+
+* **nlu-client:** make nlu-client configurable with an axios config ([#104](https://github.com/botpress/nlu/issues/104)) ([4562304](https://github.com/botpress/nlu/commit/456230450f4ca7f42ebb7f6d5841545db22dbc88))
+* **nlu-server:** add a route to list all trainings of an app ([#96](https://github.com/botpress/nlu/issues/96)) ([505fe1d](https://github.com/botpress/nlu/commit/505fe1d2e8179a4180993eae16276ea96fbe6ad8))
+* **nlu-server:** calling training twice with same payload results in HTTP 409; training already started ([#97](https://github.com/botpress/nlu/issues/97)) ([f1e4a08](https://github.com/botpress/nlu/commit/f1e4a08e6ea87820cc64700de666606b117e1578))
+
+
+
+# [1.0.0-rc.2](https://github.com/botpress/nlu/compare/v1.0.0-rc.1...v1.0.0-rc.2) (2021-09-01)
+
+
+### Bug Fixes
+
+* **nlu-engine:** training reports progress at least every 10 seconds ([#85](https://github.com/botpress/nlu/issues/85)) ([ae0de7e](https://github.com/botpress/nlu/commit/ae0de7ee45c730e42b4b17c4839a0d5dd9aa9e65))
+* **pkg:** packaging problem with a pg-pubsub dependency ([b5a6dfb](https://github.com/botpress/nlu/commit/b5a6dfbe96cdd5202996570213fafa2690b300e5))
+
+
+### Features
+
+* **nlu-server:** distributed training queue to scale training nlu horizontally ([#72](https://github.com/botpress/nlu/issues/72)) ([98e0920](https://github.com/botpress/nlu/commit/98e09208b8c93d8b7172ca077cb521884b027e92)), closes [#75](https://github.com/botpress/nlu/issues/75)
+* **nlu-server:** remove authorization and replace credentials by an app-id header ([#79](https://github.com/botpress/nlu/issues/79)) ([09fc610](https://github.com/botpress/nlu/commit/09fc610a32b76a1b72a5b99fd9cc17dd01b513dc))
+
+
+
 ## [0.1.10](https://github.com/botpress/nlu/compare/v1.0.0-rc.4...v0.1.10) (2022-03-23)
 
 

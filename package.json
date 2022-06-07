@@ -1,6 +1,6 @@
 {
   "name": "@botpress/nlu",
-  "version": "1.0.0-rc.6",
+  "version": "1.0.0",
   "description": "Botpress NLU; Contains all of Botpress NLU related code.",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
@@ -43,8 +43,8 @@
     "pkg": "^4.5.1",
     "prepend-file": "^2.0.0",
     "semver": "^7.3.5",
-    "ts-node-dev": "^1.1.6",
     "ts-node": "10.4.0",
+    "ts-node-dev": "^1.1.6",
     "yargs": "^17.2.1"
   },
   "private": true,
