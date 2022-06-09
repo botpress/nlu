@@ -3,9 +3,9 @@ import { TrainingErrorType } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import { ModelRepository, TrainingId } from '../../infrastructure'
+import { serializeModel } from '../serialize-model'
 import { idToString, MIN_TRAINING_HEARTBEAT } from '.'
 import { TerminatedTrainTask, TrainTask, TrainTaskProgress, TrainTaskRunner } from './typings'
-import { serializeModel } from '../serialize-model'
 
 const MAX_MODEL_PER_USER_PER_LANG = 1
 

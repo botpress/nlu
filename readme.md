@@ -26,6 +26,23 @@ Check out each individual packages for more details.
 
 New executable binary files are packaged at every release. You can download those directly on release page located [here](https://github.com/botpress/nlu/releases).
 
+## Telemetry
+
+### Metrics (Prometheus)
+
+A Prometheus endpoint can be configured to expose NLU specific metrics. By setting the `PROMETHEUS_ENABLED` environment variables to `true`, the port `9090` will expose prometheus metrics.
+
+### Tracing (Jaeger)
+
+A [Jaeger](https://www.jaegertracing.io/) client can be configured using a subset of the standard Opentelemetry [environment variables](https://opentelemetry.io/docs/reference/specification/sdk-environment-variables).
+
+The important environment variables for configuring tracing are:
+
+- TRACING_ENABLED `bool` Enables the tracer
+- TRACING_DEBUG `bool` Adds debug information about the tracing configuration
+- OTEL_SERVICE_NAME `string` Sets the service name given to a trace
+- OTEL_EXPORTER_JAEGER_ENDPOINT `url` Sets the Jaeger collector endpoint
+
 ## ⚠️⚠️ Disclaimer ⚠️⚠️
 
 The NLU Server does **not** enforce authentication in any way. This means it is completely exposed to many attacks. If you plan on using the nlu-server in your local Botpress setup, makes sure it is not publicly exposed. If you plan on exposing the NLU server, make sure it his hidden behind a reverse proxy which ensures a proper authentication. This reverse proxy should:

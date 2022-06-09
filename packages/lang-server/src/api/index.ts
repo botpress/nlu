@@ -7,17 +7,17 @@ import {
   SuccessReponse
 } from '@botpress/lang-client'
 import { Logger } from '@botpress/logger'
+import { trace as bptrace, prometheus } from '@botpress/telemetry'
+import { context, trace } from '@opentelemetry/api'
+import * as Sentry from '@sentry/node'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
-import * as Sentry from '@sentry/node'
 import cors from 'cors'
 import express, { Application } from 'express'
 import rateLimit from 'express-rate-limit'
 import { createServer } from 'http'
 import _ from 'lodash'
 import ms from 'ms'
-import { trace as bptrace, prometheus } from '@botpress/telemetry'
-import { context, trace } from '@opentelemetry/api';
 
 import { LangApplication } from '../application'
 
@@ -64,11 +64,10 @@ const createExpressApp = async (options: APIOptions, baseLogger: Logger): Promis
   app.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress')
 
-
-    const metadata: { ip: string, traceId?: string } = { ip: req.ip }
+    const metadata: { ip: string; traceId?: string } = { ip: req.ip }
 
     if (bptrace.isEnabled()) {
-      const spanContext = trace.getSpanContext(context.active());
+      const spanContext = trace.getSpanContext(context.active())
 
       if (spanContext?.traceId) {
         metadata.traceId = spanContext?.traceId

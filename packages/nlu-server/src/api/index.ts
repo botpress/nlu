@@ -1,10 +1,11 @@
 import { Logger } from '@botpress/logger'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { trace as bptrace, prometheus } from '@botpress/telemetry'
+import { context, trace } from '@opentelemetry/api'
 import * as Sentry from '@sentry/node'
 import cors from 'cors'
 import express, { Application as ExpressApp } from 'express'
 import rateLimit from 'express-rate-limit'
-import { context, trace } from '@opentelemetry/api';
 
 import _ from 'lodash'
 import ms from 'ms'
@@ -12,13 +13,7 @@ import { NLUServerOptions } from '..'
 import { Application } from '../application'
 import { ModelLoadedData } from '../application/app-observer'
 import { Training } from '../infrastructure/training-repo/typings'
-import {
-  modelMemoryLoadDuration,
-  modelStorageReadDuration,
-  trainingCount,
-  trainingDuration
-} from '../telemetry/metric'
-import { trace as bptrace, prometheus } from '@botpress/telemetry'
+import { modelMemoryLoadDuration, modelStorageReadDuration, trainingCount, trainingDuration } from '../telemetry/metric'
 import { UsageClient } from '../telemetry/usage-client'
 import { createModelTransferRouter } from './routers/model-transfer'
 import { createRootRouter } from './routers/root'
@@ -109,10 +104,10 @@ export const createAPI = async (
   expressApp.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress NLU')
 
-    const metadata: { ip: string, traceId?: string } = { ip: req.ip }
+    const metadata: { ip: string; traceId?: string } = { ip: req.ip }
 
     if (bptrace.isEnabled()) {
-      const spanContext = trace.getSpanContext(context.active());
+      const spanContext = trace.getSpanContext(context.active())
 
       if (spanContext?.traceId) {
         metadata.traceId = spanContext?.traceId
