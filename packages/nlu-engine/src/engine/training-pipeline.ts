@@ -376,52 +376,56 @@ export const trainingPipeline = async (
     progress(rounded)
   }, input.minProgressHeartbeat)
 
-  const reportProgress: progressCB = (stepProgress = 1) => {
-    totalProgress = Math.max(totalProgress, Math.floor(totalProgress) + stepProgress)
-    const scaledProgress = Math.min(1, totalProgress / NB_STEPS)
-    if (scaledProgress === normalizedProgress) {
-      return
+  try {
+    const reportProgress: progressCB = (stepProgress = 1) => {
+      totalProgress = Math.max(totalProgress, Math.floor(totalProgress) + stepProgress)
+      const scaledProgress = Math.min(1, totalProgress / NB_STEPS)
+      if (scaledProgress === normalizedProgress) {
+        return
+      }
+      normalizedProgress = scaledProgress
+      progressWatchDog.run()
     }
-    normalizedProgress = scaledProgress
-    progressWatchDog.run()
+    const log = makeLogDecorator(input.trainId, tools.logger)
+
+    progress(0) // 0%
+
+    const preprocessStep = await log(preprocessInput)(input, tools)
+    const tfIdfStep = await log(tfidfTokens)(preprocessStep)
+    const clusterStep = await log(clusterTokens)(tfIdfStep, tools)
+
+    reportProgress(1) // 20%
+
+    const serialOutput = await log(extractEntities)(clusterStep, tools, reportProgress)
+
+    const models = await Promise.all([
+      log(trainContextClassifier)(serialOutput, tools, reportProgress),
+      log(trainIntentClassifiers)(serialOutput, tools, reportProgress),
+      log(trainSlotTaggers)(serialOutput, tools, reportProgress)
+    ])
+    progressWatchDog.stop()
+
+    const [ctx_model, intent_model_by_ctx, slots_model_by_intent] = models
+
+    const coldEntities: ColdListEntityModel[] = serialOutput.list_entities.map((e) => ({
+      ...e,
+      cache: e.cache.dump()
+    }))
+
+    const output: TrainOutput = {
+      list_entities: coldEntities,
+      tfidf: serialOutput.tfIdf,
+      ctx_model,
+      intent_model_by_ctx,
+      slots_model_by_intent,
+      contexts: input.contexts,
+      vocab: Object.keys(serialOutput.vocabVectors),
+      kmeans: serialOutput.kmeans && serializeKmeans(serialOutput.kmeans)
+    }
+
+    tools.logger.debug(`[${input.trainId}] Done running training pipeline.`)
+    return output
+  } finally {
+    progressWatchDog.stop()
   }
-  const log = makeLogDecorator(input.trainId, tools.logger)
-
-  progress(0) // 0%
-
-  const preprocessStep = await log(preprocessInput)(input, tools)
-  const tfIdfStep = await log(tfidfTokens)(preprocessStep)
-  const clusterStep = await log(clusterTokens)(tfIdfStep, tools)
-
-  reportProgress(1) // 20%
-
-  const serialOutput = await log(extractEntities)(clusterStep, tools, reportProgress)
-
-  const models = await Promise.all([
-    log(trainContextClassifier)(serialOutput, tools, reportProgress),
-    log(trainIntentClassifiers)(serialOutput, tools, reportProgress),
-    log(trainSlotTaggers)(serialOutput, tools, reportProgress)
-  ])
-  progressWatchDog.stop()
-
-  const [ctx_model, intent_model_by_ctx, slots_model_by_intent] = models
-
-  const coldEntities: ColdListEntityModel[] = serialOutput.list_entities.map((e) => ({
-    ...e,
-    cache: e.cache.dump()
-  }))
-
-  const output: TrainOutput = {
-    list_entities: coldEntities,
-    tfidf: serialOutput.tfIdf,
-    ctx_model,
-    intent_model_by_ctx,
-    slots_model_by_intent,
-    contexts: input.contexts,
-    vocab: Object.keys(serialOutput.vocabVectors),
-    kmeans: serialOutput.kmeans && serializeKmeans(serialOutput.kmeans)
-  }
-
-  tools.logger.debug(`[${input.trainId}] Done running training pipeline.`)
-  return output
 }
