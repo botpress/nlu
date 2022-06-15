@@ -16,7 +16,7 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
     title: 'Botpress Standalone NLU',
     version: info.version,
     buildInfo: info.buildInfo,
-    logScopeLength: 9,
+    logScopeLength: 0,
     bannerWidth: 75,
     logger: launcherLogger
   })

@@ -82,10 +82,13 @@ export const run: typeof types.run = async (argv: types.LangArgv) => {
     adminToken: options.adminToken || ''
   }
 
-  launcherLogger.info(chalk`========================================
-{bold ${centerText('Botpress Language Server', 40, 9)}}
-{dim ${centerText(`Version ${version}`, 40, 9)}}
-${_.repeat(' ', 9)}========================================`)
+  const indent = 0
+  const width = 75
+  const border = _.repeat('=', width)
+  launcherLogger.info(chalk`${border}
+{bold ${centerText('Botpress Language Server', width, indent)}}
+{dim ${centerText(`Version ${version}`, width, indent)}}
+${_.repeat(' ', indent)}${border}`)
 
   if (options.authToken?.length) {
     launcherLogger.info(`authToken: ${chalk.greenBright('enabled')} (only users with this token can query your server)`)
