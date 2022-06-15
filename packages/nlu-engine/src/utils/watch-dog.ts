@@ -1,17 +1,33 @@
-class Interval<X extends any[]> {
+class _WatchDog<X extends any[]> {
+  private _isDead = false
   private _int: number | undefined
 
   constructor(private f: Func<X, void>, private ms: number) {
-    this.reset()
+    this._reset()
   }
 
-  public reset(): void {
-    this.stop()
-    this._int = setInterval(this.f, this.ms)
+  public run(...x: X) {
+    if (this._isDead) {
+      return
+    }
+
+    this._reset()
+    return this.f(...x)
   }
 
   public stop(): void {
+    this._isDead = true
+    this._clear()
+  }
+
+  private _reset(): void {
+    this._clear()
+    this._int = setInterval(this.f, this.ms)
+  }
+
+  private _clear(): void {
     this._int && clearInterval(this._int)
+    this._int = undefined
   }
 }
 
@@ -33,19 +49,6 @@ export type WatchDog<X extends any[]> = {
  * @returns a watchdog object that can be ran or stopped
  */
 export const watchDog = <X extends any[]>(f: Func<X, void>, ms: number): WatchDog<X> => {
-  const interval = new Interval(f, ms)
-
-  const run: Func<X, void> = (...x: X): void => {
-    interval.reset()
-    return f(...x)
-  }
-
-  const stop = () => {
-    interval.stop()
-  }
-
-  return {
-    run,
-    stop
-  }
+  const dog = new _WatchDog(f, ms)
+  return dog
 }

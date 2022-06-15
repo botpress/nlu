@@ -1,3 +1,12 @@
+## [1.0.1](https://github.com/botpress/nlu/compare/v1.0.0...v1.0.1) (2022-06-15)
+
+
+### Bug Fixes
+
+* **nlu-server:** progress watch-dog fully stops when error or done ([#212](https://github.com/botpress/nlu/issues/212)) ([c4b811e](https://github.com/botpress/nlu/commit/c4b811e0a72d01564580b264cafc62e1f7adaafe))
+
+
+
 # [1.0.0](https://github.com/botpress/nlu/compare/v0.1.10...v1.0.0) (2022-06-07)
 
 
