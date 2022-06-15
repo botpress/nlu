@@ -1,4 +1,4 @@
-import { generateSchema, YargsSchema, YargsArgv } from '@botpress/yargs-extra'
+import { generateSchema, YargsSchema, YargsArgv } from '@bpinternal/yargs-extra'
 import fse from 'fs-extra'
 import { validate } from 'json-schema'
 import os from 'os'

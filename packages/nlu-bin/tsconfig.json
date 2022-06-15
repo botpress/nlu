@@ -6,9 +6,6 @@
     },
     {
       "path": "../lang-server"
-    },
-    {
-      "path": "../yargs-extra"
     }
   ],
   "compilerOptions": {
