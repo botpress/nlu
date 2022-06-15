@@ -403,50 +403,54 @@ export const Trainer = async (input: TrainInput, tools: Tools, progress: (x: num
     progress(rounded)
   }, input.minProgressHeartbeat)
 
-  const reportProgress: progressCB = (stepProgress = 1) => {
-    totalProgress = Math.max(totalProgress, Math.floor(totalProgress) + stepProgress)
-    const scaledProgress = Math.min(1, totalProgress / NB_STEPS)
-    if (scaledProgress === normalizedProgress) {
-      return
+  try {
+    const reportProgress: progressCB = (stepProgress = 1) => {
+      totalProgress = Math.max(totalProgress, Math.floor(totalProgress) + stepProgress)
+      const scaledProgress = Math.min(1, totalProgress / NB_STEPS)
+      if (scaledProgress === normalizedProgress) {
+        return
+      }
+      normalizedProgress = scaledProgress
+      progressWatchDog.run()
     }
-    normalizedProgress = scaledProgress
-    progressWatchDog.run()
+    const logger = makeLogger(input.trainId, tools.logger)
+
+    progress(0) // 0%
+
+    let step = await logger(PreprocessInput)(input, tools)
+    step = await logger(TfidfTokens)(step)
+    step = await logger(ClusterTokens)(step, tools)
+    reportProgress(1) // 20%
+
+    step = await logger(ExtractEntities)(step, tools, reportProgress)
+    const models = await Promise.all([
+      logger(TrainContextClassifier)(step, tools, reportProgress),
+      logger(TrainIntentClassifiers)(step, tools, reportProgress),
+      logger(TrainSlotTaggers)(step, tools, reportProgress)
+    ])
+    progressWatchDog.stop()
+
+    const [ctx_model, intent_model_by_ctx, slots_model_by_intent] = models
+
+    const coldEntities: ColdListEntityModel[] = step.list_entities.map((e) => ({
+      ...e,
+      cache: e.cache.dump()
+    }))
+
+    const output: TrainOutput = {
+      list_entities: coldEntities,
+      tfidf: step.tfIdf!,
+      ctx_model,
+      intent_model_by_ctx,
+      slots_model_by_intent,
+      contexts: input.contexts,
+      vocab: Object.keys(step.vocabVectors),
+      kmeans: step.kmeans && serializeKmeans(step.kmeans)
+    }
+
+    tools.logger.debug(`[${input.trainId}] Done running training pipeline.`)
+    return output
+  } finally {
+    progressWatchDog.stop()
   }
-  const logger = makeLogger(input.trainId, tools.logger)
-
-  progress(0) // 0%
-
-  let step = await logger(PreprocessInput)(input, tools)
-  step = await logger(TfidfTokens)(step)
-  step = await logger(ClusterTokens)(step, tools)
-  reportProgress(1) // 20%
-
-  step = await logger(ExtractEntities)(step, tools, reportProgress)
-  const models = await Promise.all([
-    logger(TrainContextClassifier)(step, tools, reportProgress),
-    logger(TrainIntentClassifiers)(step, tools, reportProgress),
-    logger(TrainSlotTaggers)(step, tools, reportProgress)
-  ])
-  progressWatchDog.stop()
-
-  const [ctx_model, intent_model_by_ctx, slots_model_by_intent] = models
-
-  const coldEntities: ColdListEntityModel[] = step.list_entities.map((e) => ({
-    ...e,
-    cache: e.cache.dump()
-  }))
-
-  const output: TrainOutput = {
-    list_entities: coldEntities,
-    tfidf: step.tfIdf!,
-    ctx_model,
-    intent_model_by_ctx,
-    slots_model_by_intent,
-    contexts: input.contexts,
-    vocab: Object.keys(step.vocabVectors),
-    kmeans: step.kmeans && serializeKmeans(step.kmeans)
-  }
-
-  tools.logger.debug(`[${input.trainId}] Done running training pipeline.`)
-  return output
 }
