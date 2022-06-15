@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import moment from 'moment'

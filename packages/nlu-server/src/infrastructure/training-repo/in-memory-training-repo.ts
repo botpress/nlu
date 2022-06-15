@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import { TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
 import Bluebird from 'bluebird'

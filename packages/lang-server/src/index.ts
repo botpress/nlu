@@ -1,5 +1,5 @@
-import { centerText, Logger, TextFormatter, JSONFormatter, LogLevel } from '@botpress/logger'
 import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
+import { Logger, TextFormatter, JSONFormatter } from '@bpinternal/log4bot'
 import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
@@ -31,6 +31,11 @@ const wrapLogger = (logger: Logger): EngineLogger => {
     error: (msg: string, err?: Error) => (err ? logger.attachError(err).error(msg) : logger.error(msg)),
     sub: (namespace: string) => wrapLogger(logger.sub(namespace))
   }
+}
+
+const centerText = (text: string, width: number, indent: number = 0) => {
+  const padding = Math.floor((width - text.length) / 2)
+  return _.repeat(' ', padding + indent) + text + _.repeat(' ', padding)
 }
 
 export const run: typeof types.run = async (argv: types.LangArgv) => {

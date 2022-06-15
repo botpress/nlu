@@ -1,4 +1,4 @@
-import { LogLevel } from '@botpress/logger'
+import { LogLevel } from '@bpinternal/log4bot'
 import { LogFormat } from '@botpress/nlu-server'
 import { asYargs } from '@botpress/yargs-extra'
 

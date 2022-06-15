@@ -6,7 +6,7 @@ import {
   DownloadLangResponseBody,
   SuccessReponse
 } from '@botpress/lang-client'
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'

@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import axios, { CancelTokenSource } from 'axios'
 import Bluebird from 'bluebird'
 import fse from 'fs-extra'

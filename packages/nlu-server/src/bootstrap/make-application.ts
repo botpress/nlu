@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import { Engine } from '@botpress/nlu-engine'
 import Knex from 'knex'
 import { Application } from '../application'

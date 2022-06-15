@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import { Client as NLUClient } from '@botpress/nlu-client'
 
 export type AssertionArgs = {
