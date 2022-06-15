@@ -920,11 +920,12 @@
     moment "^2.24.0"
     regex-parser "^2.2.11"
 
-"@bpinternal/yargs-extra@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@bpinternal/yargs-extra/-/yargs-extra-0.0.1.tgz#8b5724b69d5ef2d03f4398a22e4a44260729aede"
-  integrity sha512-b8XdMUUWKtpeUkKPDGp1CsrqqokQcIZmFwW27chr3A8Do2ufu48/IhisFAiL8XJM0xYw9fcFp0MyBRT+804Wdg==
+"@bpinternal/yargs-extra@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@bpinternal/yargs-extra/-/yargs-extra-0.0.2.tgz#6307dd8ee3be593eef81f73c6aefeef0b9039cc9"
+  integrity sha512-6LycMPwXftFryX2omQt0Fm+fL8cV5dKt5pIg6rIcAKRz4rDqiN9Fbu5uq2Pnm01yHfof755RYlxGGpUiKloMDA==
   dependencies:
+    "@types/yargs" "^17.0.10"
     decamelize "5.0.1"
     json-schema "^0.4.0"
     lodash "^4.17.21"
@@ -2024,10 +2025,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@types/yargs@^17.0.4":
-  version "17.0.4"
-  resolved "https://registry.yarnpkg.com/@types/yargs/-/yargs-17.0.4.tgz#d7ad5c311aaca3d7daebba169e1ecf35be97ceee"
-  integrity sha512-D/wihO9WFYqwsmJI0e0qS+U09wIQtYRSBJlXWjTFGjouEuOCy0BU4N/ZK5utb00S5lW/9LO7vOpvGDd8M06NvQ==
+"@types/yargs@^17.0.10":
+  version "17.0.10"
+  resolved "https://registry.yarnpkg.com/@types/yargs/-/yargs-17.0.10.tgz#591522fce85d8739bca7b8bb90d048e4478d186a"
+  integrity sha512-gmEaFwpj/7f/ROdtIlci1R1VYU1J4j95m8T+Tj3iBgiBFKg1foE/PSl93bBd5T9LDXNPo8UlNN6W0qwD8O5OaA==
   dependencies:
     "@types/yargs-parser" "*"
 

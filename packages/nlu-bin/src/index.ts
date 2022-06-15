@@ -1,7 +1,7 @@
 import './rewire'
 import { run as runLanguageServer, download as downloadLang, version as langServerVersion } from '@botpress/lang-server'
-import { Logger } from '@bpinternal/log4bot'
 import { run as runNLUServer, version as nluServerVersion } from '@botpress/nlu-server'
+import { Logger } from '@bpinternal/log4bot'
 import yargs, { parseEnv } from '@bpinternal/yargs-extra'
 import path from 'path'
 import { getAppDataPath } from './app-data'

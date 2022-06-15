@@ -10,7 +10,7 @@
     "@botpress/lang-server": "*",
     "@botpress/nlu-server": "*",
     "@bpinternal/log4bot": "^0.0.4",
-    "@bpinternal/yargs-extra": "^0.0.1",
+    "@bpinternal/yargs-extra": "^0.0.2",
     "decamelize": "5.0.1",
     "json-schema": "^0.4.0",
     "wtfnode": "^0.9.1"
@@ -19,7 +19,6 @@
     "@types/json-schema": "^7.0.9",
     "@types/node": "^16.11.10",
     "@types/wtfnode": "^0.7.0",
-    "@types/yargs": "^17.0.4",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
     "cross-env": "^5.2.0",
