@@ -1,6 +1,6 @@
 import { LogLevel } from '@bpinternal/log4bot'
 import { LogFormat } from '@botpress/nlu-server'
-import { asYargs } from '@botpress/yargs-extra'
+import { asYargs } from '@bpinternal/yargs-extra'
 
 const logFormatChoices: LogFormat[] = ['json', 'text']
 const logLevelChoices: LogLevel[] = ['critical', 'error', 'warning', 'info', 'debug']
