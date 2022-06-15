@@ -911,10 +911,10 @@
     "@babel/helper-validator-identifier" "^7.12.11"
     to-fast-properties "^2.0.0"
 
-"@bpinternal/log4bot@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@bpinternal/log4bot/-/log4bot-0.0.3.tgz#30eb51bc0a0bce86933062cc322c741c8985ec1b"
-  integrity sha512-tSXP776AEYFF0H8Z5rpPMa+U/MiFkefZODeUyZ8e6BwdKepyzRVCxUuZw3iXrTHd2LwLMtA22QiimmkVOzNhpw==
+"@bpinternal/log4bot@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@bpinternal/log4bot/-/log4bot-0.0.4.tgz#87f9867b5ddf83e179eeb1ba7afe0bcf2938c07f"
+  integrity sha512-psjT4wxlMcKMnWu+acnxoMeVQaAjD5eRfTdpk1L2uymhy2hnukzxg53Z2cThbFDJsdEufFOneEGwSi2kfWXRwA==
   dependencies:
     lodash "^4.17.21"
     moment "^2.24.0"

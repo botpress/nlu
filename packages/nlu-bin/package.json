@@ -9,7 +9,7 @@
   "dependencies": {
     "@botpress/lang-server": "*",
     "@botpress/nlu-server": "*",
-    "@bpinternal/log4bot": "^0.0.3",
+    "@bpinternal/log4bot": "^0.0.4",
     "@bpinternal/yargs-extra": "^0.0.1",
     "decamelize": "5.0.1",
     "json-schema": "^0.4.0",
