@@ -9,8 +9,8 @@
   "bin": "./dist/index.js",
   "dependencies": {
     "@botpress/lang-client": "*",
-    "@botpress/logger": "*",
     "@botpress/nlu-engine": "*",
+    "@bpinternal/log4bot": "^0.0.3",
     "axios": "^0.21.1",
     "bluebird": "^3.7.2",
     "body-parser": "^1.18.3",

@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import { Client as NLUClient, IssueComputationSpeed, LintingState, TrainingState } from '@botpress/nlu-client'
 import Bluebird from 'bluebird'
 import crypto from 'crypto'

@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import * as NLUEngine from '@botpress/nlu-engine'
 import bodyParser from 'body-parser'
 import express, { Router, Request, Response, NextFunction } from 'express'

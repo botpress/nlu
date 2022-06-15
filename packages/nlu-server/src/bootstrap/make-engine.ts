@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import * as NLUEngine from '@botpress/nlu-engine'
 import _ from 'lodash'
 import { getAppDataPath } from '../app-data'

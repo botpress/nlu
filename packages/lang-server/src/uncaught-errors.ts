@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 
 export const listenForUncaughtErrors = (logger: Logger) => {
   process.on('unhandledRejection', (thrown: any) => {

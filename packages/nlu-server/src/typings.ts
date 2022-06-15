@@ -1,4 +1,4 @@
-import { LogLevel } from '@botpress/logger'
+import { LogLevel } from '@bpinternal/log4bot'
 
 export type BuildInfo = {
   date: number

@@ -6,8 +6,8 @@
   "license": "MIT",
   "dependencies": {
     "@botpress/nlu-client": "*",
-    "@botpress/logger": "*",
     "cli-progress": "^3.8.2",
+    "@bpinternal/log4bot": "^0.0.3",
     "chalk": "^2.4.2",
     "fs-extra": "^9.1.0",
     "bluebird": "^3.7.2",

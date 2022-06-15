@@ -1,5 +1,5 @@
-import { centerText, Logger, TextFormatter, JSONFormatter, LogLevel } from '@botpress/logger'
 import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
+import { Logger, TextFormatter, JSONFormatter } from '@bpinternal/log4bot'
 import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
@@ -31,6 +31,11 @@ const wrapLogger = (logger: Logger): EngineLogger => {
     error: (msg: string, err?: Error) => (err ? logger.attachError(err).error(msg) : logger.error(msg)),
     sub: (namespace: string) => wrapLogger(logger.sub(namespace))
   }
+}
+
+const centerText = (text: string, width: number, indent: number = 0) => {
+  const padding = Math.floor((width - text.length) / 2)
+  return _.repeat(' ', padding + indent) + text + _.repeat(' ', padding)
 }
 
 export const run: typeof types.run = async (argv: types.LangArgv) => {
@@ -77,10 +82,13 @@ export const run: typeof types.run = async (argv: types.LangArgv) => {
     adminToken: options.adminToken || ''
   }
 
-  launcherLogger.info(chalk`========================================
-{bold ${centerText('Botpress Language Server', 40, 9)}}
-{dim ${centerText(`Version ${version}`, 40, 9)}}
-${_.repeat(' ', 9)}========================================`)
+  const indent = 0
+  const width = 75
+  const border = _.repeat('=', width)
+  launcherLogger.info(chalk`${border}
+{bold ${centerText('Botpress Language Server', width, indent)}}
+{dim ${centerText(`Version ${version}`, width, indent)}}
+${_.repeat(' ', indent)}${border}`)
 
   if (options.authToken?.length) {
     launcherLogger.info(`authToken: ${chalk.greenBright('enabled')} (only users with this token can query your server)`)

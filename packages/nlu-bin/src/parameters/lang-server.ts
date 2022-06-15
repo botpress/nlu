@@ -1,5 +1,5 @@
 import { LogFormat } from '@botpress/lang-server'
-import { LogLevel } from '@botpress/logger'
+import { LogLevel } from '@bpinternal/log4bot'
 import { asYargs } from '@botpress/yargs-extra'
 
 const logFormatChoices: LogFormat[] = ['json', 'text']
