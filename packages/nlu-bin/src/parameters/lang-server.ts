@@ -1,6 +1,6 @@
 import { LogFormat } from '@botpress/lang-server'
-import { LogLevel } from '@botpress/logger'
-import { asYargs } from '@botpress/yargs-extra'
+import { LogLevel } from '@bpinternal/log4bot'
+import { asYargs } from '@bpinternal/yargs-extra'
 
 const logFormatChoices: LogFormat[] = ['json', 'text']
 const logLevelChoices: LogLevel[] = ['critical', 'error', 'warning', 'info', 'debug']

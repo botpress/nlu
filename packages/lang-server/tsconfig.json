@@ -3,7 +3,6 @@
   "references": [
     { "path": "../telemetry" },
     { "path": "../nlu-engine" },
-    { "path": "../logger" },
     { "path": "../lang-client" }
   ],
   "compilerOptions": {

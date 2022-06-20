@@ -8,7 +8,7 @@
     "clean": "rimraf ./dist && rimraf ./node_modules"
   },
   "dependencies": {
-    "@botpress/logger": "*",
+    "@bpinternal/log4bot": "^0.0.4",
     "lodash": "^4.17.19",
     "yn": "^4.0.0",
     "bluebird": "^3.7.2",

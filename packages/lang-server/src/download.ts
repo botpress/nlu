@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import { LanguageService } from '@botpress/nlu-engine'
 import cliProgress from 'cli-progress'
 import fse from 'fs-extra'

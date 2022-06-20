@@ -1,4 +1,4 @@
-import { asYargs } from '@botpress/yargs-extra'
+import { asYargs } from '@bpinternal/yargs-extra'
 
 export const parameters = asYargs({
   langDir: {

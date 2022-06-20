@@ -5,7 +5,6 @@
     { "path": "../distributed" },
     { "path": "../nlu-client" },
     { "path": "../nlu-engine" },
-    { "path": "../logger" },
     { "path": "../ptb-schema" }
   ],
   "compilerOptions": {

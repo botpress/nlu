@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import * as NLUEngine from '@botpress/nlu-engine'
 import { trace as bptrace, prometheus } from '@botpress/telemetry'
 import { context, trace } from '@opentelemetry/api'

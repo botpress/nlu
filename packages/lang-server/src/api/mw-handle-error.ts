@@ -1,5 +1,5 @@
 import { LangError, ErrorResponse } from '@botpress/lang-client'
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import { NextFunction, Request, Response } from 'express'
 import { BadRequestError, NotReadyError, UnauthorizedError, OfflineError, ResponseError } from './errors'
 

@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import chalk from 'chalk'
 import _ from 'lodash'
 import ms from 'ms'
@@ -16,7 +16,7 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
     title: 'Botpress Standalone NLU',
     version: info.version,
     buildInfo: info.buildInfo,
-    logScopeLength: 9,
+    logScopeLength: 0,
     bannerWidth: 75,
     logger: launcherLogger
   })

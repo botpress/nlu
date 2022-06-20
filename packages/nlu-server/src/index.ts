@@ -1,7 +1,7 @@
 import { trace } from '@botpress/telemetry'
 trace.init()
 
-import { Logger, JSONFormatter, TextFormatter } from '@botpress/logger'
+import { Logger, JSONFormatter, TextFormatter } from '@bpinternal/log4bot'
 import { createServer } from 'http'
 import _ from 'lodash'
 import path from 'path'

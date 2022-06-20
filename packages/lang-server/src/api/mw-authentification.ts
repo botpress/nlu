@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import { NextFunction, Response, Request } from 'express'
 import { UnauthorizedError } from './errors'
 

@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import { Request, Response, NextFunction } from 'express'
 import _ from 'lodash'
 import ms from 'ms'

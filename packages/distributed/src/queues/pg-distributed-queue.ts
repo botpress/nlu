@@ -1,4 +1,4 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import Bluebird from 'bluebird'
 import ms from 'ms'
 import PGPubSub from 'pg-pubsub'

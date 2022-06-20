@@ -9,8 +9,8 @@
   "bin": "./dist/index.js",
   "dependencies": {
     "@botpress/lang-client": "*",
-    "@botpress/logger": "*",
     "@botpress/nlu-engine": "*",
+    "@bpinternal/log4bot": "^0.0.4",
     "@botpress/telemetry": "*",
     "@opentelemetry/api": "1.1.0",
     "@opentelemetry/instrumentation-express": "0.27.0",

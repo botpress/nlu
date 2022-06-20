@@ -1,5 +1,5 @@
 import { AvailableModel } from '@botpress/lang-client'
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import axios from 'axios'
 import fse from 'fs-extra'
 import ms from 'ms'
