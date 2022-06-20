@@ -1,5 +1,5 @@
-import { Logger } from '@bpinternal/log4bot'
 import { Client as NLUClient, IssueComputationSpeed, LintingState, TrainingState } from '@botpress/nlu-client'
+import { Logger } from '@bpinternal/log4bot'
 import Bluebird from 'bluebird'
 import crypto from 'crypto'
 import fs from 'fs'

@@ -126,7 +126,7 @@ yargs
     (argv) => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       main(argv)
-        .then(() => {})
+        .then(() => { })
         .catch((err) => {
           console.error(chalk.red('The following error occured:\n'), err)
           process.exit(1)
@@ -135,6 +135,7 @@ yargs
   )
   .command(['list', 'ls'], 'List benchmarks', {}, (argv) => {
     const tests = getTests(undefined, undefined, '').map(({ name }) => name)
+    // eslint-disable-next-line no-console
     console.log(tests.join(',\n'))
   })
   .help().argv

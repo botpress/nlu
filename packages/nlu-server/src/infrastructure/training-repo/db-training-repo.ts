@@ -1,6 +1,6 @@
-import { Logger } from '@bpinternal/log4bot'
 import { TrainingError, TrainingErrorType, TrainingStatus } from '@botpress/nlu-client'
 import { modelIdService } from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import { Knex } from 'knex'
 import _ from 'lodash'
 import moment from 'moment'

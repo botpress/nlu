@@ -1,6 +1,6 @@
-import { Logger } from '@bpinternal/log4bot'
 import { TrainingErrorType } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import _ from 'lodash'
 import { ModelRepository, TrainingId } from '../../infrastructure'
 import { serializeModel } from '../serialize-model'

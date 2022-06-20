@@ -1,5 +1,5 @@
-import { LogLevel } from '@bpinternal/log4bot'
 import { LogFormat } from '@botpress/nlu-server'
+import { LogLevel } from '@bpinternal/log4bot'
 import { asYargs } from '@bpinternal/yargs-extra'
 
 const logFormatChoices: LogFormat[] = ['json', 'text']

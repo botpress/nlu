@@ -1,6 +1,6 @@
-import { Logger } from '@bpinternal/log4bot'
 import { IssueComputationSpeed, LintingState } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'

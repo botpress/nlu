@@ -1,7 +1,7 @@
 import * as q from '@botpress/distributed'
-import { Logger } from '@bpinternal/log4bot'
 import { IssueComputationSpeed, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import _ from 'lodash'
 import ms from 'ms'
 
