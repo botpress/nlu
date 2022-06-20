@@ -126,7 +126,7 @@ yargs
     (argv) => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       main(argv)
-        .then(() => { })
+        .then(() => {})
         .catch((err) => {
           console.error(chalk.red('The following error occured:\n'), err)
           process.exit(1)
