@@ -1,4 +1,4 @@
-import * as ptb from '@botpress/ptb-schema'
+import * as ptb from '@bpinternal/ptb-schema'
 import { PipelineComponent } from 'src/component'
 import { Intent, ListEntityModel, PatternEntity } from '../typings'
 import Utterance from '../utterance/utterance'

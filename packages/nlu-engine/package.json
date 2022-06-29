@@ -13,7 +13,7 @@
     "@botpress/node-fasttext": "*",
     "@botpress/node-sentencepiece": "*",
     "@botpress/node-svm": "*",
-    "@botpress/ptb-schema": "*",
+    "@bpinternal/ptb-schema": "^0.0.2",
     "@botpress/worker": "*",
     "@botpress/lang-client": "*",
     "@microsoft/recognizers-text-suite": "^1.3.0",

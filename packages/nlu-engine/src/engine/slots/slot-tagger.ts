@@ -1,4 +1,4 @@
-import * as ptb from '@botpress/ptb-schema'
+import * as ptb from '@bpinternal/ptb-schema'
 import _ from 'lodash'
 import { ModelOf, PipelineComponent } from 'src/component'
 import { Logger } from 'src/typings'

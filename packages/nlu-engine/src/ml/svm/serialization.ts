@@ -1,4 +1,4 @@
-import * as ptb from '@botpress/ptb-schema'
+import * as ptb from '@bpinternal/ptb-schema'
 import { PTBFlatMatrixMsg } from './flat-matrix'
 
 let param_idx = 0
