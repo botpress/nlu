@@ -22,7 +22,6 @@ const list_entities: ListEntityModel[] = [
     entityName: 'fruit',
     fuzzyTolerance: FuzzyTolerance.Medium,
     id: 'custom.list.fruit',
-    languageCode: 'en',
     mappingsTokens: {
       Blueberry: ['blueberries', 'blueberry', 'blue berries', 'blue berry', 'poisonous blueberry'].map(T),
       Strawberry: ['strawberries', 'strawberry', 'straw berries', 'straw berry'].map(T),
@@ -36,7 +35,6 @@ const list_entities: ListEntityModel[] = [
     entityName: 'company',
     fuzzyTolerance: FuzzyTolerance.Medium,
     id: 'custom.list.company',
-    languageCode: 'en',
     mappingsTokens: {
       Apple: ['Apple', 'Apple Computers', 'Apple Corporation', 'Apple Inc'].map(T)
     },
@@ -47,7 +45,6 @@ const list_entities: ListEntityModel[] = [
     entityName: 'airport',
     fuzzyTolerance: FuzzyTolerance.Medium,
     id: 'custom.list.airport',
-    languageCode: 'en',
     mappingsTokens: {
       JFK: ['JFK', 'New-York', 'NYC'].map(T),
       SFO: ['SFO', 'SF', 'San-Francisco'].map(T),
@@ -108,7 +105,6 @@ describe('list entity extractor', () => {
         entityName: 'state',
         fuzzyTolerance: FuzzyTolerance.Medium,
         id: 'custom.list.state',
-        languageCode: 'en',
         mappingsTokens: {
           NewYork: ['New York'].map(T)
         },
@@ -119,7 +115,6 @@ describe('list entity extractor', () => {
         entityName: 'city',
         fuzzyTolerance: FuzzyTolerance.Medium,
         id: 'custom.list.city',
-        languageCode: 'en',
         mappingsTokens: {
           NewYork: ['New York'].map(T)
         },
@@ -137,7 +132,7 @@ describe('list entity extractor', () => {
     // assert
     expect(results.length).toEqual(3)
 
-    for (let result of results) {
+    for (const result of results) {
       const { entityId } = result.metadata
       test(`Expect ${result.value} to be one of ${expectedIds.join(' ')}`, () => {
         expectedIds.includes(entityId)

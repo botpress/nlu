@@ -81,7 +81,7 @@ const bumpVersion = (cb) => {
           })
           await spawn(yarnCmd, ['version', '--new-version', newVersion, '--no-git-tag-version'], {
             stdio: 'inherit',
-            cwd: path.join(packagesDir, 'nlu-cli')
+            cwd: path.join(packagesDir, 'nlu-bin')
           })
 
           const changeLog = await getChangeLog()

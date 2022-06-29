@@ -1,10 +1,13 @@
 import { makeProcessEntryPoint, TaskDefinition } from '@botpress/worker'
 import { initializeTools } from '../initialize-tools'
-import { Trainer, TrainInput, TrainOutput } from '../training-pipeline'
+import { trainingPipeline, TrainInput, TrainOutput } from '../training-pipeline'
+import { ErrorHandler } from './error-handler'
 
 export const ENTRY_POINT = __filename
 
-const processEntryPoint = makeProcessEntryPoint<TrainInput, TrainOutput>()
+const processEntryPoint = makeProcessEntryPoint<TrainInput, TrainOutput>({
+  errorHandler: new ErrorHandler()
+})
 
 const main = async () => {
   const config = JSON.parse(process.env.NLU_CONFIG!)
@@ -14,12 +17,12 @@ const main = async () => {
   try {
     const tools = await initializeTools(config, processEntryPoint.logger)
 
-    processEntryPoint.listenForTask(async (taskDef: TaskDefinition<TrainInput>) => {
+    processEntryPoint.listenForTask(async (taskDef: TaskDefinition<TrainInput, TrainOutput>) => {
       const { input, logger, progress } = taskDef
 
       tools.seededLodashProvider.setSeed(input.nluSeed)
       try {
-        const output = await Trainer(input, { ...tools, logger }, progress)
+        const output = await trainingPipeline(input, { ...tools, logger }, progress)
         return output
       } finally {
         tools.seededLodashProvider.resetSeed()
@@ -27,7 +30,8 @@ const main = async () => {
     })
 
     await processEntryPoint.initialize()
-  } catch (err) {
+  } catch (thrown) {
+    const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
     processEntryPoint.logger.error('An unhandled error occured in the process', err)
     process.exit(1)
   }

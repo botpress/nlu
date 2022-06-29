@@ -16,7 +16,7 @@ export class BpIntentEngine implements sdk.Engine<'intent'> {
     this._stanProvider = new StanProvider(bpEndpoint)
   }
 
-  train(trainSet: sdk.DataSet<'intent'>, seed: number, progress: sdk.ProgressCb) {
+  public train(trainSet: sdk.DataSet<'intent'>, seed: number, progress: sdk.ProgressCb) {
     const allLabels = _(trainSet.samples)
       .flatMap((r) => r.label)
       .uniq()
@@ -55,7 +55,7 @@ export class BpIntentEngine implements sdk.Engine<'intent'> {
     return candidates
   }
 
-  async predict(testSet: sdk.DataSet<'intent'>, progress: sdk.ProgressCb) {
+  public async predict(testSet: sdk.DataSet<'intent'>, progress: sdk.ProgressCb) {
     const results: sdk.Prediction<'intent'>[] = []
 
     let done = 0

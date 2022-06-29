@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { Data } from '../typings'
 
-export interface ClassCount {
+export type ClassCount = {
   label: number
   count: number
 }

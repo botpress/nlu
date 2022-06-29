@@ -1,8 +1,9 @@
 import Bluebird from 'bluebird'
 import fs from 'fs'
 import path from 'path'
-import tmp from 'tmp'
-import { MLToolkit } from '../../ml/typings'
+import { PredictorOf } from 'src/component'
+import { Logger } from 'src/typings'
+import * as MLToolkit from '../../ml/toolkit'
 
 import { isSpace, SPACE } from '../tools/token-utils'
 
@@ -91,47 +92,37 @@ function wordFeatures(seq: string[], idx: number): string[] {
     })
 }
 
-export const fallbackTagger: MLToolkit.CRF.Tagger = {
-  tag: (seq) => ({ probability: 1, result: new Array(seq.length).fill('N/A') }),
-  initialize: async () => {},
-  open: (f) => false,
-  marginal: (seq) => new Array(seq.length).fill({ 'N/A': 1 })
+export const fallbackTagger: PredictorOf<MLToolkit.CRF.Tagger> = {
+  predict: async (seq: string[][]) => ({ probability: 1, result: new Array(seq.length).fill('N/A') })
 }
 
 // eventually this will be moved in language provider
 // POS tagging will reside language server once we support more than english
-const taggersByLang: { [lang: string]: MLToolkit.CRF.Tagger } = {}
+const taggersByLang: { [lang: string]: PredictorOf<MLToolkit.CRF.Tagger> } = {}
 
 export async function getPOSTagger(
   preTrainedDir: string,
   languageCode: string,
-  toolkit: typeof MLToolkit
-): Promise<MLToolkit.CRF.Tagger> {
+  toolkit: typeof MLToolkit,
+  logger: Logger
+): Promise<PredictorOf<MLToolkit.CRF.Tagger>> {
   if (!isPOSAvailable(languageCode)) {
     return fallbackTagger
   }
 
   if (!taggersByLang[languageCode]) {
-    const tagger = new toolkit.CRF.Tagger()
-    await tagger.initialize()
     const preTrainedPath = getPretrainedModelFilePath(preTrainedDir, languageCode)
-
-    // copy file to actual disk using only read/write functions because of pkg
-    const tmpFile = await Bluebird.fromCallback<string>(tmp.file)
     const model = await Bluebird.fromCallback<Buffer>((cb) => fs.readFile(preTrainedPath, cb))
-    await Bluebird.fromCallback((cb) => fs.writeFile(tmpFile, model, cb))
 
-    const openSuccess = tagger.open(tmpFile)
-    if (!openSuccess) {
-      throw new Error(`Could not open POS tagger for language "${languageCode}".`)
-    }
+    const tagger = new toolkit.CRF.Tagger(logger)
+    await tagger.load({ content: model })
     taggersByLang[languageCode] = tagger
   }
 
   return taggersByLang[languageCode]
 }
 
-export function tagSentence(tagger: MLToolkit.CRF.Tagger, tokens: string[]): POSClass[] {
+export async function tagSentence(tagger: PredictorOf<MLToolkit.CRF.Tagger>, tokens: string[]): Promise<POSClass[]> {
   const [words, spaceIdx] = tokens.reduce(
     ([words, spaceIdx], token, idx) => {
       if (isSpace(token)) {
@@ -148,7 +139,7 @@ export function tagSentence(tagger: MLToolkit.CRF.Tagger, tokens: string[]): POS
     feats.push(wordFeatures(words, i))
   }
 
-  const tags = tagger.tag(feats).result
+  const { result: tags } = await tagger.predict(feats)
   for (const idx of spaceIdx) {
     tags.splice(idx, 0, SPACE)
   }

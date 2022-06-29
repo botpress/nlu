@@ -2,7 +2,7 @@ import { makeThreadPool, ThreadPool } from '@botpress/worker'
 import _ from 'lodash'
 import os from 'os'
 import { Logger } from 'src/typings'
-import { MLToolkit } from '../typings'
+import { CRF, SVM } from '../toolkit'
 import { ENTRY_POINT } from './thread-entry-point'
 import { TaskInput, TaskOutput } from './typings'
 
@@ -26,8 +26,8 @@ class MLThreadPool {
 
   public startCrfTraining(
     trainId: string,
-    points: MLToolkit.CRF.DataPoint[],
-    options: MLToolkit.CRF.TrainerOptions,
+    points: CRF.DataPoint[],
+    options: CRF.TrainerOptions,
     progress: (p: number) => void
   ) {
     const input: TaskInput = { trainingType: 'crf', points, options }
@@ -36,8 +36,8 @@ class MLThreadPool {
 
   public startSvmTraining(
     trainId: string,
-    points: MLToolkit.SVM.DataPoint[],
-    options: MLToolkit.SVM.SVMOptions,
+    points: SVM.DataPoint[],
+    options: SVM.SVMOptions,
     progress: (p: number) => void
   ) {
     const input: TaskInput = { trainingType: 'svm', points, options }

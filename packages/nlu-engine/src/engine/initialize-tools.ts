@@ -1,73 +1,48 @@
+import Bluebird from 'bluebird'
 import path from 'path'
-import { Health, Specifications } from 'src/typings'
+import { LangServerSpecs } from 'src/typings'
 import yn from 'yn'
 
-// eslint-disable-next-line import/order
-const { version: nluVersion } = require('../../package.json')
-
-import MLToolkit from '../ml/toolkit'
+import * as MLToolkit from '../ml/toolkit'
 import { LanguageConfig, Logger } from '../typings'
 import { DucklingEntityExtractor } from './entities/duckling-extractor'
-import { SystemEntityCacheManager } from './entities/entity-cache-manager'
+import { DucklingClient } from './entities/duckling-extractor/duckling-client'
+import { DummySystemEntityExtractor } from './entities/dummy-system-extractor'
+import { SystemEntityCacheManager } from './entities/entity-cache'
 import { MicrosoftEntityExtractor } from './entities/microsoft-extractor'
 import languageIdentifier, { FastTextLanguageId } from './language/language-identifier'
-import LangProvider from './language/language-provider'
+import { LanguageProvider } from './language/language-provider'
 import { getPOSTagger, tagSentence } from './language/pos-tagger'
+import { nonSpaceSeparatedLanguages } from './language/space-separated'
 import { getStopWordsForLang } from './language/stopWords'
 import SeededLodashProvider from './tools/seeded-lodash'
-import { LanguageProvider, SystemEntityExtractor, Tools } from './typings'
-import { nonSpaceSeparatedLanguages } from './language/space-separated'
+import { SystemEntityExtractor, Tools } from './typings'
 
 const PRE_TRAINED_DIR = 'pre-trained'
 const STOP_WORDS_DIR = 'stop-words'
 const LANG_ID_MODEL = 'lid.176.ftz'
 
-const healthGetter = (languageProvider: LanguageProvider) => (): Health => {
-  const { validProvidersCount, validLanguages } = languageProvider.getHealth()
-  return {
-    isEnabled: validProvidersCount! > 0 && validLanguages!.length > 0,
-    validProvidersCount: validProvidersCount!,
-    validLanguages: validLanguages!
-  }
-}
+const MICROSOFT_CACHE_FILE = 'microsoft_sys_entities.json'
+const DUCKLING_CACHE_FILE = 'duckling_sys_entities.json'
 
-const versionGetter = (languageProvider: LanguageProvider) => (): Specifications => {
+const versionGetter = (languageProvider: LanguageProvider) => (): LangServerSpecs => {
   const { langServerInfo } = languageProvider
   const { dim, domain, version } = langServerInfo
-
   return {
-    nluVersion,
-    languageServer: {
-      dimensions: dim,
-      domain,
-      version
-    }
+    dimensions: dim,
+    domain,
+    version
   }
 }
 
-const initializeLanguageProvider = async (
-  config: LanguageConfig,
-  logger: Logger,
-  seededLodashProvider: SeededLodashProvider
-) => {
-  try {
-    const languageProvider = await LangProvider.initialize(
-      config.languageSources,
-      logger,
-      nluVersion,
-      path.join(config.cachePath, 'cache'),
-      seededLodashProvider
-    )
-    const getHealth = healthGetter(languageProvider)
-    return { languageProvider, health: getHealth() }
-  } catch (e) {
-    if (e.failure && e.failure.code === 'ECONNREFUSED') {
-      const errMsg = `Language server can't be reached at address ${e.failure.address}:${e.failure.port}`
-      logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-    throw e
-  }
+const initializeLanguageProvider = async (config: LanguageConfig, logger: Logger): Promise<LanguageProvider> => {
+  const { languageURL, languageAuthToken, cachePath } = config
+  const langProviderCachePath = path.join(cachePath, 'cache')
+  return LanguageProvider.create(logger, {
+    languageURL,
+    languageAuthToken,
+    cacheDir: langProviderCachePath
+  })
 }
 
 const makeSystemEntityExtractor = async (config: LanguageConfig, logger: Logger): Promise<SystemEntityExtractor> => {
@@ -78,16 +53,22 @@ const makeSystemEntityExtractor = async (config: LanguageConfig, logger: Logger)
     logger.warning(
       'You are using Microsoft Recognizer entity extractor which is experimental. This feature can disappear at any time.'
     )
-    const msCache = makeCacheManager('microsoft_sys_entities.json')
+    const msCache = makeCacheManager(MICROSOFT_CACHE_FILE)
     const extractor = new MicrosoftEntityExtractor(msCache, logger)
     await extractor.configure()
     return extractor
   }
 
-  const duckCache = makeCacheManager('duckling_sys_entities.json')
-  const extractor = new DucklingEntityExtractor(duckCache, logger)
-  await extractor.configure(config.ducklingEnabled, config.ducklingURL)
-  return extractor
+  if (config.ducklingEnabled) {
+    const duckCache = makeCacheManager(DUCKLING_CACHE_FILE)
+    const ducklingClient = new DucklingClient(config.ducklingURL)
+    const extractor = new DucklingEntityExtractor(duckCache, ducklingClient)
+    await extractor.init()
+    return extractor
+  }
+
+  logger.warning('Duckling is disabled. No system entities available.')
+  return new DummySystemEntityExtractor()
 }
 
 const isSpaceSeparated = (lang: string) => {
@@ -95,34 +76,36 @@ const isSpaceSeparated = (lang: string) => {
 }
 
 export async function initializeTools(config: LanguageConfig & { assetsPath: string }, logger: Logger): Promise<Tools> {
-  const seededLodashProvider = new SeededLodashProvider()
-  const { languageProvider } = await initializeLanguageProvider(config, logger, seededLodashProvider)
+  const languageProvider = await initializeLanguageProvider(config, logger)
 
+  const fastTextLanguageIdModelPath = path.resolve(config.assetsPath, PRE_TRAINED_DIR, LANG_ID_MODEL)
   const fastTextLanguageId = new FastTextLanguageId(MLToolkit)
-  await fastTextLanguageId.initializeModel(path.resolve(config.assetsPath, PRE_TRAINED_DIR, LANG_ID_MODEL))
-  const languageId = languageIdentifier(fastTextLanguageId)
+  await fastTextLanguageId.initializeModel(fastTextLanguageIdModelPath)
+
+  const stopWordsDirPath = path.resolve(config.assetsPath, STOP_WORDS_DIR)
+
+  const posModelDirPath = path.resolve(config.assetsPath, PRE_TRAINED_DIR)
 
   return {
-    identify_language: languageId,
+    identify_language: languageIdentifier(fastTextLanguageId),
 
-    partOfSpeechUtterances: async (tokenUtterances: string[][], lang: string) => {
-      const tagger = await getPOSTagger(path.resolve(config.assetsPath, PRE_TRAINED_DIR), lang, MLToolkit)
-      return tokenUtterances.map((u) => tagSentence(tagger, u))
+    pos_utterances: async (tokenUtterances: string[][], lang: string) => {
+      const tagger = await getPOSTagger(posModelDirPath, lang, MLToolkit, logger)
+      return Bluebird.map(tokenUtterances, (u) => tagSentence(tagger, u))
     },
+
     tokenize_utterances: (utterances: string[], lang: string, vocab?: string[]) =>
       languageProvider.tokenize(utterances, lang, vocab),
     vectorize_tokens: async (tokens, lang) => {
       const a = await languageProvider.vectorize(tokens, lang)
       return a.map((x) => Array.from(x.values()))
     },
-    generateSimilarJunkWords: (vocab: string[], lang: string) => languageProvider.generateSimilarJunkWords(vocab, lang),
-    getStopWordsForLang: getStopWordsForLang(path.resolve(config.assetsPath, STOP_WORDS_DIR)),
+    getStopWordsForLang: getStopWordsForLang(stopWordsDirPath),
     isSpaceSeparated,
 
-    getHealth: healthGetter(languageProvider),
     getLanguages: () => languageProvider.languages,
-    getSpecifications: versionGetter(languageProvider),
-    seededLodashProvider,
+    getLangServerSpecs: versionGetter(languageProvider),
+    seededLodashProvider: new SeededLodashProvider(),
     mlToolkit: MLToolkit,
     systemEntityExtractor: await makeSystemEntityExtractor(config, logger)
   }

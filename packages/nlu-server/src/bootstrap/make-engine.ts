@@ -1,8 +1,8 @@
-import { Logger } from '@botpress/logger'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import _ from 'lodash'
 import { getAppDataPath } from '../app-data'
-import { NLUServerOptions } from './config'
+import { NLUServerOptions } from '../typings'
 
 const wrapLogger = (logger: Logger): NLUEngine.Logger => {
   return {
@@ -17,25 +17,15 @@ const wrapLogger = (logger: Logger): NLUEngine.Logger => {
 export const makeEngine = async (options: NLUServerOptions, logger: Logger) => {
   const loggerWrapper: NLUEngine.Logger = wrapLogger(logger)
 
-  try {
-    const { ducklingEnabled, ducklingURL, modelCacheSize, languageSources, legacyElection } = options
-    const config: NLUEngine.Config = {
-      languageSources,
-      ducklingEnabled,
-      ducklingURL,
-      modelCacheSize,
-      legacyElection,
-      cachePath: getAppDataPath()
-    }
-
-    const engine = await NLUEngine.makeEngine(config, loggerWrapper)
-    return engine
-  } catch (err) {
-    logger
-      .attachError(err)
-      .error(
-        'There was an error while initializing Engine tools. Check out the connection to your language and Duckling server.'
-      )
-    throw err
+  const { ducklingEnabled, ducklingURL, modelCacheSize, languageURL, languageAuthToken } = options
+  const config: NLUEngine.Config = {
+    languageURL,
+    languageAuthToken,
+    ducklingEnabled,
+    ducklingURL,
+    modelCacheSize,
+    cachePath: getAppDataPath()
   }
+
+  return NLUEngine.makeEngine(config, loggerWrapper)
 }

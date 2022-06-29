@@ -1,45 +1,56 @@
+import { ErrorType as LangServerErrorType, LangError as SerializedLangError } from '@botpress/lang-client'
+import * as linting from './linting'
+
 export const SYSTEM_ENTITIES: string[]
 
-export const errors: {
-  isTrainingAlreadyStarted: (err: Error) => boolean
-  isTrainingCanceled: (err: Error) => boolean
+export namespace errors {
+  export class TrainingAlreadyStartedError extends Error {}
+  export class TrainingCanceledError extends Error {}
+  export class LangServerError extends Error {
+    public code: number
+    public type: LangServerErrorType
+    constructor(serializedError: SerializedLangError)
+  }
+  export class DucklingServerError extends Error {
+    constructor(message: string, stack?: string)
+  }
 }
 
 export const makeEngine: (config: Config, logger: Logger) => Promise<Engine>
 
 export const modelIdService: ModelIdService
 
+export type InstalledModel = {
+  lang: string
+  loaded: boolean
+}
+
 export class LanguageService {
   constructor(dim: number, domain: string, langDir: string, logger?: Logger)
   isReady: boolean
   dim: number
   domain: string
-  initialize(): Promise<void>
-  loadModel(lang: string): Promise<void>
-  tokenize(utterances: string[], lang: string): Promise<string[][]>
-  vectorize(tokens: string[], lang: string): Promise<number[][]>
-  getModels()
-  remove(lang: string)
+  public initialize(): Promise<void>
+  public loadModel(lang: string): Promise<void>
+  public tokenize(utterances: string[], lang: string): Promise<string[][]>
+  public vectorize(tokens: string[], lang: string): Promise<number[][]>
+  public getModels(): InstalledModel[]
+  public remove(lang: string): void
 }
 
-export interface Config extends LanguageConfig {
+export type Config = {
   modelCacheSize: string
-  legacyElection: boolean
-}
+} & LanguageConfig
 
-export interface LanguageConfig {
+export type LanguageConfig = {
   ducklingURL: string
   ducklingEnabled: boolean
-  languageSources: LanguageSource[]
+  languageURL: string
+  languageAuthToken?: string
   cachePath: string
 }
 
-export interface LanguageSource {
-  endpoint: string
-  authToken?: string
-}
-
-export interface Logger {
+export type Logger = {
   debug: (msg: string) => void
   info: (msg: string) => void
   warning: (msg: string, err?: Error) => void
@@ -47,72 +58,82 @@ export interface Logger {
   sub: (namespace: string) => Logger
 }
 
-export interface ModelIdArgs extends TrainInput {
+export type ModelIdArgs = {
   specifications: Specifications
-}
+} & TrainInput
 
-export interface TrainingOptions {
+export type TrainingProgressCb = (p: number) => void
+export type TrainingOptions = {
   progressCallback: (x: number) => void
-  previousModel: ModelId | undefined
   minProgressHeartbeat: number
 }
 
-export interface Engine {
-  getHealth: () => Health
+export type LintingProgressCb = (
+  current: number,
+  total: number,
+  issues: linting.DatasetIssue<linting.IssueCode>[]
+) => void | Promise<void>
+
+export type LintingOptions = {
+  progressCallback: LintingProgressCb
+  minSpeed: linting.IssueComputationSpeed
+  minSeverity: linting.IssueSeverity<linting.IssueCode>
+  runInMainProcess: boolean
+}
+
+export type Engine = {
   getLanguages: () => string[]
   getSpecifications: () => Specifications
 
+  validateModel(serialized: Model): void
   loadModel: (model: Model) => Promise<void>
   unloadModel: (modelId: ModelId) => void
   hasModel: (modelId: ModelId) => boolean
 
-  train: (trainSessionId: string, trainSet: TrainInput, options?: Partial<TrainingOptions>) => Promise<Model>
-  cancelTraining: (trainSessionId: string) => Promise<void>
+  train: (trainingId: string, trainSet: TrainInput, options?: Partial<TrainingOptions>) => Promise<Model>
+  cancelTraining: (trainingId: string) => Promise<void>
+
+  lint: (lintingId: string, trainSet: TrainInput, options?: Partial<LintingOptions>) => Promise<linting.DatasetReport>
+  cancelLinting: (lintingId: string) => Promise<void>
+  getIssueDetails: <C extends linting.IssueCode>(code: C) => linting.IssueDefinition<C> | undefined
 
   detectLanguage: (text: string, modelByLang: { [key: string]: ModelId }) => Promise<string>
   predict: (text: string, modelId: ModelId) => Promise<PredictOutput>
 }
 
-export interface ModelIdService {
+export type ModelIdService = {
   toString: (modelId: ModelId) => string // to use ModelId as a key
-  areSame: (id1: ModelId, id2: ModelId) => boolean
   fromString: (stringId: string) => ModelId // to parse information from a key
+  areSame: (id1: ModelId, id2: ModelId) => boolean
   isId: (m: string) => boolean
   makeId: (factors: ModelIdArgs) => ModelId
   briefId: (factors: Partial<ModelIdArgs>) => Partial<ModelId> // makes incomplete Id from incomplete information
   halfmd5: (str: string) => string
 }
 
-export interface ModelId {
+export type ModelId = {
   specificationHash: string // represents the nlu engine that was used to train the model
   contentHash: string // represents the intent and entity definitions the model was trained with
   seed: number // number to seed the random number generators used during nlu training
   languageCode: string // language of the model
 }
 
-export interface Model {
+export type Model = {
   id: ModelId
   startedAt: Date
   finishedAt: Date
-  data: {
-    input: string
-    output: string
-  }
+  data: Buffer
 }
 
-export interface Specifications {
-  nluVersion: string // semver string
-  languageServer: {
-    dimensions: number
-    domain: string
-    version: string // semver string
-  }
+export type LangServerSpecs = {
+  dimensions: number
+  domain: string
+  version: string
 }
 
-export interface Health {
-  isEnabled: boolean
-  validProvidersCount: number
-  validLanguages: string[]
+export type Specifications = {
+  engineVersion: string
+  languageServer: LangServerSpecs
 }
 
 /**
@@ -121,26 +142,26 @@ export interface Health {
  * ##################################
  */
 
-export interface TrainInput {
+export type TrainInput = {
   language: string
   intents: IntentDefinition[]
   entities: EntityDefinition[]
   seed: number
 }
 
-export interface IntentDefinition {
+export type IntentDefinition = {
   name: string
   contexts: string[]
   utterances: string[]
   slots: SlotDefinition[]
 }
 
-export interface SlotDefinition {
+export type SlotDefinition = {
   name: string
   entities: string[]
 }
 
-export interface ListEntityDefinition {
+export type ListEntityDefinition = {
   name: string
   type: 'list'
   values: { name: string; synonyms: string[] }[]
@@ -149,7 +170,7 @@ export interface ListEntityDefinition {
   sensitive?: boolean
 }
 
-export interface PatternEntityDefinition {
+export type PatternEntityDefinition = {
   name: string
   type: 'pattern'
   regex: string
@@ -170,15 +191,15 @@ export type EntityDefinition = ListEntityDefinition | PatternEntityDefinition
  */
 export type TrainingStatus = 'done' | 'training-pending' | 'training' | 'canceled' | 'errored'
 
-export type TrainingErrorType = 'already-started' | 'unknown'
+export type TrainingErrorType = 'already-started' | 'internal'
 
-export interface TrainingError {
+export type TrainingError = {
   type: TrainingErrorType
   message: string
   stackTrace?: string
 }
 
-export interface TrainingProgress {
+export type TrainingProgress = {
   status: TrainingStatus
   progress: number
   error?: TrainingError
@@ -189,7 +210,7 @@ export interface TrainingProgress {
  * ############ PREDICTION ############
  * ####################################
  */
-export interface PredictOutput {
+export type PredictOutput = {
   entities: EntityPrediction[]
   contexts: ContextPrediction[]
   spellChecked: string
@@ -197,7 +218,7 @@ export interface PredictOutput {
 
 export type EntityType = 'pattern' | 'list' | 'system'
 
-export interface EntityPrediction {
+export type EntityPrediction = {
   name: string
   type: string // ex: ['custom.list.fruits', 'system.time']
   value: string
@@ -210,21 +231,21 @@ export interface EntityPrediction {
   sensitive?: boolean
 }
 
-export interface ContextPrediction {
+export type ContextPrediction = {
   name: string
   oos: number
   confidence: number
   intents: IntentPrediction[]
 }
 
-export interface IntentPrediction {
+export type IntentPrediction = {
   name: string
   confidence: number
   slots: SlotPrediction[]
   extractor: string
 }
 
-export interface SlotPrediction {
+export type SlotPrediction = {
   name: string
   value: string
   confidence: number

@@ -8,7 +8,7 @@ import Utterance, { UtteranceToken } from '../utterance/utterance'
 
 type FeatureValue = string | number | boolean
 
-export interface CRFFeature {
+export type CRFFeature = {
   name: string
   value: FeatureValue
   boost?: number

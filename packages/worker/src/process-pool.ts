@@ -1,11 +1,11 @@
 import child_process, { ForkOptions } from 'child_process'
 import yn from 'yn'
-import { Logger, PoolOptions } from './typings'
+import { Logger, PoolOptions, EntryPointOptions } from './typings'
 import { WorkerPool } from './worker-pool'
 import { Worker } from './worker-pool/worker'
 import { WorkerEntryPoint } from './worker-pool/worker-entry-point'
 
-export class ProcessPool<I, O> extends WorkerPool<I, O> {
+export class ProcessPool<I, O, P = void> extends WorkerPool<I, O, P> {
   constructor(logger: Logger, config: PoolOptions) {
     super(logger, config)
   }
@@ -27,7 +27,11 @@ export class ProcessPool<I, O> extends WorkerPool<I, O> {
   }
 }
 
-export class ProcessEntyPoint<I, O> extends WorkerEntryPoint<I, O> {
+export class ProcessEntyPoint<I, O, P = void> extends WorkerEntryPoint<I, O, P> {
+  constructor(config?: EntryPointOptions) {
+    super(config)
+  }
+
   messageMain = (msg: any) => {
     process.send?.(msg)
   }

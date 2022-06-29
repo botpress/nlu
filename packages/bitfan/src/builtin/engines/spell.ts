@@ -16,7 +16,7 @@ export class BpSpellingEngine implements sdk.UnsupervisedEngine<'spell'> {
     this._stanProvider = new StanProvider(bpEndpoint)
   }
 
-  train(corpus: sdk.Document[], seed: number, progress: sdk.ProgressCb) {
+  public train(corpus: sdk.Document[], seed: number, progress: sdk.ProgressCb) {
     if (!corpus.length) {
       throw new Error('Botpress Spelling Engine needs at least one document for training.')
     }
@@ -43,7 +43,7 @@ export class BpSpellingEngine implements sdk.UnsupervisedEngine<'spell'> {
     })
   }
 
-  async predict(testSet: sdk.DataSet<'spell'>, progress: sdk.ProgressCb) {
+  public async predict(testSet: sdk.DataSet<'spell'>, progress: sdk.ProgressCb) {
     const results: sdk.Prediction<'spell'>[] = []
 
     let done = 0

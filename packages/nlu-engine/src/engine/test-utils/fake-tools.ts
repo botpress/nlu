@@ -1,12 +1,12 @@
 import _ from 'lodash'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 import { POSClass, POS_CLASSES } from '../language/pos-tagger'
+import { nonSpaceSeparatedLanguages } from '../language/space-separated'
 import { SPACE, splitSpaceToken } from '../tools/token-utils'
 import { SystemEntityExtractor, Tools } from '../typings'
 
 import { fakeKmeans } from './fake-kmeans'
-import { FakeSvmPredictor, FakeSvmTrainer } from './fake-svm'
-import { nonSpaceSeparatedLanguages } from '../language/space-separated'
+import { FakeSvm } from './fake-svm'
 
 /**
  * Basically mimics the language server tokenizer. Use this function for testing purposes
@@ -42,36 +42,21 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
     return tokens.map((t) => randomlyVectorize(t, dim))
   }
 
-  const partOfSpeechUtterances = async (utterances: string[][], languageCode: string) => {
+  const pos_utterances = async (utterances: string[][], languageCode: string) => {
     return utterances.map(randomlyPOSTag)
-  }
-
-  const generateSimilarJunkWords = async (vocabulary: string[], languageCode: string) => {
-    return vocabulary
   }
 
   const getStopWordsForLang = async (languageCode: string) => {
     return ['the', 'this']
   }
 
-  const getHealth = () => {
-    return {
-      isEnabled: true,
-      validProvidersCount: 1,
-      validLanguages: [...languages]
-    }
-  }
-
   const getLanguages = () => [...languages]
 
-  const getSpecifications = () => {
+  const getLangServerSpecs = () => {
     return {
-      nluVersion: '1.0.0',
-      languageServer: {
-        dimensions: dim,
-        domain: 'domain',
-        version: '1.0.0'
-      }
+      dimensions: dim,
+      domain: 'domain',
+      version: '1.0.0'
     }
   }
 
@@ -91,10 +76,7 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
   }
 
   const fakeMlToolkit: Partial<typeof MLToolkit> = {
-    SVM: {
-      Predictor: FakeSvmPredictor,
-      Trainer: FakeSvmTrainer
-    },
+    SVM: { Classifier: FakeSvm },
     KMeans: fakeKmeans
   }
 
@@ -102,12 +84,10 @@ export const makeFakeTools = (dim: number, languages: string[]): Tools => {
     identify_language: async (utt: string) => 'en',
     tokenize_utterances,
     vectorize_tokens,
-    partOfSpeechUtterances,
-    generateSimilarJunkWords,
+    pos_utterances,
     getStopWordsForLang,
-    getHealth,
     getLanguages,
-    getSpecifications,
+    getLangServerSpecs,
     isSpaceSeparated,
     seededLodashProvider: fakeSeededLodash,
     systemEntityExtractor: fakeSystemEntityExtractor,

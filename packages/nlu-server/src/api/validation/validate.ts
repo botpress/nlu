@@ -1,73 +1,83 @@
-import {
-  IntentDefinition,
-  ListEntityDefinition,
-  PatternEntityDefinition,
-  SlotDefinition,
-  http
-} from '@botpress/nlu-client'
-import * as NLUEngine from '@botpress/nlu-engine'
-import { validate } from 'joi'
+import { IntentDefinition, http, IssueComputationSpeed } from '@botpress/nlu-client'
+import { ObjectSchema, validate } from 'joi'
+import _ from 'lodash'
+import { InvalidRequestFormatError, InvalidTrainSetError } from '../errors'
 
-import { isListEntity, isPatternEntity } from '../../utils/guards'
-import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema } from './schemas'
+import { PredictInputSchema, TrainInputSchema, DetectLangInputSchema, LintInputSchema } from './schemas'
 
-const SLOT_ANY = 'any'
-
-const makeSlotChecker = (listEntities: ListEntityDefinition[], patternEntities: PatternEntityDefinition[]) => (
-  variable: SlotDefinition
-) => {
-  const { entities, name } = variable
-
-  const supportedTypes = [
-    ...listEntities.map((e) => e.name),
-    ...patternEntities.map((p) => p.name),
-    ...NLUEngine.SYSTEM_ENTITIES,
-    SLOT_ANY
-  ]
-  for (const entity of entities) {
-    if (!supportedTypes.includes(entity)) {
-      throw new Error(`Slot ${name} references entity ${entity}, but it does not exist.`)
-    }
-  }
-}
-
-const makeIntentChecker = (contexts: string[]) => (
-  intent: IntentDefinition,
-  enums: ListEntityDefinition[],
-  patterns: PatternEntityDefinition[]
-) => {
+const validateIntent = (contexts: string[], intent: IntentDefinition) => {
   for (const ctx of intent.contexts) {
     if (!contexts.includes(ctx)) {
-      throw new Error(`Context ${ctx} of Intent ${intent.name} does not seem to appear in all contexts`)
+      throw new InvalidTrainSetError(`Context ${ctx} of Intent ${intent.name} does not seem to appear in all contexts`)
     }
   }
-  const variableChecker = makeSlotChecker(enums, patterns)
-  intent.slots.forEach(variableChecker)
 }
 
-export async function validateTrainInput(rawInput: any): Promise<http.TrainRequestBody> {
-  const validatedInput: http.TrainRequestBody = await validate(rawInput, TrainInputSchema, {})
+async function _validateTrainset<T extends http.TrainRequestBody | http.LintRequestBody>(
+  rawInput: any,
+  schema: ObjectSchema
+) {
+  let validatedInput: T
+  try {
+    validatedInput = await validate(rawInput, schema, {})
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid training/linting format')
+  }
 
-  const { entities, contexts } = validatedInput
-
-  const listEntities = entities.filter(isListEntity)
-  const patternEntities = entities.filter(isPatternEntity)
-
-  const validateIntent = makeIntentChecker(contexts)
+  const { contexts } = validatedInput
 
   for (const intent of validatedInput.intents) {
-    validateIntent(intent, listEntities, patternEntities)
+    validateIntent(contexts, intent)
   }
 
   return validatedInput
 }
 
-export async function validatePredictInput(rawInput: any): Promise<http.PredictRequestBody> {
-  const validated: http.PredictRequestBody = await validate(rawInput, PredictInputSchema, {})
+export async function validateTrainInput(rawInput: any): Promise<http.TrainRequestBody> {
+  return _validateTrainset<http.TrainRequestBody>(rawInput, TrainInputSchema)
+}
+
+export async function validateLintInput(rawInput: any): Promise<http.LintRequestBody> {
+  const validated = await _validateTrainset<http.LintRequestBody>(rawInput, LintInputSchema)
+  if (!isLintingSpeed(validated.speed)) {
+    throw new InvalidRequestFormatError(`path param "${validated.speed}" is not a valid linting speed.`)
+  }
   return validated
 }
 
+export async function validatePredictInput(rawInput: any): Promise<http.PredictRequestBody> {
+  try {
+    const validated: http.PredictRequestBody = await validate(rawInput, PredictInputSchema, {})
+    return validated
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid predict format')
+  }
+}
+
 export async function validateDetectLangInput(rawInput: any): Promise<http.DetectLangRequestBody> {
-  const validated: http.DetectLangRequestBody = await validate(rawInput, DetectLangInputSchema, {})
-  return validated
+  try {
+    const validated: http.DetectLangRequestBody = await validate(rawInput, DetectLangInputSchema, {})
+    return validated
+  } catch (thrown) {
+    if (thrown instanceof Error) {
+      throw new InvalidRequestFormatError(thrown.message)
+    }
+    throw new InvalidRequestFormatError('invalid detect language format')
+  }
+}
+
+export function isLintingSpeed(s: string): s is IssueComputationSpeed {
+  const allSpeeds: { [s in IssueComputationSpeed]: s } = {
+    fastest: 'fastest',
+    fast: 'fast',
+    slow: 'slow',
+    slowest: 'slowest'
+  }
+  return Object.keys(allSpeeds).includes(s)
 }

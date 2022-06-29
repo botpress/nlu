@@ -3,7 +3,7 @@ import { Processor } from './typings'
 
 type TaggerCtor = new () => Processor
 
-interface BindingType {
+type BindingType = {
   Processor: TaggerCtor
 }
 

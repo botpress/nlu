@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs'
 import _ from 'lodash'
 import tmp from 'tmp'
-import { MLToolkit } from '../../ml/typings'
+import * as MLToolkit from '../../ml/toolkit'
 import { Predictors } from '../predict-pipeline'
 
 const NA_LANG = 'n/a'
@@ -23,7 +23,7 @@ export class FastTextLanguageId {
     FastTextLanguageId.model = ft
   }
 
-  async identify(text: string): Promise<MLToolkit.FastText.PredictResult[]> {
+  public async identify(text: string): Promise<MLToolkit.FastText.PredictResult[]> {
     if (!FastTextLanguageId.model) {
       return []
     }

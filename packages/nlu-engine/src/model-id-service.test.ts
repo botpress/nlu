@@ -1,5 +1,5 @@
-import modelIdService, { HALF_MD5_REG } from './model-id-service'
 import { IntentDefinition, EntityDefinition, Specifications } from 'src/typings'
+import modelIdService, { HALF_MD5_REG } from './model-id-service'
 import { ModelIdArgs } from './typings'
 
 const intents: IntentDefinition[] = [
@@ -21,7 +21,7 @@ const entities: EntityDefinition[] = [
 ]
 
 const specifications: Specifications = {
-  nluVersion: '2.0.0',
+  engineVersion: '2.0.0',
   languageServer: {
     dimensions: 300,
     domain: 'bp',

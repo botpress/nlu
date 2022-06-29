@@ -1,9 +1,9 @@
-import { Domain } from './domain'
 import './domain/jest-helpers'
 
 import _ from 'lodash'
 import { Data } from '../typings'
 import { BaseKFold } from './base'
+import { Domain } from './domain'
 import { StratifiedKFold } from './stratified'
 
 const x: Data = [[0, 0], 1]

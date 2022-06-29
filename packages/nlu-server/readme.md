@@ -86,6 +86,8 @@ This package contains the Botpress Standalone NLU server.
 <span style="font-weight:normal;text-decoration:none;font-style:normal"> </span>
 </pre>
 
+**To display this documentation, launch the nlu server with argument `--doc`.**
+
 ## ⚠️⚠️ Disclaimer ⚠️⚠️
 
 The NLU Server does **not** enforce authentication in any way. This means it is completely exposed to many attacks. If you plan on using the nlu-server in your local Botpress setup, makes sure it is not publicly exposed. If you plan on exposing the NLU server, make sure it his hidden behind a reverse proxy which ensures a proper authentication. This reverse proxy should:

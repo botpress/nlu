@@ -1,10 +1,10 @@
 import { Worker as Thread, isMainThread, parentPort } from 'worker_threads'
-import { Logger, PoolOptions } from './typings'
+import { Logger, PoolOptions, EntryPointOptions } from './typings'
 import { WorkerPool } from './worker-pool'
 import { Worker } from './worker-pool/worker'
 import { WorkerEntryPoint } from './worker-pool/worker-entry-point'
 
-export class ThreadPool<I, O> extends WorkerPool<I, O> {
+export class ThreadPool<I, O, P = void> extends WorkerPool<I, O, P> {
   constructor(logger: Logger, config: PoolOptions) {
     super(logger, config)
   }
@@ -19,7 +19,11 @@ export class ThreadPool<I, O> extends WorkerPool<I, O> {
   }
 }
 
-export class ThreadEntyPoint<I, O> extends WorkerEntryPoint<I, O> {
+export class ThreadEntyPoint<I, O, P = void> extends WorkerEntryPoint<I, O, P> {
+  constructor(config?: EntryPointOptions) {
+    super(config)
+  }
+
   messageMain = (msg: any) => {
     parentPort?.postMessage(msg)
   }

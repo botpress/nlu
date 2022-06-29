@@ -1,7 +1,7 @@
 import assert from 'assert'
 import _ from 'lodash'
 import numeric from 'numeric'
-import { Logger } from 'src/typings'
+import { Logger } from '../../../typings'
 
 import BaseSVM from './base-svm'
 import { checkConfig, defaultConfig } from './config'
@@ -11,20 +11,25 @@ import { normalizeDataset, normalizeInput } from './normalize'
 import reduce from './reduce-dataset'
 import { Data, Report, SvmConfig, SvmModel } from './typings'
 
-class TrainingCanceledError extends Error {
-  constructor(msg: string) {
-    super(msg)
+class NoTrainedModelError extends Error {
+  constructor() {
+    super('Cannot predict because there is no trained model.')
   }
 }
 
-interface TrainOutput {
+type TrainOutput = {
   model: SvmModel
   report?: Report
 }
 
+type Trained = {
+  svm: BaseSVM
+  model: SvmModel
+}
+
 export class SVM {
   private _config: SvmConfig
-  private _baseSvm: BaseSVM | undefined
+  private _trained: Trained | undefined
   private _retainedVariance: number = 0
   private _retainedDimension: number = 0
   private _initialDimension: number = 0
@@ -34,119 +39,135 @@ export class SVM {
     this._config = { ...checkConfig(defaultConfig(config)) }
   }
 
-  async initialize(model: SvmModel) {
+  public async initialize(model: SvmModel) {
     const self = this
-    this._baseSvm = await BaseSVM.restore(model)
+    const svm = await BaseSVM.restore(model)
+    this._trained = {
+      svm,
+      model
+    }
+
     Object.entries(model.param).forEach(([key, val]) => {
       self._config[key] = val
     })
   }
 
-  cancelTraining = () => {
+  public cancelTraining = () => {
     this._isCanceled = true
   }
 
-  train = async (
+  public train = async (
     dataset: Data[],
     seed: number,
     progressCb: (progress: number) => void
-  ): Promise<TrainOutput | undefined> => {
-    const self = this
+  ): Promise<TrainOutput> => {
     const dims = numeric.dim(dataset)
     assert(dims[0] > 0 && dims[1] === 2 && dims[2] > 0, 'dataset must be an list of [X,y] tuples')
 
-    if (!this._config.normalize) {
-      this._config.mu = Array(dims[2]).fill(0)
-      this._config.sigma = Array(dims[2]).fill(0)
-    } else {
+    let mu: number[] | undefined
+    let sigma: number[] | undefined
+    let u: number[][] | undefined
+
+    if (this._config.normalize) {
       const norm = normalizeDataset(dataset)
-      this._config.mu = norm.mu
-      this._config.sigma = norm.sigma
+      mu = norm.mu
+      sigma = norm.sigma
       dataset = norm.dataset
     }
 
     if (!this._config.reduce) {
-      this._config.u = numeric.identity(dims[2])
       this._retainedVariance = 1
       this._retainedDimension = dims[2]
       this._initialDimension = dims[2]
     } else {
       const red = reduce(dataset, this._config.retainedVariance)
-      this._config.u = red.U
+      u = red.U
       this._retainedVariance = red.retainedVariance
       this._retainedDimension = red.newDimension
       this._initialDimension = red.oldDimension
       dataset = red.dataset
     }
 
-    let gridSearchResult: GridSearchResult
-    try {
-      gridSearchResult = await gridSearch(this._logger)(dataset, this._config, seed, (progress) => {
-        if (this._isCanceled) {
-          throw new TrainingCanceledError('Training was canceled')
-        }
-        progressCb(progress.done / (progress.total + 1))
-      })
-    } catch (err) {
-      if (err instanceof TrainingCanceledError) {
-        return
-      }
-      throw err
-    }
+    const gridSearchResult = await gridSearch(this._logger)(dataset, this._config, seed, (progress) =>
+      progressCb(progress.done / (progress.total + 1))
+    )
 
     const { params, report } = gridSearchResult
-    self._baseSvm = new BaseSVM()
-    const model = await self._baseSvm.train(dataset, seed, params)
+    const svm = new BaseSVM()
+    const trainOutput = await svm.train(dataset, seed, params)
+    const model: SvmModel = { ...trainOutput, mu, sigma, u }
+    this._trained = {
+      svm,
+      model
+    }
 
     progressCb(1)
-    const fullModel: SvmModel = { ...model, param: { ...self._config, ...model.param } }
 
     if (report) {
       const fullReport: Report = {
         ...report,
-        reduce: self._config.reduce,
-        retainedVariance: self._retainedVariance,
-        retainedDimension: self._retainedDimension,
-        initialDimension: self._initialDimension
+        reduce: this._config.reduce,
+        retainedVariance: this._retainedVariance,
+        retainedDimension: this._retainedDimension,
+        initialDimension: this._initialDimension
       }
-      return { model: fullModel, report: fullReport }
+      return { model, report: fullReport }
     }
-    return { model: fullModel }
+    return { model }
   }
 
-  free = () => {
-    this._baseSvm?.free()
+  public free = () => {
+    this._trained?.svm.free()
   }
 
-  isTrained = () => {
-    return !!this._baseSvm ? this._baseSvm.isTrained() : false
+  public isTrained = () => {
+    return !!this._trained ? this._trained.svm.isTrained() : false
   }
 
-  predict = (x: number[]) => {
-    assert(this.isTrained())
-    return (this._baseSvm as BaseSVM).predict(this._format(x))
+  public predict = (x: number[]) => {
+    if (!this._trained) {
+      throw new NoTrainedModelError()
+    }
+    const { svm, model } = this._trained
+    const formattedInput = this._format(model, x)
+    return svm.predict(formattedInput)
   }
 
-  predictSync = (x: number[]) => {
-    assert(this.isTrained())
-    return (this._baseSvm as BaseSVM).predictSync(this._format(x))
+  public predictSync = (x: number[]) => {
+    if (!this._trained) {
+      throw new NoTrainedModelError()
+    }
+    const { svm, model } = this._trained
+    const formattedInput = this._format(model, x)
+    return svm.predictSync(formattedInput)
   }
 
-  predictProbabilities = (x: number[]) => {
-    assert(this.isTrained())
-    return (this._baseSvm as BaseSVM).predictProbabilities(this._format(x))
+  public predictProbabilities = (x: number[]) => {
+    if (!this._trained) {
+      throw new NoTrainedModelError()
+    }
+    const { svm, model } = this._trained
+    const formattedInput = this._format(model, x)
+    return svm.predictProbabilities(formattedInput)
   }
 
-  predictProbabilitiesSync = (x: number[]) => {
-    assert(this.isTrained())
-    return (this._baseSvm as BaseSVM).predictProbabilitiesSync(this._format(x))
+  public predictProbabilitiesSync = (x: number[]) => {
+    if (!this._trained) {
+      throw new NoTrainedModelError()
+    }
+    const { svm, model } = this._trained
+    const formattedInput = this._format(model, x)
+    return svm.predictProbabilitiesSync(formattedInput)
   }
 
-  private _format = (x: number[]) => {
-    const mu = this._config.mu as number[]
-    const sigma = this._config.sigma as number[]
-    const u = this._config.u as number[][]
-    const xNorm = normalizeInput(x, mu, sigma)
-    return numeric.dot(xNorm, u) as number[]
+  private _format = (model: SvmModel, x: number[]) => {
+    const { u, mu, sigma } = model
+    if (mu && sigma) {
+      x = normalizeInput(x, mu, sigma)
+    }
+    if (u) {
+      x = numeric.dot(x, u) as number[]
+    }
+    return x
   }
 }

@@ -97,7 +97,7 @@ class RegressionEvaluator implements Evaluator {
   }
 }
 
-interface Evaluator {
+type Evaluator = {
   compute(predictions: number[][]): Report
   electBest(results: GridSearchResult[]): GridSearchResult
 }

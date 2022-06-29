@@ -1,6 +1,6 @@
 import { ModelResult } from '@microsoft/recognizers-text'
 
-export interface MicrosoftValue {
+export type MicrosoftValue = {
   value: string
   unit?: string
   type?: string
@@ -8,7 +8,7 @@ export interface MicrosoftValue {
   otherResults?: any[]
 }
 
-export interface MicrosoftTimeValues {
+export type MicrosoftTimeValues = {
   timex: string
   type: string
   start?: string
@@ -18,18 +18,18 @@ export interface MicrosoftTimeValues {
   sourceEntity?: string
 }
 
-export interface MicrosoftValues {
+export type MicrosoftValues = {
   values: MicrosoftTimeValues[]
 }
 
 export type MicrosoftResolution = MicrosoftValue | MicrosoftValues
 
-export interface MicrosoftEntity extends ModelResult {
+export type MicrosoftEntity = {
   start: number
   end: number
   resolution: MicrosoftResolution
   text: string
   typeName: string
-}
+} & ModelResult
 
 export type MicrosoftSupportedLanguage = 'zh' | 'nl' | 'en' | 'fr' | 'de' | 'it' | 'ja' | 'pt' | 'es'

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-interface VocabMatch {
+type VocabMatch = {
   start: number
   end: number
   length: number

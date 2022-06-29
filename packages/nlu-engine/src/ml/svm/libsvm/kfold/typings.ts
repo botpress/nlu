@@ -3,12 +3,12 @@ import { Domain } from './domain'
 
 export type Fold = Data[]
 
-export interface TrainTestSplit {
+export type TrainTestSplit = {
   train: Data[]
   test: Data[]
 }
 
-export interface KFold {
+export type KFold = {
   kfold(dataset: Data[], k: number): Fold[]
   krange(dataset: Data[]): Domain
 }

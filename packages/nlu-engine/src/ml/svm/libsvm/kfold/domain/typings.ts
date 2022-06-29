@@ -1,7 +1,7 @@
 export type Pair<T> = [T, T]
 export type SerializedDomain = number | Pair<number>
 
-export interface Domain {
+export type Domain = {
   format(): string
   includes(k: number): boolean
   isEqual(dom: Domain): boolean
@@ -13,13 +13,13 @@ export interface Domain {
   difference(dom: ContinuousDomain): SparsedDomain
 }
 
-export interface ContinuousDomain extends Domain {
+export type ContinuousDomain = {
   readonly min: number
   readonly max: number
   clone(): ContinuousDomain
-}
+} & Domain
 
-export interface SparsedDomain extends Domain {
+export type SparsedDomain = {
   readonly parts: ContinuousDomain[]
   clone(): SparsedDomain
-}
+} & Domain

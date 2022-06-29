@@ -5,15 +5,11 @@
   "variables": [
     {
       "name": "flight-number",
-      "types": [
-        "city"
-      ]
+      "types": ["city"]
     },
     {
       "name": "arrival-city",
-      "types": [
-        "city"
-      ]
+      "types": ["city"]
     }
   ],
   "enums": [
@@ -22,9 +18,7 @@
       "values": [
         {
           "name": "Paris",
-          "synonyms": [
-            "city of lights"
-          ]
+          "synonyms": ["city of lights"]
         },
         {
           "name": "Sydney",
@@ -551,7 +545,7 @@
           "synonyms": []
         },
         {
-          "name": "La Paz ",
+          "name": "La Paz",
           "synonyms": []
         },
         {
@@ -583,7 +577,7 @@
           "synonyms": []
         },
         {
-          "name": "Porto-Novo ",
+          "name": "Porto-Novo",
           "synonyms": []
         },
         {
@@ -599,11 +593,11 @@
           "synonyms": []
         },
         {
-          "name": "Pretoria ",
+          "name": "Pretoria",
           "synonyms": []
         },
         {
-          "name": "Putrajaya ",
+          "name": "Putrajaya",
           "synonyms": []
         },
         {

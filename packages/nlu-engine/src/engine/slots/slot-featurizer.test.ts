@@ -1,7 +1,15 @@
 import { SPACE } from '../tools/token-utils'
-import Utterance, { UtteranceEntity, UtteranceToken } from '../utterance/utterance'
+import Utterance, { UtteranceEntity, UtteranceSlot, UtteranceToken } from '../utterance/utterance'
 
 import * as featurizer from './slot-featurizer'
+
+const asToken = (x: Partial<{ value: string }>): UtteranceToken => {
+  return x as UtteranceToken
+}
+
+const asSlot = (x: Partial<UtteranceSlot>): UtteranceSlot => {
+  return x as UtteranceSlot
+}
 
 describe('CRF Featurizer 2', () => {
   test('featToCRFsuiteAttr', () => {
@@ -87,7 +95,9 @@ describe('CRF Featurizer 2', () => {
       { value: SPACE, isWord: false, slots: ['hello'] },
       { value: SPACE, isWord: false, entities: ['hello'] },
       { value: SPACE, isWord: false }
-    ].map((tok) => Object.defineProperty(tok, 'toString', { value: jest.fn().mockReturnValue(tok.value) }))
+    ]
+      .map((tok) => Object.defineProperty(tok, 'toString', { value: jest.fn().mockReturnValue(tok.value) }))
+      .map(asToken)
 
     const feat = featurizer.getWordFeat(tokens[0], true)
     const feat1 = featurizer.getWordFeat(tokens[0], false)
@@ -131,17 +141,18 @@ describe('CRF Featurizer 2', () => {
   })
 
   test('getInVocabFeat', () => {
-    const tokens = [{ value: 'fly' }, { value: SPACE }, { value: 'paul' }].map((tok) =>
-      Object.defineProperty(tok, 'toString', { value: () => tok.value, enumerable: true })
-    )
+    const tokens = [{ value: 'fly' }, { value: SPACE }, { value: 'paul' }]
+      .map((tok) => Object.defineProperty(tok, 'toString', { value: () => tok.value, enumerable: true }))
+      .map(asToken)
 
     const vocab = ['fly']
 
-    expect(featurizer.getInVocabFeat({ ...tokens[0], slots: ['lol.A.W'] }, vocab).value).toBeTruthy()
+    const slots = [asSlot({ name: 'lol' })]
+    expect(featurizer.getInVocabFeat({ ...tokens[0], slots }, vocab).value).toBeTruthy()
     expect(featurizer.getInVocabFeat(tokens[0], vocab).value).toBeTruthy()
-    expect(featurizer.getInVocabFeat({ ...tokens[1], slots: ['lol.A.W'] }, vocab).value).toBeFalsy()
+    expect(featurizer.getInVocabFeat({ ...tokens[1], slots }, vocab).value).toBeFalsy()
     expect(featurizer.getInVocabFeat(tokens[1], vocab).value).toBeFalsy()
-    expect(featurizer.getInVocabFeat({ ...tokens[2], slots: ['lol.A.W'] }, vocab).value).toBeFalsy()
+    expect(featurizer.getInVocabFeat({ ...tokens[2], slots }, vocab).value).toBeFalsy()
     expect(featurizer.getInVocabFeat(tokens[2], vocab).value).toBeFalsy()
   })
 

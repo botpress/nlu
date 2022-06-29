@@ -2,6 +2,7 @@ import { Domain } from '.'
 
 declare global {
   namespace jest {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface Matchers<R> {
       toEqualDomain(d: Domain): CustomMatcherResult
       toIntersect(d: Domain): CustomMatcherResult

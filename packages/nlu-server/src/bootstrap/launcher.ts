@@ -1,17 +1,14 @@
-import { Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import chalk from 'chalk'
 import _ from 'lodash'
 import ms from 'ms'
-import { BuildInfo } from '../typings'
+import { BuildInfo, NLUServerOptions } from '../typings'
 import { showBanner } from './banner'
-import { ConfigSource, NLUServerOptions } from './config'
 import { displayDocumentation } from './documentation'
 
-interface LaunchingInfo {
+type LaunchingInfo = {
   version: string
   buildInfo?: BuildInfo
-  configSource: ConfigSource
-  configFile?: string
 }
 
 export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo, launcherLogger: Logger) => {
@@ -19,16 +16,10 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
     title: 'Botpress Standalone NLU',
     version: info.version,
     buildInfo: info.buildInfo,
-    logScopeLength: 9,
+    logScopeLength: 0,
     bannerWidth: 75,
     logger: launcherLogger
   })
-
-  if (info.configSource === 'environment') {
-    launcherLogger.info('Loading config from environment variables')
-  } else if (info.configSource === 'file') {
-    launcherLogger.info(`Loading config from file "${info.configFile}"`)
-  }
 
   if (info.limit) {
     launcherLogger.info(
@@ -45,9 +36,7 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
   } else {
     launcherLogger.info(`duckling: ${chalk.redBright('disabled')}`)
   }
-  for (const langSource of info.languageSources) {
-    launcherLogger.info(`lang server: url=${langSource.endpoint}`)
-  }
+  launcherLogger.info(`lang server: url=${info.languageURL}`)
 
   launcherLogger.info(`body size: allowing HTTP requests body of size ${info.bodySize}`)
 
@@ -57,8 +46,14 @@ export const logLaunchingMessage = async (info: NLUServerOptions & LaunchingInfo
     launcherLogger.info(`models stored at "${info.modelDir}"`)
   }
 
-  if (info.batchSize > 0) {
+  if (info.batchSize > 1) {
     launcherLogger.info(`batch size: allowing up to ${info.batchSize} predictions in one call to POST /predict`)
+  }
+
+  if (info.modelTransferEnabled) {
+    launcherLogger.info(`model transfer: ${chalk.greenBright('enabled')}`)
+  } else {
+    launcherLogger.info(`model transfer: ${chalk.redBright('disabled')}`)
   }
 
   if (info.doc) {

@@ -4,3 +4,9 @@ Dockerfile
 .dockerignore
 .vscode
 .github
+
+# Other
+*.config.json
+*.ignore.me
+ignore.me.*
+*.ignore.me.*

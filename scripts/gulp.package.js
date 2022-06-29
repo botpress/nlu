@@ -6,9 +6,9 @@ const chalk = require('chalk')
 const _ = require('lodash')
 
 const targets = {
-  win: 'node12-win32-x64',
-  linux: 'node12-linux-x64',
-  darwin: 'node12-macos-x64'
+  win: 'node16-win32-x64',
+  linux: 'node16-linux-x64',
+  darwin: 'node16-macos-x64'
 }
 
 const projectRoot = path.join(__dirname, '..')
