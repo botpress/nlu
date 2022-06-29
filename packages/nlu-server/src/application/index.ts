@@ -1,4 +1,3 @@
-import { Logger } from '@bpinternal/log4bot'
 import {
   TrainingState,
   PredictOutput,
@@ -9,6 +8,7 @@ import {
   IssueComputationSpeed
 } from '@botpress/nlu-client'
 import { Engine, ModelId, modelIdService, errors as engineErrors, Model } from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import { ModelTransferDisabled } from '../api/errors'

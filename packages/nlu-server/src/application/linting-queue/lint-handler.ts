@@ -1,6 +1,6 @@
-import { Logger } from '@bpinternal/log4bot'
 import { DatasetIssue, IssueCode, LintingError } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import _ from 'lodash'
 import { LintingId } from '../../infrastructure'
 import { idToString } from '../training-queue'

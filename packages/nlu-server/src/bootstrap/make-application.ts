@@ -1,5 +1,5 @@
-import { Logger } from '@bpinternal/log4bot'
 import { Engine } from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import Knex from 'knex'
 import { Application } from '../application'
 import { LintingQueue, LocalLintingQueue, PgLintingQueue } from '../application/linting-queue'

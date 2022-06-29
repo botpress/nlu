@@ -1,5 +1,5 @@
-import { Logger } from '@bpinternal/log4bot'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import _ from 'lodash'
 import { getAppDataPath } from '../app-data'
 import { NLUServerOptions } from '../typings'

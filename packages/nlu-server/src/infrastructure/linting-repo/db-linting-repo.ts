@@ -1,4 +1,3 @@
-import { Logger } from '@bpinternal/log4bot'
 import {
   LintingErrorType,
   LintingStatus,
@@ -10,6 +9,7 @@ import {
   IssueComputationSpeed
 } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import Bluebird from 'bluebird'
 import { Knex } from 'knex'
 import _ from 'lodash'

@@ -1,6 +1,6 @@
-import { Logger } from '@bpinternal/log4bot'
 import { http, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
 import bodyParser from 'body-parser'
