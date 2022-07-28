@@ -22,7 +22,6 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   doc: false,
   logLevel: 'info',
   prometheusEnabled: false,
-  tracingEnabled: false,
   debugFilter: undefined,
   logFormat: 'text',
   maxTraining: 2,

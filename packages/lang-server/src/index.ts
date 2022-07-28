@@ -1,3 +1,7 @@
+/* eslint-disable import/order */
+import { init } from '@bpinternal/trail'
+init()
+
 import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
 import { Logger, TextFormatter, JSONFormatter } from '@bpinternal/log4bot'
 import chalk from 'chalk'
@@ -11,6 +15,7 @@ import { getLangServerConfig } from './config'
 import { requireJSON } from './require-json'
 import * as types from './typings'
 import { listenForUncaughtErrors } from './uncaught-errors'
+/* eslint-enable import/order */
 
 const packageJsonPath = path.resolve(__dirname, '../package.json')
 const packageJson = requireJSON<{ version: string }>(packageJsonPath)
@@ -79,6 +84,8 @@ export const run: typeof types.run = async (argv: types.LangArgv) => {
     authToken: options.authToken,
     limit: options.limit,
     limitWindow: options.limitWindow,
+    prometheusEnabled: options.prometheusEnabled,
+    apmEnabled: options.apmEnabled,
     adminToken: options.adminToken || ''
   }
 
@@ -106,8 +113,7 @@ ${_.repeat(' ', indent)}${border}`)
 
   if (options.limit) {
     launcherLogger.info(
-      `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${
-        options.limitWindow
+      `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${options.limitWindow
       } timeframe `
     )
   } else {

@@ -1,0 +1,23 @@
+{
+  "name": "@botpress/telemetry",
+  "version": "1.0.0",
+  "description": "Botpress Telemetry Package",
+  "author": "Botpress, Inc.",
+  "license": "AGPL-3.0",
+  "main": "./dist/index.js",
+  "types": "./src/typings.d.ts",
+  "bin": "./dist/index.js",
+  "dependencies": {
+    "@promster/express": "5.0.3",
+    "@promster/metrics": "6.0.2",
+    "@promster/server": "6.0.2",
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.2"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rimraf ./dist && rimraf ./node_modules"
+  }
+}

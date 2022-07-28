@@ -22,7 +22,6 @@ export type NLUServerOptions = {
   logFormat: LogFormat
   debugFilter?: string
   prometheusEnabled: boolean
-  tracingEnabled: boolean
   apmEnabled: boolean
   apmSampleRate?: number
   maxTraining: number
