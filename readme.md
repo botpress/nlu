@@ -38,10 +38,14 @@ A [Jaeger](https://www.jaegertracing.io/) client can be configured using a subse
 
 The important environment variables for configuring tracing are:
 
-- TRACING_ENABLED `bool` Enables the tracer
-- TRACING_DEBUG `bool` Adds debug information about the tracing configuration
-- OTEL_SERVICE_NAME `string` Sets the service name given to a trace
-- OTEL_EXPORTER_JAEGER_ENDPOINT `url` Sets the Jaeger collector endpoint
+- TRACING_ENABLED bool Enables the tracer
+- TRACING_DEBUG bool Adds debug information about the tracing configuration
+- OTEL_EXPORTER_JAEGER_ENDPOINT url Sets the Jaeger collector endpoint
+- OTEL_SERVICE_NAME string Sets the service name given to a trace
+- OTEL_SERVICE_VERSION string Sets the current running version of the service
+- OTEL_SERVICE_VERSION_INSTANCE_ID string Sets the node intance id on which the service is running on
+- OTEL_SERVICE_NAMESPACE string Sets the namespace of the service
+- OTEL_DEPLOYMENT_ENVIRONMENT string Sets the environment of the service
 
 ## ⚠️⚠️ Disclaimer ⚠️⚠️
 
