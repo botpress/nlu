@@ -1,6 +1,6 @@
-// eslint-disable-next-line import/order
-import { trace } from '@botpress/telemetry'
-trace.init()
+/* eslint-disable import/order */
+import { init } from '@bpinternal/trail'
+init()
 
 import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
 import { Logger, TextFormatter, JSONFormatter } from '@bpinternal/log4bot'
@@ -15,6 +15,7 @@ import { getLangServerConfig } from './config'
 import { requireJSON } from './require-json'
 import * as types from './typings'
 import { listenForUncaughtErrors } from './uncaught-errors'
+/* eslint-enable import/order */
 
 const packageJsonPath = path.resolve(__dirname, '../package.json')
 const packageJson = requireJSON<{ version: string }>(packageJsonPath)
@@ -112,8 +113,7 @@ ${_.repeat(' ', indent)}${border}`)
 
   if (options.limit) {
     launcherLogger.info(
-      `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${
-        options.limitWindow
+      `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${options.limitWindow
       } timeframe `
     )
   } else {
