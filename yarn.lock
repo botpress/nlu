@@ -920,6 +920,13 @@
     moment "^2.24.0"
     regex-parser "^2.2.11"
 
+"@bpinternal/ptb-schema@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@bpinternal/ptb-schema/-/ptb-schema-0.0.2.tgz#a3d6072ab94d6e7e8c8556e38bc78a8cc13f00e9"
+  integrity sha512-eSCZprNdylj8JOSilGWRf2+95izwaVf2dBbwKifv9BUSjvIZLmcsADWnvaQSIcOp/4BcUS4CLAMIBd413ncidw==
+  dependencies:
+    protobufjs "^6.11.2"
+
 "@bpinternal/yargs-extra@^0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@bpinternal/yargs-extra/-/yargs-extra-0.0.2.tgz#6307dd8ee3be593eef81f73c6aefeef0b9039cc9"
@@ -2102,13 +2109,6 @@
     "@types/node" "*"
     pg-protocol "*"
     pg-types "^2.2.0"
-
-"@types/protobufjs@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@types/protobufjs/-/protobufjs-6.0.0.tgz#aeabb43f9507bb19c8adfb479584c151082353e4"
-  integrity sha512-A27RDExpAf3rdDjIrHKiJK6x8kqqJ4CmoChwtipfhVAn1p7+wviQFFP7dppn8FslSbHtQeVPvi8wNKkDjSYjHw==
-  dependencies:
-    protobufjs "*"
 
 "@types/qs@*":
   version "6.9.7"
@@ -8536,7 +8536,7 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-protobufjs@*, protobufjs@^6.11.2:
+protobufjs@^6.11.2:
   version "6.11.2"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-6.11.2.tgz#de39fabd4ed32beaa08e9bb1e30d08544c1edf8b"
   integrity sha512-4BQJoPooKJl2G9j3XftkIXjoC9C0Av2NOrWmbLWT1vH32GcSUHjM0Arra6UfTsVyfMAuFzaLucXn1sadxJydAw==

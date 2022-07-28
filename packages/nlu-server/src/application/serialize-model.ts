@@ -1,5 +1,5 @@
 import { Model, ModelId } from '@botpress/nlu-engine'
-import * as ptb from '@botpress/ptb-schema'
+import * as ptb from '@bpinternal/ptb-schema'
 import _ from 'lodash'
 
 const PTBModelId = new ptb.PTBMessage('ModelId', {

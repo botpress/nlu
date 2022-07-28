@@ -1,4 +1,4 @@
-import * as ptb from '@botpress/ptb-schema'
+import * as ptb from '@bpinternal/ptb-schema'
 import _ from 'lodash'
 import { ModelOf } from 'src/component'
 import { Model, SlotDefinition } from '../typings'

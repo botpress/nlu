@@ -1,5 +1,5 @@
 import { Tagger as AddonTagger, makeTrainer, makeTagger } from '@botpress/node-crfsuite'
-import * as ptb from '@botpress/ptb-schema'
+import * as ptb from '@bpinternal/ptb-schema'
 import fse from 'fs-extra'
 import { PipelineComponent } from 'src/component'
 import { Logger } from 'src/typings'

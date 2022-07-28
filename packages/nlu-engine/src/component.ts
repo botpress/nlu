@@ -1,4 +1,4 @@
-import * as ptb from '@botpress/ptb-schema'
+import * as ptb from '@bpinternal/ptb-schema'
 
 type Predictor<PredictInput, PredictOutput> = {
   predict: (u: PredictInput) => Promise<PredictOutput>
