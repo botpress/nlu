@@ -6,8 +6,9 @@ import {
   DownloadLangResponseBody,
   SuccessReponse
 } from '@botpress/lang-client'
-import { trace as bptrace, prometheus } from '@botpress/telemetry'
+import { prometheus } from '@botpress/telemetry'
 import { Logger } from '@bpinternal/log4bot'
+import trail from '@bpinternal/trail'
 import { context, trace } from '@opentelemetry/api'
 import * as Sentry from '@sentry/node'
 import Bluebird from 'bluebird'
@@ -26,7 +27,7 @@ import { authMiddleware } from './mw-authentification'
 import { handleUnexpectedError } from './mw-handle-error'
 import { serviceLoadingMiddleware } from './mw-service-loading'
 import { validateTokenizeRequestBody, validateVectorizeRequestBody } from './validation/body'
-import { extractPathLanguageMiddleware, RequestWithLang, assertLanguage } from './validation/lang-path'
+import { extractPathLanguageMiddleware, RequestWithLang } from './validation/lang-path'
 
 export type APIOptions = {
   version: string
@@ -66,7 +67,7 @@ const createExpressApp = async (options: APIOptions, baseLogger: Logger): Promis
 
     const metadata: { ip: string; traceId?: string } = { ip: req.ip }
 
-    if (bptrace.isEnabled()) {
+    if (trail.isEnabled()) {
       const spanContext = trace.getSpanContext(context.active())
 
       if (spanContext?.traceId) {

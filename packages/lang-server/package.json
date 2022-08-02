@@ -12,7 +12,7 @@
     "@botpress/nlu-engine": "*",
     "@botpress/telemetry": "*",
     "@bpinternal/log4bot": "^0.0.4",
-    "@bpinternal/trail": "^0.0.1",
+    "@bpinternal/trail": "^0.1.0",
     "@opentelemetry/api": "1.1.0",
     "@opentelemetry/instrumentation-express": "0.27.0",
     "@opentelemetry/instrumentation-http": "0.27.0",
@@ -62,7 +62,7 @@
   },
   "scripts": {
     "build": "tsc --build",
-    "start": "cross-env node ./dist/index.js",
+    "start": "node -r @bpinternal/trail/init ./dist/index.js",
     "clean": "rimraf ./dist && rimraf ./node_modules"
   }
 }

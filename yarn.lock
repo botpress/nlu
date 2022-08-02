@@ -927,10 +927,10 @@
   dependencies:
     protobufjs "^6.11.2"
 
-"@bpinternal/trail@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@bpinternal/trail/-/trail-0.0.1.tgz#56c83dd35007dd98e3e891a0a881363d68986a57"
-  integrity sha512-oqlnED5a+zVblqoP47pBzawMjUhWbMnddupluGkHmjnETCwTrwSFxKXPvL8ejI7ZjuAkvudgUmXmjSKukUnpdw==
+"@bpinternal/trail@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@bpinternal/trail/-/trail-0.1.0.tgz#665689884acaedeb495c0408643da6594deac76f"
+  integrity sha512-tKIpYLi3KzZQv2+U77/EhKa+4YM+cynPRkoeEGP2iW5RYgpkh3pJHFuI8vCzYvTRCLEKjVd08vEbsQ5oIrE3KA==
   dependencies:
     "@opentelemetry/api" "1.1.0"
     "@opentelemetry/auto-instrumentations-node" "0.27.0"

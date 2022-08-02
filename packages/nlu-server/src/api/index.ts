@@ -1,6 +1,7 @@
 import * as NLUEngine from '@botpress/nlu-engine'
-import { trace as bptrace, prometheus } from '@botpress/telemetry'
+import { prometheus } from '@botpress/telemetry'
 import { Logger } from '@bpinternal/log4bot'
+import trail from '@bpinternal/trail'
 import { context, trace } from '@opentelemetry/api'
 import * as Sentry from '@sentry/node'
 import cors from 'cors'
@@ -106,7 +107,7 @@ export const createAPI = async (
 
     const metadata: { ip: string; traceId?: string } = { ip: req.ip }
 
-    if (bptrace.isEnabled()) {
+    if (trail.isEnabled()) {
       const spanContext = trace.getSpanContext(context.active())
 
       if (spanContext?.traceId) {

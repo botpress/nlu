@@ -1,7 +1,3 @@
-/* eslint-disable import/order */
-import { init } from '@bpinternal/trail'
-init()
-
 import { Logger, JSONFormatter, TextFormatter } from '@bpinternal/log4bot'
 import { createServer } from 'http'
 import _ from 'lodash'
@@ -15,7 +11,6 @@ import { serverListen } from './bootstrap/server-listen'
 import { requireJSON } from './require-json'
 import * as types from './typings'
 import { listenForUncaughtErrors } from './uncaught-errors'
-/* eslint-enable import/order */
 
 const packageJsonPath = path.resolve(__dirname, '../package.json')
 const buildInfoPath = path.resolve(__dirname, '../.buildinfo.json')
