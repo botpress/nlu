@@ -108,7 +108,8 @@ ${_.repeat(' ', indent)}${border}`)
 
   if (options.limit) {
     launcherLogger.info(
-      `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${options.limitWindow
+      `limit: ${chalk.greenBright('enabled')} allowing ${options.limit} requests/IP address in a ${
+        options.limitWindow
       } timeframe `
     )
   } else {
