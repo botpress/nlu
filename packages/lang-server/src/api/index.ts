@@ -8,7 +8,7 @@ import {
 } from '@botpress/lang-client'
 import { prometheus } from '@botpress/telemetry'
 import { Logger } from '@bpinternal/log4bot'
-import trail from '@bpinternal/trail'
+import { isEnabled } from '@bpinternal/trail'
 import { context, trace } from '@opentelemetry/api'
 import * as Sentry from '@sentry/node'
 import Bluebird from 'bluebird'
@@ -67,7 +67,7 @@ const createExpressApp = async (options: APIOptions, baseLogger: Logger): Promis
 
     const metadata: { ip: string; traceId?: string } = { ip: req.ip }
 
-    if (trail.isEnabled()) {
+    if (isEnabled()) {
       const spanContext = trace.getSpanContext(context.active())
 
       if (spanContext?.traceId) {
