@@ -79,6 +79,8 @@ export const run: typeof types.run = async (argv: types.LangArgv) => {
     authToken: options.authToken,
     limit: options.limit,
     limitWindow: options.limitWindow,
+    prometheusEnabled: options.prometheusEnabled,
+    apmEnabled: options.apmEnabled,
     adminToken: options.adminToken || ''
   }
 

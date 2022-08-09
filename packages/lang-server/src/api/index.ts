@@ -6,7 +6,11 @@ import {
   DownloadLangResponseBody,
   SuccessReponse
 } from '@botpress/lang-client'
+import { prometheus } from '@botpress/telemetry'
 import { Logger } from '@bpinternal/log4bot'
+import { isEnabled } from '@bpinternal/trail'
+import { context, trace } from '@opentelemetry/api'
+import * as Sentry from '@sentry/node'
 import Bluebird from 'bluebird'
 import bodyParser from 'body-parser'
 import cors from 'cors'
@@ -23,12 +27,14 @@ import { authMiddleware } from './mw-authentification'
 import { handleUnexpectedError } from './mw-handle-error'
 import { serviceLoadingMiddleware } from './mw-service-loading'
 import { validateTokenizeRequestBody, validateVectorizeRequestBody } from './validation/body'
-import { extractPathLanguageMiddleware, RequestWithLang, assertLanguage } from './validation/lang-path'
+import { extractPathLanguageMiddleware, RequestWithLang } from './validation/lang-path'
 
 export type APIOptions = {
   version: string
   host: string
   port: number
+  prometheusEnabled: boolean
+  apmEnabled: boolean
   authToken?: string
   limitWindow: string
   limit: number
@@ -38,18 +44,38 @@ export type APIOptions = {
 
 const cachePolicy = { 'Cache-Control': `max-age=${ms('1d')}` }
 
-const createExpressApp = (options: APIOptions, baseLogger: Logger): Application => {
+const createExpressApp = async (options: APIOptions, baseLogger: Logger): Promise<Application> => {
   const app = express()
   const requestLogger = baseLogger.sub('api').sub('request')
 
   // This must be first, otherwise the /info endpoint can't be called when token is used
   app.use(cors())
 
+  if (options.prometheusEnabled) {
+    await prometheus.init(app)
+  }
+
   app.use(bodyParser.json({ limit: '250kb' }))
+
+  if (options.apmEnabled) {
+    Sentry.init()
+    app.use(Sentry.Handlers.requestHandler())
+  }
 
   app.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress')
-    requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
+
+    const metadata: { ip: string; traceId?: string } = { ip: req.ip }
+
+    if (isEnabled()) {
+      const spanContext = trace.getSpanContext(context.active())
+
+      if (spanContext?.traceId) {
+        metadata.traceId = spanContext?.traceId
+      }
+    }
+
+    requestLogger.debug(`incoming ${req.method} ${req.path}`, metadata)
     next()
   })
 
@@ -78,7 +104,7 @@ const createExpressApp = (options: APIOptions, baseLogger: Logger): Application 
 }
 
 export default async function (options: APIOptions, baseLogger: Logger, application: LangApplication) {
-  const app = createExpressApp(options, baseLogger)
+  const app = await createExpressApp(options, baseLogger)
   const logger = baseLogger.sub('lang').sub('api')
 
   const waitForServiceMw = serviceLoadingMiddleware(application.languageService)
@@ -189,6 +215,11 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
   })
 
   app.use('/languages', waitForServiceMw, router)
+
+  if (options.apmEnabled) {
+    app.use(Sentry.Handlers.errorHandler())
+  }
+
   app.use(handleErr)
 
   const httpServer = createServer(app)

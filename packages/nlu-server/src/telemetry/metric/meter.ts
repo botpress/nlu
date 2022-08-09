@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import client from 'prom-client'
 
 export const trainingDuration = new client.Histogram({

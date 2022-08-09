@@ -1,9 +1,9 @@
-import { http, TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { prometheus } from '@botpress/telemetry'
 import { Logger } from '@bpinternal/log4bot'
+import { isEnabled } from '@bpinternal/trail'
+import { context, trace } from '@opentelemetry/api'
 import * as Sentry from '@sentry/node'
-import * as Tracing from '@sentry/tracing'
-import bodyParser from 'body-parser'
 import cors from 'cors'
 import express, { Application as ExpressApp } from 'express'
 import rateLimit from 'express-rate-limit'
@@ -14,14 +14,7 @@ import { NLUServerOptions } from '..'
 import { Application } from '../application'
 import { ModelLoadedData } from '../application/app-observer'
 import { Training } from '../infrastructure/training-repo/typings'
-import {
-  initPrometheus,
-  modelMemoryLoadDuration,
-  modelStorageReadDuration,
-  trainingCount,
-  trainingDuration
-} from '../telemetry/metric'
-import { initTracing } from '../telemetry/trace'
+import { modelMemoryLoadDuration, modelStorageReadDuration, trainingCount, trainingDuration } from '../telemetry/metric'
 import { UsageClient } from '../telemetry/usage-client'
 import { createModelTransferRouter } from './routers/model-transfer'
 import { createRootRouter } from './routers/root'
@@ -63,7 +56,7 @@ export const createAPI = async (
       modelMemoryLoadDuration.observe(data.loadTime)
     })
 
-    await initPrometheus(expressApp, async () => {
+    await prometheus.init(expressApp, async () => {
       const count = await app.getLocalTrainingCount()
       trainingCount.set(count)
     })
@@ -104,32 +97,27 @@ export const createAPI = async (
     })
   }
 
-  if (options.tracingEnabled) {
-    await initTracing('nlu')
-  }
-
   if (options.apmEnabled) {
-    Sentry.init({
-      integrations: [
-        new Sentry.Integrations.Http({ tracing: true }),
-        new Tracing.Integrations.Express({ app: expressApp })
-      ],
-      sampleRate: options.apmSampleRate ?? 1.0
-    })
-
+    Sentry.init()
     expressApp.use(Sentry.Handlers.requestHandler())
-    expressApp.use(Sentry.Handlers.tracingHandler())
   }
 
   expressApp.use((req, res, next) => {
     res.header('X-Powered-By', 'Botpress NLU')
-    requestLogger.debug(`incoming ${req.method} ${req.path}`, { ip: req.ip })
+
+    const metadata: { ip: string; traceId?: string } = { ip: req.ip }
+
+    if (isEnabled()) {
+      const spanContext = trace.getSpanContext(context.active())
+
+      if (spanContext?.traceId) {
+        metadata.traceId = spanContext?.traceId
+      }
+    }
+
+    requestLogger.debug(`incoming ${req.method} ${req.path}`, metadata)
     next()
   })
-
-  if (options.apmEnabled) {
-    expressApp.use(Sentry.Handlers.errorHandler())
-  }
 
   if (options.reverseProxy) {
     expressApp.set('trust proxy', options.reverseProxy)
@@ -150,6 +138,10 @@ export const createAPI = async (
 
   expressApp.use('/', rootRouter)
   expressApp.use('/modelweights', modelRouter)
+
+  if (options.apmEnabled) {
+    expressApp.use(Sentry.Handlers.errorHandler())
+  }
 
   return expressApp
 }

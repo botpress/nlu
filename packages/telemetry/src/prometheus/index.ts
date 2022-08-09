@@ -100,7 +100,7 @@ const createServer = (onRequest?: () => Promise<void>) =>
     })
   })
 
-export const initPrometheus = async (app: Express, onRequest?: () => Promise<void>) => {
+export const init = async (app: Express, onRequest?: () => Promise<void>) => {
   app.use(
     createMiddleware({
       app,
