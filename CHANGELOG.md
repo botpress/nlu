@@ -1,3 +1,12 @@
+## [1.0.2](https://github.com/botpress/nlu/compare/v1.0.1...v1.0.2) (2022-09-09)
+
+
+### Bug Fixes
+
+* **nlu:** reorder keys ([#218](https://github.com/botpress/nlu/issues/218)) ([afc7355](https://github.com/botpress/nlu/commit/afc7355cbb2ee60b6f1cf454c47d22204c42a40b))
+
+
+
 ## [1.0.1](https://github.com/botpress/nlu/compare/v1.0.0...v1.0.1) (2022-06-15)
 
 
