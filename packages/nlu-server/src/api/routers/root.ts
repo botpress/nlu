@@ -19,6 +19,7 @@ import { NLUServerOptions } from '../../typings'
 
 import { getAppId } from '../app-id'
 import { InvalidRequestFormatError, InvalidTrainSetError } from '../errors'
+import { orderKeys } from '../order-keys'
 
 import {
   validatePredictInput,
@@ -138,9 +139,13 @@ export const createRootRouter = (options: NLUServerOptions, app: Application, ba
 
       const pickedSeed = seed ?? Math.round(Math.random() * 10000)
 
+      const content = orderKeys({
+        entities: _.orderBy(entities, (e) => e.name),
+        intents: _.orderBy(intents, (i) => i.name)
+      })
+
       const trainInput: TrainInput = {
-        intents,
-        entities,
+        ...content,
         language,
         seed: pickedSeed
       }
