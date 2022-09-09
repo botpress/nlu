@@ -11,6 +11,7 @@ import rateLimit from 'express-rate-limit'
 import _ from 'lodash'
 import ms from 'ms'
 import { Application } from '../application'
+import { orderKeys } from '../utils/order-keys'
 import { InvalidRequestFormatError } from './errors'
 
 import { handleError, getAppId } from './http'
@@ -130,9 +131,13 @@ export const createAPI = async (options: APIOptions, app: Application, baseLogge
 
       const pickedSeed = seed ?? Math.round(Math.random() * 10000)
 
+      const content = orderKeys({
+        entities: _.orderBy(entities, (e) => e.name),
+        intents: _.orderBy(intents, (i) => i.name)
+      })
+
       const trainInput: TrainInput = {
-        intents,
-        entities,
+        ...content,
         language,
         seed: pickedSeed
       }
