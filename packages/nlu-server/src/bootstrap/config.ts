@@ -38,6 +38,7 @@ export type NLUServerOptions = BaseOptions & {
   ducklingURL: string
   ducklingEnabled: boolean
   legacyElection: boolean // not available from CLI
+  ignoreSync?: boolean
 }
 
 const DEFAULT_OPTIONS = (): NLUServerOptions => ({
@@ -56,7 +57,8 @@ const DEFAULT_OPTIONS = (): NLUServerOptions => ({
   logFilter: undefined,
   legacyElection: false,
   modelDir: getAppDataPath(),
-  maxTraining: 2
+  maxTraining: 2,
+  ignoreSync: false
 })
 
 export type ConfigSource = 'environment' | 'cli' | 'file'
