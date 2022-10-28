@@ -193,7 +193,7 @@ export default class TrainingQueue {
       const { appId } = training
 
       const keep = MAX_MODEL_PER_USER_PER_LANG - 1 // TODO: make the max amount of models on FS (by appId + lang) configurable
-      await this.modelRepo.pruneModels(appId, { keep }, { languageCode })
+      //await this.modelRepo.pruneModels(appId, { keep }, { languageCode })  We want to control model pruning from our chatbot-api code, so don't prune during training.
       await this.modelRepo.saveModel(appId, model)
 
       this.logger.info(`[${trainKey}] Training Done.`)
