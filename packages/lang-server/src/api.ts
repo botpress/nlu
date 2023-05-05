@@ -96,6 +96,14 @@ export default async function (
     })
   })
 
+  app.get('/ready', (req, res) => {
+    if(!languageService.isReady) {
+      return res.status(503).send({ ready: false })
+    } else {
+      return res.send({ ready: true })
+    }
+  })
+
   app.post('/tokenize', waitForServiceMw, validateLanguageMw, async (req: RequestWithLang, res, next) => {
     try {
       const utterances = req.body.utterances
