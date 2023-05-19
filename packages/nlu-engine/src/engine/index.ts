@@ -143,7 +143,7 @@ export default class Engine implements IEngine {
 
     const list_entities = entities.filter(isListEntity).map(
       (e) =>
-        ({
+        <ListEntity & { cache: EntityCacheDump }>{
           name: e.name,
           fuzzyTolerance: e.fuzzy,
           sensitive: !!e.sensitive,
@@ -152,7 +152,7 @@ export default class Engine implements IEngine {
             .mapValues((e) => e.synonyms)
             .value(),
           cache: [] // TODO: bring back list entitiy caching
-        } satisfies ListEntity & { cache: EntityCacheDump })
+        }
     )
 
     const pattern_entities: PatternEntity[] = entities
