@@ -36,7 +36,7 @@
     "@types/node": "^16.11.10",
     "node-addon-api": "^3.0.0",
     "node-gyp": "^7.0.0",
-    "typescript": "^4.5.2"
+    "typescript": "^5.0.4"
   },
   "files": [
     "cppsrc",
