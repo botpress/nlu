@@ -1,6 +1,6 @@
-import { spaceTokenizer } from '../space-tokenizer'
+import { ListEntityExtraction, ListEntityModel, extractForListModel } from './list-engine'
+import { spaceTokenizer } from './space-tokenizer'
 
-import { ListEntityExtraction, ListEntityModel, extractForListModel } from '.'
 import { parseUtterance } from './utterance-parser.util.test'
 
 const extractListEntities = (utt: string, models: ListEntityModel[]) => {
