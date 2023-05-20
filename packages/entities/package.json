@@ -1,0 +1,18 @@
+{
+  "name": "@bpinternal/entities",
+  "version": "0.0.1",
+  "author": "Botpress, Inc.",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "build": "tsc --build",
+    "test": "jest --roots ./dist --testPathIgnorePatterns \\.util\\.test\\.js"
+  },
+  "dependencies": {
+    "lodash": "^4.17.19"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.4"
+  },
+  "types": "./src/typings.d.ts",
+  "main": "./dist/index.js"
+}
