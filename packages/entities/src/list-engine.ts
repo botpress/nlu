@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 /**
  * This file contains the essence of the list engine.
  * The current plan is to get rid of lodash and translate it to Rust for speed.
@@ -11,7 +9,112 @@ import _ from 'lodash'
  * #######################
  */
 
-// replace lodash here
+const range = (n: number): number[] => {
+  const res: number[] = []
+  for (let i = 0; i < n; i++) {
+    res.push(i)
+  }
+  return res
+}
+
+const every = <T>(arr: ArrayLike<T>, predicate: (x: T) => boolean): boolean => {
+  for (let i = 0; i < arr.length; i++) {
+    if (!predicate(arr[i])) {
+      return false
+    }
+  }
+  return true
+}
+
+const some = <T>(arr: ArrayLike<T>, predicate: (x: T) => boolean): boolean => {
+  for (let i = 0; i < arr.length; i++) {
+    if (predicate(arr[i])) {
+      return true
+    }
+  }
+  return false
+}
+
+const takeWhile = <T>(arr: T[], predicate: (x: T) => boolean): T[] => {
+  const res: T[] = []
+
+  for (const x of arr) {
+    if (predicate(x)) {
+      res.push(x)
+    } else {
+      break
+    }
+  }
+
+  return res
+}
+
+const intersection = <T>(arr1: T[], arr2: T[]): T[] => {
+  const res: T[] = []
+  for (const x of arr1) {
+    if (arr2.includes(x)) {
+      res.push(x)
+    }
+  }
+  return res
+}
+
+const union = <T>(arr1: T[], arr2: T[]): T[] => {
+  const res: T[] = []
+  for (const x of arr1) {
+    if (!res.includes(x)) {
+      res.push(x)
+    }
+  }
+  for (const x of arr2) {
+    if (!res.includes(x)) {
+      res.push(x)
+    }
+  }
+  return res
+}
+
+const mean = (arr: number[]): number => {
+  let sum = 0
+  for (const x of arr) {
+    sum += x
+  }
+  return sum / arr.length
+}
+
+const sumBy = <T>(arr: T[], f: (x: T) => number): number => {
+  let sum = 0
+  for (const x of arr) {
+    sum += f(x)
+  }
+  return sum
+}
+
+const orderBy = <T>(arr: T[], f: (x: T) => number, order: 'asc' | 'desc'): T[] => {
+  const res = [...arr]
+  res.sort((a, b) => {
+    const fa = f(a)
+    const fb = f(b)
+    if (fa < fb) {
+      return order === 'asc' ? -1 : 1
+    } else if (fa > fb) {
+      return order === 'asc' ? 1 : -1
+    } else {
+      return 0
+    }
+  })
+  return res
+}
+
+const uniq = <T>(arr: T[]): T[] => {
+  const res: T[] = []
+  for (const x of arr) {
+    if (!res.includes(x)) {
+      res.push(x)
+    }
+  }
+  return res
+}
 
 /**
  * ########################
@@ -25,11 +128,11 @@ import _ from 'lodash'
  * @param s2 String B
  * @returns A number between 0 and 1, where 1 means very similar
  */
-function jaroWinklerSimilarity(
+const jaroWinklerSimilarity = (
   s1: string,
   s2: string,
   options: { caseSensitive: boolean } = { caseSensitive: true }
-): number {
+): number => {
   let m = 0
 
   let i: number
@@ -113,7 +216,7 @@ function jaroWinklerSimilarity(
  * sim(a, b) ∈ [0, 1]
  * @returns the proximity between 0 and 1, where 1 is very close
  */
-function levenshteinSimilarity(a: string, b: string): number {
+const levenshteinSimilarity = (a: string, b: string): number => {
   const len = Math.max(a.length, b.length)
   const dist = levenshteinDistance(a, b)
   return (len - dist) / len
@@ -123,7 +226,7 @@ function levenshteinSimilarity(a: string, b: string): number {
  * Returns the levenshtein distance two strings, i.e. the # of operations required to go from a to b
  * dist(a, b) ∈ [0, max(|a|, |b|)]
  */
-function levenshteinDistance(a: string, b: string): number {
+const levenshteinDistance = (a: string, b: string): number => {
   if (a.length === 0 || b.length === 0) {
     return 0
   }
@@ -140,7 +243,7 @@ function levenshteinDistance(a: string, b: string): number {
 
   const alen = a.length
   const blen = b.length
-  const row = _.range(alen + 1)
+  const row = range(alen + 1)
 
   let tmp: number
   for (i = 1; i <= blen; i++) {
@@ -174,9 +277,9 @@ type Token = {
 }
 
 const SPECIAL_CHARSET = '¿÷≥≤µ˜∫√≈æ…¬˚˙©+-_!@#$%?&*()/\\[]{}:;<>=.,~`"\''.split('').map((c) => `\\${c}`)
-const isWord = (str: string) => _.every(SPECIAL_CHARSET, (c) => !RegExp(c).test(str)) && !hasSpace(str)
-const hasSpace = (str: string) => _.some(str, isSpace)
-const isSpace = (str: string) => _.every(str, (c) => c === ' ')
+const isWord = (str: string) => every(SPECIAL_CHARSET, (c) => !RegExp(c).test(str)) && !hasSpace(str)
+const hasSpace = (str: string) => some(str, isSpace)
+const isSpace = (str: string) => every(str, (c) => c === ' ')
 
 const toTokens = (strTokens: string[]): Token[] => {
   const tokens: Token[] = []
@@ -214,9 +317,9 @@ const toTokens = (strTokens: string[]): Token[] => {
 
 const ENTITY_SCORE_THRESHOLD = 0.6
 
-function takeUntil(arr: Token[], start: number, desiredLength: number): Token[] {
+const takeUntil = (arr: Token[], start: number, desiredLength: number): Token[] => {
   let total = 0
-  const result = _.takeWhile(arr.slice(start), (t) => {
+  const result = takeWhile(arr.slice(start), (t) => {
     const toAdd = t.value.length
     const current = total
     if (current > 0 && Math.abs(desiredLength - current) < Math.abs(desiredLength - current - toAdd)) {
@@ -234,7 +337,7 @@ function takeUntil(arr: Token[], start: number, desiredLength: number): Token[] 
   return result
 }
 
-function computeExactScore(a: string[], b: string[]): number {
+const computeExactScore = (a: string[], b: string[]): number => {
   const str1 = a.join('')
   const str2 = b.join('')
   const min = Math.min(str1.length, str2.length)
@@ -248,7 +351,7 @@ function computeExactScore(a: string[], b: string[]): number {
   return score / max
 }
 
-function computeFuzzyScore(a: string[], b: string[]): number {
+const computeFuzzyScore = (a: string[], b: string[]): number => {
   const str1 = a.join('')
   const str2 = b.join('')
   const d1 = levenshteinSimilarity(str1, str2)
@@ -256,21 +359,21 @@ function computeFuzzyScore(a: string[], b: string[]): number {
   return (d1 + d2) / 2
 }
 
-function computeStructuralScore(a: string[], b: string[]): number {
-  const charset1 = _.uniq(_.flatten(a.map((x) => x.split(''))))
-  const charset2 = _.uniq(_.flatten(b.map((x) => x.split(''))))
-  const charset_score = _.intersection(charset1, charset2).length / _.union(charset1, charset2).length
+const computeStructuralScore = (a: string[], b: string[]): number => {
+  const charset1 = uniq(a.map((x) => x.split('')).flat())
+  const charset2 = uniq(b.map((x) => x.split('')).flat())
+  const charset_score = intersection(charset1, charset2).length / union(charset1, charset2).length
   const charsetLow1 = charset1.map((c) => c.toLowerCase())
   const charsetLow2 = charset2.map((c) => c.toLowerCase())
-  const charset_low_score = _.intersection(charsetLow1, charsetLow2).length / _.union(charsetLow1, charsetLow2).length
-  const final_charset_score = _.mean([charset_score, charset_low_score])
+  const charset_low_score = intersection(charsetLow1, charsetLow2).length / union(charsetLow1, charsetLow2).length
+  const final_charset_score = mean([charset_score, charset_low_score])
 
   const la = Math.max(1, a.filter((x) => x.length > 1).length)
   const lb = Math.max(1, a.filter((x) => x.length > 1).length)
   const token_qty_score = Math.min(la, lb) / Math.max(la, lb)
 
-  const size1 = _.sumBy(a, 'length')
-  const size2 = _.sumBy(b, 'length')
+  const size1 = sumBy(a, (x) => x.length)
+  const size2 = sumBy(b, (x) => x.length)
   const token_size_score = Math.min(size1, size2) / Math.max(size1, size2)
 
   return Math.sqrt(final_charset_score * token_qty_score * token_size_score)
@@ -301,13 +404,13 @@ export type ListEntityExtraction = {
   charEnd: number
 }
 
-export function extractForListModel(strTokens: string[], listModel: ListEntityModel): ListEntityExtraction[] {
+export const extractForListModel = (strTokens: string[], listModel: ListEntityModel): ListEntityExtraction[] => {
   const candidates: Candidate[] = []
   let longestCandidate = 0
 
   const tokens = toTokens(strTokens)
 
-  for (const [canonical, occurrences] of _.toPairs(listModel.tokens)) {
+  for (const [canonical, occurrences] of Object.entries(listModel.tokens)) {
     for (const occurrence of occurrences) {
       for (let i = 0; i < tokens.length; i++) {
         if (tokens[i].isSpace) {
@@ -317,7 +420,7 @@ export function extractForListModel(strTokens: string[], listModel: ListEntityMo
         const workset = takeUntil(
           tokens,
           i,
-          _.sumBy(occurrence, (o) => o.length)
+          sumBy(occurrence, (o) => o.length)
         )
         const worksetStrLow = workset.map((x) => x.value.toLowerCase())
         const worksetStrWCase = workset.map((x) => x.value)
@@ -338,7 +441,7 @@ export function extractForListModel(strTokens: string[], listModel: ListEntityMo
         const finalScore = fuzzy ? fuzzy_factor * structural_score : exact_score * structural_score
 
         candidates.push({
-          score: _.round(finalScore, 2),
+          score: finalScore,
           canonical,
           start: i,
           end: i + workset.length - 1,
@@ -350,7 +453,7 @@ export function extractForListModel(strTokens: string[], listModel: ListEntityMo
     }
 
     for (let i = 0; i < tokens.length; i++) {
-      const results = _.orderBy(
+      const results = orderBy(
         candidates.filter((x) => !x.eliminated && x.start <= i && x.end >= i),
         // we want to favor longer matches (but is obviously less important than score)
         // so we take its length into account (up to the longest candidate)

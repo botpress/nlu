@@ -11,7 +11,8 @@
     "lodash": "^4.17.19"
   },
   "devDependencies": {
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "@types/node": "^20.2.1"
   },
   "types": "./src/typings.d.ts",
   "main": "./dist/index.js"
