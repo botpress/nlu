@@ -382,12 +382,17 @@ const computeStructuralScore = (a: string[], b: string[]): number => {
 }
 
 type Candidate = {
-  score: number
-  canonical: string
-  start: number
-  end: number
-  source: string
-  occurrence: string
+  struct_score: number
+  length_score: number // structural score adjusted by the length of the synonym to favor longer matches
+
+  token_start: number
+  token_end: number
+
+  // name: string // fruit
+  value: string // Watermelon (typeof fruit)
+  synonym: string // melons (from ['water', '-', 'melon'])
+  source: string // mellons (from fuzzy match)
+
   eliminated: boolean
 }
 
@@ -395,6 +400,16 @@ export type ListEntityModel = {
   name: string
   fuzzy: number
   tokens: Record<string, string[][]>
+}
+
+export type ListEntitySynonym = {
+  name: string
+  fuzzy: number
+
+  value: string
+  tokens: string[]
+
+  max_synonym_length: number
 }
 
 export type ListEntityExtraction = {
@@ -406,78 +421,111 @@ export type ListEntityExtraction = {
   char_end: number
 }
 
-export const extractForListModel = (strTokens: string[], listModel: ListEntityModel): ListEntityExtraction[] => {
+const low = (str: string) => str.toLowerCase()
+
+const extractForSynonym = (tokens: Token[], synonym: ListEntitySynonym): Candidate[] => {
   const candidates: Candidate[] = []
-  let longestCandidate = 0
+  const synonymStr = synonym.tokens.join('')
 
-  const tokens = toTokens(strTokens)
-
-  for (const [canonical, occurrences] of Object.entries(listModel.tokens)) {
-    for (const occurrence of occurrences) {
-      for (let i = 0; i < tokens.length; i++) {
-        if (tokens[i].isSpace) {
-          continue
-        }
-
-        const workset = takeUntil(
-          tokens,
-          i,
-          sumBy(occurrence, (o) => o.length)
-        )
-        const worksetStrLow = workset.map((x) => x.value.toLowerCase())
-        const worksetStrWCase = workset.map((x) => x.value)
-        const candidateAsString = occurrence.join('')
-
-        if (candidateAsString.length > longestCandidate) {
-          longestCandidate = candidateAsString.length
-        }
-
-        const exact_score = computeExactScore(worksetStrWCase, occurrence) === 1 ? 1 : 0
-        const fuzzy = listModel.fuzzy < 1 && worksetStrLow.join('').length >= 4
-        const fuzzy_score = computeFuzzyScore(
-          worksetStrLow,
-          occurrence.map((t) => t.toLowerCase())
-        )
-        const fuzzy_factor = fuzzy_score >= listModel.fuzzy ? fuzzy_score : 0
-        const structural_score = computeStructuralScore(worksetStrWCase, occurrence)
-        const finalScore = fuzzy ? fuzzy_factor * structural_score : exact_score * structural_score
-
-        candidates.push({
-          score: finalScore,
-          canonical,
-          start: i,
-          end: i + workset.length - 1,
-          source: workset.map((t) => t.value).join(''),
-          occurrence: occurrence.join(''),
-          eliminated: false
-        })
-      }
+  for (let tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
+    if (tokens[tokenIdx].isSpace) {
+      continue
     }
 
-    for (let i = 0; i < tokens.length; i++) {
-      const results = orderBy(
-        candidates.filter((x) => !x.eliminated && x.start <= i && x.end >= i),
-        // we want to favor longer matches (but is obviously less important than score)
-        // so we take its length into account (up to the longest candidate)
-        (x) => x.score * Math.pow(Math.min(x.source.length, longestCandidate), 1 / 5),
-        'desc'
-      )
-      if (results.length > 1) {
-        const [, ...losers] = results
-        losers.forEach((x) => (x.eliminated = true))
-      }
+    const workset = takeUntil(tokens, tokenIdx, synonymStr.length).map((x) => x.value)
+    const source = workset.join('')
+
+    const isFuzzy = synonym.fuzzy < 1 && workset.map(low).join('').length >= 4
+
+    const exact_score = computeExactScore(workset, synonym.tokens)
+    const exact_factor = exact_score === 1 ? 1 : 0
+
+    const fuzzy_score = computeFuzzyScore(workset.map(low), synonym.tokens.map(low))
+    const fuzzy_factor = fuzzy_score >= synonym.fuzzy ? fuzzy_score : 0
+
+    const structural_score = computeStructuralScore(workset, synonym.tokens)
+
+    const struct_score = isFuzzy ? fuzzy_factor * structural_score : exact_factor * structural_score
+
+    // we want to favor longer matches (but is obviously less important than score)
+    // so we take its length into account (up to the longest candidate)
+    const used_length = Math.min(source.length, synonym.max_synonym_length)
+    const length_score = struct_score * Math.pow(used_length, 0.2)
+
+    candidates.push({
+      struct_score,
+      length_score,
+
+      value: synonym.value,
+
+      token_start: tokenIdx,
+      token_end: tokenIdx + workset.length - 1,
+
+      source,
+      synonym: synonymStr,
+
+      eliminated: false
+    })
+  }
+
+  return candidates
+}
+
+export const extractForListModel = (strTokens: string[], listModel: ListEntityModel): ListEntityExtraction[] => {
+  const uttTokens = toTokens(strTokens)
+
+  const synonyms: ListEntitySynonym[] = Object.entries(listModel.tokens).flatMap(([value, synonyms]) => {
+    const max_synonym_length: number = Math.max(...synonyms.map((s) => s.join('').length))
+
+    return synonyms.map((synonymTokens) => ({
+      name: listModel.name,
+      fuzzy: listModel.fuzzy,
+      value,
+      tokens: synonymTokens,
+      max_synonym_length
+    }))
+  })
+
+  const candidates: Candidate[] = []
+  for (const synonym of synonyms) {
+    const newCandidates = extractForSynonym(uttTokens, synonym)
+    candidates.push(...newCandidates)
+  }
+
+  // B) eliminate overlapping candidates
+
+  for (let tokenIdx = 0; tokenIdx < uttTokens.length; tokenIdx++) {
+    const tokenCandidates = candidates.filter((c) => c.token_start <= tokenIdx && c.token_end >= tokenIdx)
+    const activeTokenCandidates = tokenCandidates.filter((c) => !c.eliminated)
+
+    // we use length adjusted score to favor longer matches
+    const rankedTokenCandidates = orderBy(activeTokenCandidates, (c) => c.length_score, 'desc')
+
+    const [winner, ...losers] = rankedTokenCandidates
+    if (!winner) {
+      continue
+    }
+
+    for (const loser of losers) {
+      loser.eliminated = true
     }
   }
 
-  const results: ListEntityExtraction[] = candidates
-    .filter((x) => !x.eliminated && x.score >= ENTITY_SCORE_THRESHOLD)
-    .map((match) => ({
-      name: listModel.name,
-      confidence: match.score,
-      char_start: tokens[match.start].startChar,
-      char_end: tokens[match.end].startChar + tokens[match.end].value.length,
-      value: match.canonical,
-      source: match.source
-    }))
+  const winners = candidates.filter((c) => !c.eliminated)
+
+  // C) from winners keep only matches with high enough structural score
+
+  const matches = winners.filter((x) => x.struct_score >= ENTITY_SCORE_THRESHOLD)
+
+  // D) map to results
+
+  const results: ListEntityExtraction[] = matches.map((match) => ({
+    name: listModel.name,
+    confidence: match.struct_score,
+    char_start: uttTokens[match.token_start].startChar,
+    char_end: uttTokens[match.token_end].startChar + uttTokens[match.token_end].value.length,
+    value: match.value,
+    source: match.source
+  }))
   return results
 }
