@@ -51,8 +51,8 @@ describe('list entity extractor', () => {
 
     expect(results).toHaveLength(1)
     expect(results[0].value).toBe('Blueberry')
-    expect(results[0].charStart).toBe(0)
-    expect(results[0].charEnd).toBe(11)
+    expect(results[0].char_start).toBe(0)
+    expect(results[0].char_end).toBe(11)
     expect(results[0].name).toBe('fruit')
     expect(results[0].confidence).toBeGreaterThan(0.9)
     expect(results[0].source).toBe('Blueberries')
@@ -192,7 +192,7 @@ function assertEntity(expression: string) {
   for (const strConds of parsedSlots) {
     const { start, end } = strConds.cleanPosition
     const found = results.filter(
-      (x) => (x.charStart >= start && x.charStart < end) || (x.charEnd <= end && x.charEnd > start)
+      (x) => (x.char_start >= start && x.char_start < end) || (x.char_end <= end && x.char_end > start)
     )
 
     const conditions = strConds.name.split(' ')
@@ -215,8 +215,8 @@ function assertEntity(expression: string) {
     }
 
     if (t) {
-      cases.push(['start', start, t.charStart])
-      cases.push(['end', end, t.charEnd])
+      cases.push(['start', start, t.char_start])
+      cases.push(['end', end, t.char_end])
     }
 
     test.each(cases)(`"${text}" (${parts}) '%s' -> Expected(%s) Actual(%s)`, (expression, a, b) => {

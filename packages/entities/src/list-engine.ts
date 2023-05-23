@@ -181,17 +181,19 @@ const jaroWinklerSimilarity = (
   let numTrans = 0
 
   for (i = 0; i < s1.length; i++) {
-    if (s1Matches[i] === true) {
-      for (j = k; j < s2.length; j++) {
-        if (s2Matches[j] === true) {
-          k = j + 1
-          break
-        }
-      }
+    if (s1Matches[i] !== true) {
+      continue
+    }
 
-      if (s1[i] !== s2[j]) {
-        ++numTrans
+    for (j = k; j < s2.length; j++) {
+      if (s2Matches[j] === true) {
+        k = j + 1
+        break
       }
+    }
+
+    if (s1[i] !== s2[j]) {
+      ++numTrans
     }
   }
 
@@ -400,8 +402,8 @@ export type ListEntityExtraction = {
   confidence: number
   value: string
   source: string
-  charStart: number
-  charEnd: number
+  char_start: number
+  char_end: number
 }
 
 export const extractForListModel = (strTokens: string[], listModel: ListEntityModel): ListEntityExtraction[] => {
@@ -472,8 +474,8 @@ export const extractForListModel = (strTokens: string[], listModel: ListEntityMo
     .map((match) => ({
       name: listModel.name,
       confidence: match.score,
-      charStart: tokens[match.start].startChar,
-      charEnd: tokens[match.end].startChar + tokens[match.end].value.length,
+      char_start: tokens[match.start].startChar,
+      char_end: tokens[match.end].startChar + tokens[match.end].value.length,
       value: match.canonical,
       source: match.source
     }))
