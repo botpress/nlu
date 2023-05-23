@@ -1,6 +1,21 @@
 import { ListEntityExtraction, ListEntityModel, extractForListModel } from './list-engine'
 import { spaceTokenizer } from './space-tokenizer'
 
+type Logger = {
+  debug: (...x: string[]) => void
+  info:  (...x: string[]) => void
+  warn:  (...x: string[]) => void
+  error: (...x: string[]) => void
+}
+
+const DEBUG = false
+const logger: Logger = {
+  debug: (...x) => DEBUG && console.log(...x),
+  info: (...x) => console.log(...x),
+  warn: (...x) => console.log(...x),
+  error: (...x) => console.log(...x)
+}
+
 const FuzzyTolerance = {
   Loose: 0.65,
   Medium: 0.8,
@@ -50,46 +65,7 @@ const list_entities = [
       SFO: ['SFO', 'SF', 'San-Francisco'].map(T),
       YQB: ['YQB', 'Quebec', 'Quebec city', 'QUEB'].map(T)
     }
-  }
-] as const satisfies readonly ListEntityModel[]
-
-const runExtraction = (utt: string, models: ListEntityModel | ListEntityModel[]): void => {
-  console.log(chalk.blueBright(`\n\n${utt}`))
-
-  models = Array.isArray(models) ? models : [models]
-
-  const tokens = spaceTokenizer(utt)
-  let output: ListEntityExtraction[] = []
-
-  for (const model of models) {
-    output.push(...extractForListModel(tokens, model))
-  }
-
-  for (const { char_start, char_end, source, confidence } of output) {
-    const mapChars = (x: string, c: string) =>
-      x
-        .split('')
-        .map(() => c)
-        .join('')
-
-    const before = mapChars(utt.slice(0, char_start), '-')
-    const extracted = mapChars(utt.slice(char_start, char_end), '^')
-    const after = mapChars(utt.slice(char_end), '-')
-    console.log(`${before}${chalk.green(extracted)}${after}`, `(${confidence.toFixed(2)})`)
-  }
-}
-
-runExtraction('Blueberries are berries that are blue', {
-  name: 'fruit',
-  fuzzy: 0.8,
-  tokens: {
-    Blueberry: [['Blueberries'], ['berries']]
-  }
-})
-
-runExtraction('Blueberries are berries that are blue', list_entities[0])
-
-runExtraction('I want to go to New-York', [
+  },
   {
     name: 'state',
     fuzzy: FuzzyTolerance.Medium,
@@ -102,7 +78,44 @@ runExtraction('I want to go to New-York', [
     fuzzy: FuzzyTolerance.Medium,
 
     tokens: {
-      NewYork: ['New York'].map(T)
+      NewYork: ['New York', 'Big Apple'].map(T)
     }
   }
-])
+] as const satisfies readonly ListEntityModel[]
+
+const runExtraction = (utt: string, models: ListEntityModel | readonly ListEntityModel[] ): void => {
+  logger.debug(chalk.blueBright(`\n\n${utt}`))
+
+  models = Array.isArray(models) ? models : [models]
+
+  const tokens = spaceTokenizer(utt)
+  const output: ListEntityExtraction[] = []
+  for (const model of models) {
+    output.push(...extractForListModel(tokens, model))
+  }
+
+
+  for (const { char_start, char_end, source, confidence } of output) {
+    const mapChars = (x: string, c: string) =>
+      x
+        .split('')
+        .map(() => c)
+        .join('')
+
+    const before = mapChars(utt.slice(0, char_start), '-')
+    const extracted = mapChars(utt.slice(char_start, char_end), '^')
+    const after = mapChars(utt.slice(char_end), '-')
+    logger.debug(`${before}${chalk.green(extracted)}${after}`, `(${confidence.toFixed(2)})`)
+  }
+}
+
+logger.info('Start')
+const t0 = Date.now()
+for (let i = 0; i < 1000; i++) {
+  runExtraction('Blueberries are berries that are blue', list_entities)
+  runExtraction('I want to go to New-York', list_entities)
+  runExtraction('I want to eat an apple', list_entities)
+  runExtraction('I want to eat an Apple in the big Apple', list_entities)
+}
+const t1 = Date.now()
+logger.info(`Time: ${t1 - t0}ms`)

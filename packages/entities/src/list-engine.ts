@@ -378,7 +378,9 @@ const computeStructuralScore = (a: string[], b: string[]): number => {
   const size2 = sumBy(b, (x) => x.length)
   const token_size_score = Math.min(size1, size2) / Math.max(size1, size2)
 
-  return Math.sqrt(final_charset_score * token_qty_score * token_size_score)
+  const ret = Math.sqrt(final_charset_score * token_qty_score * token_size_score)
+
+  return ret
 }
 
 type Candidate = {
@@ -443,18 +445,16 @@ const extractForSynonym = (tokens: Token[], synonym: ListEntitySynonym): Candida
     const fuzzy_score = computeFuzzyScore(workset.map(low), synonym.tokens.map(low))
     const fuzzy_factor = fuzzy_score >= synonym.fuzzy ? fuzzy_score : 0
 
-    const structural_score = computeStructuralScore(workset, synonym.tokens)
-    const structural_factor = isFuzzy ? fuzzy_factor : exact_factor
-
-    const final_score = structural_factor * structural_score
+    const used_factor = isFuzzy ? fuzzy_factor : exact_factor
+    const structural_score = used_factor * computeStructuralScore(workset, synonym.tokens)
 
     // we want to favor longer matches (but is obviously less important than score)
     // so we take its length into account (up to the longest candidate)
     const used_length = Math.min(source.length, synonym.max_synonym_length)
-    const length_score = final_score * Math.pow(used_length, 0.2)
+    const length_score = structural_score * Math.pow(used_length, 0.2)
 
     candidates.push({
-      struct_score: final_score,
+      struct_score: structural_score,
       length_score,
 
       value: synonym.value,
