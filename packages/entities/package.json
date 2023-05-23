@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc --build",
     "test": "jest --roots ./dist --testPathIgnorePatterns \\.util\\.test\\.js",
-    "dev": "ts-node -T ./src/start.ts"
+    "dev": "ts-node -T ./src/start.ts",
+    "start": "node ./dist/start.js"
   },
   "dependencies": {
     "lodash": "^4.17.19"

@@ -1,4 +1,4 @@
-import { ListEntityModel, extractForListModel } from './list-engine'
+import { ListEntityExtraction, ListEntityModel, extractForListModel } from './list-engine'
 import { spaceTokenizer } from './space-tokenizer'
 
 const FuzzyTolerance = {
@@ -53,11 +53,17 @@ const list_entities = [
   }
 ] as const satisfies readonly ListEntityModel[]
 
-const runExtraction = (utt: string, model: ListEntityModel): void => {
+const runExtraction = (utt: string, models: ListEntityModel | ListEntityModel[]): void => {
   console.log(chalk.blueBright(`\n\n${utt}`))
 
+  models = Array.isArray(models) ? models : [models]
+
   const tokens = spaceTokenizer(utt)
-  const output = extractForListModel(tokens, model)
+  let output: ListEntityExtraction[] = []
+
+  for (const model of models) {
+    output.push(...extractForListModel(tokens, model))
+  }
 
   for (const { char_start, char_end, source, confidence } of output) {
     const mapChars = (x: string, c: string) =>
@@ -82,3 +88,21 @@ runExtraction('Blueberries are berries that are blue', {
 })
 
 runExtraction('Blueberries are berries that are blue', list_entities[0])
+
+runExtraction('I want to go to New-York', [
+  {
+    name: 'state',
+    fuzzy: FuzzyTolerance.Medium,
+    tokens: {
+      NewYork: ['New York'].map(T)
+    }
+  },
+  {
+    name: 'city',
+    fuzzy: FuzzyTolerance.Medium,
+
+    tokens: {
+      NewYork: ['New York'].map(T)
+    }
+  }
+])

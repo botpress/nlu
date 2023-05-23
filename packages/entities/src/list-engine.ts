@@ -435,7 +435,7 @@ const extractForSynonym = (tokens: Token[], synonym: ListEntitySynonym): Candida
     const workset = takeUntil(tokens, tokenIdx, synonymStr.length).map((x) => x.value)
     const source = workset.join('')
 
-    const isFuzzy = synonym.fuzzy < 1 && workset.map(low).join('').length >= 4
+    const isFuzzy = synonym.fuzzy < 1 && source.length >= 4
 
     const exact_score = computeExactScore(workset, synonym.tokens)
     const exact_factor = exact_score === 1 ? 1 : 0
@@ -444,16 +444,17 @@ const extractForSynonym = (tokens: Token[], synonym: ListEntitySynonym): Candida
     const fuzzy_factor = fuzzy_score >= synonym.fuzzy ? fuzzy_score : 0
 
     const structural_score = computeStructuralScore(workset, synonym.tokens)
+    const structural_factor = isFuzzy ? fuzzy_factor : exact_factor
 
-    const struct_score = isFuzzy ? fuzzy_factor * structural_score : exact_factor * structural_score
+    const final_score = structural_factor * structural_score
 
     // we want to favor longer matches (but is obviously less important than score)
     // so we take its length into account (up to the longest candidate)
     const used_length = Math.min(source.length, synonym.max_synonym_length)
-    const length_score = struct_score * Math.pow(used_length, 0.2)
+    const length_score = final_score * Math.pow(used_length, 0.2)
 
     candidates.push({
-      struct_score,
+      struct_score: final_score,
       length_score,
 
       value: synonym.value,
@@ -523,7 +524,7 @@ export const extractForListModel = (strTokens: string[], listModel: ListEntityMo
     name: listModel.name,
     confidence: match.struct_score,
     char_start: uttTokens[match.token_start].startChar,
-    char_end: uttTokens[match.token_end].startChar + uttTokens[match.token_end].value.length,
+    char_end: uttTokens[match.token_end].endChar,
     value: match.value,
     source: match.source
   }))
