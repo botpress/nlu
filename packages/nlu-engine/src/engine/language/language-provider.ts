@@ -60,9 +60,6 @@ export class LanguageProvider {
       if (!info.version || !_.isString(info.version)) {
         throw new Error('Expected route GET <lang-server>/info to return object with string version')
       } else if (!semver.valid(info.version) || semver.lt(info.version, '1.2.0')) {
-        logger.warning(
-          'The language server provided uses a deprecated API. Please update the language server to the latest version.'
-        )
         langClient = legacyClient
       } else {
         langClient = new LanguageClient(languageURL, languageAuthToken)

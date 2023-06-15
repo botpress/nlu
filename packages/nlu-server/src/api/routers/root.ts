@@ -96,7 +96,26 @@ export const createRootRouter = (options: NLUServerOptions, app: Application, ba
 
   router.get('/info', async (req, res, next) => {
     try {
-      const info = app.getInfo()
+      const infoCloud = app.getInfo()
+      const info = {
+        health: {
+          isEnabled: true,
+          validProvidersCount: 1,
+          validLanguages: infoCloud.languages
+        },
+        specs: {
+          engineVersion: infoCloud.version,
+          nluVersion: infoCloud.version,
+          languageServer: {
+            dimensions: infoCloud.specs.languageServer.dimensions,
+            domain: infoCloud.specs.languageServer.domain,
+            version: infoCloud.specs.languageServer.version
+          }
+        },
+        languages: infoCloud.languages,
+        version: infoCloud.version,
+        modelTransferEnabled: false
+      }
       const resp: http.InfoResponseBody = { success: true, info }
       res.send(resp)
       return next()
