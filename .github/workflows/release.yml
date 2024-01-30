@@ -5,6 +5,9 @@ on:
       - master
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   release_bin:
     name: Release Binaries
