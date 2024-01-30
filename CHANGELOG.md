@@ -1,248 +1,217 @@
-## [1.0.2](https://github.com/botpress/nlu/compare/v1.0.1...v1.0.2) (2022-09-09)
-
+# [1.1.0](https://github.com/botpress/nlu/compare/v1.0.2...v1.1.0) (2024-01-30)
 
 ### Bug Fixes
 
-* **nlu:** reorder keys ([#218](https://github.com/botpress/nlu/issues/218)) ([afc7355](https://github.com/botpress/nlu/commit/afc7355cbb2ee60b6f1cf454c47d22204c42a40b))
+- **cli:** fix max training parameter to allow the value 0 ([#149](https://github.com/botpress/nlu/issues/149)) ([1ec77e4](https://github.com/botpress/nlu/commit/1ec77e4705a2cd8a1ece71087736100e8e3a6e3c))
+- **distributed:** canceling a task that is not handled locally waits for the task to be canceled ([#180](https://github.com/botpress/nlu/issues/180)) ([98afa80](https://github.com/botpress/nlu/commit/98afa800979a022128cd76afe6111b428712efad)), closes [#181](https://github.com/botpress/nlu/issues/181)
+- **engine:** e_000 is not affected by leading or consecutive spaces ([#189](https://github.com/botpress/nlu/issues/189)) ([7e1d0b2](https://github.com/botpress/nlu/commit/7e1d0b2f31dcea1572ef1d228ae6a8d58f2f712e))
+- **engine:** repair pattern entities in issue e_000 ([34a9775](https://github.com/botpress/nlu/commit/34a977527a05c86040d8d605859529a00f789eb9))
+- **lang-server:** uniform error handling ([a032766](https://github.com/botpress/nlu/commit/a0327660af8c6faaf90a1c1d6ffa871379518b4c))
+- **metrics:** fix up metrics to be 1 instead of 0 ([#166](https://github.com/botpress/nlu/issues/166)) ([81c287a](https://github.com/botpress/nlu/commit/81c287a127c33a08db78bdf4c5fc71b52daa2154))
+- **nlu-client:** fix endpoint of the info endpoint ([8e316d3](https://github.com/botpress/nlu/commit/8e316d398ca953528adb9c8d706ed87346d41662))
+- **nlu-e2e:** replaced expected request error type ([13622fe](https://github.com/botpress/nlu/commit/13622fe8a16e38f703fd6fe429bb8f082b3ede08))
+- **nlu-engine:** lang server error is passed from child process to main ([985e585](https://github.com/botpress/nlu/commit/985e5851ce9ee1a839dbdec8741022a2bccbd126))
+- **nlu-engine:** stop progress watchdog when done or error ([#214](https://github.com/botpress/nlu/issues/214)) ([0661abd](https://github.com/botpress/nlu/commit/0661abd043c22f03381f77561020de64d78b15bc))
+- **nlu-server:** ensure forward slashes in app id wont break fs model repo ([#173](https://github.com/botpress/nlu/issues/173)) ([889aa7c](https://github.com/botpress/nlu/commit/889aa7c447f1647d9da1483d5157fc279d543c63))
+- **nlu-server:** fix send training_time using db config ([6225ef1](https://github.com/botpress/nlu/commit/6225ef124ecc719385afe667f5904885404f6418))
+- no more dupplicated issues in in-mem linting repo ([46cc134](https://github.com/botpress/nlu/commit/46cc13464b4aeaf51289a7f30f1992c377341b47))
+- **worker:** do not reuse a process if it exited since last usage ([#135](https://github.com/botpress/nlu/issues/135)) ([9c3ab74](https://github.com/botpress/nlu/commit/9c3ab74c1c798fccd5e52e87bda9c4a34ac3d6b2))
 
+### Features
 
+- **nlu-server:** models weights are validated on upload ([#198](https://github.com/botpress/nlu/issues/198)) ([aa2a471](https://github.com/botpress/nlu/commit/aa2a4713a52ad9c0a6a85dde211687c8a14a2dfe))
+- implement model download and upload ([#192](https://github.com/botpress/nlu/issues/192)) ([e9fb4bc](https://github.com/botpress/nlu/commit/e9fb4bc16585dd3c77fb6c1f52591e6c5539d1b3))
+- initial implementation of e_000 ([#156](https://github.com/botpress/nlu/issues/156)) ([aabc665](https://github.com/botpress/nlu/commit/aabc66500f71ed05b93c116ea5137f58f7433bc1))
+- linting is distributed, runs on a dedicated process and is cancellable ([#159](https://github.com/botpress/nlu/issues/159)) ([7661cc0](https://github.com/botpress/nlu/commit/7661cc0139d3599fbf08e546ffae39b0ed37aae4)), closes [#160](https://github.com/botpress/nlu/issues/160)
+- linting speed is part of linting's id and must be provided by path param ([#188](https://github.com/botpress/nlu/issues/188)) ([75d75b7](https://github.com/botpress/nlu/commit/75d75b725a32a6b5f5d7129abdc2c9d041bcad4e))
+- nlu-server can compute dataset issues to help user build a dataset ([6d370fc](https://github.com/botpress/nlu/commit/6d370fc6963e56985ba1971ec0d0326a71a09131))
+- **cli:** various cli improvements ([#144](https://github.com/botpress/nlu/issues/144)) ([4f53fae](https://github.com/botpress/nlu/commit/4f53fae8235211e33cdf7c63ca5f209b7f5c662a)), closes [#143](https://github.com/botpress/nlu/issues/143)
+- **logger:** only apply filters to debug logs + allow json formatting + rename few cli args ([af62b48](https://github.com/botpress/nlu/commit/af62b48df5a438a1bda556ca0d67eb2fceca3e74))
+- **nlu-client:** added 2 methods in nlu-client for linting ([5455dd0](https://github.com/botpress/nlu/commit/5455dd0550df2c63fd39382a1a1fd72d5f780758))
+- **nlu-engine:** added some support for hints and issues computation ([dcb6a9d](https://github.com/botpress/nlu/commit/dcb6a9dce4c31d75e44fe7b392f1403911709e68))
+- **nlu-engine:** rm legacy election support ([#142](https://github.com/botpress/nlu/issues/142)) ([e5be6fe](https://github.com/botpress/nlu/commit/e5be6fe8070eabfa6901693a4f22c0269ca17344))
+- **nlu-server:** added routes for issues checking ([#151](https://github.com/botpress/nlu/issues/151)) ([f7aea13](https://github.com/botpress/nlu/commit/f7aea13c4b851b56bf339683991451d9486b083b))
+- **nlu-server:** send data to usage API ([#171](https://github.com/botpress/nlu/issues/171)) ([ca6e230](https://github.com/botpress/nlu/commit/ca6e2305c603ca29023fab4d51a95d384f373b36))
+- Typed and coherent HTTP communication between NLU Server, Lang Server and Duckling ([#118](https://github.com/botpress/nlu/issues/118)) ([bd44d4c](https://github.com/botpress/nlu/commit/bd44d4cb86a0adb11347afd4ad88a4348ae7fba6)), closes [#117](https://github.com/botpress/nlu/issues/117) [#123](https://github.com/botpress/nlu/issues/123) [#124](https://github.com/botpress/nlu/issues/124)
+
+## [1.0.2](https://github.com/botpress/nlu/compare/v1.0.1...v1.0.2) (2022-09-09)
+
+### Bug Fixes
+
+- **nlu:** reorder keys ([#218](https://github.com/botpress/nlu/issues/218)) ([afc7355](https://github.com/botpress/nlu/commit/afc7355cbb2ee60b6f1cf454c47d22204c42a40b))
 
 ## [1.0.1](https://github.com/botpress/nlu/compare/v1.0.0...v1.0.1) (2022-06-15)
 
-
 ### Bug Fixes
 
-* **nlu-server:** progress watch-dog fully stops when error or done ([#212](https://github.com/botpress/nlu/issues/212)) ([c4b811e](https://github.com/botpress/nlu/commit/c4b811e0a72d01564580b264cafc62e1f7adaafe))
-
-
+- **nlu-server:** progress watch-dog fully stops when error or done ([#212](https://github.com/botpress/nlu/issues/212)) ([c4b811e](https://github.com/botpress/nlu/commit/c4b811e0a72d01564580b264cafc62e1f7adaafe))
 
 # [1.0.0](https://github.com/botpress/nlu/compare/v0.1.10...v1.0.0) (2022-06-07)
 
-
 ### Bug Fixes
 
-* dockerfile now reference correct path ([#203](https://github.com/botpress/nlu/issues/203)) ([dcd94e8](https://github.com/botpress/nlu/commit/dcd94e807d93641430ff5e1b5c2a51b347008eb1))
-
-
+- dockerfile now reference correct path ([#203](https://github.com/botpress/nlu/issues/203)) ([dcd94e8](https://github.com/botpress/nlu/commit/dcd94e807d93641430ff5e1b5c2a51b347008eb1))
 
 # [1.0.0-rc.5](https://github.com/botpress/nlu/compare/v1.0.0-rc.4...v1.0.0-rc.5) (2022-01-27)
 
-
 ### Bug Fixes
 
-* **docker:** fix docker entrypoint execution ([#128](https://github.com/botpress/nlu/issues/128)) ([31ae0e0](https://github.com/botpress/nlu/commit/31ae0e045bea6c5493150893c36aed8c7fd7e6a2))
-* **nlu-server:** fix usage of postgres database ([a2209f7](https://github.com/botpress/nlu/commit/a2209f784f335c2243624354b8111d93125c9123))
-* **node-bindings:** rhel bindings are used on rhel ([#141](https://github.com/botpress/nlu/issues/141)) ([35c8601](https://github.com/botpress/nlu/commit/35c86011c8a9d4c5465dcb78ee9a152585c1639d))
-* wrong merge of master in next ([#122](https://github.com/botpress/nlu/issues/122)) ([9cb3a5d](https://github.com/botpress/nlu/commit/9cb3a5dbc314d62374b38a5d2f0ea2897739f18a))
-
+- **docker:** fix docker entrypoint execution ([#128](https://github.com/botpress/nlu/issues/128)) ([31ae0e0](https://github.com/botpress/nlu/commit/31ae0e045bea6c5493150893c36aed8c7fd7e6a2))
+- **nlu-server:** fix usage of postgres database ([a2209f7](https://github.com/botpress/nlu/commit/a2209f784f335c2243624354b8111d93125c9123))
+- **node-bindings:** rhel bindings are used on rhel ([#141](https://github.com/botpress/nlu/issues/141)) ([35c8601](https://github.com/botpress/nlu/commit/35c86011c8a9d4c5465dcb78ee9a152585c1639d))
+- wrong merge of master in next ([#122](https://github.com/botpress/nlu/issues/122)) ([9cb3a5d](https://github.com/botpress/nlu/commit/9cb3a5dbc314d62374b38a5d2f0ea2897739f18a))
 
 ### Features
 
-* **nlu-server:** nlu-server won't serve models of invalid spec ([#130](https://github.com/botpress/nlu/issues/130)) ([16fdf10](https://github.com/botpress/nlu/commit/16fdf10c8c77c7a418613e3dc797d59997506028))
-
-
+- **nlu-server:** nlu-server won't serve models of invalid spec ([#130](https://github.com/botpress/nlu/issues/130)) ([16fdf10](https://github.com/botpress/nlu/commit/16fdf10c8c77c7a418613e3dc797d59997506028))
 
 # [1.0.0-rc.3](https://github.com/botpress/nlu/compare/v0.1.9...v1.0.0-rc.3) (2021-10-29)
 
-
 ### Bug Fixes
 
-* **nlu-cli:** upgrade version of nlu-cli ([272638b](https://github.com/botpress/nlu/commit/272638be57eae78154f100ff1e1e27afc6f8307f))
-* **nlu-server:** fix unit tests by initializing app once ([85469f7](https://github.com/botpress/nlu/commit/85469f71e5930537eafcfacd83da7719760cc674))
-* **nlu-server:** no maximum size for trainset in database ([#99](https://github.com/botpress/nlu/issues/99)) ([6d7bb32](https://github.com/botpress/nlu/commit/6d7bb3286935c4507b047b528f09dc8314349055))
-* **nlu-server:** rm consecutive dots in model files extensions ([#95](https://github.com/botpress/nlu/issues/95)) ([1a96d13](https://github.com/botpress/nlu/commit/1a96d13e05e7640bf945228de1652d362c3a3630))
-
+- **nlu-cli:** upgrade version of nlu-cli ([272638b](https://github.com/botpress/nlu/commit/272638be57eae78154f100ff1e1e27afc6f8307f))
+- **nlu-server:** fix unit tests by initializing app once ([85469f7](https://github.com/botpress/nlu/commit/85469f71e5930537eafcfacd83da7719760cc674))
+- **nlu-server:** no maximum size for trainset in database ([#99](https://github.com/botpress/nlu/issues/99)) ([6d7bb32](https://github.com/botpress/nlu/commit/6d7bb3286935c4507b047b528f09dc8314349055))
+- **nlu-server:** rm consecutive dots in model files extensions ([#95](https://github.com/botpress/nlu/issues/95)) ([1a96d13](https://github.com/botpress/nlu/commit/1a96d13e05e7640bf945228de1652d362c3a3630))
 
 ### Features
 
-* **nlu-client:** make nlu-client configurable with an axios config ([#104](https://github.com/botpress/nlu/issues/104)) ([4562304](https://github.com/botpress/nlu/commit/456230450f4ca7f42ebb7f6d5841545db22dbc88))
-* **nlu-server:** add a route to list all trainings of an app ([#96](https://github.com/botpress/nlu/issues/96)) ([505fe1d](https://github.com/botpress/nlu/commit/505fe1d2e8179a4180993eae16276ea96fbe6ad8))
-* **nlu-server:** calling training twice with same payload results in HTTP 409; training already started ([#97](https://github.com/botpress/nlu/issues/97)) ([f1e4a08](https://github.com/botpress/nlu/commit/f1e4a08e6ea87820cc64700de666606b117e1578))
-
-
+- **nlu-client:** make nlu-client configurable with an axios config ([#104](https://github.com/botpress/nlu/issues/104)) ([4562304](https://github.com/botpress/nlu/commit/456230450f4ca7f42ebb7f6d5841545db22dbc88))
+- **nlu-server:** add a route to list all trainings of an app ([#96](https://github.com/botpress/nlu/issues/96)) ([505fe1d](https://github.com/botpress/nlu/commit/505fe1d2e8179a4180993eae16276ea96fbe6ad8))
+- **nlu-server:** calling training twice with same payload results in HTTP 409; training already started ([#97](https://github.com/botpress/nlu/issues/97)) ([f1e4a08](https://github.com/botpress/nlu/commit/f1e4a08e6ea87820cc64700de666606b117e1578))
 
 # [1.0.0-rc.2](https://github.com/botpress/nlu/compare/v1.0.0-rc.1...v1.0.0-rc.2) (2021-09-01)
 
-
 ### Bug Fixes
 
-* **nlu-engine:** training reports progress at least every 10 seconds ([#85](https://github.com/botpress/nlu/issues/85)) ([ae0de7e](https://github.com/botpress/nlu/commit/ae0de7ee45c730e42b4b17c4839a0d5dd9aa9e65))
-* **pkg:** packaging problem with a pg-pubsub dependency ([b5a6dfb](https://github.com/botpress/nlu/commit/b5a6dfbe96cdd5202996570213fafa2690b300e5))
-
+- **nlu-engine:** training reports progress at least every 10 seconds ([#85](https://github.com/botpress/nlu/issues/85)) ([ae0de7e](https://github.com/botpress/nlu/commit/ae0de7ee45c730e42b4b17c4839a0d5dd9aa9e65))
+- **pkg:** packaging problem with a pg-pubsub dependency ([b5a6dfb](https://github.com/botpress/nlu/commit/b5a6dfbe96cdd5202996570213fafa2690b300e5))
 
 ### Features
 
-* **nlu-server:** distributed training queue to scale training nlu horizontally ([#72](https://github.com/botpress/nlu/issues/72)) ([98e0920](https://github.com/botpress/nlu/commit/98e09208b8c93d8b7172ca077cb521884b027e92)), closes [#75](https://github.com/botpress/nlu/issues/75)
-* **nlu-server:** remove authorization and replace credentials by an app-id header ([#79](https://github.com/botpress/nlu/issues/79)) ([09fc610](https://github.com/botpress/nlu/commit/09fc610a32b76a1b72a5b99fd9cc17dd01b513dc))
-
-
+- **nlu-server:** distributed training queue to scale training nlu horizontally ([#72](https://github.com/botpress/nlu/issues/72)) ([98e0920](https://github.com/botpress/nlu/commit/98e09208b8c93d8b7172ca077cb521884b027e92)), closes [#75](https://github.com/botpress/nlu/issues/75)
+- **nlu-server:** remove authorization and replace credentials by an app-id header ([#79](https://github.com/botpress/nlu/issues/79)) ([09fc610](https://github.com/botpress/nlu/commit/09fc610a32b76a1b72a5b99fd9cc17dd01b513dc))
 
 ## [0.1.10](https://github.com/botpress/nlu/compare/v1.0.0-rc.4...v0.1.10) (2022-03-23)
 
-
 ### Bug Fixes
 
-* **worker:** do not reuse a process if it exited since last usage ([#199](https://github.com/botpress/nlu/issues/199)) ([baaa759](https://github.com/botpress/nlu/commit/baaa7592dc25c6fe8fee2740ecb544b103ef988b))
-
-
+- **worker:** do not reuse a process if it exited since last usage ([#199](https://github.com/botpress/nlu/issues/199)) ([baaa759](https://github.com/botpress/nlu/commit/baaa7592dc25c6fe8fee2740ecb544b103ef988b))
 
 ## [0.1.9](https://github.com/botpress/nlu/compare/v0.1.8...v0.1.9) (2021-10-29)
 
-
 ### Bug Fixes
 
-* **nlu-engine:** do not modify a token if its an entity ([#119](https://github.com/botpress/nlu/issues/119)) ([3298d35](https://github.com/botpress/nlu/commit/3298d354538cccf682aeca87e793b2fa90a18f7f))
-
-
+- **nlu-engine:** do not modify a token if its an entity ([#119](https://github.com/botpress/nlu/issues/119)) ([3298d35](https://github.com/botpress/nlu/commit/3298d354538cccf682aeca87e793b2fa90a18f7f))
 
 ## [0.1.8](https://github.com/botpress/nlu/compare/v0.1.7...v0.1.8) (2021-10-20)
 
-
 ### Bug Fixes
 
-* **nlu-cli:** upgrade version of nlu-cli to match root version ([#112](https://github.com/botpress/nlu/issues/112)) ([d08ac79](https://github.com/botpress/nlu/commit/d08ac79714aa39ccaa8df4cabbaa40f0012811bd))
-* **nlu-engine:** only few languages are space separated ([#114](https://github.com/botpress/nlu/issues/114)) ([98c84ef](https://github.com/botpress/nlu/commit/98c84ef7a944e53fb507af225a6f65687538601a))
-
-
+- **nlu-cli:** upgrade version of nlu-cli to match root version ([#112](https://github.com/botpress/nlu/issues/112)) ([d08ac79](https://github.com/botpress/nlu/commit/d08ac79714aa39ccaa8df4cabbaa40f0012811bd))
+- **nlu-engine:** only few languages are space separated ([#114](https://github.com/botpress/nlu/issues/114)) ([98c84ef](https://github.com/botpress/nlu/commit/98c84ef7a944e53fb507af225a6f65687538601a))
 
 ## [0.1.7](https://github.com/botpress/nlu/compare/v0.1.6...v0.1.7) (2021-10-06)
 
-
 ### Bug Fixes
 
-* **nlu-server:** models were never stored on database even when dburl was defined ([#107](https://github.com/botpress/nlu/issues/107)) ([c017884](https://github.com/botpress/nlu/commit/c01788445e30f2e194bbda2c589fd7e8b8f7fadd))
-* check for APP_DATA_PATH environment variable ([#101](https://github.com/botpress/nlu/issues/101)) ([2bd043a](https://github.com/botpress/nlu/commit/2bd043a4463b10d43e894a9fa770cf4150d3c23a))
-
-
+- **nlu-server:** models were never stored on database even when dburl was defined ([#107](https://github.com/botpress/nlu/issues/107)) ([c017884](https://github.com/botpress/nlu/commit/c01788445e30f2e194bbda2c589fd7e8b8f7fadd))
+- check for APP_DATA_PATH environment variable ([#101](https://github.com/botpress/nlu/issues/101)) ([2bd043a](https://github.com/botpress/nlu/commit/2bd043a4463b10d43e894a9fa770cf4150d3c23a))
 
 ## [0.1.6](https://github.com/botpress/nlu/compare/v0.1.5...v0.1.6) (2021-09-13)
 
-
 ### Features
 
-* **nlu-server:** display build information on startup ([022d498](https://github.com/botpress/nlu/commit/022d4989d2be1247cdd000240a15bc56797f4217))
-
-
+- **nlu-server:** display build information on startup ([022d498](https://github.com/botpress/nlu/commit/022d4989d2be1247cdd000240a15bc56797f4217))
 
 ## [0.1.5](https://github.com/botpress/nlu/compare/1.0.0-rc.1...0.1.5) (2021-09-01)
 
-
 ### Bug Fixes
 
-* **nlu-engine:** launch intent trainings in parallel and log each ctx ([d9b8152](https://github.com/botpress/nlu/commit/d9b81528bd3580634736ef9628db61a8f1121573))
-* **nlu-engine:** launch svm trainings one after the other ([a7dcad0](https://github.com/botpress/nlu/commit/a7dcad00562ac737af81514abb3911b1c855200e))
-* **nlu-engine:** use a stratified kfold to limit the amount of grid search iterations ([4197e78](https://github.com/botpress/nlu/commit/4197e7834a1e95ea5aeb7ed757fea18b05df3065))
-
-
+- **nlu-engine:** launch intent trainings in parallel and log each ctx ([d9b8152](https://github.com/botpress/nlu/commit/d9b81528bd3580634736ef9628db61a8f1121573))
+- **nlu-engine:** launch svm trainings one after the other ([a7dcad0](https://github.com/botpress/nlu/commit/a7dcad00562ac737af81514abb3911b1c855200e))
+- **nlu-engine:** use a stratified kfold to limit the amount of grid search iterations ([4197e78](https://github.com/botpress/nlu/commit/4197e7834a1e95ea5aeb7ed757fea18b05df3065))
 
 ## [0.1.4](https://github.com/botpress/nlu/compare/v0.1.3...v0.1.4) (2021-08-20)
 
-
 ### Bug Fixes
 
-* **apm:** renamed sentry references to apm ([b07f312](https://github.com/botpress/nlu/commit/b07f3122a212a306a855c0099caffa7c54bc57c0))
-* **bitfan:** bring back e2e tests and datasets ([7f12f2f](https://github.com/botpress/nlu/commit/7f12f2fd5e201757c7692706b2307e0b5d0ed68b))
-* **lint:** applied linting to code ([774d32c](https://github.com/botpress/nlu/commit/774d32c4f5b414ebd4d22cbd8b4de027feee5f62))
-* **sentry:** use sentry enabled instead of DSN for the configuration ([e89301c](https://github.com/botpress/nlu/commit/e89301cb5d633b6ba9649bb0d9164235885e9308))
-* **style:** fix codestyle for tests, lint & formatting ([c9c572a](https://github.com/botpress/nlu/commit/c9c572a76110c6c54ef8a60bd727ae33e65eb018))
-* **worker:** fix node typings to pass environement variables correctly when spawning new thread ([#76](https://github.com/botpress/nlu/issues/76)) ([853a3f3](https://github.com/botpress/nlu/commit/853a3f3d7de38471cf4539dc395c6bf7b8ee9a27))
-* run unit tests of all yarn packages from the root ([26670d3](https://github.com/botpress/nlu/commit/26670d30de797f3fa8c95b55330270157a79f1d1))
-* **style:** fix codestyle for tests, lint & formatting ([cacbf94](https://github.com/botpress/nlu/commit/cacbf948a5f8589ce5bfd6402d3578b48c816497))
-* undefined logger in slot tagger ([b2c688d](https://github.com/botpress/nlu/commit/b2c688dbef69fbda677adc701a23843f47504499))
-
+- **apm:** renamed sentry references to apm ([b07f312](https://github.com/botpress/nlu/commit/b07f3122a212a306a855c0099caffa7c54bc57c0))
+- **bitfan:** bring back e2e tests and datasets ([7f12f2f](https://github.com/botpress/nlu/commit/7f12f2fd5e201757c7692706b2307e0b5d0ed68b))
+- **lint:** applied linting to code ([774d32c](https://github.com/botpress/nlu/commit/774d32c4f5b414ebd4d22cbd8b4de027feee5f62))
+- **sentry:** use sentry enabled instead of DSN for the configuration ([e89301c](https://github.com/botpress/nlu/commit/e89301cb5d633b6ba9649bb0d9164235885e9308))
+- **style:** fix codestyle for tests, lint & formatting ([c9c572a](https://github.com/botpress/nlu/commit/c9c572a76110c6c54ef8a60bd727ae33e65eb018))
+- **worker:** fix node typings to pass environement variables correctly when spawning new thread ([#76](https://github.com/botpress/nlu/issues/76)) ([853a3f3](https://github.com/botpress/nlu/commit/853a3f3d7de38471cf4539dc395c6bf7b8ee9a27))
+- run unit tests of all yarn packages from the root ([26670d3](https://github.com/botpress/nlu/commit/26670d30de797f3fa8c95b55330270157a79f1d1))
+- **style:** fix codestyle for tests, lint & formatting ([cacbf94](https://github.com/botpress/nlu/commit/cacbf948a5f8589ce5bfd6402d3578b48c816497))
+- undefined logger in slot tagger ([b2c688d](https://github.com/botpress/nlu/commit/b2c688dbef69fbda677adc701a23843f47504499))
 
 ### Features
 
-* **apm:** added Sentry to the NLU server ([bf23d66](https://github.com/botpress/nlu/commit/bf23d665f146dc9d3582d6e8f2bbb275664951c1))
-* **apm:** added Sentry to the NLU server ([72b458a](https://github.com/botpress/nlu/commit/72b458ab89ac014b871625035b43121e12a8f795))
-* **nlu-client:** allow nlu client extension by setting attributes to protected ([ee36ae7](https://github.com/botpress/nlu/commit/ee36ae7d4eb6b3ede0c7588595c139719f48ce21))
-
-
+- **apm:** added Sentry to the NLU server ([bf23d66](https://github.com/botpress/nlu/commit/bf23d665f146dc9d3582d6e8f2bbb275664951c1))
+- **apm:** added Sentry to the NLU server ([72b458a](https://github.com/botpress/nlu/commit/72b458ab89ac014b871625035b43121e12a8f795))
+- **nlu-client:** allow nlu client extension by setting attributes to protected ([ee36ae7](https://github.com/botpress/nlu/commit/ee36ae7d4eb6b3ede0c7588595c139719f48ce21))
 
 ## [0.1.3](https://github.com/botpress/nlu/compare/v0.1.2...v0.1.3) (2021-07-07)
 
-
 ### Bug Fixes
 
-* exact matcher now works even with different entities ([#56](https://github.com/botpress/nlu/issues/56)) ([6c14b8c](https://github.com/botpress/nlu/commit/6c14b8ce6b14398fcdc621455382c0e18aaa0570))
-* **training:** porgress now won't skip steps ([#55](https://github.com/botpress/nlu/issues/55)) ([4073d61](https://github.com/botpress/nlu/commit/4073d617edf19d683833ee8394ead2376c94fdfa))
-
+- exact matcher now works even with different entities ([#56](https://github.com/botpress/nlu/issues/56)) ([6c14b8c](https://github.com/botpress/nlu/commit/6c14b8ce6b14398fcdc621455382c0e18aaa0570))
+- **training:** porgress now won't skip steps ([#55](https://github.com/botpress/nlu/issues/55)) ([4073d61](https://github.com/botpress/nlu/commit/4073d617edf19d683833ee8394ead2376c94fdfa))
 
 ### Features
 
-* **dx:** added a CLI command to download a language model in a given language ([#58](https://github.com/botpress/nlu/issues/58)) ([64e7871](https://github.com/botpress/nlu/commit/64e78714ed47bf90744ba1dbf0ee300fd1a632a2))
-* **e2e:** configurable NLU server endpoint ([50fd701](https://github.com/botpress/nlu/commit/50fd701111fb6ea3fb93772db12ee629df7de9cd))
-* **e2e:** configurable NLU server endpoint ([dd71ea0](https://github.com/botpress/nlu/commit/dd71ea04311944dd7170611c9940222b80a7250f))
-* **nlu-server:** App tests ([b7c2cc2](https://github.com/botpress/nlu/commit/b7c2cc25b5afe3b557b64239f908788d5b76e091))
-
-
+- **dx:** added a CLI command to download a language model in a given language ([#58](https://github.com/botpress/nlu/issues/58)) ([64e7871](https://github.com/botpress/nlu/commit/64e78714ed47bf90744ba1dbf0ee300fd1a632a2))
+- **e2e:** configurable NLU server endpoint ([50fd701](https://github.com/botpress/nlu/commit/50fd701111fb6ea3fb93772db12ee629df7de9cd))
+- **e2e:** configurable NLU server endpoint ([dd71ea0](https://github.com/botpress/nlu/commit/dd71ea04311944dd7170611c9940222b80a7250f))
+- **nlu-server:** App tests ([b7c2cc2](https://github.com/botpress/nlu/commit/b7c2cc25b5afe3b557b64239f908788d5b76e091))
 
 ## [0.1.2](https://github.com/botpress/nlu/compare/v0.1.1...v0.1.2) (2021-06-07)
 
-
 ### Bug Fixes
 
-* **logger:** launcher debug logs are not displayed by default when verbose is 4 ([503f0d8](https://github.com/botpress/nlu/commit/503f0d8d040b00bf3fa1538acb2b6e40c4731f75))
-
+- **logger:** launcher debug logs are not displayed by default when verbose is 4 ([503f0d8](https://github.com/botpress/nlu/commit/503f0d8d040b00bf3fa1538acb2b6e40c4731f75))
 
 ### Features
 
-* rename env config variable ([e886829](https://github.com/botpress/nlu/commit/e886829bc5b582f63e70a283406f1459b6f2821a))
-
-
+- rename env config variable ([e886829](https://github.com/botpress/nlu/commit/e886829bc5b582f63e70a283406f1459b6f2821a))
 
 ## [0.1.1](https://github.com/botpress/nlu/compare/v0.1.0...v0.1.1) (2021-06-07)
 
-
 ### Bug Fixes
 
-* no more argv in process fork because of pkg ([1b92c72](https://github.com/botpress/nlu/commit/1b92c72106f3140daf8820f6143c3ca63ea10034))
-
-
+- no more argv in process fork because of pkg ([1b92c72](https://github.com/botpress/nlu/commit/1b92c72106f3140daf8820f6143c3ca63ea10034))
 
 # [0.1.0](https://github.com/botpress/nlu/compare/v0.0.7...v0.1.0) (2021-06-07)
 
-
 ### Bug Fixes
 
-* **build:** test Docker build ([a93d3f3](https://github.com/botpress/nlu/commit/a93d3f3d357e449b782d22af17625c510a1b155f))
-* **build:** test Docker build ([29e3443](https://github.com/botpress/nlu/commit/29e34433de1e16353f96f6378b1305c926504975))
-* **nlu:** remove database connection string from logs ([0dd1d76](https://github.com/botpress/nlu/commit/0dd1d763cc7eb45b520cbc37f4f6be4b65799dbb))
-* **nlu:** remove database connection string from logs ([b2185b3](https://github.com/botpress/nlu/commit/b2185b3442ae80ad657e89d31934607e4d5c2b59))
-
+- **build:** test Docker build ([a93d3f3](https://github.com/botpress/nlu/commit/a93d3f3d357e449b782d22af17625c510a1b155f))
+- **build:** test Docker build ([29e3443](https://github.com/botpress/nlu/commit/29e34433de1e16353f96f6378b1305c926504975))
+- **nlu:** remove database connection string from logs ([0dd1d76](https://github.com/botpress/nlu/commit/0dd1d763cc7eb45b520cbc37f4f6be4b65799dbb))
+- **nlu:** remove database connection string from logs ([b2185b3](https://github.com/botpress/nlu/commit/b2185b3442ae80ad657e89d31934607e4d5c2b59))
 
 ### Features
 
-* run list entity extraction on child threads with progress report ([#38](https://github.com/botpress/nlu/issues/38)) ([0ddc473](https://github.com/botpress/nlu/commit/0ddc4731365c5c9f98eea64d70491ee8ecadd25d))
-
-
+- run list entity extraction on child threads with progress report ([#38](https://github.com/botpress/nlu/issues/38)) ([0ddc473](https://github.com/botpress/nlu/commit/0ddc4731365c5c9f98eea64d70491ee8ecadd25d))
 
 ## [0.0.7](https://github.com/botpress/nlu/compare/v0.0.6...v0.0.7) (2021-05-28)
 
-
 ### Bug Fixes
 
-* **dx:** fix truncated change log in release body ([2641652](https://github.com/botpress/nlu/commit/2641652bf3b028d30a7407545702ec4e2d1a00dc))
-
-
+- **dx:** fix truncated change log in release body ([2641652](https://github.com/botpress/nlu/commit/2641652bf3b028d30a7407545702ec4e2d1a00dc))
 
 ## [0.0.6](https://github.com/botpress/nlu/compare/v0.0.5...v0.0.6) (2021-05-28)
 
-
 ### Features
 
-* **dx:** add a gulp command to print changelog ([d6da961](https://github.com/botpress/nlu/commit/d6da96134f46c6808ea46d1d38fa36dbb46a5ee1))
-
-
+- **dx:** add a gulp command to print changelog ([d6da961](https://github.com/botpress/nlu/commit/d6da96134f46c6808ea46d1d38fa36dbb46a5ee1))
 
 ## [0.0.5](https://github.com/botpress/nlu/compare/v0.0.4...v0.0.5) (2021-05-28)
 
-
 ### Features
 
-* **dx:** gh action to create a release when needed ([d09b10b](https://github.com/botpress/nlu/commit/d09b10b856d86470265f0862c17e68ea133758be))
-
-
+- **dx:** gh action to create a release when needed ([d09b10b](https://github.com/botpress/nlu/commit/d09b10b856d86470265f0862c17e68ea133758be))
 
 ## [0.0.4](https://github.com/botpress/nlu/compare/v0.0.2...v0.0.4) (2021-05-27)
 
