@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-export interface ParsedSlot {
+export type ParsedSlot = {
   name: string
   value: string
   rawPosition: {
@@ -13,12 +13,12 @@ export interface ParsedSlot {
   }
 }
 
-export interface UtterancePart {
+export type UtterancePart = {
   text: string
   slot?: ParsedSlot
 }
 
-export interface ParsedUtterance {
+export type ParsedUtterance = {
   utterance: string
   parsedSlots: ParsedSlot[]
   parts: UtterancePart[]

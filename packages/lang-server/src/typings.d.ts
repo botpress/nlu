@@ -1,25 +1,36 @@
-export const run: (argv: {
+import { LogLevel } from '@bpinternal/log4bot'
+
+type CommonOptions = {
+  langDir: string
+  metadataLocation: string
+  dim: number
+  domain: string
+}
+
+export type LogFormat = 'text' | 'json'
+export type LangServerOptions = {
   port: number
   host: string
+  reverseProxy?: string
   limit: number
   limitWindow: string
-  langDir?: string
   authToken?: string
   adminToken?: string
-  metadataLocation: string
   offline: boolean
-  dim: number
-  domain: string
-  verbose: number
-  logFilter: string[] | undefined
-}) => Promise<void>
+  logLevel: LogLevel
+  logFormat: LogFormat
+  debugFilter?: string
+  prometheusEnabled: boolean
+  apmEnabled: boolean
+} & CommonOptions
 
-export const download: (argv: {
-  langDir?: string
+export type DownloadOptions = {
   lang: string
-  dim: number
-  domain: string
-  metadataLocation: string
-}) => Promise<void>
+} & CommonOptions
+
+export type LangArgv = Partial<LangServerOptions>
+export type DownloadArgv = Partial<CommonOptions> & { lang: string }
 
 export const version: string
+export const run: (argv: LangArgv) => Promise<void>
+export const download: (argv: DownloadArgv) => Promise<void>

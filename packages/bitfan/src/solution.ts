@@ -37,7 +37,8 @@ const makeSolutionRunner = <T extends sdk.ProblemType>(
   for (const problem of problems) {
     try {
       await runProblem({ problem, engine: solution.engine } as any) // TODO: refactor this
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       // eslint-disable-next-line no-console
       console.log(
         chalk.red(
@@ -59,12 +60,12 @@ const makeSolutionRunner = <T extends sdk.ProblemType>(
   }
 }
 
-interface Unsupervised<T extends sdk.ProblemType> {
+type Unsupervised<T extends sdk.ProblemType> = {
   problem: sdk.UnsupervisedProblem<T>
   engine: sdk.UnsupervisedEngine<T>
 }
 
-interface Supervised<T extends sdk.ProblemType> {
+type Supervised<T extends sdk.ProblemType> = {
   problem: sdk.Problem<T>
   engine: sdk.Engine<T>
 }

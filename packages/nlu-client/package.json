@@ -1,12 +1,13 @@
 {
   "name": "@botpress/nlu-client",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Client and typings for NLU Server's API",
   "author": "Botpress, Inc.",
   "license": "AGPL-3.0",
   "scripts": {
     "build": "tsc --build",
-    "test": "jest"
+    "test": "jest --roots ./dist",
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   },
   "dependencies": {
     "axios": "^0.21.1",
@@ -16,12 +17,11 @@
   "devDependencies": {
     "@types/lodash": "^4.14.116",
     "@types/joi": "^17.2.3",
-    "@types/node": "^12.13.0",
+    "@types/node": "^16.11.10",
     "@types/jest": "^24.9.0",
     "jest": "^24.9.0",
-    "ts-jest": "^26.5.5",
-    "typescript": "^3.9.10"
+    "typescript": "^5.0.4"
   },
-  "types": "./src/typings/index.d.ts",
+  "types": "./dist/index.d.ts",
   "main": "./dist/index.js"
 }

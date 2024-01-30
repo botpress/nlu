@@ -1,0 +1,27 @@
+{
+  "name": "@botpress/distributed",
+  "version": "0.0.1",
+  "author": "Botpress, Inc.",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rimraf ./dist && rimraf ./node_modules"
+  },
+  "dependencies": {
+    "@bpinternal/log4bot": "^0.0.4",
+    "lodash": "^4.17.19",
+    "yn": "^4.0.0",
+    "bluebird": "^3.7.2",
+    "moment": "^2.24.0",
+    "ms": "^2.1.1",
+    "nanoid": "^3.1.23",
+    "pg-pubsub": "^0.6.1"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.116",
+    "@types/node": "^16.11.10",
+    "typescript": "^5.0.4"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts"
+}

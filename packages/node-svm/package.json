@@ -10,9 +10,10 @@
   "scripts": {
     "install": ":",
     "build:native": "node-gyp install && node-gyp rebuild",
-    "clean": "node-gyp clean",
+    "clean:native": "node-gyp clean",
     "build": "tsc --build",
-    "test": "jest -i --detectOpenHandles -c ./jest.config.js"
+    "test": "jest --roots ./dist",
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   },
   "gypfile": true,
   "dependencies": {
@@ -24,11 +25,10 @@
     "@babel/preset-typescript": "^7.10.1",
     "@types/bluebird": "^3.5.32",
     "@types/getos": "^3.0.0",
-    "@types/node": "^12.13.0",
+    "@types/node": "^16.11.10",
     "jest": "^24.9.0",
     "node-addon-api": "^2.0.0",
     "node-gyp": "^6.1.0",
-    "ts-jest": "^26.5.5",
-    "typescript": "^3.9.10"
+    "typescript": "^5.0.4"
   }
 }

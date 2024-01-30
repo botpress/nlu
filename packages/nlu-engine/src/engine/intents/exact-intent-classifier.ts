@@ -1,17 +1,28 @@
-import Joi, { validate } from 'joi'
+import * as ptb from '@bpinternal/ptb-schema'
 import _ from 'lodash'
-import { ModelLoadingError } from '../../errors'
+import { ModelLoadingError } from '../errors'
 import { Intent } from '../typings'
 import Utterance, { UtteranceToStringOptions } from '../utterance/utterance'
 
 import { IntentTrainInput, NoneableIntentClassifier, NoneableIntentPredictions } from './intent-classifier'
 
-export interface Model {
+type Model = {
   intents: string[]
   exact_match_index: ExactMatchIndex
 }
 
+type Predictors = Model
+
 type ExactMatchIndex = _.Dictionary<{ intent: string }>
+
+const PTBExactIndexValue = new ptb.PTBMessage('ExactIndexValue', {
+  intent: { type: 'string', id: 1, rule: 'required' }
+})
+
+const PTBExactIntentModel = new ptb.PTBMessage('ExactIntentModel', {
+  intents: { type: 'string', id: 1, rule: 'repeated' },
+  exact_match_index: { keyType: 'string', type: PTBExactIndexValue, id: 2, rule: 'map' }
+})
 
 const EXACT_MATCH_STR_OPTIONS: UtteranceToStringOptions = {
   lowerCase: true,
@@ -19,33 +30,37 @@ const EXACT_MATCH_STR_OPTIONS: UtteranceToStringOptions = {
   strategy: 'replace-entity-name'
 }
 
-const schemaKeys: Record<keyof Model, Joi.AnySchema> = {
-  intents: Joi.array().items(Joi.string()).required(),
-  exact_match_index: Joi.object()
-    .pattern(/^/, Joi.object().keys({ intent: Joi.string() }))
-    .required()
-}
-export const modelSchema = Joi.object().keys(schemaKeys).required()
-
-export class ExactIntenClassifier implements NoneableIntentClassifier {
+export class ExactIntenClassifier implements NoneableIntentClassifier<typeof PTBExactIntentModel> {
   private static _displayName = 'Exact Intent Classifier'
   private static _name = 'exact-matcher'
 
-  private model: Model | undefined
+  private predictors: Predictors | undefined
 
-  get name() {
+  public get name() {
     return ExactIntenClassifier._name
   }
 
-  async train(trainInput: IntentTrainInput, progress: (p: number) => void) {
+  public static get modelType() {
+    return PTBExactIntentModel
+  }
+
+  public get modelType() {
+    return PTBExactIntentModel
+  }
+
+  public async train(
+    trainInput: IntentTrainInput,
+    progress: (p: number) => void
+  ): Promise<ptb.Infer<typeof PTBExactIntentModel>> {
     const { intents } = trainInput
     const exact_match_index = this._buildExactMatchIndex(intents)
 
-    this.model = {
+    progress(1)
+
+    return {
       intents: intents.map((i) => i.name),
       exact_match_index
     }
-    progress(1)
   }
 
   private _buildExactMatchIndex = (intents: Intent<Utterance>[]): ExactMatchIndex => {
@@ -65,29 +80,26 @@ export class ExactIntenClassifier implements NoneableIntentClassifier {
       .value()
   }
 
-  serialize() {
-    if (!this.model) {
-      throw new Error(`${ExactIntenClassifier._displayName} must be trained before calling serialize.`)
-    }
-    return JSON.stringify(this.model)
-  }
-
-  async load(serialized: string) {
+  public async load(serialized: ptb.Infer<typeof PTBExactIntentModel>) {
     try {
-      const raw = JSON.parse(serialized)
-      const model: Model = await validate(raw, modelSchema)
-      this.model = model
-    } catch (err) {
+      const { intents, exact_match_index } = serialized
+      const model: Model = {
+        intents: intents ?? [],
+        exact_match_index
+      }
+      this.predictors = model
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       throw new ModelLoadingError(ExactIntenClassifier._displayName, err)
     }
   }
 
-  async predict(utterance: Utterance): Promise<NoneableIntentPredictions> {
-    if (!this.model) {
-      throw new Error(`${ExactIntenClassifier._displayName} must be trained before calling predict.`)
+  public async predict(utterance: Utterance): Promise<NoneableIntentPredictions> {
+    if (!this.predictors) {
+      throw new Error(`${ExactIntenClassifier._displayName} must load model before calling predict.`)
     }
 
-    const { exact_match_index, intents: intentNames } = this.model
+    const { exact_match_index, intents: intentNames } = this.predictors
 
     const exactPred = this._findExactIntent(exact_match_index, utterance)
 

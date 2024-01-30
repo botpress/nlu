@@ -10,12 +10,12 @@
   "scripts": {
     "build": "tsc --build",
     "install": ":",
-    "clean": "node-gyp clean",
+    "clean:native": "node-gyp clean",
     "build:native": "run-script-os",
     "build:native:linux": "./scripts/linux_build_sentencepiece.sh && node-gyp rebuild",
     "build:native:darwin": "./scripts/macos_build_sentencepiece.sh && node-gyp rebuild",
     "build:native:win32": "(.\\scripts\\win_build_sentencepiece.bat || true) && node-gyp rebuild",
-    "test": "echo \"no tests\""
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   },
   "dependencies": {
     "getos": "^3.2.1",
@@ -26,7 +26,7 @@
     "node-gyp": "^4.0.0",
     "node-addon-api": "^1.6.3",
     "run-script-os": "^1.0.5",
-    "@types/node": "^12.13.0",
-    "typescript": "^3.9.10"
+    "@types/node": "^16.11.10",
+    "typescript": "^5.0.4"
   }
 }

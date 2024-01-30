@@ -1,35 +1,33 @@
 import { Logger } from 'src/typings'
-import { Predictor, Trainer } from '.'
-import { MLToolkit } from '../typings'
+import { SVMOptions } from '.'
+import { SVMClassifier } from './base'
+import { DataPoint } from './typings'
 
 const SEED = 42
 
-/**
- * WARNING:
- *  If test fails it may be because of your Linux distribution.
- *  Try editing 'jest-before.ts' file your distribution.
- */
+const dummyLogger: Partial<Logger> = { debug: () => {} }
+const dummyCallback = () => {}
+
 describe('SVM', () => {
   test('Trainer should work with basic problems', async () => {
-    // prettier-ignore
-    const line: MLToolkit.SVM.DataPoint[] = [
+    const line: DataPoint[] = [
       { coordinates: [0, 0], label: 'A' },
       { coordinates: [0, 1], label: 'A' },
       { coordinates: [1, 0], label: 'B' },
       { coordinates: [1, 1], label: 'B' }
     ]
 
-    const dummyLogger: Partial<Logger> = { debug: () => {} }
-    const trainer = new Trainer(dummyLogger as Logger)
-    const mod = await trainer.train(line, { classifier: 'C_SVC', kernel: 'LINEAR', c: 1, seed: SEED })
+    const svm = new SVMClassifier(dummyLogger as Logger)
 
-    const predictor = new Predictor(mod)
-    await predictor.initialize()
+    const options: SVMOptions = { classifier: 'C_SVC', kernel: 'LINEAR', c: 1, seed: SEED }
+    const mod = await svm.train({ points: line, options }, dummyCallback)
 
-    const r1 = await predictor.predict([0, 0])
-    const r2 = await predictor.predict([1, 1])
-    const r3 = await predictor.predict([0, 1])
-    const r4 = await predictor.predict([1, 0])
+    await svm.load(mod)
+
+    const r1 = await svm.predict([0, 0])
+    const r2 = await svm.predict([1, 1])
+    const r3 = await svm.predict([0, 1])
+    const r4 = await svm.predict([1, 0])
 
     expect(r1[0].label).toBe('A')
     expect(r2[0].label).toBe('B')
@@ -38,20 +36,18 @@ describe('SVM', () => {
   })
 
   test('Trainer should throw when vectors have different lengths', async () => {
-    // prettier-ignore
-    const line: MLToolkit.SVM.DataPoint[] = [
+    const line: DataPoint[] = [
       { coordinates: [0, 0, 0], label: 'A' },
       { coordinates: [0, 1], label: 'A' },
       { coordinates: [1, 0], label: 'B' },
       { coordinates: [1, 1], label: 'B' }
     ]
 
-    const dummyLogger: Partial<Logger> = { debug: () => {} }
-    const trainer = new Trainer(dummyLogger as Logger)
-
     let errorThrown = false
     try {
-      await trainer.train(line, { classifier: 'C_SVC', kernel: 'LINEAR', c: [1], seed: SEED })
+      const svm = new SVMClassifier(dummyLogger as Logger)
+      const options: SVMOptions = { classifier: 'C_SVC', kernel: 'LINEAR', c: [1], seed: SEED }
+      await svm.train({ points: line, options }, dummyCallback)
     } catch (err) {
       errorThrown = true
     }

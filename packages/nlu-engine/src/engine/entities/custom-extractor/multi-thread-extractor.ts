@@ -4,40 +4,39 @@ import _ from 'lodash'
 import os from 'os'
 import { Logger } from 'src/typings'
 import { EntityExtractionResult, ListEntityModel, WarmedListEntityModel } from '../../typings'
-import Utterance from '../../utterance/utterance'
 import { CustomEntityExtractor } from '.'
-import { SerializableUtteranceToken, serializeUtteranceToken } from './serializable-token'
 import { ENTRY_POINT } from './thread-entry-point'
+import { ListEntityUtteranceToken, keepTokenProperties, Utterance } from './token'
 
 const maxMLThreads = Math.max(os.cpus().length - 1, 1) // ncpus - webworker
 const userMlThread = process.env.BP_NUM_ML_THREADS ? Number(process.env.BP_NUM_ML_THREADS) : 4
 const numMLThreads = Math.min(maxMLThreads, userMlThread)
 
-interface TaskUnitInput {
+type TaskUnitInput = {
   utt_idx: number
   entity_idx: number
   utterance: Utterance
   list_entity: WarmedListEntityModel
 }
 
-interface SerializableTaskUnitInput {
+type SerializableTaskUnitInput = {
   utt_idx: number
   entity_idx: number
-  tokens: SerializableUtteranceToken[]
+  tokens: ListEntityUtteranceToken[]
   list_entity: ListEntityModel
 }
 
-interface TaskUnitOutput {
+type TaskUnitOutput = {
   utt_idx: number
   entity_idx: number
   entities: EntityExtractionResult[]
 }
 
-export interface TaskInput {
+export type TaskInput = {
   units: SerializableTaskUnitInput[]
 }
 
-export interface TaskOutput {
+export type TaskOutput = {
   units: TaskUnitOutput[]
 }
 
@@ -102,7 +101,7 @@ export class MultiThreadCustomEntityExtractor extends CustomEntityExtractor {
     const { entity_idx, utt_idx, utterance, list_entity: warmedModel } = unit
     const { cache, ...coldModel } = warmedModel
     const { tokens } = utterance
-    return { entity_idx, utt_idx, tokens: tokens.map(serializeUtteranceToken), list_entity: coldModel }
+    return { entity_idx, utt_idx, tokens: tokens.map(keepTokenProperties), list_entity: coldModel }
   }
 
   private _splitUnitsByCacheHitOrMiss(units: TaskUnitInput[]): [TaskUnitInput[], TaskUnitInput[]] {

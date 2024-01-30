@@ -1,11 +1,11 @@
 import { Report, SvmParameters } from '../typings'
 
-export interface GridSearchResult {
+export type GridSearchResult = {
   params: SvmParameters
   report?: Report
 }
 
-export interface GridSearchProgress {
+export type GridSearchProgress = {
   done: number
   total: number
 }

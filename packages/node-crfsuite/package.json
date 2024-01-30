@@ -11,7 +11,7 @@
     "install": ":",
     "build:native": "node-gyp install && node-gyp rebuild",
     "build": "tsc --build",
-    "test": "echo \"no tests\""
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   },
   "keywords": [
     "crf",
@@ -40,7 +40,7 @@
   "devDependencies": {
     "node-addon-api": "^3.0.0",
     "node-gyp": "^5.0.0",
-    "@types/node": "^12.13.0",
-    "typescript": "^3.9.10"
+    "@types/node": "^16.11.10",
+    "typescript": "^5.0.4"
   }
 }

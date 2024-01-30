@@ -1,16 +1,22 @@
 {
   "references": [
     {
-      "path": "./packages/nlu-cli"
+      "path": "./packages/nlu-bin"
     },
     {
-      "path": "./packages/e2e"
+      "path": "./packages/nlu-bench"
+    },
+    {
+      "path": "./packages/nlu-e2e"
     }
   ],
   "files": [],
   "include": [],
-  "exclude": ["**/node_modules"],
+  "exclude": [
+    "**/node_modules"
+  ],
   "compilerOptions": {
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "composite": true
   }
 }

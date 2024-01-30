@@ -1,4 +1,4 @@
-export interface Model {
+export type Model = {
   param: Parameters
   nr_class: number
   l: number
@@ -15,7 +15,7 @@ export interface Model {
 
 export type GridSearchParameters = 'C' | 'gamma' | 'degree' | 'nu' | 'p' | 'coef0'
 
-export interface OtherParameters {
+export type OtherParameters = {
   svm_type: number
   kernel_type: number
   cache_size: number
@@ -29,20 +29,25 @@ export interface OtherParameters {
 
 export type Parameters = Record<GridSearchParameters, number> & OtherParameters
 
-interface LibConfig {
+type LibConfig = {
   kFold: number
   normalize: boolean
   reduce: boolean
   retainedVariance: number
+}
+
+type LibModel = {
   mu?: number[]
   sigma?: number[]
   u?: number[][]
 }
+
 export type SvmConfig = Record<GridSearchParameters, number[]> & OtherParameters & LibConfig
 
-export type SvmModel = Model & {
-  param: SvmParameters
-}
+export type SvmModel = Model &
+  LibModel & {
+    param: Parameters
+  }
 
 export type SvmParameters = Parameters & LibConfig
 
@@ -50,14 +55,14 @@ export type Data = [number[], number]
 
 export type Report = (ClassificationReport | RegressionReport) & Partial<ReductionReport>
 
-export interface ReductionReport {
+export type ReductionReport = {
   reduce: boolean
   retainedVariance: number
   retainedDimension: number
   initialDimension: number
 }
 
-export interface ClassificationReport {
+export type ClassificationReport = {
   accuracy: number
   fscore: any
   recall: any
@@ -66,7 +71,7 @@ export interface ClassificationReport {
   size: any
 }
 
-export interface RegressionReport {
+export type RegressionReport = {
   mse: any
   std: number
   mean: any

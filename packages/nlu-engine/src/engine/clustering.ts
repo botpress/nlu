@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import nearestVector from 'ml-nearest-vector'
-import { MLToolkit } from '../ml/typings'
+import * as MLToolkit from '../ml/toolkit'
 
 import { euclideanDistanceSquared } from './tools/math'
 import { Intent, SerializedKmeansResult, Tools } from './typings'
@@ -14,14 +14,11 @@ const KMEANS_OPTIONS = <MLToolkit.KMeans.KMeansOptions>{
   distanceFunction: euclideanDistanceSquared
 }
 
-const NONE_INTENT = 'none'
-
 export const computeKmeans = (
   intents: Intent<Utterance>[],
   tools: Tools
 ): MLToolkit.KMeans.KmeansResult | undefined => {
   const data = _.chain(intents)
-    .filter((i) => i.name !== NONE_INTENT)
     .flatMap((i) => i.utterances)
     .flatMap((u) => u.tokens)
     .uniqBy((t: UtteranceToken) => t.value)

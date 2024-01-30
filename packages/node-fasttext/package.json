@@ -11,7 +11,7 @@
     "install": ":",
     "build:native": "node-gyp install && node-gyp rebuild",
     "build": "tsc --build",
-    "test": "echo \"no tests\""
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   },
   "repository": {
     "type": "git",
@@ -33,10 +33,10 @@
     "yn": "^4.0.0"
   },
   "devDependencies": {
-    "@types/node": "^12.13.0",
+    "@types/node": "^16.11.10",
     "node-addon-api": "^3.0.0",
     "node-gyp": "^7.0.0",
-    "typescript": "^3.9.10"
+    "typescript": "^5.0.4"
   },
   "files": [
     "cppsrc",

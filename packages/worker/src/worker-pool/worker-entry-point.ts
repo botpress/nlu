@@ -1,9 +1,22 @@
-import { serializeError } from '../error-utils'
-import { Logger, TaskHandler, WorkerEntryPoint as IWorkerEntryPoint } from '../typings'
+import { ErrorHandler } from '../error-handler'
+import {
+  Logger,
+  TaskHandler,
+  WorkerEntryPoint as IWorkerEntryPoint,
+  ErrorSerializer,
+  EntryPointOptions,
+  TaskProgress
+} from '../typings'
 import { AllOutgoingMessages, IncomingMessage, isStartTask } from './communication'
 
-export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> {
-  private _handlers: TaskHandler<I, O>[] = []
+export abstract class WorkerEntryPoint<I, O, P = void> implements IWorkerEntryPoint<I, O, P> {
+  private _handlers: TaskHandler<I, O, P>[] = []
+
+  private errorHandler: ErrorSerializer
+
+  constructor(config?: EntryPointOptions) {
+    this.errorHandler = config?.errorHandler ?? new ErrorHandler()
+  }
 
   abstract isMainWorker: () => boolean
   abstract messageMain: (msg: any) => void
@@ -14,7 +27,7 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
       throw new Error("Can't create a worker entry point inside the main worker.")
     }
 
-    const readyResponse: IncomingMessage<'worker_ready', O> = {
+    const readyResponse: IncomingMessage<'worker_ready', O, P> = {
       type: 'worker_ready',
       payload: {}
     }
@@ -30,19 +43,19 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
     this.listenMain('message', messageHandler)
   }
 
-  public listenForTask(handler: TaskHandler<I, O>) {
+  public listenForTask(handler: TaskHandler<I, O, P>) {
     this._handlers.push(handler)
   }
 
-  private _runHandler = async (handler: TaskHandler<I, O>, input: I) => {
+  private _runHandler = async (handler: TaskHandler<I, O, P>, input: I) => {
     try {
-      const progress = (p: number) => {
-        const progressResponse: IncomingMessage<'task_progress', O> = {
+      const progress = ((p: number, data: P) => {
+        const progressResponse: IncomingMessage<'task_progress', O, P> = {
           type: 'task_progress',
-          payload: { progress: p }
+          payload: { progress: p, data }
         }
         this.messageMain(progressResponse)
-      }
+      }) as TaskProgress<I, O, P>
 
       const output: O = await handler({
         input,
@@ -50,18 +63,19 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
         progress
       })
 
-      const doneResponse: IncomingMessage<'task_done', O> = {
+      const doneResponse: IncomingMessage<'task_done', O, P> = {
         type: 'task_done',
         payload: {
           output
         }
       }
       this.messageMain(doneResponse)
-    } catch (err) {
-      const errorResponse: IncomingMessage<'task_error', O> = {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      const errorResponse: IncomingMessage<'task_error', O, P> = {
         type: 'task_error',
         payload: {
-          error: serializeError(err)
+          error: this.errorHandler.serializeError(err)
         }
       }
       this.messageMain(errorResponse)
@@ -70,30 +84,30 @@ export abstract class WorkerEntryPoint<I, O> implements IWorkerEntryPoint<I, O> 
 
   public logger: Logger = {
     debug: (msg: string) => {
-      const response: IncomingMessage<'log', O> = {
+      const response: IncomingMessage<'log', O, P> = {
         type: 'log',
         payload: { log: { debug: msg } }
       }
       this.messageMain(response)
     },
     info: (msg: string) => {
-      const response: IncomingMessage<'log', O> = {
+      const response: IncomingMessage<'log', O, P> = {
         type: 'log',
         payload: { log: { info: msg } }
       }
       this.messageMain(response)
     },
     warning: (msg: string, err?: Error) => {
-      const warning = `${msg} ${serializeError(err)}`
-      const response: IncomingMessage<'log', O> = {
+      const warning = err ? `${msg} ${err.message}` : msg
+      const response: IncomingMessage<'log', O, P> = {
         type: 'log',
         payload: { log: { warning } }
       }
       this.messageMain(response)
     },
     error: (msg: string, err?: Error) => {
-      const error = `${msg} ${serializeError(err)}`
-      const response: IncomingMessage<'log', O> = { type: 'log', payload: { log: { error } } }
+      const error = err ? `${msg} ${err.message}` : msg
+      const response: IncomingMessage<'log', O, P> = { type: 'log', payload: { log: { error } } }
       this.messageMain(response)
     },
     sub: (namespace: string) => {

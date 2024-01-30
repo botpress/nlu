@@ -1,13 +1,16 @@
-import { centerText, LoggerLevel, Logger, makeLogger } from '@botpress/logger'
 import { LanguageService, Logger as EngineLogger } from '@botpress/nlu-engine'
+import { Logger, TextFormatter, JSONFormatter } from '@bpinternal/log4bot'
 import chalk from 'chalk'
 import _ from 'lodash'
 import path from 'path'
 
 import API, { APIOptions } from './api'
-import { getAppDataPath } from './app-data'
+import { LangApplication } from './application'
+import DownloadManager from './application/download-manager'
+import { getLangServerConfig } from './config'
 import { requireJSON } from './require-json'
-import DownloadManager from './service/download-manager'
+import * as types from './typings'
+import { listenForUncaughtErrors } from './uncaught-errors'
 
 const packageJsonPath = path.resolve(__dirname, '../package.json')
 const packageJson = requireJSON<{ version: string }>(packageJsonPath)
@@ -17,24 +20,8 @@ if (!packageJson) {
 
 const { version: pkgVersion } = packageJson
 
-export { default as download } from './download'
+export { download } from './download'
 export const version = pkgVersion
-
-export interface ArgV {
-  port: number
-  host: string
-  limit: number
-  limitWindow: string
-  langDir?: string
-  authToken?: string
-  adminToken?: string
-  metadataLocation: string
-  offline: boolean
-  dim: number
-  domain: string
-  verbose: number
-  logFilter: string[] | undefined
-}
 
 const wrapLogger = (logger: Logger): EngineLogger => {
   return {
@@ -46,21 +33,25 @@ const wrapLogger = (logger: Logger): EngineLogger => {
   }
 }
 
-export const run = async (options: ArgV) => {
-  const baseLogger = makeLogger({
-    level: Number(options.verbose) !== NaN ? Number(options.verbose) : LoggerLevel.Info,
-    filters: options.logFilter,
-    prefix: 'LANG'
+const centerText = (text: string, width: number, indent: number = 0) => {
+  const padding = Math.floor((width - text.length) / 2)
+  return _.repeat(' ', padding + indent) + text + _.repeat(' ', padding)
+}
+
+export const run: typeof types.run = async (argv: types.LangArgv) => {
+  const options = getLangServerConfig(argv)
+
+  const formatter = options.logFormat === 'json' ? new JSONFormatter() : new TextFormatter()
+  const baseLogger = new Logger('', {
+    level: options.logLevel,
+    filters: options.debugFilter ? { debug: options.debugFilter } : {},
+    prefix: 'LANG',
+    formatter
   })
 
-  const appDataPath = getAppDataPath()
-  options.langDir = options.langDir || path.join(appDataPath, 'embeddings')
-
   const launcherLogger = baseLogger.sub('Launcher')
-  // Launcher always display
   launcherLogger.configure({
-    level: LoggerLevel.Info,
-    filters: undefined
+    level: 'info' // Launcher always display
   })
 
   launcherLogger.debug('Language Server Options %o', options)
@@ -88,13 +79,18 @@ export const run = async (options: ArgV) => {
     authToken: options.authToken,
     limit: options.limit,
     limitWindow: options.limitWindow,
+    prometheusEnabled: options.prometheusEnabled,
+    apmEnabled: options.apmEnabled,
     adminToken: options.adminToken || ''
   }
 
-  launcherLogger.info(chalk`========================================
-{bold ${centerText('Botpress Language Server', 40, 9)}}
-{dim ${centerText(`Version ${version}`, 40, 9)}}
-${_.repeat(' ', 9)}========================================`)
+  const indent = 0
+  const width = 75
+  const border = _.repeat('=', width)
+  launcherLogger.info(chalk`${border}
+{bold ${centerText('Botpress Language Server', width, indent)}}
+{dim ${centerText(`Version ${version}`, width, indent)}}
+${_.repeat(' ', indent)}${border}`)
 
   if (options.authToken?.length) {
     launcherLogger.info(`authToken: ${chalk.greenBright('enabled')} (only users with this token can query your server)`)
@@ -134,13 +130,13 @@ ${_.repeat(' ', 9)}========================================`)
 
   launcherLogger.info(`Serving ${options.dim} language dimensions from ${options.langDir}`)
 
-  if (options.offline) {
-    await Promise.all([API(apiOptions, baseLogger, langService), langService.initialize()])
-  } else {
-    await Promise.all([
-      API(apiOptions, baseLogger, langService, downloadManager),
-      downloadManager.initialize(),
-      langService.initialize()
-    ])
-  }
+  const { offline, adminToken } = options
+  const langApplication = new LangApplication(langService, downloadManager, {
+    offline,
+    version,
+    adminToken
+  })
+  await Promise.all([API(apiOptions, baseLogger, langApplication), langApplication.initialize()])
+
+  listenForUncaughtErrors(baseLogger)
 }

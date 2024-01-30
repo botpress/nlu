@@ -5,7 +5,7 @@
   "license": "AGPL-3.0",
   "scripts": {
     "build": "tsc --build",
-    "test": "echo \"no tests\""
+    "clean": "rimraf ./dist && rimraf ./node_modules"
   },
   "dependencies": {
     "lodash": "^4.17.19",
@@ -13,9 +13,8 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.116",
-    "@types/yn": "^3.1.0",
-    "@types/node": "^12.13.0",
-    "typescript": "^3.9.10"
+    "@types/node": "^16.11.10",
+    "typescript": "^5.0.4"
   },
   "types": "./src/typings.d.ts",
   "main": "./dist/index.js"

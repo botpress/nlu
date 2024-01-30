@@ -1,20 +1,12 @@
-import { makeInMemoryTrxQueue, LockedTransactionQueue } from '@botpress/locks'
-import { Logger } from '@botpress/logger'
 import { TrainInput } from '@botpress/nlu-client'
 import * as NLUEngine from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
 import moment from 'moment'
 import ms from 'ms'
 
-import {
-  Training,
-  TrainingId,
-  TrainingState,
-  TrainingRepository,
-  TrainingTrx,
-  WrittableTrainingRepository
-} from './typings'
+import { Training, TrainingId, TrainingState, TrainingRepository, TrainingListener } from './typings'
 
 const KEY_JOIN_CHAR = '\u2581'
 
@@ -25,17 +17,23 @@ type TrainEntry = TrainingState & { updatedOn: Date } & {
   dataset: TrainInput
 }
 
-class WrittableTrainingRepo implements WrittableTrainingRepository {
+export class InMemoryTrainingRepo implements TrainingRepository {
+  private _listeners: TrainingListener[] = []
   private _trainSessions: {
     [key: string]: TrainEntry
   } = {}
 
-  private _logger: Logger
-  constructor(logger: Logger) {
-    this._logger = logger.sub('training-repo')
+  private _janitorIntervalId: NodeJS.Timeout | undefined
+
+  constructor(private _logger: Logger) {}
+
+  public addListener(listener: TrainingListener) {
+    this._listeners.push(listener)
   }
 
-  private _janitorIntervalId: NodeJS.Timeout | undefined
+  public removeListener(listenerToRemove: TrainingListener) {
+    _.remove(this._listeners, (listener) => listener === listenerToRemove)
+  }
 
   public async initialize(): Promise<void> {
     this._janitorIntervalId = setInterval(this._janitor.bind(this), JANITOR_MS_INTERVAL)
@@ -65,8 +63,14 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
   }
 
   public async set(training: Training): Promise<void> {
+    this._onTrainingEvent(training)
     const key = this._makeTrainingKey(training)
     this._trainSessions[key] = { ...training, updatedOn: new Date() }
+  }
+
+  public has = async (trainId: TrainingId): Promise<boolean> => {
+    const result = !!(await this.get(trainId))
+    return result
   }
 
   public async query(query: Partial<Training>): Promise<Training[]> {
@@ -97,7 +101,7 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
       .value()
   }
 
-  async delete(id: TrainingId): Promise<void> {
+  public async delete(id: TrainingId): Promise<void> {
     const key = this._makeTrainingKey(id)
     delete this._trainSessions[key]
   }
@@ -113,46 +117,13 @@ class WrittableTrainingRepo implements WrittableTrainingRepository {
     const modelId = NLUEngine.modelIdService.fromString(stringId)
     return { modelId, appId }
   }
-}
 
-export default class InMemoryTrainingRepo implements TrainingRepository {
-  private _trxQueue: LockedTransactionQueue<void>
-  private _writtableRepo: WrittableTrainingRepo
-
-  constructor(logger: Logger) {
-    const logCb = (msg: string) => logger.sub('trx-queue').debug(msg)
-    this._trxQueue = makeInMemoryTrxQueue(logCb)
-    this._writtableRepo = new WrittableTrainingRepo(logger)
-  }
-
-  public async initialize(): Promise<void> {
-    return this._writtableRepo.initialize()
-  }
-
-  public async get(id: TrainingId): Promise<Training | undefined> {
-    return this._writtableRepo.get(id)
-  }
-
-  public async query(query: Partial<TrainingState>): Promise<Training[]> {
-    return this._writtableRepo.query(query)
-  }
-
-  public async queryOlderThan(query: Partial<TrainingState>, threshold: Date): Promise<Training[]> {
-    return this._writtableRepo.queryOlderThan(query, threshold)
-  }
-
-  public async delete(id: TrainingId): Promise<void> {
-    return this._writtableRepo.delete(id)
-  }
-
-  public async teardown() {
-    return this._writtableRepo.teardown()
-  }
-
-  public async inTransaction(trx: TrainingTrx, name: string): Promise<void> {
-    return this._trxQueue.runInLock({
-      name,
-      cb: () => trx(this._writtableRepo)
+  private _onTrainingEvent(training: Training) {
+    this._listeners.forEach((listener) => {
+      // The await keyword isn't used to prevent a listener from blocking the training repo
+      listener(training).catch((e) =>
+        this._logger.attachError(e).error('an error occured in the training repository listener')
+      )
     })
   }
 }

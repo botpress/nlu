@@ -1,9 +1,10 @@
 import _ from 'lodash'
+import { SLOT_ANY } from '../../constants'
 import { SPACE } from '../tools/token-utils'
 import { Intent, ListEntityModel } from '../typings'
 import Utterance from '../utterance/utterance'
 
-interface IntentVocab {
+type IntentVocab = {
   name: string
   vocab: string[]
   slot_entities: string[]
@@ -26,7 +27,7 @@ export const buildIntentVocab = (utterances: Utterance[], intentEntities: ListEn
 export const getEntitiesAndVocabOfIntent = (intent: Intent<Utterance>, entities: ListEntityModel[]): IntentVocab => {
   const allowedEntities = _.chain(intent.slot_definitions)
     .flatMap((s) => s.entities)
-    .filter((e) => e !== 'any')
+    .filter((e) => e !== SLOT_ANY)
     .uniq()
     .value() as string[]
 

@@ -33,7 +33,7 @@ class _WatchDog<X extends any[]> {
 
 type Func<X extends any[], Y extends any> = (...x: X) => Y
 
-export interface WatchDog<X extends any[]> {
+export type WatchDog<X extends any[]> = {
   run(...x: X): void
   stop: () => void
 }

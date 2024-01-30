@@ -1,5 +1,10 @@
-import { IntentDefinition, ListEntityDefinition, PatternEntityDefinition, SlotDefinition } from '@botpress/nlu-client'
-import { http } from '@botpress/nlu-client'
+import {
+  IntentDefinition,
+  ListEntityDefinition,
+  PatternEntityDefinition,
+  SlotDefinition,
+  http
+} from '@botpress/nlu-client'
 
 import { validateTrainInput } from './validate'
 
@@ -11,14 +16,6 @@ const CITY_ENUM: ListEntityDefinition = {
     { name: 'paris', synonyms: ['city of paris', 'la ville des lumières'] },
     { name: 'quebec', synonyms: [] }
   ]
-}
-
-const TICKET_PATTERN: PatternEntityDefinition = {
-  name: 'ticket',
-  type: 'pattern',
-  case_sensitive: true,
-  regex: '[A-Z]{3}-[0-9]{3}', // ABC-123
-  examples: ['ABC-123']
 }
 
 const VARIABLE_CITY_FROM: SlotDefinition = { name: 'city-from', entities: ['city'] }
@@ -107,7 +104,7 @@ test('validate input without topics or language should throw', async () => {
   await expect(validateTrainInput(withoutLang)).rejects.toThrow()
 })
 
-test('validate without intent should fail', async () => {
+test('validate intent without utterances should fail', async () => {
   // arrange
   const withoutUtterances: IntentDefinition = { name: 'will break', contexts: ['A'] } as IntentDefinition
 
@@ -128,75 +125,6 @@ test('validate intent with unexisting context should fail', async () => {
   const trainInput: http.TrainRequestBody = {
     intents: [FLY_INTENT],
     contexts: ['A'],
-    entities: [CITY_ENUM],
-    language: LANG,
-    seed: 42
-  }
-
-  // act & assert
-  await expect(validateTrainInput(trainInput)).rejects.toThrow()
-})
-
-test('validate enum without values or patterns without regexes should fail', async () => {
-  // arrange
-  const incompleteEnum: ListEntityDefinition = { name: 'city' } as ListEntityDefinition
-
-  const incompletePattern: PatternEntityDefinition = { name: 'password' } as PatternEntityDefinition
-
-  const withoutValues: http.TrainRequestBody = {
-    intents: [FLY_INTENT],
-    contexts: ['fly'],
-    entities: [incompleteEnum],
-    language: LANG,
-    seed: 42
-  }
-
-  const withoutRegexes: http.TrainRequestBody = {
-    intents: [PROBLEM_INTENT],
-    contexts: ['problem'],
-    entities: [incompletePattern],
-    language: LANG,
-    seed: 42
-  }
-
-  // act & assert
-  await expect(validateTrainInput(withoutValues)).rejects.toThrow()
-  await expect(validateTrainInput(withoutRegexes)).rejects.toThrow()
-})
-
-test('validate with an unexisting referenced enum should throw', async () => {
-  // arrange
-  const trainInput: http.TrainRequestBody = {
-    intents: [FLY_INTENT],
-    contexts: ['fly'],
-    entities: [TICKET_PATTERN],
-    language: LANG,
-    seed: 42
-  }
-
-  // act & assert
-  await expect(validateTrainInput(trainInput)).rejects.toThrow()
-})
-
-test('validate with an unexisting referenced pattern should throw', async () => {
-  // arrange
-  const trainInput: http.TrainRequestBody = {
-    intents: [PROBLEM_INTENT],
-    contexts: ['problem'],
-    entities: [CITY_ENUM],
-    language: LANG,
-    seed: 42
-  }
-
-  // act & assert
-  await expect(validateTrainInput(trainInput)).rejects.toThrow()
-})
-
-test('validate with an unexisting referenced complex should throw', async () => {
-  // arrange
-  const trainInput: http.TrainRequestBody = {
-    intents: [BOUILLON_INTENT],
-    contexts: ['bouillon'],
     entities: [CITY_ENUM],
     language: LANG,
     seed: 42

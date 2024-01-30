@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { OOSIntentClassifier } from './oos-intent-classfier'
 import { NoneableIntentPredictions } from './intent-classifier'
+import { OOSIntentClassifier } from './oos-intent-classfier'
 
 test('remove none intent', () => {
   // arrange

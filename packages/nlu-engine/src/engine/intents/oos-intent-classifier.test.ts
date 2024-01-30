@@ -59,9 +59,7 @@ test('predict with exact match returns confidence 1 for exact-match', async () =
       utterances: [u2, u6, u7, u8, u9]
     }
   ]
-  await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
-
-  const model = oosIntentClassifier.serialize()
+  const model = await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
   oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 
@@ -91,9 +89,7 @@ test('predict with no exact match returns confidence that sums up to 1', async (
       utterances: [u2, u6, u7, u8, u9]
     }
   ]
-  await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
-
-  const model = oosIntentClassifier.serialize()
+  const model = await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
   oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 
@@ -124,9 +120,7 @@ test('predict with less than min utterances for ml should not match', async () =
       utterances: [u2]
     }
   ]
-  await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
-
-  const model = oosIntentClassifier.serialize()
+  const model = await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
   oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 
@@ -158,9 +152,7 @@ test('predict with available oos should give oos prediction', async () => {
       utterances: [u2]
     }
   ]
-  await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
-
-  const model = oosIntentClassifier.serialize()
+  const model = await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
   oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 
@@ -169,38 +161,6 @@ test('predict with available oos should give oos prediction', async () => {
 
   // assert
   expect(oos).toBeGreaterThan(0)
-})
-
-test('When model is corrupted, loading a model throws', async () => {
-  // arrange
-  const oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
-
-  const intentsDefs = [
-    {
-      name: 'A',
-      contexts: [],
-      slot_definitions: [],
-      utterances: [u1, u3, u5]
-    },
-    {
-      name: 'B',
-      contexts: [],
-      slot_definitions: [],
-      utterances: [u2, u6, u7, u8, u9]
-    }
-  ]
-  await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
-  const model = oosIntentClassifier.serialize()
-
-  // act & assert
-  await expect(oosIntentClassifier.load(`${model} good and bad are relative concepts`)).rejects.toThrowError()
-
-  const parsed = JSON.parse(model)
-  parsed['someKey'] = 'someValue'
-  await expect(oosIntentClassifier.load(JSON.stringify(parsed))).rejects.toThrowError()
-
-  const undef: unknown = undefined
-  await expect(oosIntentClassifier.load(undef as string)).rejects.toThrowError()
 })
 
 test('Classifier always pick between exact match or svm', async () => {
@@ -215,8 +175,7 @@ test('Classifier always pick between exact match or svm', async () => {
       utterances: ['k', 'K'].map(makeTestUtterance) // no ml
     }
   ]
-  await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
-  const model = oosIntentClassifier.serialize()
+  const model = await oosIntentClassifier.train(makeTrainset(intentsDefs), dummyProgress)
   oosIntentClassifier = new OOSIntentClassifier(fakeTools, dummyLogger as Logger)
   await oosIntentClassifier.load(model)
 

@@ -22,14 +22,20 @@ export class ResponseError extends Error {
   }
 }
 
-export class UnauthorizedError extends ResponseError {
-  constructor(message: string) {
-    super(`Unauthorized: ${message}`, 401)
-  }
-}
-
 export class InvalidRequestFormatError extends ResponseError {
   constructor(message: string) {
     super(`Invalid Request Format: ${message}`, 400)
+  }
+}
+
+export class InvalidTrainSetError extends ResponseError {
+  constructor(message: string) {
+    super(`Invalid Training Set: ${message}`, 400)
+  }
+}
+
+export class ModelTransferDisabled extends ResponseError {
+  constructor() {
+    super('Model Transfer is disabled.', 403)
   }
 }

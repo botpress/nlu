@@ -158,14 +158,14 @@ export namespace tables {
 /**
  * @description Collection of problems with an engine to solve them
  */
-export interface Solution<T extends ProblemType> {
+export type Solution<T extends ProblemType> = {
   name: string
   problems: Problem<T>[]
   engine: Engine<T>
   cb?: ResultViewer<T>
 }
 
-export interface UnsupervisedSolution<T extends ProblemType> {
+export type UnsupervisedSolution<T extends ProblemType> = {
   name: string
   problems: UnsupervisedProblem<T>[]
   engine: UnsupervisedEngine<T>
@@ -181,7 +181,7 @@ export type MultiLabel = 'multi-intent' | 'multi-intent-topic'
  */
 export type ProblemType = SingleLabel | MultiLabel | 'spell' | 'lang' | 'slot'
 
-interface Dic<T> {
+type Dic<T> = {
   [key: string]: T
 }
 
@@ -199,14 +199,14 @@ export type Label<T extends ProblemType> = T extends SingleLabel
   ? { name: string; start: number; end: number }[]
   : string
 
-export interface Candidate<T extends ProblemType> {
+export type Candidate<T extends ProblemType> = {
   elected: Elected<T>
   confidence: number
 }
 
 export type Elected<T extends ProblemType> = T extends 'slot' ? { name: string; start: number; end: number } : string
 
-interface BaseProblem<T extends ProblemType> {
+type BaseProblem<T extends ProblemType> = {
   name: string
   type: ProblemType
   testSet: DataSet<T>
@@ -227,7 +227,7 @@ export type UnsupervisedProblem<T extends ProblemType> = BaseProblem<T> & {
 
 export type ProgressCb = (p: number) => void
 
-interface Predictor<T extends ProblemType> {
+type Predictor<T extends ProblemType> = {
   predict: (testSet: DataSet<T>, progress: ProgressCb) => Promise<Prediction<T>[]>
 }
 
@@ -242,7 +242,7 @@ export type UnsupervisedEngine<T extends ProblemType> = Predictor<T> & {
   train: (corpus: Document[], seed: number, progress: ProgressCb) => Promise<void>
 }
 
-export interface Prediction<T extends ProblemType> {
+export type Prediction<T extends ProblemType> = {
   text: string
   candidates: Candidate<T>[]
   label: Label<T>
@@ -253,7 +253,7 @@ export interface Prediction<T extends ProblemType> {
  * @returns A number between 0 and 1 where 0 means that the test has failed.
  * For multi-class problems, this number will often be, neither 1 or 0, but a fraction.
  */
-export interface Criteria<T extends ProblemType> {
+export type Criteria<T extends ProblemType> = {
   name: string
   eval(res: Prediction<T>): number
 }
@@ -272,21 +272,21 @@ export type ResultViewer<T extends ProblemType, O extends Object = {}> = (
 
 export type DatasetViewer<T extends ProblemType> = (...datasets: DataSet<T>[]) => void
 
-export interface ScoreInfo {
+export type ScoreInfo = {
   metric: string
   seed: number
   problem: string
   score: number
 }
 
-export interface PerformanceReport {
+export type PerformanceReport = {
   generatedOn: Date
   scores: ScoreInfo[]
 }
 
 export type RegressionStatus = 'success' | 'regression' | 'tolerated-regression'
 
-export interface RegressionReason {
+export type RegressionReason = {
   status: RegressionStatus
   metric: string
   problem: string
@@ -296,12 +296,12 @@ export interface RegressionReason {
   allowedRegression: number
 }
 
-export interface ComparisonReport {
+export type ComparisonReport = {
   status: RegressionStatus
   reasons: RegressionReason[]
 }
 
-export interface CompareOptions {
+export type CompareOptions = {
   toleranceByMetric: Dic<number>
 }
 
@@ -309,7 +309,7 @@ export interface CompareOptions {
  * @description Function that compute a performance score given the whole results.
  * @returns A performance score between 0 and 1.
  */
-export interface Metric<T extends ProblemType> {
+export type Metric<T extends ProblemType> = {
   name: string
   eval: (res: Result<T>[]) => number
 }
@@ -321,13 +321,13 @@ export type DataSet<T extends ProblemType> = {
   samples: Sample<T>[]
 } & (T extends 'slot' ? VariablesDef : {})
 
-export interface VariablesDef {
+export type VariablesDef = {
   variables: Variable[]
   patterns: Pattern[]
   enums: Enum[]
 }
 
-export interface Document {
+export type Document = {
   name: string
   type: ProblemType
   lang: string
@@ -335,7 +335,7 @@ export interface Document {
 }
 
 export type FileType = 'document' | 'dataset'
-interface FileDef<T extends ProblemType, F extends FileType> {
+type FileDef<T extends ProblemType, F extends FileType> = {
   name: string
   type: T
   fileType: F
@@ -345,24 +345,24 @@ interface FileDef<T extends ProblemType, F extends FileType> {
 export type DataSetDef<T extends ProblemType> = FileDef<T, 'dataset'>
 export type DocumentDef = FileDef<ProblemType, 'document'>
 
-interface Variable {
+type Variable = {
   name: string
   types: string[]
 }
 
-interface Enum {
+type Enum = {
   name: string
   values: { name: string; synonyms: string[] }[]
   fuzzy: number
 }
 
-interface Pattern {
+type Pattern = {
   name: string
   regex: string
   case_sensitive: boolean
 }
 
-interface Sample<T extends ProblemType> {
+type Sample<T extends ProblemType> = {
   text: string
   label: Label<T>
 }

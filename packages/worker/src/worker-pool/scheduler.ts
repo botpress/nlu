@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { Logger } from '../typings'
 import { Worker } from './worker'
 
-interface Options {
+type Options = {
   maxItems: number
 }
 
@@ -33,6 +33,7 @@ export class Scheduler {
     const isPlaceLeft = this._options.maxItems < 0 || this._options.maxItems > totalCount
     if (!readyCount && isPlaceLeft) {
       const newItem = await this._generator()
+      newItem.isAlive()
       this.active[id] = newItem
       return newItem
     }

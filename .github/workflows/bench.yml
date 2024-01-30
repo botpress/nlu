@@ -1,0 +1,34 @@
+name: Bench
+on:
+  workflow_dispatch: {}
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+jobs:
+  benchmark:
+    name: Run benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '16.13.0'
+      - name: Fetch Node Packages
+        run: |
+          yarn --verbose
+      - name: Build
+        run: |
+          yarn build
+      - name: Download language models
+        run: |
+          yarn start lang download --lang fr --dim 100
+          yarn start lang download --lang en --dim 100
+      - name: Run Regression Test
+        run: |
+          yarn start lang --dim 100 &
+          sleep 15s && yarn start nlu --doc false --log-level "critical" --ducklingEnabled false --languageURL http://localhost:3100 &
+          sleep 25s && yarn bench --skip="clinc150"

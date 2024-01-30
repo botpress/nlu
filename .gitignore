@@ -72,7 +72,11 @@ jspm_packages/
 .env.test
 .env*.local
 
+# Typescript build output
 dist/
 
-
-config.json
+# Other
+*.config.json
+*.ignore.me
+ignore.me.*
+*.ignore.me.*

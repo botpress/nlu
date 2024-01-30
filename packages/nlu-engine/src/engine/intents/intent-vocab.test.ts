@@ -17,7 +17,6 @@ const LIST_ENTITIES: ListEntityModel[] = [
         ['air', 'can']
       ]
     },
-    languageCode: 'en',
     sensitive: false
   }
 ]

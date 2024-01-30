@@ -1,24 +1,54 @@
-import { Logger } from '@botpress/logger'
-import { TrainingState, PredictOutput, TrainInput, ServerInfo, TrainingStatus } from '@botpress/nlu-client'
-import { Engine, ModelId, modelIdService, Specifications } from '@botpress/nlu-engine'
+import {
+  TrainingState,
+  PredictOutput,
+  TrainInput,
+  ServerInfo,
+  TrainingStatus,
+  LintingState,
+  IssueComputationSpeed
+} from '@botpress/nlu-client'
+import { Engine, ModelId, modelIdService, errors as engineErrors, Model } from '@botpress/nlu-engine'
+import { Logger } from '@bpinternal/log4bot'
 import Bluebird from 'bluebird'
 import _ from 'lodash'
+import { ModelTransferDisabled } from '../api/errors'
+import { TrainingRepository, TrainingListener, Training } from '../infrastructure'
+import { LintingRepository } from '../infrastructure/linting-repo'
 import { ModelRepository } from '../infrastructure/model-repo'
-import { ReadonlyTrainingRepository } from '../infrastructure/training-repo/typings'
-import { ModelDoesNotExistError, TrainingNotFoundError, InvalidModelSpecError } from './errors'
-import TrainingQueue from './training-queue'
+import { ApplicationObserver } from './app-observer'
+import {
+  ModelDoesNotExistError,
+  TrainingNotFoundError,
+  LangServerCommError,
+  DucklingCommError,
+  InvalidModelSpecError,
+  DatasetValidationError,
+  LintingNotFoundError,
+  InvalidModelFormatError
+} from './errors'
+import { LintingQueue } from './linting-queue'
+import { deserializeModel, deserializeModelId } from './serialize-model'
+import { TrainingQueue } from './training-queue'
 
-export class Application {
+type AppOptions = {
+  modelTransferEnabled: boolean
+}
+
+export class Application extends ApplicationObserver {
   private _logger: Logger
 
   constructor(
     private _modelRepo: ModelRepository,
-    private _trainingRepo: ReadonlyTrainingRepository,
+    private _trainingRepo: TrainingRepository,
+    private _lintingRepo: LintingRepository,
     private _trainingQueue: TrainingQueue,
+    private _lintingQueue: LintingQueue,
     private _engine: Engine,
     private _serverVersion: string,
-    baseLogger: Logger
+    baseLogger: Logger,
+    private _opts: Partial<AppOptions> = {}
   ) {
+    super()
     this._logger = baseLogger.sub('app')
   }
 
@@ -26,20 +56,78 @@ export class Application {
     await this._modelRepo.initialize()
     await this._trainingRepo.initialize()
     await this._trainingQueue.initialize()
+    await this._lintingRepo.initialize()
+    await this._lintingQueue.initialize()
+    this._trainingQueue.addListener(this._listenTrainingUpdates)
   }
 
   public async teardown() {
     await this._modelRepo.teardown()
     await this._trainingRepo.teardown()
     await this._trainingQueue.teardown()
+    this._trainingQueue.removeListener(this._listenTrainingUpdates)
+  }
+
+  public getLocalTrainingCount() {
+    return this._trainingQueue.getLocalTrainingCount()
   }
 
   public getInfo(): ServerInfo {
-    const health = this._engine.getHealth()
     const specs = this._engine.getSpecifications()
     const languages = this._engine.getLanguages()
     const version = this._serverVersion
-    return { health, specs, languages, version }
+
+    const { modelTransferEnabled } = this._opts
+    return { specs, languages, version, modelTransferEnabled: !!modelTransferEnabled }
+  }
+
+  public async getModelWeights(appId: string, modelId: ModelId): Promise<Buffer> {
+    if (!this._opts.modelTransferEnabled) {
+      throw new ModelTransferDisabled()
+    }
+
+    const modelWeights = await this._modelRepo.getModel(appId, modelId)
+    if (!modelWeights) {
+      throw new ModelDoesNotExistError(appId, modelId)
+    }
+
+    return modelWeights
+  }
+
+  public async setModelWeights(appId: string, modelWeights: Buffer) {
+    if (!this._opts.modelTransferEnabled) {
+      throw new ModelTransferDisabled()
+    }
+
+    let modelId: ModelId
+    try {
+      modelId = deserializeModelId(modelWeights)
+    } catch (thrown) {
+      const err = this._toErr(thrown)
+      throw new InvalidModelFormatError(err.message)
+    }
+
+    const { specificationHash: currentSpec } = this._getSpecFilter()
+    if (modelId.specificationHash !== currentSpec) {
+      throw new InvalidModelSpecError(modelId, currentSpec)
+    }
+
+    let model: Model
+    try {
+      model = deserializeModel(modelWeights)
+    } catch (thrown) {
+      const err = this._toErr(thrown)
+      throw new InvalidModelFormatError(err.message)
+    }
+
+    try {
+      this._engine.validateModel(model)
+    } catch (thrown) {
+      const err = this._toErr(thrown)
+      throw new InvalidModelFormatError(err.message)
+    }
+
+    return this._modelRepo.saveModel(appId, model.id, modelWeights)
   }
 
   public async getModels(appId: string): Promise<ModelId[]> {
@@ -64,6 +152,18 @@ export class Application {
       ...trainInput,
       specifications: this._engine.getSpecifications()
     })
+
+    const stringId = modelIdService.toString(modelId)
+    const key = `${appId}/${stringId}`
+    const { issues } = await this._engine.lint(key, trainInput, {
+      minSpeed: 'fastest',
+      minSeverity: 'critical',
+      runInMainProcess: true
+    })
+
+    if (!!issues.length) {
+      throw new DatasetValidationError(issues)
+    }
 
     await this._trainingQueue.queueTraining(appId, modelId, trainInput)
     return modelId
@@ -106,9 +206,9 @@ export class Application {
       throw new InvalidModelSpecError(modelId, currentSpec)
     }
 
-    const model = await this._modelRepo.getModel(appId, modelId)
-    if (!model) {
-      throw new TrainingNotFoundError(modelId)
+    const modelExists = await this._modelRepo.exists(appId, modelId)
+    if (!modelExists) {
+      throw new TrainingNotFoundError(appId, modelId)
     }
 
     return {
@@ -121,10 +221,14 @@ export class Application {
     return this._trainingQueue.cancelTraining(appId, modelId)
   }
 
+  public async cancelLinting(appId: string, modelId: ModelId, speed: IssueComputationSpeed): Promise<void> {
+    return this._lintingQueue.cancelLinting(appId, modelId, speed)
+  }
+
   public async predict(appId: string, modelId: ModelId, utterances: string[]): Promise<PredictOutput[]> {
     const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
     if (!modelExists) {
-      throw new ModelDoesNotExistError(modelId)
+      throw new ModelDoesNotExistError(appId, modelId)
     }
 
     const { specificationHash: currentSpec } = this._getSpecFilter()
@@ -132,29 +236,28 @@ export class Application {
       throw new InvalidModelSpecError(modelId, currentSpec)
     }
 
-    if (!this._engine.hasModel(modelId)) {
-      const model = await this._modelRepo.getModel(appId, modelId)
-      if (!model) {
-        throw new ModelDoesNotExistError(modelId)
+    await this._loadModelIfNeeded(appId, modelId)
+
+    try {
+      const predictions = await Bluebird.map(utterances, (utterance) => this._engine.predict(utterance, modelId))
+      return predictions
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
+      if (err instanceof engineErrors.LangServerError) {
+        throw new LangServerCommError(err)
       }
-
-      await this._engine.loadModel(model)
+      if (err instanceof engineErrors.DucklingServerError) {
+        throw new DucklingCommError(err)
+      }
+      throw thrown
     }
-
-    const predictions = await Bluebird.map(utterances as string[], async (utterance) => {
-      const detectedLanguage = await this._engine.detectLanguage(utterance, { [modelId.languageCode]: modelId })
-      const { entities, contexts, spellChecked } = await this._engine.predict(utterance, modelId)
-      return { entities, contexts, spellChecked, detectedLanguage }
-    })
-
-    return predictions
   }
 
   public async detectLanguage(appId: string, modelIds: ModelId[], utterances: string[]): Promise<string[]> {
     for (const modelId of modelIds) {
       const modelExists: boolean = await this._modelRepo.exists(appId, modelId)
       if (!modelExists) {
-        throw new ModelDoesNotExistError(modelId)
+        throw new ModelDoesNotExistError(appId, modelId)
       }
 
       const { specificationHash: currentSpec } = this._getSpecFilter()
@@ -162,24 +265,20 @@ export class Application {
         throw new InvalidModelSpecError(modelId, currentSpec)
       }
 
-      if (!this._engine.hasModel(modelId)) {
-        const model = await this._modelRepo.getModel(appId, modelId)
-        if (!model) {
-          throw new ModelDoesNotExistError(modelId)
-        }
-        await this._engine.loadModel(model)
-      }
+      await this._loadModelIfNeeded(appId, modelId)
     }
 
     const missingModels = modelIds.filter((m) => !this._engine.hasModel(m))
 
     if (missingModels.length) {
-      const stringMissingModels = missingModels.map(modelIdService.toString)
-      this._logger.warn(
-        `About to detect language but your model cache seems to small to contains all models simultaneously. The following models are missing [${stringMissingModels.join(
-          ', '
-        )}. You can increase your cache size by the CLI or config.]`
-      )
+      const stringMissingModels = missingModels.map(modelIdService.toString).join(', ')
+
+      const CACHE_TOO_SMALL_WARNING = `
+About to detect language but your model cache seems to small to contains all models simultaneously. 
+The following models are missing [${stringMissingModels}].
+You can increase your cache size by the CLI or config.
+          `
+      this._logger.warn(CACHE_TOO_SMALL_WARNING)
     }
 
     const loadedModels = modelIds.filter((m) => this._engine.hasModel(m))
@@ -194,9 +293,73 @@ export class Application {
     return detectedLanguages
   }
 
+  public async startLinting(appId: string, speed: IssueComputationSpeed, trainInput: TrainInput): Promise<ModelId> {
+    const modelId = modelIdService.makeId({
+      ...trainInput,
+      specifications: this._engine.getSpecifications()
+    })
+
+    await this._lintingQueue.queueLinting(appId, modelId, speed, trainInput)
+    return modelId
+  }
+
+  public async getLintingState(appId: string, modelId: ModelId, speed: IssueComputationSpeed): Promise<LintingState> {
+    const linting = await this._lintingRepo.get({ appId, modelId, speed })
+    if (linting) {
+      const { status, error, currentCount, totalCount, issues } = linting
+      return { status, error, currentCount, totalCount, issues }
+    }
+
+    const { specificationHash: currentSpec } = this._getSpecFilter()
+    if (modelId.specificationHash !== currentSpec) {
+      throw new InvalidModelSpecError(modelId, currentSpec)
+    }
+
+    throw new LintingNotFoundError(appId, modelId, speed)
+  }
+
+  private _listenTrainingUpdates: TrainingListener = async (training: Training) => {
+    this.emit('training_update', training)
+  }
+
+  private _loadModelIfNeeded = async (appId: string, modelId: ModelId) => {
+    if (!this._engine.hasModel(modelId)) {
+      const modelReadStartTime = Date.now()
+
+      const modelBuffer = await this._modelRepo.getModel(appId, modelId)
+      if (!modelBuffer) {
+        throw new ModelDoesNotExistError(appId, modelId)
+      }
+
+      const modelLoadStartTime = Date.now()
+
+      const model = deserializeModel(modelBuffer)
+      await this._engine.loadModel(model)
+
+      const modelLoadEndTime = Date.now()
+
+      const readTime = modelLoadStartTime - modelReadStartTime
+      const loadTime = modelLoadEndTime - modelLoadStartTime
+      const totalTime = modelLoadEndTime - modelReadStartTime
+
+      const strId = this._toString(appId, modelId)
+      this._logger.debug(
+        `[${strId}] Reading model from storage took ${readTime} ms and loading it in memory took ${loadTime} ms. The whole operation took ${totalTime} ms`
+      )
+      this.emit('model_loaded', { appId, modelId, readTime, loadTime, totalTime })
+    }
+  }
+
+  private _toString = (appId: string, modelId: ModelId) => {
+    const strModelId = modelIdService.toString(modelId)
+    return `${appId}/${strModelId}`
+  }
+
   private _getSpecFilter = (): { specificationHash: string } => {
     const specifications = this._engine.getSpecifications()
     const specFilter = modelIdService.briefId({ specifications }) as { specificationHash: string }
     return specFilter
   }
+
+  private _toErr = (thrown: any): Error => (thrown instanceof Error ? thrown : new Error(`${thrown}`))
 }

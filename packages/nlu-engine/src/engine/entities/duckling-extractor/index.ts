@@ -1,10 +1,9 @@
 import Bluebird from 'bluebird'
 import _ from 'lodash'
-import { Logger } from '../../../typings'
 import { extractPattern } from '../../tools/patterns-utils'
 import { JOIN_CHAR } from '../../tools/token-utils'
 import { EntityExtractionResult, KeyedItem, SystemEntityExtractor } from '../../typings'
-import { SystemEntityCacheManager } from '../entity-cache-manager'
+import { SystemEntityCacheManager } from '../entity-cache'
 import { DucklingClient, DucklingParams } from './duckling-client'
 import { DUCKLING_ENTITIES } from './enums'
 import { mapDucklingToEntity } from './map-duckling'
@@ -15,35 +14,19 @@ const BATCH_SIZE = 10
 // 1- in _extractBatch, shift results ==> don't walk whole array n times (nlog(n) vs n2)
 
 export class DucklingEntityExtractor implements SystemEntityExtractor {
-  private _enabled: boolean
-  private _provider: DucklingClient
-
-  public enable() {
-    this._enabled = true
-  }
-  public disable() {
-    this._enabled = false
-  }
-
-  constructor(private _cache: SystemEntityCacheManager, private readonly logger?: Logger) {
-    this._enabled = false
-    this.logger = logger
-    this._provider = new DucklingClient(logger)
-  }
+  constructor(private _cache: SystemEntityCacheManager, private _ducklingClient: DucklingClient) {}
 
   public resetCache() {
     this._cache.reset()
   }
 
   public get entityTypes(): string[] {
-    return this._enabled ? DUCKLING_ENTITIES : []
+    return DUCKLING_ENTITIES
   }
 
-  public async configure(enabled: boolean, url: string) {
-    if (enabled) {
-      this._enabled = await DucklingClient.init(url, this.logger)
-      await this._cache.restoreCache()
-    }
+  public async init() {
+    await this._ducklingClient.init()
+    await this._cache.restoreCache()
   }
 
   public async extractMultiple(
@@ -52,10 +35,6 @@ export class DucklingEntityExtractor implements SystemEntityExtractor {
     progress: (p: number) => void,
     useCache?: boolean
   ): Promise<EntityExtractionResult[][]> {
-    if (!this._enabled) {
-      return Array(inputs.length).fill([])
-    }
-
     const options = {
       lang,
       tz: this._getTz(),
@@ -75,7 +54,7 @@ export class DucklingEntityExtractor implements SystemEntityExtractor {
     return _.chain(batchedRes)
       .flatten()
       .concat(cached)
-      .orderBy('idx')
+      .orderBy((x) => x.idx)
       .map((x) => x.entities!)
       .value()
   }
@@ -111,7 +90,7 @@ export class DucklingEntityExtractor implements SystemEntityExtractor {
   }
 
   private async _fetchDuckling(text: string, params: DucklingParams): Promise<EntityExtractionResult[]> {
-    const duckReturn = await this._provider.fetchDuckling(text, params)
+    const duckReturn = await this._ducklingClient.fetchDuckling(text, params)
     return duckReturn.map(mapDucklingToEntity)
   }
 

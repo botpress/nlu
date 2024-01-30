@@ -4,14 +4,14 @@ import { isOOS } from '../../builtin/labels'
 
 import { mostConfident } from '../election/mostConfident'
 
-interface ConfusionMatrix {
+type ConfusionMatrix = {
   truePos: number
   falsePos: number
   trueNeg: number
   falseNeg: number
 }
 
-interface OOSPerformance {
+type OOSPerformance = {
   oosAccuracy: number
   oosPrecision: number
   oosRecall: number

@@ -4,7 +4,7 @@ import { Classifier, Query } from './typings'
 type ClassifierCtor = new (modelFilename?: string) => Classifier
 type QueryCtor = new (modelFilename: string) => Query
 
-interface BindingType {
+type BindingType = {
   Classifier: ClassifierCtor
   Query: QueryCtor
 }

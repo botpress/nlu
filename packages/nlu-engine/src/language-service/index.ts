@@ -7,15 +7,14 @@ import ms from 'ms'
 import os from 'os'
 import path from 'path'
 import process from 'process'
-import { Logger, LanguageService as ILanguageService } from 'src/typings'
+import { Logger, LanguageService as ILanguageService, InstalledModel } from 'src/typings'
 import { VError } from 'verror'
 
-import toolkit from '../ml/toolkit'
-import { MLToolkit } from '../ml/typings'
+import * as MLToolkit from '../ml/toolkit'
 
-import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet } from './typings'
+import { LoadedBPEModel, LoadedFastTextModel, ModelFileInfo, ModelSet, AvailableModel } from './typings'
 
-interface RamInfos {
+type RamInfos = {
   free: number
   total: number
   prediction: number
@@ -76,7 +75,7 @@ export default class LanguageService implements ILanguageService {
     }
   }
 
-  async initialize() {
+  public async initialize() {
     if (Object.keys(this._models).length) {
       throw new Error('Language Service already initialized')
     }
@@ -98,11 +97,11 @@ export default class LanguageService implements ILanguageService {
     this._ready = true
   }
 
-  get isReady(): boolean {
+  public get isReady(): boolean {
     return this._ready
   }
 
-  async loadModel(lang: string) {
+  public async loadModel(lang: string) {
     if (!this._models[lang]) {
       this._models = {
         ...this._getModels(),
@@ -125,7 +124,8 @@ export default class LanguageService implements ILanguageService {
       const fastTextModel = await this._loadFastTextModel(lang)
       const bpeModel = await this._loadBPEModel(lang)
       this._models[lang] = { fastTextModel, bpeModel }
-    } catch (err) {
+    } catch (thrown) {
+      const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       this.logger?.error(`[${lang.toUpperCase()}] Error loading language. It will be unavailable.`, err)
     }
   }
@@ -178,14 +178,14 @@ export default class LanguageService implements ILanguageService {
       throw new VError(`Could not find model '${lang}' in '${this.langDir}'`, err)
     }
 
-    const fastTextModel = {
+    const fastTextModel: AvailableModel = {
       name: lang,
       path: fastTextModelPath,
       sizeInMb: 0,
       loaded: false
     }
 
-    const bpeModel = {
+    const bpeModel: AvailableModel = {
       name: lang,
       path: bpeModelPath,
       sizeInMb: 0,
@@ -197,7 +197,7 @@ export default class LanguageService implements ILanguageService {
 
   private async _loadFastTextModel(lang: string): Promise<LoadedFastTextModel> {
     const loadingAction = async (lang: string) => {
-      const model = new toolkit.FastText.Model(false, true, true)
+      const model = new MLToolkit.FastText.Model(false, true, true)
       const path = this._models[lang].fastTextModel.path
       await model.loadFromFile(path)
       return { model, path }
@@ -215,7 +215,7 @@ export default class LanguageService implements ILanguageService {
 
   private async _loadBPEModel(lang: string): Promise<LoadedBPEModel> {
     const loadingAction = async (lang) => {
-      const tokenizer = await toolkit.SentencePiece.createProcessor()
+      const tokenizer = await MLToolkit.SentencePiece.createProcessor()
       const path = this._models[lang].bpeModel.path
       tokenizer.loadModel(path)
       return Promise.resolve({ model: tokenizer, path })
@@ -287,7 +287,7 @@ export default class LanguageService implements ILanguageService {
     return Promise.all(tokens.map(await this._getQueryVectors(fastTextModel as LoadedFastTextModel)))
   }
 
-  public getModels() {
+  public getModels(): InstalledModel[] {
     const models = this._getModels()
     return Object.keys(models).map((lang) => {
       const loaded = this._models[lang] && this._models[lang].bpeModel.loaded && this._models[lang].fastTextModel.loaded

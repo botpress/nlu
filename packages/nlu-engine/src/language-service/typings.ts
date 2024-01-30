@@ -1,27 +1,26 @@
-import { MLToolkit } from '../ml/typings'
+import * as MLToolkit from '../ml/toolkit'
 
-export interface ModelSet {
+export type ModelSet = {
   bpeModel: AvailableModel | LoadedBPEModel
   fastTextModel: AvailableModel | LoadedFastTextModel
 }
 
-export interface AvailableModel {
+export type AvailableModel = {
   name: string
   path: string
   loaded: boolean
+  sizeInMb: number
 }
 
-export interface LoadedFastTextModel extends AvailableModel {
+export type LoadedFastTextModel = {
   model: MLToolkit.FastText.Model
-  sizeInMb: number
-}
+} & AvailableModel
 
-export interface LoadedBPEModel extends AvailableModel {
+export type LoadedBPEModel = {
   tokenizer: MLToolkit.SentencePiece.Processor
-  sizeInMb: number
-}
+} & AvailableModel
 
-export interface ModelFileInfo {
+export type ModelFileInfo = {
   domain: string
   langCode: string
   file: string

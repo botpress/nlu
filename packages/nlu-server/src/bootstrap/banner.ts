@@ -1,21 +1,26 @@
-import { centerText, Logger } from '@botpress/logger'
+import { Logger } from '@bpinternal/log4bot'
 import chalk from 'chalk'
 
 import _ from 'lodash'
 import moment from 'moment'
 
-interface BuildMetadata {
+type BuildMetadata = {
   date: number
   branch: string
 }
 
-interface BannerConfig {
+type BannerConfig = {
   title: string
   version: string
   buildInfo?: BuildMetadata
   bannerWidth: number
   logScopeLength: number
   logger: Logger
+}
+
+const centerText = (text: string, width: number, indent: number = 0) => {
+  const padding = Math.floor((width - text.length) / 2)
+  return _.repeat(' ', padding + indent) + text + _.repeat(' ', padding)
 }
 
 export const showBanner = (config: BannerConfig) => {

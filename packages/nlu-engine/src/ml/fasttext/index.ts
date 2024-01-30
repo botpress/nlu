@@ -1,12 +1,15 @@
 import { makeClassifier, makeQuery, Options, Query } from '@botpress/node-fasttext'
 import Bluebird from 'bluebird'
 import { VError } from 'verror'
-import { MLToolkit } from '../typings'
+
+import { PredictResult, TrainArgs, TrainCommand } from './typings'
 
 const FAST_TEXT_VERBOSITY = parseInt(process.env.FAST_TEXT_VERBOSITY || '0')
 const FAST_TEXT_CLEANUP_MS = parseInt(process.env.FAST_TEXT_CLEANUP_MS || '60000') // 60s caching by default
 
-export const DefaultTrainArgs: Partial<MLToolkit.FastText.TrainArgs> = {
+export * from './typings'
+
+export const DefaultTrainArgs: Partial<TrainArgs> = {
   bucket: 25000,
   dim: 15,
   epoch: 5,
@@ -23,7 +26,7 @@ export const DefaultTrainArgs: Partial<MLToolkit.FastText.TrainArgs> = {
  * allows to delay the loading of the model only when actually needed for prediction or query.
  * It also cleans up the model after 'x' ms of inactivity to free up memory.
  */
-export class FastTextModel implements MLToolkit.FastText.Model {
+export class Model {
   private _modelPromise: Promise<any> | undefined
   private _queryPromise: Promise<any> | undefined
   private _modelTimeout: NodeJS.Timeout | undefined
@@ -44,16 +47,12 @@ export class FastTextModel implements MLToolkit.FastText.Model {
 
   constructor(private lazy: boolean = true, private keepInMemory = false, private queryOnly = false) {}
 
-  cleanup() {
+  public cleanup() {
     this._modelPromise = undefined
     this._queryPromise = undefined
   }
 
-  async trainToFile(
-    method: MLToolkit.FastText.TrainCommand,
-    modelPath: string,
-    args: Partial<MLToolkit.FastText.TrainArgs>
-  ): Promise<void> {
+  public async trainToFile(method: TrainCommand, modelPath: string, args: Partial<TrainArgs>): Promise<void> {
     const outPath = this._cleanPath(modelPath)
     const model = await makeClassifier()
     await model.train(method, {
@@ -72,7 +71,7 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     }
   }
 
-  async loadFromFile(modelPath: string): Promise<void> {
+  public async loadFromFile(modelPath: string): Promise<void> {
     this._modelPath = this._cleanPath(modelPath)
     if (!this.lazy) {
       if (!this.queryOnly) {
@@ -83,7 +82,7 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     }
   }
 
-  async predict(str: string, nbLabels: number): Promise<MLToolkit.FastText.PredictResult[]> {
+  public async predict(str: string, nbLabels: number): Promise<PredictResult[]> {
     if (this.queryOnly) {
       throw new Error("This model is marked as Query Only, which doesn't support Prediction")
     }
@@ -92,12 +91,12 @@ export class FastTextModel implements MLToolkit.FastText.Model {
     return model.predict(str, nbLabels)
   }
 
-  async queryWordVectors(word: string): Promise<number[]> {
+  public async queryWordVectors(word: string): Promise<number[]> {
     const query = await this._getQuery()
     return query.getWordVector(word)
   }
 
-  async queryNearestNeighbors(word: string, nb: number): Promise<string[]> {
+  public async queryNearestNeighbors(word: string, nb: number): Promise<string[]> {
     const query = await this._getQuery()
     const ret = await query.nn(word, nb)
     return ret.map((x) => x.label)
@@ -137,7 +136,8 @@ export class FastTextModel implements MLToolkit.FastText.Model {
         await q.getWordVector('hydrate') // hydration as fastText loads models lazily
         resolve(q)
         this._resetQueryBomb()
-      } catch (err) {
+      } catch (thrown) {
+        const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
         reject(new VError(err, `Model = "${this.modelPath}"`))
       }
     })
