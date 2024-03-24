@@ -1,6 +1,6 @@
 {
   "name": "@botpress/node-svm",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "node bindings for libsvm",
   "main": "./dist/index.js",
   "author": "Botpress, Inc.",
