@@ -1,0 +1,23 @@
+name: Publish SVM
+
+on: workflow_dispatch
+
+defaults:
+  run:
+    working-directory: ./packages/node-svm
+
+jobs:
+  publish-svm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install And Build
+        run: yarn install && yarn build
+      - name: Test
+        run: yarn test
+      - name: Publish
+        uses: botpress/gh-actions/publish-if-not-exists@master
+        with:
+          path: './packages/node-svm'
+          token: '${{ secrets.NPM_ACCESS_TOKEN }}'
