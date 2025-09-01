@@ -259,7 +259,7 @@ void FastText::loadModel(std::istream& in) {
     throw std::invalid_argument(
         "Invalid model file.\n"
         "Please download the updated model from www.fasttext.cc.\n"
-        "See issue #332 on Github for more information.\n");
+        "See issue #332 on GitHub for more information.\n");
   }
 
   in.read((char*)&args_->qout, sizeof(bool));

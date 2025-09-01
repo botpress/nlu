@@ -22,7 +22,7 @@ export function getClosestSpellingToken(token: string, vocab: string[]): string 
   let closestTok = ''
   let dist = Number.POSITIVE_INFINITY
   for (const candidateTok of vocab) {
-    // Leveinshtein is for typo detection
+    // Levenshtein is for typo detection
     const lev = damerauLevenshtein(token, candidateTok)
     const maxLevOps = getMaxLevOps(token, candidateTok)
     if (lev <= maxLevOps && lev < dist) {

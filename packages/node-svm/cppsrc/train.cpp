@@ -40,7 +40,7 @@ bool train::train(struct svm_parameter &params,
 
     if (params.svm_type == ONE_CLASS && params.probability)
     {
-        results.error_reason = "Probablity prediction with svm_type=ONE_CLASS is not supported";
+        results.error_reason = "Probability prediction with svm_type=ONE_CLASS is not supported";
         return false;
     }
 

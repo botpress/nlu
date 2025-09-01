@@ -271,7 +271,7 @@ int crfsuite_train_arow(
         goto error_exit;
     }
 
-    /* Initialize the covariance vector (diagnal matrix). */
+    /* Initialize the covariance vector (diagonal matrix). */
     vecset(cov, opt.variance, K);
 
     /* Show the parameters. */

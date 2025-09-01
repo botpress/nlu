@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { TransactionLocker, Logger, Transaction } from './typings'
 
 /**
- * For race conditions occuring because of the event loop in a single-threaded application
+ * For race conditions occurring because of the event loop in a single-threaded application
  */
 export class InMemoryTransactionLocker<T> implements TransactionLocker<T> {
   private _tasks: Transaction<void>[] = []

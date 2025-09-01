@@ -6,12 +6,12 @@ import { SystemEntityCacheManager } from './entity-cache'
 describe('System Entity Cache', () => {
   let testCache: SystemEntityCacheManager
   const testCachePath = path.join(' ', 'cache', 'testCache.json')
-  let inputExemples: string[]
+  let inputExamples: string[]
   beforeEach(async () => {
     testCache = new SystemEntityCacheManager(testCachePath, false)
-    inputExemples = [
+    inputExamples = [
       'Hello my name is pedro',
-      'I know this sentences are not the same than the entity bellow',
+      'I know this sentences are not the same than the entity below',
       "But... we don't care, it's just a test okay ?!"
     ]
     const inputResults: EntityExtractionResult[][] = [
@@ -75,7 +75,7 @@ describe('System Entity Cache', () => {
       ]
     ]
 
-    await testCache.cacheBatchResults(inputExemples, inputResults)
+    await testCache.cacheBatchResults(inputExamples, inputResults)
   })
 
   afterAll(() => {
@@ -84,7 +84,7 @@ describe('System Entity Cache', () => {
 
   test('Return good split', async () => {
     const [testCached, testToFetch] = testCache.splitCacheHitFromCacheMiss(
-      ['Hey ! Do you love me ?', 'Yes for sure I love you !', ...inputExemples],
+      ['Hey ! Do you love me ?', 'Yes for sure I love you !', ...inputExamples],
       true
     )
 
@@ -94,7 +94,7 @@ describe('System Entity Cache', () => {
 
   test('Return good split without using cache', async () => {
     const [testCached, testToFetch] = testCache.splitCacheHitFromCacheMiss(
-      ['Hey ! Do you love me ?', 'Yes for sure I love you !', ...inputExemples],
+      ['Hey ! Do you love me ?', 'Yes for sure I love you !', ...inputExamples],
       false
     )
 
@@ -105,7 +105,7 @@ describe('System Entity Cache', () => {
   test('Reset the cache', async () => {
     testCache.reset()
 
-    const [testCached, testToFetch] = testCache.splitCacheHitFromCacheMiss(inputExemples, true)
+    const [testCached, testToFetch] = testCache.splitCacheHitFromCacheMiss(inputExamples, true)
 
     expect(testCached.length).toEqual(0)
     expect(testToFetch.length).toEqual(3)
@@ -114,7 +114,7 @@ describe('System Entity Cache', () => {
   test('Cache is restored', async () => {
     await testCache.restoreCache()
 
-    const [testCached, testToFetch] = testCache.splitCacheHitFromCacheMiss(inputExemples, true)
+    const [testCached, testToFetch] = testCache.splitCacheHitFromCacheMiss(inputExamples, true)
 
     expect(testCached.length).toEqual(3)
     expect(testToFetch.length).toEqual(0)

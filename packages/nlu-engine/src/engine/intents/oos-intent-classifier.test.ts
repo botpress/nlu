@@ -6,7 +6,7 @@ import { makeTestUtterance } from '../test-utils/fake-utterance'
 import { Intent } from '../typings'
 import Utterance from '../utterance/utterance'
 
-import { OOSIntentClassifier } from './oos-intent-classfier'
+import { OOSIntentClassifier } from './oos-intent-classifier'
 
 const languageDimension = 10
 const languages = ['en']

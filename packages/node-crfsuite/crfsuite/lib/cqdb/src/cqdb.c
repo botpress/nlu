@@ -366,7 +366,7 @@ int cqdb_writer_close(cqdb_writer_t* dbw)
         to the offset succeeding the last key/data pair. 
      */
     for (i = 0;i < NUM_TABLES;++i) {
-        /* Offset to the hash table (or zero for non-existent tables). */
+        /* Offset to the hash table (or zero for nonexistent tables). */
         write_uint32(dbw, dbw->ht[i].num ? dbw->cur : 0);
         /* Bucket size is double to the number of elements. */
         write_uint32(dbw, dbw->ht[i].num * 2);

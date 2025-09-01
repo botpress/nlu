@@ -43,7 +43,7 @@ export type EntityDefinition = ListEntityDefinition | PatternEntityDefinition
  * training-pending : when a training was launched, but the training process is not started yet
  * training: when a chatbot is currently training
  * canceled: when a training was canceled
- * errored: when an unhandled error occured during training
+ * errored: when an unhandled error occurred during training
  */
 export type TrainingStatus = 'done' | 'training-pending' | 'training' | 'canceled' | 'errored'
 

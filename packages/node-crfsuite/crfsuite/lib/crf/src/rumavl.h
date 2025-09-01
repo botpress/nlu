@@ -58,7 +58,7 @@ typedef struct rumavl_node RUMAVL_NODE;
 
 
 /*----------------------------------------------------------------------------
- * FUNDEMENTAL FUNCTIONS
+ * FUNDAMENTAL FUNCTIONS
  *--------------------------------------------------------------------------*/
 
 /* Create a new RumAVL tree */

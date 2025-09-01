@@ -128,7 +128,7 @@ yargs
       main(argv)
         .then(() => {})
         .catch((err) => {
-          console.error(chalk.red('The following error occured:\n'), err)
+          console.error(chalk.red('The following error occurred:\n'), err)
           process.exit(1)
         })
     }

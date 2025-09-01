@@ -50,7 +50,7 @@ export type Options = {
 
   // The following arguments for quantization are optional
   cutoff: number // number of words and ngrams to retain [0]
-  retrain: boolean // finetune embeddings if a cutoff is applied [0]
+  retrain: boolean // fine-tune embeddings if a cutoff is applied [0]
   qnorm: boolean // quantizing the norm separately [0]
   qout: boolean // quantizing the classifier [0]
   dsub: number // size of each sub-vector [2]

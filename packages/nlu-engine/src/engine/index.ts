@@ -24,7 +24,7 @@ import {
 import { deserializeKmeans } from './clustering'
 import { initializeTools } from './initialize-tools'
 import { getCtxFeatures } from './intents/context-featurizer'
-import { OOSIntentClassifier } from './intents/oos-intent-classfier'
+import { OOSIntentClassifier } from './intents/oos-intent-classifier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
 import { LintingProcessPool } from './linting-process-pool'
 import { allIssues } from './linting/definitions'
@@ -151,7 +151,7 @@ export default class Engine implements IEngine {
             .keyBy((e) => e.name)
             .mapValues((e) => e.synonyms)
             .value(),
-          cache: [] // TODO: bring back list entitiy caching
+          cache: [] // TODO: bring back list entity caching
         }
     )
 

@@ -19,7 +19,7 @@ type VerificationUnit = {
 export const I_000: IssueDefinition<typeof code> = {
   code,
   severity: 'info',
-  name: 'dupplicated_or_untrimed_spaces'
+  name: 'duplicated_or_untrimmed_spaces'
 }
 
 const flattenDataset = (ts: TrainInput): VerificationUnit[] => {
@@ -76,9 +76,9 @@ const checkUtterance = (unit: VerificationUnit): DatasetIssue<typeof code>[] => 
     )
   }
 
-  let dupplicatedSpacesMatch = CONSECUTIVE_SPACES.exec(unit.utterance)
-  while (dupplicatedSpacesMatch) {
-    const span = getSpan(dupplicatedSpacesMatch)
+  let duplicatedSpacesMatch = CONSECUTIVE_SPACES.exec(unit.utterance)
+  while (duplicatedSpacesMatch) {
+    const span = getSpan(duplicatedSpacesMatch)
 
     if (span.start !== 0 && span.end !== unit.utterance.length) {
       issues.push(
@@ -90,7 +90,7 @@ const checkUtterance = (unit: VerificationUnit): DatasetIssue<typeof code>[] => 
       )
     }
 
-    dupplicatedSpacesMatch = CONSECUTIVE_SPACES.exec(unit.utterance)
+    duplicatedSpacesMatch = CONSECUTIVE_SPACES.exec(unit.utterance)
   }
 
   return issues

@@ -23,7 +23,7 @@ import { trainTestSplit, subSample } from './builtin/sampling/trainTestSplit'
 import { isAllDefined } from './builtin/tables/guards'
 import { initDic, initTable } from './builtin/tables/init'
 import { roundDic, roundTable } from './builtin/tables/round'
-import { tabelize } from './builtin/tables/tabelize'
+import { tablize } from './builtin/tables/tablize'
 import { transposeTable } from './builtin/tables/transpose'
 import { showClassDistribution, showDatasetsSummary } from './builtin/visualisation/dataset'
 import { showOOSConfusion } from './builtin/visualisation/oos'
@@ -104,7 +104,7 @@ const impl: typeof sdk = {
   },
 
   tables: {
-    tabelize,
+    tablize,
     initDic,
     initTable,
     roundDic,

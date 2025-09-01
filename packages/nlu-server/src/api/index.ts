@@ -92,7 +92,7 @@ export const createAPI = async (
         await usageClient.sendUsage('nlu', type, [value])
       } catch (thrown) {
         const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-        usageLogger.attachError(err).error(`an error occured when sending "${type}" usage.`)
+        usageLogger.attachError(err).error(`an error occurred when sending "${type}" usage.`)
       }
     })
   }

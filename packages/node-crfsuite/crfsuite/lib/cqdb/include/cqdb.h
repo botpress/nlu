@@ -88,7 +88,7 @@ enum {
  *    specified.
  *
  *    It is recommended to keep the maximum number of identifiers as smallest as
- *    possible because reverse lookup is maintained by a array with the size of
+ *    possible because reverse lookup is maintained by an array with the size of
  *    sizeof(int) * (maximum number of identifiers + 1). For example, putting a
  *    set of integer identifers (0, 1, 1000) creates a reverse lookup array with
  *    1001 elements only to waste the disk space for 998 (= 1001-3) elements in
@@ -158,7 +158,7 @@ int cqdb_writer_close(cqdb_writer_t* dbw);
  *    application to load a database image to a memory block, e.g., to read
  *    the whole image from a file, to use the Memory Mapped File (mmap) API,
  *    etc.
- *    Secondaly, one can design the file format freely only if the memory
+ *    Secondly, one can design the file format freely only if the memory
  *    block for a database is extracted from the file.
  *    
  *    The most fundamental operation on the CQDB reader API is forward lookup
@@ -369,7 +369,7 @@ error_exit:
 
 @subsection sample_reader A reader sample
 
-This sample code issues string queries "00000000", ..., "01000000" to retrive
+This sample code issues string queries "00000000", ..., "01000000" to retrieve
 integer identifiers (forward lookups) and integer queries 0, ..., 1000000 to
 retrieve the strings  "00000000", ..., "01000000". 
 
@@ -458,7 +458,7 @@ error_exit:
 
 @section performance Performance
 
-An experiment for performance comparision with
+An experiment for performance comparison with
 <a href="http://www.oracle.com/database/berkeley-db/">Berkeley DB (BDB) 4.5.20</a>
 and <a href="http://qdbm.sourceforge.net/">Quick Database Manager (QDBM) 1.8.75</a>
 was conducted.

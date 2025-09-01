@@ -239,7 +239,7 @@ std::pair<absl::string_view, int> Normalizer::NormalizePrefix(
   } else {
     result.second = longest_length;
     // No need to pass the size of normalized sentence,
-    // since |normalized| is delimitered by "\0".
+    // since |normalized| is delimited by "\0".
     result.first = absl::string_view(&normalized_[longest_value]);
   }
 

@@ -23,11 +23,11 @@ const problemMaker = (_bitfan: typeof bitfan) => async (topic: string): Promise<
 }
 
 export default function (_bitfan: typeof bitfan, args: Args) {
-  const avgStrictSlotAccuray = _bitfan.metrics.averageScore(_bitfan.criterias.slotsAre)
-  const avgLooseSlotAccuray = _bitfan.metrics.averageScore(_bitfan.criterias.slotIncludes)
-  const avgSlotCountAccuray = _bitfan.metrics.averageScore(_bitfan.criterias.slotCountIs)
+  const avgStrictSlotAccuracy = _bitfan.metrics.averageScore(_bitfan.criterias.slotsAre)
+  const avgLooseSlotAccuracy = _bitfan.metrics.averageScore(_bitfan.criterias.slotIncludes)
+  const avgSlotCountAccuracy = _bitfan.metrics.averageScore(_bitfan.criterias.slotCountIs)
 
-  const metrics = [avgStrictSlotAccuray, avgLooseSlotAccuray, avgSlotCountAccuray]
+  const metrics = [avgStrictSlotAccuracy, avgLooseSlotAccuracy, avgSlotCountAccuracy]
 
   return {
     name: 'bpds-slots',
@@ -69,9 +69,9 @@ export default function (_bitfan: typeof bitfan, args: Args) {
 
     evaluatePerformance: (currentPerformance, previousPerformance) => {
       const toleranceByMetric = {
-        [avgStrictSlotAccuray.name]: 0.02,
-        [avgLooseSlotAccuray.name]: 0.02,
-        [avgSlotCountAccuray.name]: 0.02
+        [avgStrictSlotAccuracy.name]: 0.02,
+        [avgLooseSlotAccuracy.name]: 0.02,
+        [avgSlotCountAccuracy.name]: 0.02
       }
       return _bitfan.comparePerformances(currentPerformance, previousPerformance, { toleranceByMetric })
     }

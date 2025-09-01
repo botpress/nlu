@@ -13,7 +13,7 @@ import { MultiThreadCustomEntityExtractor } from './entities/custom-extractor/mu
 import { warmEntityCache } from './entities/entity-cache'
 import { makeListEntityModel } from './entities/list-entity-model'
 import { getCtxFeatures } from './intents/context-featurizer'
-import { OOSIntentClassifier } from './intents/oos-intent-classfier'
+import { OOSIntentClassifier } from './intents/oos-intent-classifier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
 import { SlotTagger } from './slots/slot-tagger'
 
@@ -53,7 +53,7 @@ type PreprocessTrainStep = Override<
 >
 type TfIdfTrainStep = PreprocessTrainStep & { tfIdf: TFIDF }
 type ClusterTrainStep = TfIdfTrainStep & { kmeans?: MLToolkit.KMeans.KmeansResult }
-type SerialTrainOuput = ClusterTrainStep
+type SerialTrainOutput = ClusterTrainStep
 
 export type TrainOutput = {
   list_entities: ColdListEntityModel[]
@@ -156,7 +156,11 @@ async function clusterTokens(input: TfIdfTrainStep, tools: Tools): Promise<Clust
  * #########################
  */
 
-async function extractEntities(input: ClusterTrainStep, tools: Tools, progress: progressCB): Promise<SerialTrainOuput> {
+async function extractEntities(
+  input: ClusterTrainStep,
+  tools: Tools,
+  progress: progressCB
+): Promise<SerialTrainOutput> {
   const utterances: Utterance[] = _.chain(input.intents).flatMap('utterances').value()
 
   tools.logger?.debug('Extracting system entities')
@@ -221,7 +225,7 @@ async function extractEntities(input: ClusterTrainStep, tools: Tools, progress: 
  * ############################
  */
 async function trainContextClassifier(
-  input: SerialTrainOuput,
+  input: SerialTrainOutput,
   tools: Tools,
   progress: progressCB
 ): Promise<ModelOf<SvmIntentClassifier>> {
@@ -262,7 +266,7 @@ async function trainContextClassifier(
 }
 
 async function trainIntentClassifiers(
-  input: SerialTrainOuput,
+  input: SerialTrainOutput,
   tools: Tools,
   progress: progressCB
 ): Promise<_.Dictionary<ModelOf<OOSIntentClassifier>>> {
@@ -313,7 +317,7 @@ async function trainIntentClassifiers(
 }
 
 async function trainSlotTaggers(
-  input: SerialTrainOuput,
+  input: SerialTrainOutput,
   tools: Tools,
   progress: progressCB
 ): Promise<_.Dictionary<ModelOf<SlotTagger>>> {
@@ -329,7 +333,7 @@ async function trainSlotTaggers(
     const model = await slotTagger.train(
       {
         intent,
-        list_entites: input.list_entities
+        list_entities: input.list_entities
       },
       (p) => {
         const completion = (i + p) / input.intents.length

@@ -74,12 +74,12 @@ export type ProcessPool<I, O, P = void> = WorkerPool<I, O, P> & {
   cancel(id: string)
 }
 
-export type ProcessEntyPoint<I, O, P = void> = {} & WorkerEntryPoint<I, O, P>
+export type ProcessEntryPoint<I, O, P = void> = {} & WorkerEntryPoint<I, O, P>
 
 export type ThreadPool<I, O, P = void> = {} & WorkerPool<I, O, P>
-export type ThreadEntyPoint<I, O, P = void> = {} & WorkerEntryPoint<I, O, P>
+export type ThreadEntryPoint<I, O, P = void> = {} & WorkerEntryPoint<I, O, P>
 
 export const makeProcessPool: <I, O, P = void>(logger: Logger, config: PoolOptions) => ProcessPool<I, O, P>
-export const makeProcessEntryPoint: <I, O, P = void>(config?: EntryPointOptions) => ProcessEntyPoint<I, O, P>
+export const makeProcessEntryPoint: <I, O, P = void>(config?: EntryPointOptions) => ProcessEntryPoint<I, O, P>
 export const makeThreadPool: <I, O, P = void>(logger: Logger, config: PoolOptions) => ThreadPool<I, O, P>
-export const makeThreadEntryPoint: <I, O, P = void>(config?: EntryPointOptions) => ThreadEntyPoint<I, O, P>
+export const makeThreadEntryPoint: <I, O, P = void>(config?: EntryPointOptions) => ThreadEntryPoint<I, O, P>

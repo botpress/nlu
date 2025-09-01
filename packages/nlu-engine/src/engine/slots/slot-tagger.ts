@@ -51,7 +51,7 @@ type Model = {
 
 type TrainInput = {
   intent: Intent<Utterance>
-  list_entites: ListEntityModel[]
+  list_entities: ListEntityModel[]
 }
 
 type Predictors = {
@@ -135,8 +135,8 @@ export class SlotTagger
     trainSet: TrainInput,
     progress: (p: number) => void
   ): Promise<ptb.Infer<typeof PTBSlotTaggerModel>> {
-    const { intent, list_entites } = trainSet
-    const intentFeatures = getEntitiesAndVocabOfIntent(intent, list_entites)
+    const { intent, list_entities } = trainSet
+    const intentFeatures = getEntitiesAndVocabOfIntent(intent, list_entities)
     const { slot_definitions } = intent
 
     if (slot_definitions.length <= 0) {

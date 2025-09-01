@@ -58,7 +58,7 @@ bool SetFlag(const std::string &name, const std::string &value) {
   std::string v = value;
   Flag *flag = it->second;
 
-  // If empty value is set, we assume true or emtpy string is set
+  // If empty value is set, we assume true or empty string is set
   // for boolean or string option. With other types, setting fails.
   if (value.empty()) {
     switch (flag->type) {
@@ -133,10 +133,10 @@ bool CommandLineGetFlag(int argc, char **argv, std::string *key,
 }  // namespace
 
 FlagRegister::FlagRegister(const char *name, void *storage,
-                           const void *default_storage, int shortype,
+                           const void *default_storage, int shorttype,
                            const char *help)
     : flag_(new Flag) {
-  flag_->type = shortype;
+  flag_->type = shorttype;
   flag_->storage = storage;
   flag_->default_storage = default_storage;
   flag_->help = help;

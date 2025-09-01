@@ -7,7 +7,7 @@ import { TransactionLocker, Transaction, Logger } from './typings'
 const TRX_LOCK_KEY = 'trx_lock'
 
 /**
- * For race conditions occuring in distributed applications
+ * For race conditions occurring in distributed applications
  */
 export class PGTransactionLocker<T> implements TransactionLocker<T> {
   private client: Client

@@ -19,7 +19,7 @@ void napiToSvmModel(const Napi::Object &napiModel, svm_model &model)
 Napi::Object svmModelToNapi(const Napi::Env &env, const svm_model &model, unsigned int nSamples, unsigned int nFeatures)
 {
     unsigned int k = model.nr_class;
-    unsigned int pairwaise_combinations = k * (k - 1) / 2;
+    unsigned int pairwise_combinations = k * (k - 1) / 2;
 
     unsigned int nSupports = model.l;
 
@@ -29,9 +29,9 @@ Napi::Object svmModelToNapi(const Napi::Env &env, const svm_model &model, unsign
     napiModel.Set("l", nSupports);
     napiModel.Set("SV", nodeMatrixToNapi(env, model.SV, nSupports, nFeatures));
     napiModel.Set("sv_coef", matrixToNapi(env, model.sv_coef, k - 1, nSupports));
-    napiModel.Set("rho", arrayToNapi(env, model.rho, pairwaise_combinations));
-    napiModel.Set("probA", arrayToNapi(env, model.probA, pairwaise_combinations));
-    napiModel.Set("probB", arrayToNapi(env, model.probB, pairwaise_combinations));
+    napiModel.Set("rho", arrayToNapi(env, model.rho, pairwise_combinations));
+    napiModel.Set("probA", arrayToNapi(env, model.probA, pairwise_combinations));
+    napiModel.Set("probB", arrayToNapi(env, model.probB, pairwise_combinations));
     napiModel.Set("sv_indices", arrayToNapi(env, model.sv_indices, nSupports));
     napiModel.Set("label", arrayToNapi(env, model.label, k));
     napiModel.Set("nSV", arrayToNapi(env, model.nSV, k));

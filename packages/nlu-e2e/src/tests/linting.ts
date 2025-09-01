@@ -41,7 +41,7 @@ export const lintingTest: Test = {
     chai.expect(c000_issues[0]).to.have.property('code', 'C_000')
 
     const c_001_dataset = _.cloneDeep(grocery_dataset)
-    getIntent(c_001_dataset, 'fruit-is-moldy').slots.push({ name: 'some-slot', entities: ['non-existent-entity'] })
+    getIntent(c_001_dataset, 'fruit-is-moldy').slots.push({ name: 'some-slot', entities: ['nonexistent-entity'] })
     const c001_modelId = await assertLintingStarts(lintingArgs, speed, c_001_dataset)
     const c001_dataset_issues = await assertLintingFinishes(lintingArgs, speed, c001_modelId)
     const c001_issues = c001_dataset_issues.filter(issueGuard('C_001'))

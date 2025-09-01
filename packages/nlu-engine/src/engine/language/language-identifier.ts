@@ -48,7 +48,7 @@ export default (langIdentifier: FastTextLanguageId) => async (
   let scoreDetectedLang = bestMlLangMatch?.value ?? 0
 
   // because with single-worded sentences, confidence is always very low
-  // we assume that a input of 20 chars is more than a single word
+  // we assume that an input of 20 chars is more than a single word
   const threshold = sentence.length > 20 ? 0.5 : 0.3
 
   // if ML-based language identifier didn't find a match

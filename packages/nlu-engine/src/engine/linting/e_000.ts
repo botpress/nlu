@@ -61,9 +61,9 @@ const unitToIssue = ({ intent, utterance, utteranceIdx, slot, slotDef }: Verific
     source: slot.source
   })
 
-const splitEntities = (entitieDefs: EntityDefinition[]) => {
-  const listEntities = entitieDefs.filter(isListEntity)
-  const patternEntities = entitieDefs.filter(isPatternEntity)
+const splitEntities = (entityDefs: EntityDefinition[]) => {
+  const listEntities = entityDefs.filter(isListEntity)
+  const patternEntities = entityDefs.filter(isPatternEntity)
   return {
     listEntities,
     patternEntities
@@ -184,11 +184,11 @@ const flattenDataset = async (
     intent.slots.map((s) => ({ intent: intent.name, slotDef: s, ...x }))
   )
 
-  const flatSlotOccurences = _.flatMap(flatSlotDefinitions, ({ utterance, ...x }) =>
+  const flatSlotOccurrences = _.flatMap(flatSlotDefinitions, ({ utterance, ...x }) =>
     utterance.slots.map((s) => ({ slot: s, utterance, ...x }))
   )
 
-  return flatSlotOccurences.filter((x) => x.slot.name === x.slotDef.name)
+  return flatSlotOccurrences.filter((x) => x.slot.name === x.slotDef.name)
 }
 
 const matchesCustom = (customEntityExtractor: CustomEntityExtractor) => (unit: VerificationUnit) => {
@@ -233,7 +233,7 @@ export const E_000_Linter: IssueLinter<typeof code> = {
     )
 
     const extractedSystemEntities = await systemEntityExtractor.extractMultiple(
-      withSystemEntities.map((u) => u.utterance.toString()), // use whole utterance here as duckling might be influenced by token postion in utterances and is fast anyway
+      withSystemEntities.map((u) => u.utterance.toString()), // use whole utterance here as duckling might be influenced by token position in utterances and is fast anyway
       ts.language,
       () => {},
       true

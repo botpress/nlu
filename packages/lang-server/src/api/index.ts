@@ -4,7 +4,7 @@ import {
   VectorizeResponseBody,
   LanguagesResponseBody,
   DownloadLangResponseBody,
-  SuccessReponse
+  SuccessResponse
 } from '@botpress/lang-client'
 import { prometheus } from '@botpress/telemetry'
 import { Logger } from '@bpinternal/log4bot'
@@ -23,7 +23,7 @@ import ms from 'ms'
 import { LangApplication } from '../application'
 
 import { monitoringMiddleware, startMonitoring } from './monitoring'
-import { authMiddleware } from './mw-authentification'
+import { authMiddleware } from './mw-authentication'
 import { handleUnexpectedError } from './mw-handle-error'
 import { serviceLoadingMiddleware } from './mw-service-loading'
 import { validateTokenizeRequestBody, validateVectorizeRequestBody } from './validation/body'
@@ -48,7 +48,7 @@ const createExpressApp = async (options: APIOptions, baseLogger: Logger): Promis
   const app = express()
   const requestLogger = baseLogger.sub('api').sub('request')
 
-  // This must be first, otherwise the /info endpoint can't be called when token is used
+  // This must be first; otherwise, the /info endpoint can't be called when token is used
   app.use(cors())
 
   if (options.prometheusEnabled) {
@@ -185,7 +185,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
     try {
       const { lang } = req.params
       application.deleteLang(lang)
-      const response: SuccessReponse = { success: true }
+      const response: SuccessResponse = { success: true }
       return res.json(response)
     } catch (err) {
       return next(err)
@@ -196,7 +196,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
     try {
       const { lang } = req.params
       await application.loadLang(lang)
-      const response: SuccessReponse = { success: true }
+      const response: SuccessResponse = { success: true }
       return res.json(response)
     } catch (err) {
       return next(err)
@@ -207,7 +207,7 @@ export default async function (options: APIOptions, baseLogger: Logger, applicat
     try {
       const { id } = req.params
       application.cancelDownloadLang(id)
-      const response: SuccessReponse = { success: true }
+      const response: SuccessResponse = { success: true }
       return res.json(response)
     } catch (err) {
       return next(err)

@@ -42,7 +42,7 @@ const makeSolutionRunner = <T extends sdk.ProblemType>(
       // eslint-disable-next-line no-console
       console.log(
         chalk.red(
-          `The following error occured when solving problem ${problem.name} with seed ${seed}:\n${err.message}\n${err.stack}`
+          `The following error occurred when solving problem ${problem.name} with seed ${seed}:\n${err.message}\n${err.stack}`
         )
       )
       process.exit(1)

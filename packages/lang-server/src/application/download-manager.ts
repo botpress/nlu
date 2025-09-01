@@ -163,7 +163,7 @@ export default class DownloadManager {
 
   public async download(lang: string): Promise<string> {
     if (!this.downloadableLanguages.find((l) => lang === l.code)) {
-      throw new Error(`Could not find model of dimention "${this.dim}" in domain "${this.domain}" for lang "${lang}"`)
+      throw new Error(`Could not find model of dimension "${this.dim}" in domain "${this.domain}" for lang "${lang}"`)
     }
 
     const embedding = this._getEmbeddingModel(lang)

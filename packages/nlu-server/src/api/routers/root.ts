@@ -211,7 +211,7 @@ export const createRootRouter = (options: NLUServerOptions, app: Application, ba
 
       await app.cancelTraining(appId, modelId)
 
-      const resp: http.SuccessReponse = { success: true }
+      const resp: http.SuccessResponse = { success: true }
       res.send(resp)
       return next()
     } catch (thrown) {
@@ -335,7 +335,7 @@ export const createRootRouter = (options: NLUServerOptions, app: Application, ba
 
       await app.cancelLinting(appId, modelId, speed)
 
-      const resp: http.SuccessReponse = { success: true }
+      const resp: http.SuccessResponse = { success: true }
       res.send(resp)
       return next()
     } catch (thrown) {

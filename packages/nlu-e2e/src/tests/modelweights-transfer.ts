@@ -50,7 +50,7 @@ export const modelWeightsTransferTest: Test = {
     const fileLocation = path.join(cachePath, `${modelId}.model`)
     await assertModelWeightsDownload(modelWeightsTransferArgs, modelId, fileLocation)
 
-    // prune model remotly and ensure prediction does not work
+    // prune model remotely and ensure prediction does not work
     await assertModelsPrune(modelWeightsTransferArgs)
     await assertPredictionFails(modelWeightsTransferArgs, modelId, grocery_test_sample.utterance, 'model_not_found')
 
@@ -71,7 +71,7 @@ export const modelWeightsTransferTest: Test = {
     await fs.promises.writeFile(corruptedFileLocation, corruptedWeights)
     await assertModelWeightsUploadFails(modelWeightsTransferArgs, corruptedFileLocation, 'INVALID_MODEL_FORMAT')
 
-    // ensure uploading a older version buffer fails
+    // ensure uploading an older version buffer fails
     const specHash = modelId.split('.')[1]
     const dummySpecHash = 'ffffff9999999999'
     const deprecatedWeights = bufferReplace(
@@ -81,7 +81,7 @@ export const modelWeightsTransferTest: Test = {
     )
     const deprecatedFileLocation = path.join(cachePath, `${modelId}.deprecated.model`)
     await fs.promises.writeFile(deprecatedFileLocation, deprecatedWeights)
-    await assertModelWeightsUploadFails(modelWeightsTransferArgs, deprecatedFileLocation, 'UNSUPORTED_MODEL_SPEC')
+    await assertModelWeightsUploadFails(modelWeightsTransferArgs, deprecatedFileLocation, 'UNSUPPORTED_MODEL_SPEC')
 
     // cleanup
     await assertModelsPrune(modelWeightsTransferArgs)

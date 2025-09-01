@@ -56,46 +56,46 @@ export type ErrorResponse = {
   error: NLUError
 }
 
-export type SuccessReponse = {
+export type SuccessResponse = {
   success: true
 }
 
 export type InfoResponseBody = {
   info: ServerInfo
-} & SuccessReponse
+} & SuccessResponse
 
 export type TrainResponseBody = {
   modelId: string
-} & SuccessReponse
+} & SuccessResponse
 
 export type LintResponseBody = {
   modelId: string
-} & SuccessReponse
+} & SuccessResponse
 
 export type TrainProgressResponseBody = {
   session: TrainingState
-} & SuccessReponse
+} & SuccessResponse
 
 export type LintProgressResponseBody = {
   session: LintingState
-} & SuccessReponse
+} & SuccessResponse
 
 export type ListTrainingsResponseBody = {
   trainings: Training[]
-} & SuccessReponse
+} & SuccessResponse
 
 export type ListModelsResponseBody = {
   models: string[]
-} & SuccessReponse
+} & SuccessResponse
 
 export type PruneModelsResponseBody = {
   models: string[]
-} & SuccessReponse
+} & SuccessResponse
 
 export type PredictResponseBody = {
   predictions: PredictOutput[]
-} & SuccessReponse
+} & SuccessResponse
 
 export type DetectLangResponseBody = {
   detectedLanguages: string[]
-} & SuccessReponse
+} & SuccessResponse

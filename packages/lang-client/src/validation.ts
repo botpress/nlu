@@ -1,7 +1,7 @@
 import { AxiosResponse } from 'axios'
 import Joi from 'joi'
 import _ from 'lodash'
-import { SuccessReponse, ErrorResponse } from './typings'
+import { SuccessResponse, ErrorResponse } from './typings'
 
 const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
   message: Joi.string().required().allow(''),
@@ -13,19 +13,19 @@ const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
 export type HTTPVerb = 'GET' | 'POST' | 'PUT' | 'DELETE'
 export type HTTPCall<V extends HTTPVerb> = {
   verb: V
-  ressource: string
+  resource: string
 }
 
 export class ClientResponseError extends Error {
   constructor(call: HTTPCall<HTTPVerb>, status: number, message: string) {
-    const { verb, ressource } = call
-    const ressourcePath = `lang-server/${ressource}`
-    const prefix = status >= 300 ? `${verb} ${ressourcePath} -> ${status}` : `${verb} ${ressourcePath}`
+    const { verb, resource } = call
+    const resourcePath = `lang-server/${resource}`
+    const prefix = status >= 300 ? `${verb} ${resourcePath} -> ${status}` : `${verb} ${resourcePath}`
     super(`(${prefix}) ${message}`)
   }
 }
 
-export const validateResponse = <S extends SuccessReponse>(
+export const validateResponse = <S extends SuccessResponse>(
   call: HTTPCall<HTTPVerb>,
   res: AxiosResponse<S | ErrorResponse>
 ): S | ErrorResponse => {
@@ -54,7 +54,7 @@ export const validateResponse = <S extends SuccessReponse>(
       throw new ClientResponseError(
         call,
         status,
-        'Received unsuccessfull HTTP response with no error. Expected response.error to be an object.'
+        'Received unsuccessful HTTP response with no error. Expected response.error to be an object.'
       )
     }
     Joi.assert(error, ERROR_RESPONSE_SCHEMA)

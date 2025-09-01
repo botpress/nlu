@@ -55,12 +55,12 @@ export class TrainHandler implements TrainTaskRunner {
       let type: TrainingErrorType = 'internal'
       if (err instanceof NLUEngine.errors.LangServerError) {
         type = 'lang-server'
-        this.logger.attachError(err).error(`[${trainKey}] Error occured with Language Server.`)
+        this.logger.attachError(err).error(`[${trainKey}] Error occurred with Language Server.`)
       }
 
       if (err instanceof NLUEngine.errors.DucklingServerError) {
         type = 'duckling-server'
-        this.logger.attachError(err).error(`[${trainKey}] Error occured with Duckling Server.`)
+        this.logger.attachError(err).error(`[${trainKey}] Error occurred with Duckling Server.`)
       }
 
       task.data = { trainingTime: this._getTrainingTime(startTime) }
@@ -68,7 +68,7 @@ export class TrainHandler implements TrainTaskRunner {
       task.error = { message, stack, type }
 
       if (type === 'internal') {
-        this.logger.attachError(err as Error).error(`[${trainKey}] Error occured during training.`)
+        this.logger.attachError(err as Error).error(`[${trainKey}] Error occurred during training.`)
       }
 
       return { ...task, status: 'errored' }

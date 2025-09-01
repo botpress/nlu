@@ -259,7 +259,7 @@ std::string UnicodeTextToUTF8(const UnicodeText &utext);
 
 }  // namespace string_util
 
-// other map/ptr utilties
+// other map/ptr utilities
 namespace port {
 
 template <class Collection, class Key>

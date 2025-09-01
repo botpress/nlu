@@ -31,7 +31,7 @@ classifier.predict('Why not put knives in the dishwasher?', 5).then((res) => {
 })
 ```
 
-The model haved trained before with the followings params:
+The model was trained before with the followings params:
 
 ```js
 const path = require('path')

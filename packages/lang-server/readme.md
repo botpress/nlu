@@ -6,4 +6,4 @@ It is a web server responsible for hosting domain agnostic NLP models. These inc
 
 ## Licensing
 
-This software is protected by the same license as the [main Botpress repository](https://github.com/botpress/botpress). You can find the license file [here](https://github.com/botpress/botpress/blob/master/LICENSE).
+This software is protected by the same [license](https://github.com/botpress/botpress/blob/master/LICENSE) as the [main Botpress repository](https://github.com/botpress/botpress).

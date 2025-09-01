@@ -83,9 +83,9 @@ export class PgLintingQueue extends LintingQueue {
     baseLogger: Logger,
     opt: LintQueueOptions = {}
   ) {
-    const lintingLoger = baseLogger.sub(LINTING_PREFIX)
+    const lintingLogger = baseLogger.sub(LINTING_PREFIX)
     const lintTaskRepo = new LintTaskRepo(lintingRepo)
-    const lintHandler = new LintHandler(engine, lintingLoger)
+    const lintHandler = new LintHandler(engine, lintingLogger)
     const options = opt.maxLinting
       ? {
           ...TASK_OPTIONS,
@@ -93,8 +93,8 @@ export class PgLintingQueue extends LintingQueue {
         }
       : TASK_OPTIONS
 
-    const taskQueue = new q.PGDistributedTaskQueue(pgURL, lintTaskRepo, lintHandler, lintingLoger, idToString, options)
-    super(taskQueue, lintingLoger)
+    const taskQueue = new q.PGDistributedTaskQueue(pgURL, lintTaskRepo, lintHandler, lintingLogger, idToString, options)
+    super(taskQueue, lintingLogger)
   }
 }
 

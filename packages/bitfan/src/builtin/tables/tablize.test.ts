@@ -1,5 +1,5 @@
 import * as sdk from '../../bitfan'
-import { tabelize } from './tabelize'
+import { tablize } from './tablize'
 
 test('toTable', () => {
   // arrange
@@ -14,7 +14,7 @@ test('toTable', () => {
   }
 
   // act
-  const table = tabelize(performanceReport.scores, {
+  const table = tablize(performanceReport.scores, {
     row: (d) => d.metric,
     column: (d) => `${d.seed}`,
     score: (d) => d.score

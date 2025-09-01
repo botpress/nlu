@@ -7,6 +7,6 @@ export type LintingInput = {
   minSpeed: IssueComputationSpeed
 }
 
-export type LintingOuput = { issues: DatasetIssue<IssueCode>[] }
+export type LintingOutput = { issues: DatasetIssue<IssueCode>[] }
 
 export type LintingProgress = { total: number; current: number; issues: DatasetIssue<IssueCode>[] }

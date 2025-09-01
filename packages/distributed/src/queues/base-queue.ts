@@ -76,7 +76,7 @@ export abstract class BaseTaskQueue<TId, TInput, TData, TError> implements ITask
       return this._schedulingTimmer.run()
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      this._logger.attachError(err).error('An error occured when running scheduler interrupt.')
+      this._logger.attachError(err).error('An error occurred when running scheduler interrupt.')
     }
   }
 
@@ -92,12 +92,12 @@ export abstract class BaseTaskQueue<TId, TInput, TData, TError> implements ITask
         return
       }
 
-      const pendings = await repo.query({ status: 'pending' })
-      if (pendings.length <= 0) {
+      const pending = await repo.query({ status: 'pending' })
+      if (pending.length <= 0) {
         return
       }
 
-      const task = pendings[0]
+      const task = pending[0]
       task.status = 'running'
       task.cluster = this._clusterId
       await repo.set(task)

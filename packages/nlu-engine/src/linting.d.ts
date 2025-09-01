@@ -12,7 +12,7 @@ export type IssueCode =
   | 'E_002' // duplicated utterances (in one or more intents)
   | 'E_003' // the whole utterance is tagged as a slot
   | 'W_000' // intents are overlapping
-  | 'I_000' // utterance contains dupplicated or untrimed spaces
+  | 'I_000' // utterance contains duplicated or untrimmed spaces
 
 export type Raw<T> = { raw: T }
 export type Clean<T> = { clean: T }
@@ -106,12 +106,12 @@ export type LintingState = {
 
 export type IssueComputationSpeed = 'fastest' | 'fast' | 'slow' | 'slowest'
 
-export type IssueSeverity<C extends IssueCode> = C extends `C_${infer CodeSufix}`
+export type IssueSeverity<C extends IssueCode> = C extends `C_${infer CodeSuffix}`
   ? 'critical'
-  : C extends `E_${infer CodeSufix}`
+  : C extends `E_${infer CodeSuffix}`
   ? 'error'
-  : C extends `W_${infer CodeSufix}`
+  : C extends `W_${infer CodeSuffix}`
   ? 'warning'
-  : C extends `I_${infer CodeSufix}`
+  : C extends `I_${infer CodeSuffix}`
   ? 'info'
   : never

@@ -23,7 +23,7 @@ export const sampleClasses: typeof sdk.sampling.sampleClasses = <T extends sdk.S
     .value()
 
   if (nClass < 0) {
-    throw new Error(`Can't subsample a negative ammount of classes (${nClass}).`)
+    throw new Error(`Can't subsample a negative amount of classes (${nClass}).`)
   }
   if (nClass > allClasses.length) {
     throw new Error(`Can't subsample ${nClass} classes out of ${allClasses.length} class.`)

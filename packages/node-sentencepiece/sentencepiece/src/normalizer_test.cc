@@ -146,7 +146,7 @@ TEST(NormalizerTest, NormalizeWithoutEscapeWhitespacesTest) {
   EXPECT_EQ("A B C", normalizer.Normalize("A　 B　 C"));
 }
 
-TEST(NormalizeTest, NomalizeWithSpaceContainedRules) {
+TEST(NormalizeTest, NormalizeWithSpaceContainedRules) {
   Builder::CharsMap charsmap;
 
   auto AddRule = [&](const std::string &src, const std::string &trg) {
@@ -160,7 +160,7 @@ TEST(NormalizeTest, NomalizeWithSpaceContainedRules) {
     charsmap[src_chars] = trg_chars;
   };
 
-  // Adds rules containing whitespaes.
+  // Adds rules containing whitespace.
   AddRule("a", " A");
   AddRule("b", "B");
   AddRule("c", "D E");
@@ -371,7 +371,7 @@ TEST(NormalizerTest, StatusTest) {
   NormalizerSpec spec;
   {
     const Normalizer normalizer(spec);
-    EXPECT_OK(normalizer.status());  // fallback to identity.
+    EXPECT_OK(normalizer.status());  // fall back to identity.
   }
 
   {

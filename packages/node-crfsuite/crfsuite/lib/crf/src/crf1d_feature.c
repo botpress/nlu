@@ -213,7 +213,7 @@ crf1df_feature_t* crf1df_generate(
 
                 /* Generate state features connecting attributes with all
                    output labels. These features are not unobserved in the
-                   training data (zero expexcations). */
+                   training data (zero expectations). */
                 if (connect_all_attrs) {
                     for (i = 0;i < L;++i) {
                         f.type = FT_STATE;
@@ -234,7 +234,7 @@ crf1df_feature_t* crf1df_generate(
 
     /* Generate edge features representing all pairs of labels.
        These features are not unobserved in the training data
-       (zero expexcations). */
+       (zero expectations). */
     if (connect_all_edges) {
         for (i = 0;i < L;++i) {
             for (j = 0;j < L;++j) {
@@ -247,7 +247,7 @@ crf1df_feature_t* crf1df_generate(
         }
     }
 
-    /* Convert the feature set to an feature array. */
+    /* Convert the feature set to a feature array. */
     features = featureset_generate(ptr_num_features, set, minfreq);
 
     /* Delete the feature set. */

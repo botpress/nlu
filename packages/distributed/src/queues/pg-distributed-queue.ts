@@ -105,7 +105,7 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
 
   private _handleCancelTaskEvent = async (taskId: TId, clusterId: string) => {
     if (clusterId !== this._clusterId) {
-      return // message was not adressed to this instance
+      return // message was not addressed to this instance
     }
 
     try {
@@ -117,7 +117,7 @@ export class PGDistributedTaskQueue<TId, TInput, TData, TError>
     }
   }
 
-  // for if an completly busy instance receives a queue task http call
+  // for if a completely busy instance receives a queue task http call
   protected runSchedulerInterrupt() {
     return this._obs.emit('run_scheduler_interrupt', undefined)
   }

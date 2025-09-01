@@ -39,7 +39,7 @@ class TrainerModel : public Model {
   TrainerModel() {}
   TrainerModel(const ModelProto &model_proto) = delete;
   TrainerModel(const TrainerSpec &trainer_spec,
-               const NormalizerSpec &normalizaiton_spec);
+               const NormalizerSpec &normalization_spec);
   ~TrainerModel() override;
 
   // Returns the sentencepieces.

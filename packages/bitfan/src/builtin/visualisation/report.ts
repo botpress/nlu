@@ -2,7 +2,7 @@ import * as sdk from 'bitfan/sdk'
 import chalk from 'chalk'
 import _ from 'lodash'
 import { roundTable } from '../tables/round'
-import { tabelize } from '../tables/tabelize'
+import { tablize } from '../tables/tablize'
 
 const DEFAULT_OPT: {
   groupBy: 'seed' | 'problem' | 'all'
@@ -18,7 +18,7 @@ export const showPerformanceReport: typeof sdk.visualisation.showPerformanceRepo
 ) => {
   const options = { ...DEFAULT_OPT, ...(opt ?? {}) }
 
-  let table = tabelize(report.scores, {
+  let table = tablize(report.scores, {
     row: (s) => s.metric,
     column: (s) => (options.groupBy === 'seed' ? `${s.seed}` : options.groupBy === 'problem' ? s.problem : 'all'),
     score: (s) => s.score

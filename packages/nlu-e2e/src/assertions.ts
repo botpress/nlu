@@ -16,7 +16,7 @@ import fs from 'fs'
 import _ from 'lodash'
 import ms from 'ms'
 import semver from 'semver'
-import { PrecondtionFailed, UnsuccessfullAPICall, UnsuccessfullModelTransfer } from './errors'
+import { PrecondtionFailed, UnsuccessfulAPICall, UnsuccessfulModelTransfer } from './errors'
 import { AssertionArgs } from './typings'
 import { pollLintingUntil, pollTrainingUntil } from './utils'
 
@@ -26,7 +26,7 @@ export const assertServerIsReachable = async (args: AssertionArgs, requiredLangu
 
   const infoRes = await client.getInfo()
   if (!infoRes.success) {
-    throw new UnsuccessfullAPICall(infoRes.error, 'Make sure the NLU Server is reachable.')
+    throw new UnsuccessfulAPICall(infoRes.error, 'Make sure the NLU Server is reachable.')
   }
 
   const { info } = infoRes
@@ -43,7 +43,7 @@ export const assertModelTransferIsEnabled = async (args: AssertionArgs) => {
 
   const infoRes = await client.getInfo()
   if (!infoRes.success) {
-    throw new UnsuccessfullAPICall(infoRes.error, 'Make sure the NLU Server is reachable.')
+    throw new UnsuccessfulAPICall(infoRes.error, 'Make sure the NLU Server is reachable.')
   }
 
   const { info } = infoRes
@@ -58,7 +58,7 @@ export const assertModelsInclude = async (args: AssertionArgs, expectedModels: s
 
   const modelRes = await client.listModels(appId)
   if (!modelRes.success) {
-    throw new UnsuccessfullAPICall(modelRes.error)
+    throw new UnsuccessfulAPICall(modelRes.error)
   }
 
   const { models } = modelRes
@@ -71,7 +71,7 @@ export const assertModelsAreEmpty = async (args: AssertionArgs) => {
 
   const modelRes = await client.listModels(appId)
   if (!modelRes.success) {
-    throw new UnsuccessfullAPICall(modelRes.error)
+    throw new UnsuccessfulAPICall(modelRes.error)
   }
 
   const { models } = modelRes
@@ -91,7 +91,7 @@ export const assertTrainingStarts = async (args: AssertionArgs, trainSet: TrainI
   const contexts = _getContexts(trainSet)
   const trainRes = await client.startTraining(appId, { ...trainSet, contexts })
   if (!trainRes.success) {
-    throw new UnsuccessfullAPICall(trainRes.error)
+    throw new UnsuccessfulAPICall(trainRes.error)
   }
 
   const { modelId } = trainRes
@@ -122,7 +122,7 @@ export const assertLintingStarts = async (
   const contexts = _getContexts(trainSet)
   const trainRes = await client.startLinting(appId, { ...trainSet, contexts, speed })
   if (!trainRes.success) {
-    throw new UnsuccessfullAPICall(trainRes.error)
+    throw new UnsuccessfulAPICall(trainRes.error)
   }
 
   const { modelId } = trainRes
@@ -155,7 +155,7 @@ export const assertTrainingFails = async (
   const contexts = _getContexts(trainSet)
   const trainRes = await client.startTraining(appId, { ...trainSet, contexts })
   if (!trainRes.success) {
-    throw new UnsuccessfullAPICall(trainRes.error)
+    throw new UnsuccessfulAPICall(trainRes.error)
   }
 
   const { modelId } = trainRes
@@ -215,7 +215,7 @@ export const assertTrainingCancels = async (args: AssertionArgs, modelId: string
 
   const cancelRes = await client.cancelTraining(appId, modelId)
   if (!cancelRes.success) {
-    throw new UnsuccessfullAPICall(cancelRes.error)
+    throw new UnsuccessfulAPICall(cancelRes.error)
   }
 
   const ts = await pollTrainingUntil({
@@ -298,7 +298,7 @@ export const assertTrainingsAre = async (args: AssertionArgs, expectedTrainings:
 
   const lsTrainingRes = await client.listTrainings(appId)
   if (!lsTrainingRes.success) {
-    throw new UnsuccessfullAPICall(lsTrainingRes.error)
+    throw new UnsuccessfulAPICall(lsTrainingRes.error)
   }
   const { trainings } = lsTrainingRes
   const trainStatuses = trainings.map((ts) => ts.status)
@@ -328,7 +328,7 @@ export const assertLanguageDetectionWorks = async (args: AssertionArgs, utteranc
 
   const detectLangRes = await client.detectLanguage(appId, { utterances: [utterance], models: [] })
   if (!detectLangRes.success) {
-    throw new UnsuccessfullAPICall(detectLangRes.error)
+    throw new UnsuccessfulAPICall(detectLangRes.error)
   }
   const { detectedLanguages } = detectLangRes
   chai.expect(detectedLanguages).to.have.length(1)
@@ -346,7 +346,7 @@ export const assertIntentPredictionWorks = async (
 
   const predictRes = await client.predict(appId, modelId, { utterances: [utterance] })
   if (!predictRes.success) {
-    throw new UnsuccessfullAPICall(predictRes.error)
+    throw new UnsuccessfulAPICall(predictRes.error)
   }
   const { predictions } = predictRes
   chai.expect(predictions).to.have.length(1)
@@ -364,12 +364,12 @@ export const assertModelsPrune = async (args: AssertionArgs) => {
 
   const pruneRes = await client.pruneModels(appId)
   if (!pruneRes.success) {
-    throw new UnsuccessfullAPICall(pruneRes.error)
+    throw new UnsuccessfulAPICall(pruneRes.error)
   }
 
   const modelRes = await client.listModels(appId)
   if (!modelRes.success) {
-    throw new UnsuccessfullAPICall(modelRes.error)
+    throw new UnsuccessfulAPICall(modelRes.error)
   }
 
   const { models } = modelRes
@@ -395,7 +395,7 @@ export const assertModelWeightsDownload = async (args: AssertionArgs, modelId: s
 
   const downloadRes = await client.modelWeights.download(appId, modelId, { responseType: 'stream' })
   if (downloadRes.status !== 'OK') {
-    throw new UnsuccessfullModelTransfer(downloadRes.status, 'GET')
+    throw new UnsuccessfulModelTransfer(downloadRes.status, 'GET')
   }
 
   await new Promise<void>((resolve, reject) => {
@@ -432,6 +432,6 @@ export const assertModelWeightsUpload = async (args: AssertionArgs, fileLocation
 
   const uploadRes = await client.modelWeights.upload(appId, modelWeights)
   if (uploadRes.status !== 'OK') {
-    throw new UnsuccessfullModelTransfer(uploadRes.status, 'GET')
+    throw new UnsuccessfulModelTransfer(uploadRes.status, 'GET')
   }
 }

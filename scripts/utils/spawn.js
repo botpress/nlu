@@ -6,8 +6,8 @@ const spawn = (program, args, params) => {
   logger.info(`Launching '${cmd}'`)
   return new Promise(async (resolve, reject) => {
     try {
-      const spawnedPocess = child_process.spawn(program, args, params)
-      spawnedPocess.on('exit', (code, signal) => {
+      const spawnedProcess = child_process.spawn(program, args, params)
+      spawnedProcess.on('exit', (code, signal) => {
         if (code !== 0) {
           const error = new Error(`Process exited with exit-code ${code} and signal ${signal}`)
           reject(error)

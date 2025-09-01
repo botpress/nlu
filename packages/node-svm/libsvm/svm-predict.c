@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 	{
 		if(svm_check_probability_model(model)==0)
 		{
-			fprintf(stderr,"Model does not support probabiliy estimates\n");
+			fprintf(stderr,"Model does not support probability estimates\n");
 			exit(1);
 		}
 	}

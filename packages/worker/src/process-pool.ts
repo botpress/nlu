@@ -27,7 +27,7 @@ export class ProcessPool<I, O, P = void> extends WorkerPool<I, O, P> {
   }
 }
 
-export class ProcessEntyPoint<I, O, P = void> extends WorkerEntryPoint<I, O, P> {
+export class ProcessEntryPoint<I, O, P = void> extends WorkerEntryPoint<I, O, P> {
   constructor(config?: EntryPointOptions) {
     super(config)
   }

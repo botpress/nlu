@@ -15,11 +15,11 @@ your/nlu/exe
 │   └── --version # display nlu-server version
 └── lang
     ├── start (default) # launch the lang server
-    ├── download # download languange models
+    ├── download # download language models
     ├── init # create empty configuration file for lang-server
     └── --version # display lang-server version
 ```
 
 ## Licensing
 
-This software is protected by the same license as the [main Botpress repository](https://github.com/botpress/botpress). You can find the license file [here](https://github.com/botpress/botpress/blob/master/LICENSE).
+This software is protected by the same [license](https://github.com/botpress/botpress/blob/master/LICENSE) as the [main Botpress repository](https://github.com/botpress/botpress).

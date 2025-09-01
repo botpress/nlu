@@ -201,7 +201,7 @@ export class DbTrainingRepository implements TrainingRepository {
     this._listeners.forEach((listener) => {
       // The await keyword isn't used to prevent a listener from blocking the training repo
       listener(training).catch((e) =>
-        this._logger.attachError(e).error('an error occured in the training repository listener')
+        this._logger.attachError(e).error('an error occurred in the training repository listener')
       )
     })
   }

@@ -29,7 +29,7 @@ struct Flag;
 class FlagRegister {
  public:
   FlagRegister(const char *name, void *storage, const void *default_storage,
-               int shorttpe, const char *help);
+               int shorttype, const char *help);
   ~FlagRegister();
 
  private:

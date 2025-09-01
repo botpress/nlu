@@ -1,6 +1,6 @@
 import { AxiosResponse } from 'axios'
 import { HTTPCall } from './http-call'
-import { SuccessReponse, ErrorResponse, NLUError } from './typings/http'
+import { SuccessResponse, ErrorResponse, NLUError } from './typings/http'
 import { validateResponse } from './validation'
 
 const augmentWithExtraKey = (res: Object) => {
@@ -16,7 +16,7 @@ const augmentWithExtraKey = (res: Object) => {
 }
 
 const error: NLUError = { code: 500, type: 'internal', message: 'An error' }
-const call: HTTPCall<'GET'> = { verb: 'GET', ressource: '' }
+const call: HTTPCall<'GET'> = { verb: 'GET', resource: '' }
 
 const axiosRes = (data: any): AxiosResponse<any> => {
   const x: Partial<AxiosResponse<any>> = { data, status: 200 }
@@ -29,15 +29,15 @@ test('validating with absent success key should fail', async () => {
   expect(() => validateResponse(call, axiosRes({ someKey: 'some text' }))).toThrow()
 })
 
-test('validating a successfull response should pass', async () => {
+test('validating a successful response should pass', async () => {
   // arrange
-  const res: SuccessReponse = { success: true }
+  const res: SuccessResponse = { success: true }
 
   // act && assert
   expect(() => validateResponse(call, axiosRes(res))).not.toThrow()
 })
 
-test('validating an unsuccessfull response with unempty error should pass', async () => {
+test('validating an unsuccessful response with unempty error should pass', async () => {
   // arrange
   const res: ErrorResponse = { success: false, error }
 
@@ -45,7 +45,7 @@ test('validating an unsuccessfull response with unempty error should pass', asyn
   expect(() => validateResponse(call, axiosRes(res))).not.toThrow()
 })
 
-test('validating an unsuccessfull response with empty error message should pass', async () => {
+test('validating an unsuccessful response with empty error message should pass', async () => {
   const error: NLUError = { message: '', code: 500, type: 'internal' }
 
   // arrange
@@ -55,7 +55,7 @@ test('validating an unsuccessfull response with empty error message should pass'
   expect(() => validateResponse(call, axiosRes(res))).not.toThrow()
 })
 
-test('validating an unsuccessfull response with empty error should fail', async () => {
+test('validating an unsuccessful response with empty error should fail', async () => {
   // arrange
   const res: ErrorResponse = { success: false, error: {} as NLUError }
 
@@ -63,7 +63,7 @@ test('validating an unsuccessfull response with empty error should fail', async 
   expect(() => validateResponse(call, axiosRes(res))).toThrow()
 })
 
-test('validating an unsuccessfull response with undefined error should fail', async () => {
+test('validating an unsuccessful response with undefined error should fail', async () => {
   // arrange
   const res: Partial<ErrorResponse> = { success: false }
 
@@ -71,9 +71,9 @@ test('validating an unsuccessfull response with undefined error should fail', as
   expect(() => validateResponse(call, axiosRes(res))).toThrow()
 })
 
-test('validating a successfull response with unknown keys should pass', async () => {
+test('validating a successful response with unknown keys should pass', async () => {
   // arrange
-  const res = <SuccessReponse>{ success: true }
+  const res = <SuccessResponse>{ success: true }
 
   // act && assert
   const responses = augmentWithExtraKey(res)
@@ -82,7 +82,7 @@ test('validating a successfull response with unknown keys should pass', async ()
   })
 })
 
-test('validating an unsuccessfull response with unknown keys should pass', async () => {
+test('validating an unsuccessful response with unknown keys should pass', async () => {
   // arrange
   const res = <ErrorResponse>{ success: false, error }
 

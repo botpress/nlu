@@ -120,9 +120,9 @@ const parseDirName = (dirName: string): ExtensionDir | undefined => {
   }
 }
 
-const acquireLock = (ressource: string): Promise<Mutex> => {
+const acquireLock = (resource: string): Promise<Mutex> => {
   return new Promise<Mutex>((resolve) => {
-    lock(ressource, (releaser) => {
+    lock(resource, (releaser) => {
       resolve({ release: releaser() })
     })
   })
@@ -182,14 +182,14 @@ const initialize = async <T>(): Promise<T> => {
         debuglog('success')
         return binding
       } catch (err) {
-        debuglog('error occured: ', err)
+        debuglog('error occurred: ', err)
       }
     }
 
     throw new Error(`Linux distribution ${rawDistribution} is not supported by ${packageName}.`)
   }
 
-  throw new Error(`The plateform ${distro.os} is not supported by ${packageName}.`)
+  throw new Error(`The platform ${distro.os} is not supported by ${packageName}.`)
 }
 
 let binding: any | undefined

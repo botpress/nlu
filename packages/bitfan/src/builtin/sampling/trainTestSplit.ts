@@ -7,7 +7,7 @@ export const subSample: typeof sampling.subSample = <T extends ProblemType>(
   dataset: DataSet<T>,
   percent: number,
   seed: number,
-  options = { stratificate: true }
+  options = { stratify: true }
 ): DataSet<T> => {
   const { trainSet } = trainTestSplit(dataset, percent, seed, options)
   return trainSet
@@ -17,7 +17,7 @@ export const trainTestSplit: typeof sampling.trainTestSplit = <T extends Problem
   dataset: DataSet<T>,
   trainPercent: number,
   seed: number,
-  options = { stratificate: true }
+  options = { stratify: true }
 ): {
   trainSet: DataSet<T>
   testSet: DataSet<T>
@@ -39,7 +39,7 @@ export const trainTestSplit: typeof sampling.trainTestSplit = <T extends Problem
   const trainSamples: Sample<T>[] = []
   const testSamples: Sample<T>[] = []
 
-  if (options.stratificate) {
+  if (options.stratify) {
     // preserve proportions of each class
     for (const c of allClasses) {
       const samplesOfClass = dataset.samples.filter((r) => areSame(r.label, c))

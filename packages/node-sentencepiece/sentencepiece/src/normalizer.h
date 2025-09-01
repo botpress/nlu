@@ -131,7 +131,7 @@ class Normalizer {
   // Internal trie for efficient longest matching.
   std::unique_ptr<Darts::DoubleArray> trie_;
 
-  // "\0" delimitered output string.
+  // "\0" delimited output string.
   // the value of |trie_| stores pointers to this string.
   const char *normalized_ = nullptr;
 

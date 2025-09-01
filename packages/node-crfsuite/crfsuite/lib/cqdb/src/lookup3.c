@@ -27,10 +27,10 @@ then use c as the hash value.  If you have a variable length array of
 a character string), use hashlittle().  If you have several byte arrays, or
 a mix of things, see the comments above hashlittle().  
 
-Why is this so big?  I read 12 bytes at a time into 3 4-byte integers, 
+Why is this so big?  I read 12 bytes at a time into three 4-byte integers, 
 then mix those integers.  This is fast (you can do a lot more thorough
-mixing with 12*3 instructions on 3 integers than you can with 3 instructions
-on 1 byte), but shoehorning those bytes into integers efficiently is messy.
+mixing with 12*3 instructions on three integers than you can with three instructions
+on one byte), but shoehorning those bytes into integers efficiently is messy.
 -------------------------------------------------------------------------------
 */
 //#define SELF_TEST 1
@@ -69,7 +69,7 @@ on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 
 /*
 -------------------------------------------------------------------------------
-mix -- mix 3 32-bit values reversibly.
+mix -- mix three 32-bit values reversibly.
 
 This is reversible, so any information in (a,b,c) before mix() is
 still in (a,b,c) after mix().
@@ -282,7 +282,7 @@ acceptable.  Do NOT use for cryptographic purposes.
 uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
 {
   uint32_t a,b,c;                                          /* internal state */
-  union { const void *ptr; size_t i; } u;     /* needed for Mac Powerbook G4 */
+  union { const void *ptr; size_t i; } u;     /* needed for Mac PowerBook G4 */
 
   /* Set up the internal state */
   a = b = c = 0xdeadbeef + ((uint32_t)length) + initval;
@@ -450,7 +450,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
 
 
 /*
- * hashlittle2: return 2 32-bit hash values
+ * hashlittle2: return two 32-bit hash values
  *
  * This is identical to hashlittle(), except it returns two 32-bit hash
  * values instead of just one.  This is good enough for hash table
@@ -466,7 +466,7 @@ void hashlittle2(
   uint32_t   *pb)        /* IN: secondary initval, OUT: secondary hash */
 {
   uint32_t a,b,c;                                          /* internal state */
-  union { const void *ptr; size_t i; } u;     /* needed for Mac Powerbook G4 */
+  union { const void *ptr; size_t i; } u;     /* needed for Mac PowerBook G4 */
 
   /* Set up the internal state */
   a = b = c = 0xdeadbeef + ((uint32_t)length) + *pc;
@@ -805,7 +805,7 @@ void driver2()
     {
       for (j=0; j<8; ++j)   /*------------------------ for each input bit, */
       {
-    for (m=1; m<8; ++m) /*------------ for serveral possible initvals, */
+    for (m=1; m<8; ++m) /*------------ for several possible initvals, */
     {
       for (l=0; l<HASHSTATE; ++l)
         e[l]=f[l]=g[l]=h[l]=x[l]=y[l]=~((uint32_t)0);

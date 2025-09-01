@@ -1,6 +1,6 @@
 import Joi from 'joi'
 
-const ListEntityOccurenceSchema = Joi.object({
+const ListEntityOccurrenceSchema = Joi.object({
   name: Joi.string().required(), // ex: 'Paris', 'Montreal', 'Québec'
   synonyms: Joi.array() // ex: 'La Ville des lumières', 'City of Paris'
     .items(Joi.string())
@@ -10,7 +10,7 @@ const ListEntityOccurenceSchema = Joi.object({
 
 const ListEntitySchema = Joi.object().keys({
   name: Joi.string().required(), // ex: 'cities'
-  values: Joi.array().items(ListEntityOccurenceSchema).required().min(1),
+  values: Joi.array().items(ListEntityOccurrenceSchema).required().min(1),
   fuzzy: Joi.number().default(0.9)
 })
 

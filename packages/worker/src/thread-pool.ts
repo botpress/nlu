@@ -19,7 +19,7 @@ export class ThreadPool<I, O, P = void> extends WorkerPool<I, O, P> {
   }
 }
 
-export class ThreadEntyPoint<I, O, P = void> extends WorkerEntryPoint<I, O, P> {
+export class ThreadEntryPoint<I, O, P = void> extends WorkerEntryPoint<I, O, P> {
   constructor(config?: EntryPointOptions) {
     super(config)
   }

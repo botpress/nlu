@@ -16,7 +16,7 @@ const PTBModel = new ptb.PTBMessage('Model', {
   data: { type: 'bytes', id: 4, rule: 'required' }
 })
 
-/** usefull to retreive only model id from binary */
+/** useful to retrieve only model id from binary */
 const PTBPartialModel = new ptb.PTBMessage('Model', {
   id: { type: PTBModelId, id: 1, rule: 'required' }
 })

@@ -28,7 +28,7 @@
 	
 2010-07-16  Naoaki Okazaki  <okazaki at chokkan org>
 	* CRFsuite 0.11
-	- Renamed crf.h into crfsuite.h to avoid possible conflects in include directories
+	- Renamed crf.h into crfsuite.h to avoid possible conflicts in include directories
 	- Install crfsuite.h to the include directory (suggested by Ingo Glöckner)
 
 	

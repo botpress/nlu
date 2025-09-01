@@ -8,7 +8,7 @@ export default function (dataset: Data[], retainedVariance: number) {
   retainedVariance = retainedVariance || 0.99
   const dims = numeric.dim(dataset)
 
-  assert(dims[0] > 0 && dims[1] === 2 && dims[2] > 0, 'dataset must be an list of [X,y] tuples')
+  assert(dims[0] > 0 && dims[1] === 2 && dims[2] > 0, 'dataset must be a list of [X,y] tuples')
   const inputs = dataset.map(function (ex) {
     return ex[0]
   })

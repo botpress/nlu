@@ -191,7 +191,7 @@ them in the `configure' command line, using `VAR=value'.  For example:
      ./configure CC=/usr/local2/bin/gcc
 
 causes the specified `gcc' to be used as the C compiler (unless it is
-overridden in the site shell script).  Here is a another example:
+overridden in the site shell script).  Here is another example:
 
      /bin/bash ./configure CONFIG_SHELL=/bin/bash
 

@@ -62,7 +62,7 @@ interface Engine<T extends ProblemType> {
 }
 ```
 
-The `Criteria` abstraction act as a decision function that decides weither or not the test is failing or passing. It exists because engines are not responsible for electing a label.
+The `Criteria` abstraction act as a decision function that decides whether or not the test is failing or passing. It exists because engines are not responsible for electing a label.
 
 ```ts
 interface Criteria<T extends ProblemType> {

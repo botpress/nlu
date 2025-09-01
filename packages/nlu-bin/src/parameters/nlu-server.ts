@@ -47,7 +47,7 @@ export const parameters = asYargs({
     type: 'boolean'
   },
   prometheusEnabled: {
-    description: 'When enabled, a prometheus endpoint will be avaiable at /metrics',
+    description: 'When enabled, a prometheus endpoint will be available at /metrics',
     type: 'boolean'
   },
   apmEnabled: {
@@ -88,7 +88,7 @@ export const parameters = asYargs({
     choices: logLevelChoices
   },
   logFormat: {
-    description: 'Weither to log using JSON or good old fashion formatted text with colors.',
+    description: 'Whether to log using JSON or good old fashion formatted text with colors.',
     choices: logFormatChoices
   },
   debugFilter: {
@@ -108,7 +108,7 @@ export const parameters = asYargs({
     type: 'string'
   },
   modelTransferEnabled: {
-    description: 'Weither or not to allow model weights download / upload',
+    description: 'Whether or not to allow model weights download / upload',
     type: 'boolean'
   }
 })

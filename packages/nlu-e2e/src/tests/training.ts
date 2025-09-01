@@ -14,7 +14,7 @@ export const trainingErrorsTest: Test = {
     const trainingArgs = { ...args, logger: trainingLogger }
 
     const invalidDataset = _.cloneDeep(grocery_dataset)
-    invalidDataset.intents[0].slots.push({ name: 'some-slot', entities: ['non-existent-entity'] })
+    invalidDataset.intents[0].slots.push({ name: 'some-slot', entities: ['nonexistent-entity'] })
     await assertQueueTrainingFails(trainingArgs, invalidDataset, 'dataset_format')
     await assertQueueTrainingFails(trainingArgs, { ...grocery_dataset, language: 'ab' }, 'dataset_format')
     await assertModelsPrune(args)

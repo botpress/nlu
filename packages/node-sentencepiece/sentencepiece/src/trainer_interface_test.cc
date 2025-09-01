@@ -281,7 +281,7 @@ TEST(TrainerInterfaceTest, OverrideSpecialPiecesTest) {
     trainer_spec.set_eos_id(20);
     trainer_spec.set_pad_id(30);
 
-    // <s>, <pad> are treated as USER_DEFIEND,
+    // <s>, <pad> are treated as USER_DEFINED,
     // </s> is CONTROL.
     trainer_spec.add_user_defined_symbols("<s>");
     trainer_spec.add_user_defined_symbols("<pad>");

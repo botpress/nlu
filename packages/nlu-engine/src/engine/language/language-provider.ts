@@ -73,7 +73,7 @@ export class LanguageProvider {
       installedLanguages = installed.map((x) => x.code)
       langServerInfo = {
         version: info.version,
-        dim: info.dimentions,
+        dim: info.dimensions,
         domain: info.domain
       }
     }, DISCOVERY_RETRY_POLICY)

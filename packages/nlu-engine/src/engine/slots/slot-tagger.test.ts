@@ -156,7 +156,7 @@ describe('Slot tagger component lifecycle', () => {
           utterances: [dudeWheresMyCar],
           slot_definitions: []
         },
-        list_entites: []
+        list_entities: []
       },
       dummyProgress
     )

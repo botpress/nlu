@@ -26,7 +26,7 @@ function buildEntity(type: string, extractor: ExtractorType = 'list'): Entity {
 }
 
 describe('Entities featurizer', () => {
-  test('All entities should be represented in features even the ones with no occurences', () => {
+  test('All entities should be represented in features even the ones with no occurrences', () => {
     // Arrange
     const definitions = ['Tata', 'Toto', 'Tutu', 'Titi']
 

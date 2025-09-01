@@ -1,5 +1,5 @@
 /**
- * This is header file to convert node object arugment to standar argv C or C++ argument
+ * This is header file to convert node object argument to standard argv C or C++ argument
  *
  * Author: Yusuf Syaifudin
  * Date: December 6, 2016 10:57 AM

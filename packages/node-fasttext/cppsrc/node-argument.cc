@@ -1,5 +1,5 @@
 /**
- * Convert node object arugment to standar argv C or C++ argument
+ * Convert node object argument to standard argv C or C++ argument
  *
  * Author: Yusuf Syaifudin
  * Date: December 6, 2016 10:57 AM
@@ -30,7 +30,7 @@ bool NodeArgument::isOnlyDouble(const char *str)
 }
 
 /**
-   * Concenate string
+   * Concatenate string
    */
 char *NodeArgument::concat(const char *s1, const char *s2)
 {

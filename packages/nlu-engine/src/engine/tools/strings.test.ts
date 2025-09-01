@@ -54,7 +54,7 @@ describe('String utils', () => {
     expect(stringUtils.levenshtein('tetsong', 'testing')).toEqual(3) // 1 x letterSwap (1 sup + 1 add) + 1 x substitution
   })
 
-  test('darmeau levenshtein', () => {
+  test('damerau levenshtein', () => {
     expect(stringUtils.damerauLevenshtein('testing', 'tesing')).toEqual(1) // 1 x suppresion
     expect(stringUtils.damerauLevenshtein('testting', 'testing')).toEqual(1) // 1 x addition
     expect(stringUtils.damerauLevenshtein('tasting', 'testing')).toEqual(1) // 1 x substitution

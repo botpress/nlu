@@ -1,6 +1,6 @@
 import { initDic } from './init'
 
-test('initDictionnary', () => {
+test('initDictionary', () => {
   // arrange
 
   // act

@@ -17,7 +17,7 @@ yargs
       pattern: {
         type: 'string',
         alias: 'p',
-        optionnal: true
+        optional: true
       }
     },
     (argv) => {

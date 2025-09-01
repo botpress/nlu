@@ -107,7 +107,7 @@ export type ModelIdService = {
   areSame: (id1: ModelId, id2: ModelId) => boolean
   isId: (m: string) => boolean
   makeId: (factors: ModelIdArgs) => ModelId
-  briefId: (factors: Partial<ModelIdArgs>) => Partial<ModelId> // makes incomplete Id from incomplete information
+  briefId: (factors: Partial<ModelIdArgs>) => Partial<ModelId> // makes incomplete ID from incomplete information
   halfmd5: (str: string) => string
 }
 
@@ -187,7 +187,7 @@ export type EntityDefinition = ListEntityDefinition | PatternEntityDefinition
  * training-pending : when a training was launched, but the training process is not started yet
  * training: when a chatbot is currently training
  * canceled: when a training was canceled
- * errored: when an unhandled error occured during training
+ * errored: when an unhandled error occurred during training
  */
 export type TrainingStatus = 'done' | 'training-pending' | 'training' | 'canceled' | 'errored'
 

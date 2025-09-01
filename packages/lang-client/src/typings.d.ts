@@ -8,7 +8,7 @@ import { AxiosRequestConfig, AxiosInstance } from 'axios'
 export type LanguageInfo = {
   version: string
   ready: boolean
-  dimentions: number
+  dimensions: number
   domain: string
   readOnly: boolean
 }
@@ -81,15 +81,15 @@ export type ErrorResponse = {
   error: LangError
 }
 
-export type SuccessReponse = {
+export type SuccessResponse = {
   success: true
 }
 
-export type InfoResponseBody = {} & SuccessReponse & LanguageInfo
-export type TokenizeResponseBody = {} & SuccessReponse & TokenizeResult
-export type VectorizeResponseBody = {} & SuccessReponse & VectorizeResult
-export type LanguagesResponseBody = {} & SuccessReponse & LanguageState
-export type DownloadLangResponseBody = {} & SuccessReponse & DownloadStartResult
+export type InfoResponseBody = {} & SuccessResponse & LanguageInfo
+export type TokenizeResponseBody = {} & SuccessResponse & TokenizeResult
+export type VectorizeResponseBody = {} & SuccessResponse & VectorizeResult
+export type LanguagesResponseBody = {} & SuccessResponse & LanguageState
+export type DownloadLangResponseBody = {} & SuccessResponse & DownloadStartResult
 
 export type TokenizeRequestBody = {
   utterances: string[]
@@ -118,7 +118,7 @@ export class Client {
   public vectorize(tokens: string[], language: string): Promise<VectorizeResponseBody | ErrorResponse>
   public getLanguages(): Promise<LanguagesResponseBody | ErrorResponse>
   public startDownload(lang: string): Promise<DownloadLangResponseBody | ErrorResponse>
-  public deleteLang(lang: string): Promise<SuccessReponse | ErrorResponse>
-  public loadLang(lang: string): Promise<SuccessReponse | ErrorResponse>
-  public cancelDownload(downloadId: string): Promise<SuccessReponse | ErrorResponse>
+  public deleteLang(lang: string): Promise<SuccessResponse | ErrorResponse>
+  public loadLang(lang: string): Promise<SuccessResponse | ErrorResponse>
+  public cancelDownload(downloadId: string): Promise<SuccessResponse | ErrorResponse>
 }

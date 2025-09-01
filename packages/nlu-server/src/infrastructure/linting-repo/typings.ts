@@ -8,7 +8,7 @@ export type LintingRepository = {
   set(linting: Linting): Promise<void>
   has(id: LintingId): Promise<boolean>
   query(query: Partial<LintingState>): Promise<Linting[]>
-  queryOlderThan(query: Partial<LintingState>, treshold: Date): Promise<Linting[]>
+  queryOlderThan(query: Partial<LintingState>, threshold: Date): Promise<Linting[]>
 }
 
 export type LintingId = {

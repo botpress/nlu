@@ -11,7 +11,7 @@ import * as MLToolkit from '../ml/toolkit'
 
 import { CustomEntityExtractor } from './entities/custom-extractor'
 import { IntentPrediction, IntentPredictions, NoneableIntentPredictions } from './intents/intent-classifier'
-import { OOSIntentClassifier } from './intents/oos-intent-classfier'
+import { OOSIntentClassifier } from './intents/oos-intent-classifier'
 import { SvmIntentClassifier } from './intents/svm-intent-classifier'
 import { spellCheck as spellCheckUtterance } from './language/spell-check'
 import { SlotTagger } from './slots/slot-tagger'
@@ -252,8 +252,8 @@ function MapStepToOutput(step: SpellStep): PredictOutput {
 export const Predict = async (input: PredictInput, tools: Tools, predictors: Predictors): Promise<PredictOutput> => {
   const { step } = await preprocessInput(input, tools, predictors)
   const initialStep = await makePredictionUtterance(step, predictors, tools)
-  const entitesStep = await extractEntities(initialStep, predictors, tools)
-  const ctxStep = await predictContext(entitesStep, predictors)
+  const entitiesStep = await extractEntities(initialStep, predictors, tools)
+  const ctxStep = await predictContext(entitiesStep, predictors)
   const intentStep = await predictIntent(ctxStep, predictors)
   const slotStep = await extractSlots(intentStep, predictors)
   const spellStep = spellCheck(slotStep, predictors)

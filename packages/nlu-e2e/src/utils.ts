@@ -5,7 +5,7 @@ import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import { getAppDataPath } from './app-data'
-import { UnsuccessfullAPICall } from './errors'
+import { UnsuccessfulAPICall } from './errors'
 
 export type TrainLintPredicate<T extends LintingState | TrainingState> = (state: T) => boolean
 export type PollingArgs<T extends LintingState | TrainingState> = {
@@ -36,7 +36,7 @@ export const pollTrainingUntil = async (args: PollingArgs<TrainingState>): Promi
         const trainStatusRes = await nluClient.getTrainingStatus(appId, modelId)
         if (!trainStatusRes.success) {
           clearInterval(int)
-          reject(new UnsuccessfullAPICall(trainStatusRes.error))
+          reject(new UnsuccessfulAPICall(trainStatusRes.error))
           return
         }
 
@@ -71,7 +71,7 @@ export const pollLintingUntil = async (
         const lintStatusRes = await nluClient.getLintingStatus(appId, modelId, speed)
         if (!lintStatusRes.success) {
           clearInterval(int)
-          reject(new UnsuccessfullAPICall(lintStatusRes.error))
+          reject(new UnsuccessfulAPICall(lintStatusRes.error))
           return
         }
 

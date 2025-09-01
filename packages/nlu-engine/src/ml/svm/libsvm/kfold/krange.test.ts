@@ -27,25 +27,25 @@ const tests: Test[] = [
 ]
 
 const baseKFolder = new BaseKFold()
-const startifiedKFolder = new StratifiedKFold()
+const stratifiedKFolder = new StratifiedKFold()
 
 describe('safe k ranges', () => {
   test('test 0', () => {
     const { ds, base, stratified } = tests.find((t) => t.idx === 0)!
     expect(baseKFolder.krange(ds)).toEqualDomain(base)
-    expect(startifiedKFolder.krange(ds)).toEqualDomain(stratified)
+    expect(stratifiedKFolder.krange(ds)).toEqualDomain(stratified)
   })
 
   test('test 1', () => {
     const { ds, base, stratified } = tests.find((t) => t.idx === 1)!
     expect(baseKFolder.krange(ds)).toEqualDomain(base)
-    expect(startifiedKFolder.krange(ds)).toEqualDomain(stratified)
+    expect(stratifiedKFolder.krange(ds)).toEqualDomain(stratified)
   })
 
   test('test 2', () => {
     const { ds, base, stratified } = tests.find((t) => t.idx === 2)!
     expect(baseKFolder.krange(ds)).toEqualDomain(base)
-    expect(startifiedKFolder.krange(ds)).toEqualDomain(stratified)
+    expect(stratifiedKFolder.krange(ds)).toEqualDomain(stratified)
   })
 
   test('test 3', () => {
@@ -53,7 +53,7 @@ describe('safe k ranges', () => {
 
     const baseSafeDomain = baseKFolder.krange(ds)
     expect(baseSafeDomain).toEqualDomain(base)
-    expect(startifiedKFolder.krange(ds)).toEqualDomain(stratified)
+    expect(stratifiedKFolder.krange(ds)).toEqualDomain(stratified)
 
     expect([1, 5]).toContain(baseSafeDomain.getClosest(2))
     expect(baseSafeDomain.difference(new Domain(5)).getClosest(2)).toEqual(1)
@@ -67,7 +67,7 @@ describe('safe k ranges', () => {
 
     const baseSafeRange = baseKFolder.krange(ds)
     expect(baseSafeRange).toEqualDomain(base)
-    expect(startifiedKFolder.krange(ds)).toEqualDomain(stratified)
+    expect(stratifiedKFolder.krange(ds)).toEqualDomain(stratified)
 
     expect([1, 3]).toContain(baseSafeRange.getClosest(2))
     expect(baseSafeRange.difference(new Domain(3)).getClosest(2)).toEqual(1)
@@ -79,6 +79,6 @@ describe('safe k ranges', () => {
   test('test 5', () => {
     const { ds, base, stratified } = tests.find((t) => t.idx === 5)!
     expect(baseKFolder.krange(ds)).toEqualDomain(base)
-    expect(startifiedKFolder.krange(ds)).toEqualDomain(stratified)
+    expect(stratifiedKFolder.krange(ds)).toEqualDomain(stratified)
   })
 })

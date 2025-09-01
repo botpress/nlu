@@ -5,7 +5,7 @@ import { makeTestUtterance } from '../test-utils/fake-utterance'
 import { Intent } from '../typings'
 import Utterance from '../utterance/utterance'
 
-import { ExactIntenClassifier } from './exact-intent-classifier'
+import { ExactIntentClassifier } from './exact-intent-classifier'
 
 const u1 = 'Hi my name is Alex W and I try to make NLU for a living'
 const u2 = "Hi I'm Justine and I'm a smart bot with very scoped skills"
@@ -36,7 +36,7 @@ const isOneHot = (x: number[]) => {
 
 describe('Exact match intent classifier', () => {
   test('when no match clf returns all confidence 0 and oos 1', async () => {
-    let exactMatchIntentClf = new ExactIntenClassifier()
+    let exactMatchIntentClf = new ExactIntentClassifier()
     const model = await exactMatchIntentClf.train(
       {
         intents,
@@ -47,7 +47,7 @@ describe('Exact match intent classifier', () => {
       },
       dummyProgress
     )
-    exactMatchIntentClf = new ExactIntenClassifier()
+    exactMatchIntentClf = new ExactIntentClassifier()
     await exactMatchIntentClf.load(model)
 
     const preds = await exactMatchIntentClf.predict(makeTestUtterance('Some random string'))
@@ -57,7 +57,7 @@ describe('Exact match intent classifier', () => {
   })
 
   test('when match clf returns one hot vector', async () => {
-    let exactMatchIntentClf = new ExactIntenClassifier()
+    let exactMatchIntentClf = new ExactIntentClassifier()
     const model = await exactMatchIntentClf.train(
       {
         intents,
@@ -68,7 +68,7 @@ describe('Exact match intent classifier', () => {
       },
       dummyProgress
     )
-    exactMatchIntentClf = new ExactIntenClassifier()
+    exactMatchIntentClf = new ExactIntentClassifier()
     await exactMatchIntentClf.load(model)
 
     const pairs: [string, Intent<Utterance>][] = [
@@ -86,9 +86,9 @@ describe('Exact match intent classifier', () => {
     }
   })
 
-  // This test is dependant of utterance.toString() implementation. Ideally we would mock the utterance class.
+  // This test is dependent of utterance.toString() implementation. Ideally we would mock the utterance class.
   test('clf matches even when casing or special characters', async () => {
-    let exactMatchIntentClf = new ExactIntenClassifier()
+    let exactMatchIntentClf = new ExactIntentClassifier()
     const model = await exactMatchIntentClf.train(
       {
         intents,
@@ -99,10 +99,10 @@ describe('Exact match intent classifier', () => {
       },
       dummyProgress
     )
-    exactMatchIntentClf = new ExactIntenClassifier()
+    exactMatchIntentClf = new ExactIntentClassifier()
     await exactMatchIntentClf.load(model)
 
-    const u1_hat = 'hi mY nAMe is Alex W and I try to maKe nLu for a living' // case insensitive
+    const u1_hat = 'hi mY nAMe is Alex W and I try to maKe nLu for a living' // case-insensitive
     const u2_hat = 'Hi I_m Justine and I_m a smart bot with very scoped skills' // ignore special characters
     const u3_hat = 'Medication makes me high ¿÷≥≤µ˜∫√≈æ' // ignore special characters
 

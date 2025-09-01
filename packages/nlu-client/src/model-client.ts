@@ -7,7 +7,7 @@ import { ClientResponseError } from './error'
 import { HTTPCall } from './http-call'
 
 type GET_WEIGHTS_STATUS = 'OK' | 'WEIGHTS_TRANSFER_DISABLED' | 'MODEL_NOT_FOUND'
-type POST_WEIGHTS_STATUS = 'OK' | 'WEIGHTS_TRANSFER_DISABLED' | 'INVALID_MODEL_FORMAT' | 'UNSUPORTED_MODEL_SPEC'
+type POST_WEIGHTS_STATUS = 'OK' | 'WEIGHTS_TRANSFER_DISABLED' | 'INVALID_MODEL_FORMAT' | 'UNSUPPORTED_MODEL_SPEC'
 
 const get_status_meanings: Record<GET_WEIGHTS_STATUS, number> = {
   OK: 200,
@@ -19,7 +19,7 @@ const post_status_meanings: Record<POST_WEIGHTS_STATUS, number> = {
   OK: 200,
   INVALID_MODEL_FORMAT: 400,
   WEIGHTS_TRANSFER_DISABLED: 403,
-  UNSUPORTED_MODEL_SPEC: 455 // custom unassigned status code
+  UNSUPPORTED_MODEL_SPEC: 455 // custom unassigned status code
 }
 
 type GetWeightRes<S extends GET_WEIGHTS_STATUS, R extends Readable | Buffer> = S extends 'OK'
@@ -47,20 +47,20 @@ export class ModelTransferClient {
   }
 
   public async upload(appId: string, weights: Buffer): Promise<PostWeightRes> {
-    const ressource = 'modelweights'
+    const resource = 'modelweights'
     const reqHeaders = {
       ...appIdHeader(appId),
       'content-type': 'application/octet-stream',
       'content-length': weights.length
     }
 
-    const { status } = await this.axios.post(ressource, weights, {
+    const { status } = await this.axios.post(resource, weights, {
       headers: reqHeaders,
       maxContentLength: Infinity,
       maxBodyLength: Infinity
     })
 
-    const call: HTTPCall<'POST'> = { verb: 'POST', ressource }
+    const call: HTTPCall<'POST'> = { verb: 'POST', resource }
 
     if (status >= 500) {
       throw new ClientResponseError(call, status, 'Internal Server Error')
@@ -89,13 +89,13 @@ export class ModelTransferClient {
     modelId: string,
     opts: { responseType: 'stream' | 'arraybuffer' }
   ): Promise<GetWeightRes<GET_WEIGHTS_STATUS, Readable | Buffer>> {
-    const ressource = `modelweights/${modelId}`
+    const resource = `modelweights/${modelId}`
     const { responseType } = opts
 
     const reqHeaders = appIdHeader(appId)
-    const { data, status } = await this.axios.get(ressource, { headers: reqHeaders, responseType })
+    const { data, status } = await this.axios.get(resource, { headers: reqHeaders, responseType })
 
-    const call: HTTPCall<'GET'> = { verb: 'GET', ressource }
+    const call: HTTPCall<'GET'> = { verb: 'GET', resource }
     if (status >= 500) {
       throw new ClientResponseError(call, status, 'Internal Server Error')
     }

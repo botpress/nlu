@@ -58,14 +58,14 @@ export class LintingAlreadyStartedError extends ResponseError {
 export class LangServerCommError extends ResponseError {
   constructor(err: Error) {
     const { message } = err
-    super(`An error occured during communication with language server: ${message}`, 500)
+    super(`An error occurred during communication with language server: ${message}`, 500)
   }
 }
 
 export class DucklingCommError extends ResponseError {
   constructor(err: Error) {
     const { message } = err
-    super(`An error occured during communication with Duckling server: ${message}`, 500)
+    super(`An error occurred during communication with Duckling server: ${message}`, 500)
   }
 }
 

@@ -34,7 +34,7 @@
  *--------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------
- *			     DEVELOPEMENT NOTES
+ *			     DEVELOPMENT NOTES
  *
  * Links
  *    Each node has two links, link[0] is the left child, and link[1] is the
@@ -170,7 +170,7 @@ struct rumavl_stack {
 
 /*****************************************************************************
  * 
- * FORWARD DECLERATIONS
+ * FORWARD DECLARATIONS
  * 
  ****************************************************************************/
 
@@ -202,7 +202,7 @@ static int insert_cb (RUMAVL *t, RUMAVL_NODE *n, void *r1, const void *r2,
  ****************************************************************************/
 
 /*----------------------------------------------------------------------------
- * rumavl_new - allocates a new RUMAVL object, and initialises it. This is the
+ * rumavl_new - allocates a new RUMAVL object, and initializes it. This is the
  * only time the user gets to set the record length and record comparison
  * function, to avoid data loss.
  *--------------------------------------------------------------------------*/
@@ -315,9 +315,9 @@ int rumavl_set (RUMAVL *tree, const void *record)
     }
 
     /* Since the tree is not empty, we must descend towards the nodes ideal
-     * possition, and we may even find an existing node with the same record.
+     * position, and we may even find an existing node with the same record.
      * We keep a list parents for the eventual node position, because these
-     * parents may become inbalanced by a new insertion. */
+     * parents may become imbalanced by a new insertion. */
 
     stack = NULL;
     node = &tree->root;
@@ -511,7 +511,7 @@ int rumavl_delete (RUMAVL *tree, const void *record)
 
 	/* find heaviest subtree */
 	if ((*node)->balance > 0){
-	    outdir = +1;    /* outter direction */
+	    outdir = +1;    /* outer direction */
 	    dir = -1;	    /* inner direction */
 	    outln = 1;	    /* outer link number */
 	    ln = 0;	    /* inner link number */
@@ -523,7 +523,7 @@ int rumavl_delete (RUMAVL *tree, const void *record)
 	}
 	
 	/* Add node to be deleted to the list of nodes to be rebalanced.
-	 * Rememer that the replacement node will actually be acted apon,
+	 * Remember that the replacement node will actually be acted upon,
 	 * and that the replacement node should feel the effect of its own
 	 * move */
 	if (stack_push(tree, &stack, node, outdir) != 0)
@@ -870,7 +870,7 @@ static void stack_destroy(RUMAVL *tree, RUMAVL_STACK *stack)
 
 /*----------------------------------------------------------------------------
  * stack_update - goes up stack readjusting balance as needed. This function
- * serves as a testiment to the philosophy of commenting while you code, 'cos
+ * serves as a testament to the philosophy of commenting while you code, 'cos
  * hell if I can remember how I got to this. I think is has something to do
  * with the varying effects on tree height, depending on exactly which sub 
  * tree, or sub-sub tree was modified. TODO study and comment
@@ -957,7 +957,7 @@ static int rec_cmp (RUMAVL *tree, const void *reca, const void *recb)
 
 /*----------------------------------------------------------------------------
  * Balance - rotate or double rotate as needed. Sometimes simply rotating a
- * tree is inefficient, as it leaves the tree as inbalanced as it was before
+ * tree is inefficient, as it leaves the tree as imbalanced as it was before
  * the rotate. To rectify this, we first rotate the heavier child so that the
  * heavier grandchild is on the outside, then rotate as per normal.
  *

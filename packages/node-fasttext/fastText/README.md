@@ -266,7 +266,7 @@ The following arguments for training are optional:
 
 The following arguments for quantization are optional:
   -cutoff             number of words and ngrams to retain [0]
-  -retrain            finetune embeddings if a cutoff is applied [0]
+  -retrain            fine-tune embeddings if a cutoff is applied [0]
   -qnorm              quantizing the norm separately [0]
   -qout               quantizing the classifier [0]
   -dsub               size of each sub-vector [2]

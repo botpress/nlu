@@ -77,7 +77,7 @@ void main()
 
 ### model weights upload and download
 
-The `/modelweights` ressource has a slightly different behavior than the rest of the API. It communicates with binary buffers instead of JSON.
+The `/modelweights` resource has a slightly different behavior than the rest of the API. It communicates with binary buffers instead of JSON.
 
 ```ts
 import { Client } from '@botpress/nlu-client'

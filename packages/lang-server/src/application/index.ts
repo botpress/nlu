@@ -33,7 +33,7 @@ export class LangApplication {
     return {
       version: this.options.version,
       ready: this.languageService.isReady,
-      dimentions: this.languageService.dim,
+      dimensions: this.languageService.dim,
       domain: this.languageService.domain,
       readOnly: !this._isAdminToken(authHeader)
     }

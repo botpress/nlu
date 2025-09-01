@@ -123,7 +123,7 @@ TrainerModel::SentencePieces Trainer::MakeSeedSentencePieces() const {
   std::vector<int> D(n);   // depths of internal node
 
   // Makes a suffix array to extract all sub strings occurring
-  // more than 2 times in the sentence.
+  // more than two times in the sentence.
   constexpr int kAlphabetSize = 0x110000;  // All UCS4 range.
   int node_num = 0;
   LOG(INFO) << "Making suffix array...";
@@ -381,7 +381,7 @@ TrainerModel::SentencePieces Trainer::PruneSentencePieces(
       //         = current_sum + freq[i] (alternatives - 1)
       const float logsum_alt = log(sum + freq[i] * (alternatives.size() - 1));
 
-      // The frequencies of altenatives are increased by freq[i].
+      // The frequencies of alternatives are increased by freq[i].
       float logprob_alt = 0.0;
       for (const int n : alternatives[i]) {
         logprob_alt += (log(freq[n] + freq[i]) - logsum_alt);
@@ -500,7 +500,7 @@ util::Status Trainer::Train() {
     model.SetSentencePieces(std::move(new_sentencepieces));
   }  // end of EM iteration
 
-  // Finally, adjusts the size of sentencepices to be |vocab_size|.
+  // Finally, adjusts the size of sentencepieces to be |vocab_size|.
   final_pieces_ = FinalizeSentencePieces(model);
 
   return Save();

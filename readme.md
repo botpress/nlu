@@ -24,7 +24,7 @@ Check out each individual packages for more details.
 
 ## Running from pre-built binaries
 
-New executable binary files are packaged at every release. You can download those directly on release page located [here](https://github.com/botpress/nlu/releases).
+New executable binary files are packaged at every release. You can download those directly on the [release page](https://github.com/botpress/nlu/releases).
 
 ## Telemetry
 
@@ -43,7 +43,7 @@ The important environment variables for configuring tracing are:
 - OTEL_EXPORTER_JAEGER_ENDPOINT url Sets the Jaeger collector endpoint
 - OTEL_SERVICE_NAME string Sets the service name given to a trace
 - OTEL_SERVICE_VERSION string Sets the current running version of the service
-- OTEL_SERVICE_VERSION_INSTANCE_ID string Sets the node intance id on which the service is running on
+- OTEL_SERVICE_VERSION_INSTANCE_ID string Sets the node instance id on which the service is running on
 - OTEL_SERVICE_NAMESPACE string Sets the namespace of the service
 - OTEL_DEPLOYMENT_ENVIRONMENT string Sets the environment of the service
 
@@ -59,4 +59,4 @@ The NLU Server's only purpose is to do NLU.
 
 ## Licensing
 
-Different licences may apply to differents packages of the [./packages](https://github.com/botpress/nlu/tree/master/packages) directory. If no licence is specified, the package is protected by the same license as the [v12 Botpress repository](https://github.com/botpress/v12).
+Different licences may apply to different packages of the [./packages](https://github.com/botpress/nlu/tree/master/packages) directory. If no licence is specified, the package is protected by the same license as the [v12 Botpress repository](https://github.com/botpress/v12).

@@ -155,9 +155,9 @@ export class SVMClassifier
   private async _predictProb(preds: Predictors, coordinates: number[]): Promise<Prediction[]> {
     const results = await preds.clf.predictProbabilities(coordinates)
 
-    const idexes = _.range(results.length)
+    const indexes = _.range(results.length)
     const reducedResults = _.reduce(
-      idexes,
+      indexes,
       (acc: Dic<number>, curr: number) => {
         const label = this.getLabelByIdx(preds, curr).replace(/__k__\d+$/, '')
         acc[label] = (acc[label] || 0) + results[curr]
@@ -174,7 +174,7 @@ export class SVMClassifier
   }
 
   private async _predictOne(preds: Predictors, coordinates: number[]): Promise<Prediction[]> {
-    // might simply use oneclass instead
+    // might simply use one class instead
     const results = await preds.clf.predict(coordinates)
     return [
       {

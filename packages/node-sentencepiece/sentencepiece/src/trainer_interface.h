@@ -76,14 +76,14 @@ class TrainerInterface {
  protected:
   // Returns true if |piece| is valid sentence piece.
   // The result is affected by
-  // max_sentencepiece_length, split_by_whiespace, split_by_unicode_script.
+  // max_sentencepiece_length, split_by_whitespace, split_by_unicode_script.
   bool IsValidSentencePiece(const string_util::UnicodeText &piece) const;
 
   // Loads all sentences from spec.input().
   // It loads at most input_sentence_size sentences.
   util::Status LoadSentences();
 
-  // Splits all sentencecs by whitespaces and
+  // Splits all sentences by whitespaces and
   // replace the |sentences_| with tokenized string.
   // e.g.,
   //  [ ["hello world ", 1], ["hi world]" ] =>

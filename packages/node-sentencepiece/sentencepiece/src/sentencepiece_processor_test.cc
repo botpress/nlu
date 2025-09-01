@@ -262,7 +262,7 @@ TEST(SentencepieceProcessorTest, EncodeTest) {
     EXPECT_NOT_OK(sp.Encode("ABC DEF", &spt));
   }
 
-  // Halfwidth to Fullwidith katakana normalization.
+  // Halfwidth to Fullwidth katakana normalization.
   {
     auto mock = MakeUnique<MockModel>();
     const EncodeResult result = {{WS "グー", 3}, {"グル", 4}, {"</s>", 2}};
@@ -493,8 +493,8 @@ TEST(SentencepieceProcessorTest, DecodeTest) {
     auto mock = MakeUnique<DecodeMockModel>();
     sp.SetModel(std::move(mock));
 
-    const auto normalizaiton_spec = MakeDefaultNormalizerSpec();
-    sp.SetNormalizer(MakeUnique<normalizer::Normalizer>(normalizaiton_spec));
+    const auto normalization_spec = MakeDefaultNormalizerSpec();
+    sp.SetNormalizer(MakeUnique<normalizer::Normalizer>(normalization_spec));
 
     SentencePieceText spt;
 
@@ -546,8 +546,8 @@ TEST(SentencepieceProcessorTest, DecodeTest) {
     auto mock = MakeUnique<DecodeMockModel>();
     sp.SetModel(std::move(mock));
 
-    const auto normalizaiton_spec = MakeDefaultNormalizerSpec();
-    sp.SetNormalizer(MakeUnique<normalizer::Normalizer>(normalizaiton_spec));
+    const auto normalization_spec = MakeDefaultNormalizerSpec();
+    sp.SetNormalizer(MakeUnique<normalizer::Normalizer>(normalization_spec));
 
     SentencePieceText spt;
 
@@ -565,8 +565,8 @@ TEST(SentencepieceProcessorTest, DecodeTest) {
     auto mock = MakeUnique<DecodeMockModel>();
     sp.SetModel(std::move(mock));
 
-    const auto normalizaiton_spec = MakeDefaultNormalizerSpec();
-    sp.SetNormalizer(MakeUnique<normalizer::Normalizer>(normalizaiton_spec));
+    const auto normalization_spec = MakeDefaultNormalizerSpec();
+    sp.SetNormalizer(MakeUnique<normalizer::Normalizer>(normalization_spec));
 
     SentencePieceText spt;
 
@@ -584,8 +584,8 @@ TEST(SentencepieceProcessorTest, DecodeTest) {
     auto mock = MakeUnique<DecodeMockModel>();
     sp.SetModel(std::move(mock));
 
-    const auto normalizaiton_spec = MakeDefaultNormalizerSpec();
-    sp.SetNormalizer(MakeUnique<normalizer::Normalizer>(normalizaiton_spec));
+    const auto normalization_spec = MakeDefaultNormalizerSpec();
+    sp.SetNormalizer(MakeUnique<normalizer::Normalizer>(normalization_spec));
 
     SentencePieceText spt;
 

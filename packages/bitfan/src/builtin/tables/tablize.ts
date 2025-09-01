@@ -2,7 +2,7 @@ import * as sdk from 'bitfan/sdk'
 import _ from 'lodash'
 import { initTable } from './init'
 
-export const tabelize: typeof sdk.tables.tabelize = <D>(
+export const tablize: typeof sdk.tables.tablize = <D>(
   data: D[],
   disposition: {
     row: (d: D) => string

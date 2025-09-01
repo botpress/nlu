@@ -5,7 +5,7 @@ import numeric from 'numeric'
 import { Data } from './typings'
 
 export function normalizeDataset(dataset: Data[], p_mu?: number[], p_sigma?: number[]) {
-  assert(dataset instanceof Array, 'dataset must be an list of [X,y] tuples')
+  assert(dataset instanceof Array, 'dataset must be a list of [X,y] tuples')
   assert(dataset.length > 0, 'dataset cannot be empty')
 
   const X = dataset.map((s) => s[0])

@@ -49,7 +49,7 @@ typedef __int32 int32_t;
  * \addtogroup crfsuite_api CRFSuite C API
  * @{
  *
- *  The CRFSuite C API provides a low-level library for manupulating
+ *  The CRFSuite C API provides a low-level library for manipulating
  *  CRFSuite in C language.
  */
 
@@ -269,7 +269,7 @@ typedef struct {
 /**
  * Type of callback function for logging.
  *  @param  user        Pointer to the user-defined data.
- *  @param  format      Format string (compatible with prinf()).
+ *  @param  format      Format string (compatible with printf()).
  *  @param  args        Optional arguments for the format string.
  *  @return int         \c 0 to continue; non-zero to cancel the training.
  */
@@ -364,7 +364,7 @@ struct tag_crfsuite_trainer {
 
     /**
      * Data structure that contains a flag.
-     * The contained flag tells weither or not to cancel the training.
+     * The contained flag tells whether or not to cancel the training.
      */
     canceller_t * canceller;
 
@@ -408,10 +408,10 @@ struct tag_crfsuite_trainer {
     /**
      * Start a training process.
      *  @param  trainer     The pointer to this trainer instance.
-     *  @param  data        The poiinter to the data set.
+     *  @param  data        The pointer to the data set.
      *  @param  filename    The filename to which the trainer stores the model.
      *                      If an empty string is specified, this function
-     *                      does not sture the model to a file.
+     *                      does not store the model to a file.
      *  @param  holdout     The holdout group.
      *  @return int         The status code.
      */
@@ -1032,14 +1032,14 @@ void crfsuite_evaluation_finish(crfsuite_evaluation_t* eval);
 void crfsuite_evaluation_clear(crfsuite_evaluation_t* eval);
 
 /**
- * Accmulate the correctness of the predicted label sequence.
+ * Accumulate the correctness of the predicted label sequence.
  *  @param  eval        The pointer to crfsuite_evaluation_t.
  *  @param  reference   The reference label sequence.
  *  @param  prediction  The predicted label sequence.
  *  @param  T           The length of the label sequence.
  *  @return int         \c 0 if succeeded, \c 1 otherwise.
  */
-int crfsuite_evaluation_accmulate(crfsuite_evaluation_t* eval, const int* reference, const int* prediction, int T);
+int crfsuite_evaluation_accumulate(crfsuite_evaluation_t* eval, const int* reference, const int* prediction, int T);
 
 /**
  * Finalize the evaluation result.

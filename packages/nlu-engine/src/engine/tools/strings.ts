@@ -18,7 +18,7 @@ export function ngram(value: string, n: number): string[] {
 export function vocabNGram(tokens: string[]): string[] {
   const plainTokens = tokens
     .map((x) => x.replace('\u2581', '')) // We want to discover real language-specific chars
-    .filter((x) => x.length > 1) // We want to exclude tokens that represent ponctuation etc (tokenizers will often split them alone)
+    .filter((x) => x.length > 1) // We want to exclude tokens that represent punctuation etc (tokenizers will often split them alone)
 
   // We build a gramset, which is essentially a list of all the unique bigrams and trigrams
   // We'll create entirely new words from those grams
@@ -230,8 +230,8 @@ export function damerauLevenshtein(a: string, b: string) {
 /**
  * @returns number of alpha characters in a string
  */
-export const countAlpha = (cantidate: string): number =>
-  (cantidate.toLowerCase().replace(/\s/g, '').match(/[a-z]/g) || []).length
+export const countAlpha = (candidate: string): number =>
+  (candidate.toLowerCase().replace(/\s/g, '').match(/[a-z]/g) || []).length
 
 /**
  * @returns number of digits characters in a string

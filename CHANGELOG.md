@@ -14,7 +14,7 @@
 - **nlu-engine:** stop progress watchdog when done or error ([#214](https://github.com/botpress/nlu/issues/214)) ([0661abd](https://github.com/botpress/nlu/commit/0661abd043c22f03381f77561020de64d78b15bc))
 - **nlu-server:** ensure forward slashes in app id wont break fs model repo ([#173](https://github.com/botpress/nlu/issues/173)) ([889aa7c](https://github.com/botpress/nlu/commit/889aa7c447f1647d9da1483d5157fc279d543c63))
 - **nlu-server:** fix send training_time using db config ([6225ef1](https://github.com/botpress/nlu/commit/6225ef124ecc719385afe667f5904885404f6418))
-- no more dupplicated issues in in-mem linting repo ([46cc134](https://github.com/botpress/nlu/commit/46cc13464b4aeaf51289a7f30f1992c377341b47))
+- no more duplicated issues in in-mem linting repo ([46cc134](https://github.com/botpress/nlu/commit/46cc13464b4aeaf51289a7f30f1992c377341b47))
 - **worker:** do not reuse a process if it exited since last usage ([#135](https://github.com/botpress/nlu/issues/135)) ([9c3ab74](https://github.com/botpress/nlu/commit/9c3ab74c1c798fccd5e52e87bda9c4a34ac3d6b2))
 
 ### Features
@@ -141,7 +141,7 @@
 - **lint:** applied linting to code ([774d32c](https://github.com/botpress/nlu/commit/774d32c4f5b414ebd4d22cbd8b4de027feee5f62))
 - **sentry:** use sentry enabled instead of DSN for the configuration ([e89301c](https://github.com/botpress/nlu/commit/e89301cb5d633b6ba9649bb0d9164235885e9308))
 - **style:** fix codestyle for tests, lint & formatting ([c9c572a](https://github.com/botpress/nlu/commit/c9c572a76110c6c54ef8a60bd727ae33e65eb018))
-- **worker:** fix node typings to pass environement variables correctly when spawning new thread ([#76](https://github.com/botpress/nlu/issues/76)) ([853a3f3](https://github.com/botpress/nlu/commit/853a3f3d7de38471cf4539dc395c6bf7b8ee9a27))
+- **worker:** fix node typings to pass environment variables correctly when spawning new thread ([#76](https://github.com/botpress/nlu/issues/76)) ([853a3f3](https://github.com/botpress/nlu/commit/853a3f3d7de38471cf4539dc395c6bf7b8ee9a27))
 - run unit tests of all yarn packages from the root ([26670d3](https://github.com/botpress/nlu/commit/26670d30de797f3fa8c95b55330270157a79f1d1))
 - **style:** fix codestyle for tests, lint & formatting ([cacbf94](https://github.com/botpress/nlu/commit/cacbf948a5f8589ce5bfd6402d3578b48c816497))
 - undefined logger in slot tagger ([b2c688d](https://github.com/botpress/nlu/commit/b2c688dbef69fbda677adc701a23843f47504499))
@@ -157,7 +157,7 @@
 ### Bug Fixes
 
 - exact matcher now works even with different entities ([#56](https://github.com/botpress/nlu/issues/56)) ([6c14b8c](https://github.com/botpress/nlu/commit/6c14b8ce6b14398fcdc621455382c0e18aaa0570))
-- **training:** porgress now won't skip steps ([#55](https://github.com/botpress/nlu/issues/55)) ([4073d61](https://github.com/botpress/nlu/commit/4073d617edf19d683833ee8394ead2376c94fdfa))
+- **training:** progress now won't skip steps ([#55](https://github.com/botpress/nlu/issues/55)) ([4073d61](https://github.com/botpress/nlu/commit/4073d617edf19d683833ee8394ead2376c94fdfa))
 
 ### Features
 
@@ -221,7 +221,7 @@
 - **api:** no need for min 1 context ([e17ae84](https://github.com/botpress/nlu/commit/e17ae84df4d9d1c9d2102ecf3c470547bcf35147))
 - **engine:** spell-checker does not replace entities anymore ([0e0d75a](https://github.com/botpress/nlu/commit/0e0d75a8efa2bb00d9b5c3c08f5873cc66425251))
 - **logger:** no log filter should log all messages ([86e693c](https://github.com/botpress/nlu/commit/86e693c579e5a2a88648dc9810f55821db69b00d))
-- logger attach error no longuer throws ([b84f39a](https://github.com/botpress/nlu/commit/b84f39abd6eea9f8bdd56ec1dbaf5dad5a5e75d4))
+- logger attach error no longer throws ([b84f39a](https://github.com/botpress/nlu/commit/b84f39abd6eea9f8bdd56ec1dbaf5dad5a5e75d4))
 - nanoid is default import from nanoid ([45ca517](https://github.com/botpress/nlu/commit/45ca517250002b230f455049a409867b60cc8836))
 
 ### Features

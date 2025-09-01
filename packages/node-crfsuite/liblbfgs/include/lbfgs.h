@@ -324,7 +324,7 @@ typedef struct {
      *  problems. Setting this parameter to a positive value activates
      *  Orthant-Wise Limited-memory Quasi-Newton (OWL-QN) method, which
      *  minimizes the objective function F(x) combined with the L1 norm |x|
-     *  of the variables, {F(x) + C |x|}. This parameter is the coeefficient
+     *  of the variables, {F(x) + C |x|}. This parameter is the coefficient
      *  for the |x|, i.e., C. As the L1 norm |x| is not differentiable at
      *  zero, the library modifies function and gradient evaluations from
      *  a client program suitably; a client program thus have only to return
@@ -498,7 +498,7 @@ void lbfgs_parameter_init(lbfgs_parameter_t *param);
  * Allocate an array for variables.
  *
  *  This function allocates an array of variables for the convenience of
- *  ::lbfgs function; the function has a requreiemt for a variable array
+ *  ::lbfgs function; the function has a requirement for a variable array
  *  when libLBFGS is built with SSE/SSE2 optimization routines. A user does
  *  not have to use this function for libLBFGS built without SSE/SSE2
  *  optimization.

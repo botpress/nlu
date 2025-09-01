@@ -44,7 +44,7 @@ void yargs
 
           argv = { ...parseEnv(nluServerParameters), ...argv }
           void runNLUServer(argv).catch((err) => {
-            nluLogger.sub('Exit').attachError(err).critical('NLU Server exits after an error occured.')
+            nluLogger.sub('Exit').attachError(err).critical('NLU Server exits after an error occurred.')
             process.exit(1)
           })
         }
@@ -60,7 +60,7 @@ void yargs
           },
           force: {
             alias: 'f',
-            description: 'Weither or not to override current file.',
+            description: 'Whether or not to override current file.',
             type: 'boolean'
           }
         },
@@ -117,7 +117,7 @@ void yargs
 
           argv = { ...parseEnv(langServerParameters), ...argv }
           void runLanguageServer(argv).catch((err) => {
-            langLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occured.')
+            langLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occurred.')
             process.exit(1)
           })
         }
@@ -133,7 +133,7 @@ void yargs
           },
           force: {
             alias: 'f',
-            description: 'Weither or not to override current file.',
+            description: 'Whether or not to override current file.',
             type: 'boolean'
           }
         },
@@ -158,7 +158,7 @@ void yargs
       .command('download', 'Download a language model for lang and dim', langDownloadParameters, (argv) => {
         argv = { ...parseEnv(langDownloadParameters), ...argv }
         void downloadLang(argv).catch((err) => {
-          langLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occured.')
+          langLogger.sub('Exit').attachError(err).critical('Language Server exits after an error occurred.')
           process.exit(1)
         })
       })

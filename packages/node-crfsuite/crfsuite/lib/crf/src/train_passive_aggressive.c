@@ -367,7 +367,7 @@ int crfsuite_train_passive_aggressive(
                 delta_finalize(&dc);
 
                 /*
-                    Compute tau (dpending on PA, PA-I, and PA-II).
+                    Compute tau (depending on PA, PA-I, and PA-II).
                  */
                 norm2 = delta_norm2(&dc);
                 tau = tau_function(cost, norm2, opt.c);

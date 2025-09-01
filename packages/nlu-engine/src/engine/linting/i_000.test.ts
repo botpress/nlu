@@ -49,7 +49,7 @@ const trainSet: TrainInput = {
 
 const fakeTools = makeFakeTools(300, ['en'])
 
-test('linter for I_000 flags all reduntant spaces', async () => {
+test('linter for I_000 flags all redundant spaces', async () => {
   const lintResults = await I_000_Linter.lint(trainSet, fakeTools)
 
   for (let i = 0; i < samples.length; i++) {

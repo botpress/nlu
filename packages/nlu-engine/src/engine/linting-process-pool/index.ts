@@ -4,10 +4,10 @@ import { LanguageConfig, LintingProgressCb, Logger } from '../../typings'
 import { LintingAlreadyStartedError, LintingCanceledError, LintingExitedUnexpectedlyError } from '../errors'
 import { ErrorHandler } from '../training-process-pool/error-handler'
 import { ENTRY_POINT } from './process-entry-point'
-import { LintingInput, LintingOuput, LintingProgress } from './typings'
+import { LintingInput, LintingOutput, LintingProgress } from './typings'
 
 export class LintingProcessPool {
-  private _processPool: ProcessPool<LintingInput, LintingOuput, LintingProgress>
+  private _processPool: ProcessPool<LintingInput, LintingOutput, LintingProgress>
 
   constructor(private _logger: Logger, config: LanguageConfig) {
     const env = {
@@ -15,7 +15,7 @@ export class LintingProcessPool {
       NLU_CONFIG: JSON.stringify(config)
     }
 
-    this._processPool = makeProcessPool<LintingInput, LintingOuput, LintingProgress>(this._logger, {
+    this._processPool = makeProcessPool<LintingInput, LintingOutput, LintingProgress>(this._logger, {
       maxWorkers: Number.POSITIVE_INFINITY,
       entryPoint: ENTRY_POINT,
       env,
@@ -27,7 +27,7 @@ export class LintingProcessPool {
     return this._processPool.cancel(lintId)
   }
 
-  public async startLinting(input: LintingInput, progress: LintingProgressCb): Promise<LintingOuput> {
+  public async startLinting(input: LintingInput, progress: LintingProgressCb): Promise<LintingOutput> {
     try {
       const output = await this._processPool.run(
         input.lintId,

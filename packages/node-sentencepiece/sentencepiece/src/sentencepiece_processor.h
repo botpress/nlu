@@ -364,7 +364,7 @@ class SentencePieceProcessor {
 
   // They are used in Python interface. Returns serialized proto.
   // In python module, we can get access to the full Proto after
-  // deserialzing the returned byte sequence.
+  // deserializing the returned byte sequence.
   virtual util::bytes EncodeAsSerializedProto(
       util::min_string_view input) const;
 

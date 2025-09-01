@@ -356,7 +356,7 @@ TEST(UtilTest, DecodeUTF8Test) {
 
     for (size_t i = 0; i < 4; ++i) {
       // return values of string_util::DecodeUTF8 is not defined.
-      // TODO(taku) implement an workaround.
+      // TODO(taku) implement a workaround.
       EXPECT_EQ(kUnicodeError,
                 string_util::DecodeUTF8(
                     kInvalidData[i], kInvalidData[i] + strlen(kInvalidData[i]),

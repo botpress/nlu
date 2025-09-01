@@ -17,7 +17,7 @@ note : windows users also need [Build Tools for Visual Studio package](https://v
    `>> node`
 1. require node-sentencepiece package  
    `(node) var sp = require('./node-sentencepiece')`
-1. instanciate a processor  
+1. instantiate a processor  
    `(node) var proc = await makeProcessor()`
 1. load a model  
    `(node) proc.loadModel('/path/to/model/m.model')`
@@ -39,7 +39,7 @@ note : windows users also need [Build Tools for Visual Studio package](https://v
 
    `(node) var outputText = proc.decode(pieces, modelPath)`
 
-   `(node) inputText === outpuText`
+   `(node) inputText === outputText`
 
    returns:  
    `true`

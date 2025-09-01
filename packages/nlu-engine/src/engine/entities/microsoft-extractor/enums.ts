@@ -41,7 +41,7 @@ export const GlobalRecognizers = [
   Recognizers.recognizeGUID
 ]
 
-export const LanguageDependantRecognizers = [
+export const LanguageDependentRecognizers = [
   Recognizers.recognizeOrdinal,
   Recognizers.recognizeNumber,
   Recognizers.recognizePercentage,

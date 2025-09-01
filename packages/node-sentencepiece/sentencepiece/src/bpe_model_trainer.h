@@ -40,7 +40,7 @@ class Trainer : public TrainerInterface {
   struct Symbol {
     const Symbol *left;              // left symbol in bigram
     const Symbol *right;             // right symbol in bigram
-    string_util::UnicodeText chars;  // all flattend chracter sequence
+    string_util::UnicodeText chars;  // all flattened character sequence
     bool is_unk;                     // true if this symbol is unknown.
     uint64 fp;                       // fingerprint of this symbol.
     uint64 freq;                     // frequency of this symbol.
@@ -100,7 +100,7 @@ class Trainer : public TrainerInterface {
   // Adds it to symbols_cache_ and active_symbols_.
   void AddNewPair(int sid, int left, int right);
 
-  // Resets the fequency of bigram [symbols_[sid][left] symbols_[sid][right]],
+  // Resets the frequency of bigram [symbols_[sid][left] symbols_[sid][right]],
   // if this bigram is not |best|.
   void ResetFreq(int sid, int left, int right, const Symbol *best);
 
@@ -114,7 +114,7 @@ class Trainer : public TrainerInterface {
   // Set of symbols from which we find the best symbol in each iteration.
   std::set<Symbol *> active_symbols_;
 
-  // Stores symbols allocated in heap so that we can delete them at onece.
+  // Stores symbols allocated in heap so that we can delete them at once.
   std::vector<Symbol *> allocated_;
 
   // Sentences. symbols_[sid][index] stores a symbol in sentence_[sid][index].

@@ -62,7 +62,7 @@ export class SVM {
     progressCb: (progress: number) => void
   ): Promise<TrainOutput> => {
     const dims = numeric.dim(dataset)
-    assert(dims[0] > 0 && dims[1] === 2 && dims[2] > 0, 'dataset must be an list of [X,y] tuples')
+    assert(dims[0] > 0 && dims[1] === 2 && dims[2] > 0, 'dataset must be a list of [X,y] tuples')
 
     let mu: number[] | undefined
     let sigma: number[] | undefined

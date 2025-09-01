@@ -3,7 +3,7 @@ import Joi from 'joi'
 import _ from 'lodash'
 import { ClientResponseError } from './error'
 import { HTTPCall, HTTPVerb } from './http-call'
-import { SuccessReponse, ErrorResponse } from './typings/http'
+import { SuccessResponse, ErrorResponse } from './typings/http'
 
 const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
   message: Joi.string().required().allow(''),
@@ -13,7 +13,7 @@ const ERROR_RESPONSE_SCHEMA = Joi.object().keys({
 })
 
 /** Manual validation for clean error messages */
-export const validateResponse = <S extends SuccessReponse>(
+export const validateResponse = <S extends SuccessResponse>(
   call: HTTPCall<HTTPVerb>,
   res: AxiosResponse<S | ErrorResponse>
 ): S | ErrorResponse => {
@@ -42,7 +42,7 @@ export const validateResponse = <S extends SuccessReponse>(
       throw new ClientResponseError(
         call,
         status,
-        'Received unsuccessfull HTTP response with no error. Expected response.error to be an object.'
+        'Received unsuccessful HTTP response with no error. Expected response.error to be an object.'
       )
     }
 

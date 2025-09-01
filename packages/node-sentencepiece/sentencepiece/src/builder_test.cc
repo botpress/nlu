@@ -164,7 +164,7 @@ TEST(BuilderTest, LoadCharsMapTest) {
 #endif
 }
 
-TEST(BuilderTest, LoadCharsMapWithEmptyeTest) {
+TEST(BuilderTest, LoadCharsMapWithEmptyTest) {
   test::ScopedTempFile test_tsv("test.tsv");
   test::ScopedTempFile test_out_tsv("test_out.tsv");
   {

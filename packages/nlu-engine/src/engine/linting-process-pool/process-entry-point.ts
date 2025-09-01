@@ -3,11 +3,11 @@ import { DatasetIssue, IssueCode } from '../../linting'
 import { initializeTools } from '../initialize-tools'
 import { lintingPipeline } from '../linting/linting-pipeline'
 import { ErrorHandler } from '../training-process-pool/error-handler'
-import { LintingInput, LintingOuput, LintingProgress } from './typings'
+import { LintingInput, LintingOutput, LintingProgress } from './typings'
 
 export const ENTRY_POINT = __filename
 
-const processEntryPoint = makeProcessEntryPoint<LintingInput, LintingOuput, LintingProgress>({
+const processEntryPoint = makeProcessEntryPoint<LintingInput, LintingOutput, LintingProgress>({
   errorHandler: new ErrorHandler()
 })
 
@@ -19,7 +19,7 @@ const main = async () => {
   try {
     const tools = await initializeTools(config, processEntryPoint.logger)
 
-    processEntryPoint.listenForTask(async (taskDef: TaskDefinition<LintingInput, LintingOuput, LintingProgress>) => {
+    processEntryPoint.listenForTask(async (taskDef: TaskDefinition<LintingInput, LintingOutput, LintingProgress>) => {
       const { input, progress } = taskDef
 
       tools.seededLodashProvider.setSeed(input.trainSet.seed)
@@ -50,7 +50,7 @@ const main = async () => {
     await processEntryPoint.initialize()
   } catch (thrown) {
     const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-    processEntryPoint.logger.error('An unhandled error occured in the process', err)
+    processEntryPoint.logger.error('An unhandled error occurred in the process', err)
     process.exit(1)
   }
 }

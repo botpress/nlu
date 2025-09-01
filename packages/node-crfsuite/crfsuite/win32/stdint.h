@@ -74,7 +74,7 @@
  *       include stdint.h.  The hope is that one or the other can be
  *       used with no real difference.
  *
- *    5) In the current verison, if your platform can't represent
+ *    5) In the current version, if your platform can't represent
  *       int32_t, int16_t and int8_t, it just dumps out with a compiler
  *       error.
  *
@@ -522,7 +522,7 @@
 
 /*
  *  Because this file currently only supports platforms which have
- *  precise powers of 2 as bit sizes for the default integers, the
+ *  precise powers of two as bit sizes for the default integers, the
  *  least definitions are all trivial.  Its possible that a future
  *  version of this file could have different definitions.
  */

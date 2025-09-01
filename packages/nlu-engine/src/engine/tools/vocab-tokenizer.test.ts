@@ -1,7 +1,7 @@
 import getVocabTokenizer from './vocab-tokenizer'
 
 test('vocab tokenizer should split', () => {
-  // arange
+  // arrange
   const vocab = ['shes', 'a', 'witch', 'burn', 'her']
   const sentencepieceToken = 'shesa'
   const vocabTokenizer = getVocabTokenizer(vocab)
@@ -16,7 +16,7 @@ test('vocab tokenizer should split', () => {
 })
 
 test('vocab tokenizer should split with the correct token', () => {
-  // arange
+  // arrange
   const vocab = ['she', 'shes', 'is', 's', 'a', 'sa', 'witch', 'burn', 'her']
   const sentencepieceToken = 'shesa'
   const vocabTokenizer = getVocabTokenizer(vocab)
@@ -31,7 +31,7 @@ test('vocab tokenizer should split with the correct token', () => {
 })
 
 test('vocab tokenizer should not try more than combinations of length 2', () => {
-  // arange
+  // arrange
   const vocab = ['she', 'shes', 'is', 's', 'a', 'sa', 'witch', 'burn', 'her']
   const sentencepieceToken = 'shesawitch'
   const vocabTokenizer = getVocabTokenizer(vocab)
@@ -45,7 +45,7 @@ test('vocab tokenizer should not try more than combinations of length 2', () => 
 })
 
 test('vocab tokenizer should not split', () => {
-  // arange
+  // arrange
   const vocab = ['she', 'shes', 'is', 's', 'a', 'witch', 'burn', 'her']
   const sentencepieceToken = 'arthur'
   const vocabTokenizer = getVocabTokenizer(vocab)
@@ -59,7 +59,7 @@ test('vocab tokenizer should not split', () => {
 })
 
 test('vocab tokenizer should never return empty string', () => {
-  // arange
+  // arrange
   const sentencepieceToken = 'covid'
   const vocabTokenizer = getVocabTokenizer(['covid', '$'])
 

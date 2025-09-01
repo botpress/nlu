@@ -14,7 +14,7 @@ Why did we make a complete reimplementation? What is different from previous [no
 
 1. [node-svm](https://github.com/nicolaspanel/node-svm) doesn't build for nodejs version > 10...
 
-   It's written using [Native Abstractions for Node.js (nan)](https://github.com/nodejs/nan) which is an old API for node binding developpement.
+   It's written using [Native Abstractions for Node.js (nan)](https://github.com/nodejs/nan) which is an old API for node binding development.
 
    Our binding is written using [node-addon-api (napi)](https://github.com/nodejs/node-addon-api) which is intended to insulate addons from changes in the underlying JavaScript engine…
 

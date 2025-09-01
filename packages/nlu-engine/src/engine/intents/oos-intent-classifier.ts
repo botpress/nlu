@@ -11,7 +11,7 @@ import { SPACE } from '../tools/token-utils'
 import { Intent, Tools } from '../typings'
 import Utterance, { buildUtteranceBatch } from '../utterance/utterance'
 
-import { ExactIntenClassifier } from './exact-intent-classifier'
+import { ExactIntentClassifier } from './exact-intent-classifier'
 import { NoneableIntentClassifier, NoneableIntentPredictions, NoneableIntentTrainInput } from './intent-classifier'
 import { getIntentFeatures } from './intent-featurizer'
 import { featurizeInScopeUtterances, featurizeOOSUtterances, getUtteranceFeatures } from './out-of-scope-featurizer'
@@ -25,21 +25,21 @@ type Model = {
   trainingVocab: string[]
   baseIntentClfModel: ModelOf<SvmIntentClassifier>
   oosSvmModel: ModelOf<MLToolkit.SVM.Classifier> | undefined
-  exactMatchModel: ModelOf<ExactIntenClassifier>
+  exactMatchModel: ModelOf<ExactIntentClassifier>
 }
 
 const PTBOOSIntentModel = new ptb.PTBMessage('OOSIntentModel', {
   trainingVocab: { type: 'string', id: 1, rule: 'repeated' },
   baseIntentClfModel: { type: SvmIntentClassifier.modelType, id: 2, rule: 'required' },
   oosSvmModel: { type: MLToolkit.SVM.Classifier.modelType, id: 3, rule: 'optional' },
-  exactMatchModel: { type: ExactIntenClassifier.modelType, id: 4, rule: 'required' }
+  exactMatchModel: { type: ExactIntentClassifier.modelType, id: 4, rule: 'required' }
 })
 
 type Predictors = {
   baseIntentClf: SvmIntentClassifier
   oosSvm: MLToolkit.SVM.Classifier | undefined
   trainingVocab: string[]
-  exactIntenClassifier: ExactIntenClassifier
+  exactIntentClassifier: ExactIntentClassifier
 }
 
 const MIN_NB_UTTERANCES = 3
@@ -50,9 +50,9 @@ const NONE_UTTERANCES_BOUNDS = {
 }
 
 /**
- * @description Intent classfier composed of 3 smaller components:
+ * @description Intent classifier composed of 3 smaller components:
  *  1 - an SVM intent classifier
- *  2 - an SVM to predict weither the sample is in scope or oos
+ *  2 - an SVM to predict whether the sample is in scope or oos
  *  3 - an exact-matcher to override the prediction made by the SVM when there's an exact match
  *
  * @returns A confidence level for all possible labels including none
@@ -85,25 +85,25 @@ export class OOSIntentClassifier implements NoneableIntentClassifier<typeof PTBO
 
     let ooScopeProgress = 0
     let inScopeProgress = 0
-    const reportCombinedProgres = () => {
-      const combinedProgres = (ooScopeProgress + inScopeProgress) / 2
-      progress(combinedProgres)
+    const reportCombinedProgress = () => {
+      const combinedProgress = (ooScopeProgress + inScopeProgress) / 2
+      progress(combinedProgress)
     }
 
     const [ooScopeModel, inScopeModel] = await Promise.all([
       this._trainOOScopeSvm(trainInput, noneIntent, (p: number) => {
         ooScopeProgress = p
-        reportCombinedProgres()
+        reportCombinedProgress()
       }),
       this._trainInScopeSvm(trainInput, noneIntent, (p: number) => {
         inScopeProgress = p
-        reportCombinedProgres()
+        reportCombinedProgress()
       })
     ])
 
-    const exactIntenClassifier = new ExactIntenClassifier()
+    const exactIntentClassifier = new ExactIntentClassifier()
     const dummyProgress = () => {}
-    const exactMatchModel = await exactIntenClassifier.train(trainInput, dummyProgress)
+    const exactMatchModel = await exactIntentClassifier.train(trainInput, dummyProgress)
 
     return {
       oosSvmModel: ooScopeModel,
@@ -284,8 +284,8 @@ export class OOSIntentClassifier implements NoneableIntentClassifier<typeof PTBO
     const baseIntentClf = new SvmIntentClassifier(this.tools, getIntentFeatures, this._logger)
     await baseIntentClf.load(baseIntentClfModel)
 
-    const exactIntenClassifier = new ExactIntenClassifier()
-    await exactIntenClassifier.load(exactMatchModel)
+    const exactIntentClassifier = new ExactIntentClassifier()
+    await exactIntentClassifier.load(exactMatchModel)
 
     const svm = new this.tools.mlToolkit.SVM.Classifier(this._logger)
     const oosSvm = oosSvmModel ? await this._makeSvmClf(oosSvmModel) : undefined
@@ -294,7 +294,7 @@ export class OOSIntentClassifier implements NoneableIntentClassifier<typeof PTBO
       oosSvm,
       baseIntentClf,
       trainingVocab,
-      exactIntenClassifier
+      exactIntentClassifier
     }
   }
 
@@ -309,11 +309,11 @@ export class OOSIntentClassifier implements NoneableIntentClassifier<typeof PTBO
       throw new Error(`${OOSIntentClassifier._displayName} must load model before calling predict.`)
     }
 
-    const { oosSvm, baseIntentClf, trainingVocab, exactIntenClassifier } = this.predictors
+    const { oosSvm, baseIntentClf, trainingVocab, exactIntentClassifier } = this.predictors
 
     const svmPredictions = await baseIntentClf.predict(utterance)
 
-    const exactPredictions = await exactIntenClassifier.predict(utterance)
+    const exactPredictions = await exactIntentClassifier.predict(utterance)
 
     let oosPrediction = 0
     if (oosSvm) {

@@ -60,7 +60,7 @@ const bumpVersion = (cb) => {
       {
         jump: {
           alias: 'j',
-          description: 'Weither to jump by a major, a minor or a patch',
+          description: 'Whether to jump by a major, a minor, or a patch',
           choices: ['major', 'minor', 'patch'],
           type: 'string',
           demandOption: true

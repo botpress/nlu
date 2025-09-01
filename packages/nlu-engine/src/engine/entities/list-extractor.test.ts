@@ -97,7 +97,7 @@ describe('list entity extractor', () => {
     )
   })
 
-  describe('same occurence in multiple entities extracts multiple entities', () => {
+  describe('same occurrence in multiple entities extracts multiple entities', () => {
     // arrange
     const test_entities: ListEntityModel[] = [
       ...list_entities,

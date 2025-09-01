@@ -30,14 +30,14 @@ const EXACT_MATCH_STR_OPTIONS: UtteranceToStringOptions = {
   strategy: 'replace-entity-name'
 }
 
-export class ExactIntenClassifier implements NoneableIntentClassifier<typeof PTBExactIntentModel> {
+export class ExactIntentClassifier implements NoneableIntentClassifier<typeof PTBExactIntentModel> {
   private static _displayName = 'Exact Intent Classifier'
   private static _name = 'exact-matcher'
 
   private predictors: Predictors | undefined
 
   public get name() {
-    return ExactIntenClassifier._name
+    return ExactIntentClassifier._name
   }
 
   public static get modelType() {
@@ -90,13 +90,13 @@ export class ExactIntenClassifier implements NoneableIntentClassifier<typeof PTB
       this.predictors = model
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
-      throw new ModelLoadingError(ExactIntenClassifier._displayName, err)
+      throw new ModelLoadingError(ExactIntentClassifier._displayName, err)
     }
   }
 
   public async predict(utterance: Utterance): Promise<NoneableIntentPredictions> {
     if (!this.predictors) {
-      throw new Error(`${ExactIntenClassifier._displayName} must load model before calling predict.`)
+      throw new Error(`${ExactIntentClassifier._displayName} must load model before calling predict.`)
     }
 
     const { exact_match_index, intents: intentNames } = this.predictors

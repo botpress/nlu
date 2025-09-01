@@ -30,8 +30,8 @@ export class TrainingProcessPool {
 
   public async startTraining(input: TrainInput, progress: (x: number) => void): Promise<TrainOutput> {
     try {
-      const ouput = await this._processPool.run(input.trainId, input, progress)
-      return ouput
+      const output = await this._processPool.run(input.trainId, input, progress)
+      return output
     } catch (thrown) {
       const err = thrown instanceof Error ? thrown : new Error(`${thrown}`)
       if (err instanceof errors.TaskCanceledError) {

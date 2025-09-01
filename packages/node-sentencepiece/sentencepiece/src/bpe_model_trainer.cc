@@ -90,7 +90,7 @@ void Trainer::ComputeFreq(Symbol *symbol) const {
     // remove the second one to avoid double counts.
     // If the right symbol in the first bigram and the left symbol in the
     // second bigram have the same position, (pos.left == prev_pos.right),
-    // duplicated bigram exisit.
+    // duplicated bigram exists.
     // Also, symbols_[sid][left] and symbols_[sid]right] must store
     // the same symbols in symbol->left and symbols->right.
     if ((pos.sid == prev_pos.sid && pos.left == prev_pos.right) ||
@@ -215,8 +215,8 @@ util::Status Trainer::Train() {
   // Main loop.
   CHECK_OR_RETURN(final_pieces_.empty());
   while (final_pieces_.size() < static_cast<size_t>(vocab_size)) {
-    constexpr int kUpdateActiveSymbolsInteval = 100;
-    if (final_pieces_.size() % kUpdateActiveSymbolsInteval == 0) {
+    constexpr int kUpdateActiveSymbolsInterval = 100;
+    if (final_pieces_.size() % kUpdateActiveSymbolsInterval == 0) {
       UpdateActiveSymbols();
     }
 
@@ -268,7 +268,7 @@ util::Status Trainer::Train() {
       const Position pos = DecodePos(encoded_pos);
 
       if (symbols_[pos.sid][pos.left] == nullptr) {
-        // left index might be NULL (set in the privous iteration)
+        // left index might be NULL (set in the previous iteration)
         // when left_symbol == right_symbol.
         continue;
       }

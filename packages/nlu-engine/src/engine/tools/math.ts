@@ -17,8 +17,8 @@ export function euclideanDistanceSquared(a: number[], b: number[]): number {
 }
 
 /**
- * Vectorial distance between two N-dimentional points
- * a[] and b[] must be of same dimention
+ * Vectorial distance between two N-dimensional points
+ * a[] and b[] must be of same dimension
  */
 export function euclideanDistance(a: number[], b: number[]): number {
   return Math.sqrt(euclideanDistanceSquared(a, b))
@@ -75,7 +75,7 @@ export function zeroes(len: number): number[] {
 }
 
 /**
- * @param quantile number of discret categories ex: 4 == quartile
+ * @param quantile number of discrete categories ex: 4 == quartile
  * @param target value to classify
  * @param upperBound maximum value the target can take
  * @param lowerBound minimum value the target can take

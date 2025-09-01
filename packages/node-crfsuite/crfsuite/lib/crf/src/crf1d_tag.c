@@ -81,7 +81,7 @@ static void crf1dt_state_score(crf1dt_t *crf1dt, const crfsuite_instance_t *inst
             /* Access the list of state features associated with the attribute. */
             a = item->contents[i].aid;
             crf1dm_get_attrref(model, a, &attr);
-            /* A scale usually represents the atrribute frequency in the item. */
+            /* A scale usually represents the attribute frequency in the item. */
             value = item->contents[i].value;
 
             /* Loop over the state features associated with the attribute. */

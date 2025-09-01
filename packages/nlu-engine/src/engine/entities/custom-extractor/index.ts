@@ -70,7 +70,7 @@ export class CustomEntityExtractor {
   }
 
   private _extractMultipleListEntities(utterance: Utterance, list_entities: WarmedListEntityModel[]) {
-    // no need to "keep-value" of entities as this function's purpose is precisly to extract entities before tagging them in the utterance.
+    // no need to "keep-value" of entities as this function's purpose is precisely to extract entities before tagging them in the utterance.
     const cacheKey = utterance.toString({ lowerCase: true })
     const { withCacheHit, withCacheMiss } = this._splitModelsByCacheHitOrMiss(list_entities, cacheKey)
 

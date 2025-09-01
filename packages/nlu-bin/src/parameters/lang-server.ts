@@ -63,7 +63,7 @@ export const parameters = asYargs({
     choices: logLevelChoices
   },
   logFormat: {
-    description: 'Weither to log using JSON or good old fashion formatted text with colors.',
+    description: 'Whether to log using JSON or good old fashion formatted text with colors.',
     choices: logFormatChoices
   },
   debugFilter: {

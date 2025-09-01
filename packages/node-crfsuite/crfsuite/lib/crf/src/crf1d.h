@@ -111,14 +111,14 @@ typedef struct {
     /**
      * Alpha score matrix.
      *  This is a [T][L] matrix whose element [t][l] presents the total
-     *  score of paths starting at BOS and arraiving at (t, l).
+     *  score of paths starting at BOS and arriving at (t, l).
      */
     floatval_t *alpha_score;
 
     /**
      * Beta score matrix.
      *  This is a [T][L] matrix whose element [t][l] presents the total
-     *  score of paths starting at (t, l) and arraiving at EOS.
+     *  score of paths starting at (t, l) and arriving at EOS.
      */
     floatval_t *beta_score;
 

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { NoneableIntentPredictions } from './intent-classifier'
-import { OOSIntentClassifier } from './oos-intent-classfier'
+import { OOSIntentClassifier } from './oos-intent-classifier'
 
 test('remove none intent', () => {
   // arrange
@@ -25,7 +25,7 @@ test('remove none intent', () => {
   expect(withoutNone.intents.some((i) => i.name === 'none')).toBe(false)
 })
 
-test('ajdust to 100', () => {
+test('adjust to 100', () => {
   // arrange
   const nlu: NoneableIntentPredictions = {
     oos: 0.99,
